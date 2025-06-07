@@ -61,21 +61,39 @@ void RecvCallback(data_packet_t data)
     {
         case 0x123:{
             uint32_t uint_data = *(uint32_t *)(data.payload);
+            if (uint_data % 5 != 0) break;
+            
             ESP_LOGI(TAG, "[%04x] %lu", data.can_id, uint_data);
             // Configure message to transmit
             twai_message_t message = {
-                .flags = 0,
-                // Message ID and payload
-                .identifier = 0xAAAA,
+                .identifier = 0x123,
                 .data_length_code = data.payload_len,
-                .data = *data.payload,
             };
 
+            memcpy(message.data, data.payload, data.payload_len);
+
+            twai_status_info_t status_info;
+            if (twai_get_status_info(&status_info) == ESP_OK) {
+                ESP_LOGI(TAG, "TWAI Status: state=%d, msgs_to_tx=%ld, msgs_to_rx=%ld, tx_err_cnt=%ld, rx_err_cnt=%ld, arb_lost_cnt=%ld, bus_err_cnt=%ld",
+                        status_info.state,
+                        status_info.msgs_to_tx,
+                        status_info.msgs_to_rx,
+                        status_info.tx_error_counter,
+                        status_info.rx_error_counter,
+                        status_info.arb_lost_count,
+                        status_info.bus_error_count);
+                if (status_info.state == TWAI_STATE_BUS_OFF) {
+                    ESP_LOGE(TAG, "TWAI controller is BUS OFF. Attempting recovery...");
+                    twai_initiate_recovery(); // Or twai_start() again after twai_stop() depending on recovery strategy
+                }
+            }
+
             // Queue message for transmission
-            if (twai_transmit(&message, pdMS_TO_TICKS(1000)) == ESP_OK) {
+            esp_err_t err = twai_transmit(&message, pdMS_TO_TICKS(1000));
+            if (err == ESP_OK) {
                 ESP_LOGI(TAG, "Message queued for transmission\n");
             } else {
-                ESP_LOGE(TAG, "Failed to queue message for transmission\n");
+                ESP_LOGE(TAG, "Failed to queue message for transmission: %s\n", esp_err_to_name(err));
             }
             break;
         }
@@ -103,8 +121,8 @@ static void WiFiInit(void)
 
 static void CanInit(){
     static const char *TAG = "CAN";
-    twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(GPIO_NUM_21, GPIO_NUM_22, TWAI_MODE_NORMAL);
-    twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
+    twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(GPIO_NUM_22, GPIO_NUM_21, TWAI_MODE_NO_ACK);
+    twai_timing_config_t t_config = TWAI_TIMING_CONFIG_25KBITS();
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
     // Install TWAI driver
