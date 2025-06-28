@@ -1,11 +1,12 @@
 #include <stdio.h>
 
+#include "string.h"
 #include "esp_log.h"
 
 #include "car.h"
 #include "wcan_communication.h"
 
-static void CanInit(){
+void CanInit(){
     static const char *TAG = "CAN";
     esp_log_level_set(TAG, ESP_LOG_WARN);
 
@@ -42,7 +43,7 @@ void RecvCallback(data_packet_t data)
         }
         default:{
             ESP_LOGE(TAG, "[%04x] Unknown", data.can_id);
-            PrintCharPacket(data.payload, data.payload_len);
+            //PrintCharPacket(data.payload, data.payload_len);
             break;
         }
     }
@@ -52,6 +53,8 @@ void RecvCallback(data_packet_t data)
         .data_length_code = data.payload_len,
     };
     memcpy(message.data, data.payload, data.payload_len);
+
+    return;
 
     esp_err_t err = twai_transmit(&message, pdMS_TO_TICKS(1000));
     if (err == ESP_OK) {

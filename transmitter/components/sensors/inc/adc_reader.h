@@ -2,8 +2,8 @@
 #define ADC_READER_H
 
 #include "esp_err.h"
-#include "driver/adc.h"
 #include "freertos/queue.h"
+#include "esp_adc/adc_oneshot.h"
 
 #include "wcan_communication.h" 
 

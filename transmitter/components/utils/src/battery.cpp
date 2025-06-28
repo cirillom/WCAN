@@ -63,16 +63,6 @@ void battery_t::initialize_adc() {
     };
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle_, adc_channel_, &config));
 
-    //-------------ADC Calibration Init---------------//
-    adc_cali_line_fitting_config_t cali_config = {
-        .unit_id = ADC_UNIT_1,
-        .atten = ADC_ATTEN_DB_12,
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-    };
-    esp_err_t ret = adc_cali_create_scheme_line_fitting(&cali_config, &adc_cali_handle_);
-    if (ret != ESP_OK) {
-        ESP_LOGW(TAG, "ADC Calibration scheme creation failed. Voltage readings may be inaccurate.");
-    }
 }
 
 esp_err_t battery_t::get_voltage_mv(int* out_voltage_mv) {

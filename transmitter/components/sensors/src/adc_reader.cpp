@@ -4,7 +4,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
-#include "esp_adc/adc_oneshot.h"
 
 #include "wcan_communication.h"
 #include "adc_reader.h"
@@ -14,39 +13,12 @@ static const char *TAG = "ADC_READER";
 // ADC handle, shared across all reader tasks.
 static adc_oneshot_unit_handle_t adc1_handle = NULL;
 
-// Mutex to ensure the ADC unit is initialized only once, making it thread-safe.
-static portMUX_TYPE adc_init_mux = portMUX_INITIALIZER_UNLOCKED;
-
 // Structure to pass parameters to each new task.
 typedef struct {
     adc_channel_t channel;
     uint32_t can_id;
     uint32_t delay_ms;
 } adc_reader_task_params_t;
-
-
-static esp_err_t initialize_adc_unit_once(void) {
-    taskENTER_CRITICAL(&adc_init_mux);
-    // Double-check inside the critical section
-    if (adc1_handle != NULL) {
-        taskEXIT_CRITICAL(&adc_init_mux);
-        return ESP_OK;
-    }
-    
-    adc_oneshot_unit_init_cfg_t init_config1 = {
-        .unit_id = ADC_UNIT_1,
-        .ulp_mode = ADC_ULP_MODE_DISABLE,
-    };
-    esp_err_t ret = adc_oneshot_new_unit(&init_config1, &adc1_handle);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "ADC one-shot unit initialization failed: %s", esp_err_to_name(ret));
-    } else {
-        ESP_LOGI(TAG, "ADC one-shot unit initialized successfully.");
-    }
-    
-    taskEXIT_CRITICAL(&adc_init_mux);
-    return ret;
-}
 
 static void adc_reader_task(void *pvParameter) {
     // Retrieve task parameters and then free the allocated memory
@@ -95,8 +67,15 @@ static void adc_reader_task(void *pvParameter) {
 
 
 esp_err_t adc_reader_start_task(adc_channel_t channel, uint32_t can_id, uint32_t frequency_hz) {
-    esp_err_t ret = initialize_adc_unit_once();
+    ESP_LOGI(TAG, "Starting ADC reader task for channel %d, CAN ID 0x%04lX, Frequency %ldHz", channel, can_id, frequency_hz);
+
+    adc_oneshot_unit_init_cfg_t init_config1 = {
+        .unit_id = ADC_UNIT_1,
+        .ulp_mode = ADC_ULP_MODE_DISABLE, // ULP mode is not used here
+    };
+    esp_err_t ret = adc_oneshot_new_unit(&init_config1, &adc1_handle);
     if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "ADC unit initialization failed: %s", esp_err_to_name(ret));
         return ret;
     }
 
@@ -104,13 +83,14 @@ esp_err_t adc_reader_start_task(adc_channel_t channel, uint32_t can_id, uint32_t
         .atten = ADC_ATTEN_DB_12,
         .bitwidth = ADC_BITWIDTH_DEFAULT,
     };
+
     ret = adc_oneshot_config_channel(adc1_handle, channel, &config);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "ADC channel %d config failed: %s", channel, esp_err_to_name(ret));
         return ret;
     }
 
-    adc_reader_task_params_t *task_params = malloc(sizeof(adc_reader_task_params_t));
+    adc_reader_task_params_t *task_params = (adc_reader_task_params_t*)malloc(sizeof(adc_reader_task_params_t));
     if (task_params == NULL) {
         ESP_LOGE(TAG, "Failed to allocate memory for task parameters");
         return ESP_ERR_NO_MEM;

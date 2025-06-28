@@ -2,10 +2,7 @@
 #define __CAR_H__
 
 #include "driver/twai.h"
-
-//#include "wcan_communication.h"
-
-uint16_t car_allowed_recv_ids[16] = {0x550, 0x551, 0x552, 0x553, 0x554, 0x555, 0x556, 0x557, 0x558, 0x559, 0x55A, 0x55B, 0x55C, 0x55D, 0x55E, 0x55F};
+#include "wcan_communication.h"
 
 void CanInit();
 void RecvCallback(data_packet_t data);
