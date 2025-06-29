@@ -47,7 +47,7 @@ extern "C" void app_main(void){
     ESP_ERROR_CHECK(ret);
 
     //mac for the car board
-    char *car_MAC = "f0:f5:bd:2c:19:40";
+    char *car_MAC = "34:5f:45:ab:82:0c";
     char *strain_gauge_FL_MAC = "f0:f5:bd:2c:16:b8";
     char *strain_gauge_FR_MAC = "00:00:00:00:00:02";
     char *strain_gauge_RL_MAC = "00:00:00:00:00:03";

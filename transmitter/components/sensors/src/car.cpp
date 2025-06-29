@@ -41,6 +41,11 @@ void RecvCallback(data_packet_t data)
             ESP_LOGI(TAG, "Strain Gauge [%04x]: %lu", data.can_id, uint_data);
             break;
         }
+        case 0x55a:{
+            uint32_t uint_data = *(uint32_t *)(data.payload);
+            ESP_LOGI(TAG, "External Beacon [%04x]: %lu", data.can_id, uint_data);
+            break;
+        }
         default:{
             ESP_LOGE(TAG, "[%04x] Unknown", data.can_id);
             //PrintCharPacket(data.payload, data.payload_len);
@@ -54,13 +59,11 @@ void RecvCallback(data_packet_t data)
     };
     memcpy(message.data, data.payload, data.payload_len);
 
-    return;
-
     esp_err_t err = twai_transmit(&message, pdMS_TO_TICKS(1000));
     if (err == ESP_OK) {
-        ESP_LOGI(TAG, "Message queued for transmission\n");
+        ESP_LOGI(TAG, "Message queued for transmission");
     } else {
-        ESP_LOGE(TAG, "Failed to queue message for transmission: %s\n", esp_err_to_name(err));
+        ESP_LOGE(TAG, "Failed to queue message for transmission: %s", esp_err_to_name(err));
         twai_stop();
         twai_start();
     }
