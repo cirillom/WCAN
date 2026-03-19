@@ -3,10 +3,11 @@
 #include "string.h"
 #include "esp_log.h"
 
-#include "car.h"
-#include "wcan_communication.h"
+#include "can.h"
+#include "wcan.h"
 
-void CanInit(){
+void CanInit()
+{
     static const char *TAG = "CAN";
     esp_log_level_set(TAG, ESP_LOG_WARN);
 
@@ -15,17 +16,23 @@ void CanInit(){
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
     // Install TWAI driver
-    if (twai_driver_install(&g_config, &t_config, &f_config) == ESP_OK) {
+    if (twai_driver_install(&g_config, &t_config, &f_config) == ESP_OK)
+    {
         ESP_LOGI(TAG, "Driver installed\n");
-    } else {
+    }
+    else
+    {
         ESP_LOGE(TAG, "Failed to install driver\n");
         return;
     }
 
     // Start TWAI driver
-    if (twai_start() == ESP_OK) {
+    if (twai_start() == ESP_OK)
+    {
         ESP_LOGI(TAG, "Driver started\n");
-    } else {
+    }
+    else
+    {
         ESP_LOGE(TAG, "Failed to start driver\n");
         return;
     }
@@ -36,21 +43,24 @@ void RecvCallback(data_packet_t data)
     static const char *TAG = "USER-RECV";
     switch (data.can_id)
     {
-        case 0x551:{
-            uint32_t uint_data = *(uint32_t *)(data.payload);
-            ESP_LOGI(TAG, "Strain Gauge [%04x]: %lu", data.can_id, uint_data);
-            break;
-        }
-        case 0x55a:{
-            uint32_t uint_data = *(uint32_t *)(data.payload);
-            ESP_LOGI(TAG, "External Beacon [%04x]: %lu", data.can_id, uint_data);
-            break;
-        }
-        default:{
-            ESP_LOGE(TAG, "[%04x] Unknown", data.can_id);
-            //PrintCharPacket(data.payload, data.payload_len);
-            break;
-        }
+    case 0x551:
+    {
+        uint32_t uint_data = *(uint32_t *)(data.payload);
+        ESP_LOGI(TAG, "Strain Gauge [%04x]: %lu", data.can_id, uint_data);
+        break;
+    }
+    case 0x55a:
+    {
+        uint32_t uint_data = *(uint32_t *)(data.payload);
+        ESP_LOGI(TAG, "External Beacon [%04x]: %lu", data.can_id, uint_data);
+        break;
+    }
+    default:
+    {
+        ESP_LOGE(TAG, "[%04x] Unknown", data.can_id);
+        //PrintCharPacket(data.payload, data.payload_len);
+        break;
+    }
     }
 
     twai_message_t message = {
@@ -60,9 +70,12 @@ void RecvCallback(data_packet_t data)
     memcpy(message.data, data.payload, data.payload_len);
 
     esp_err_t err = twai_transmit(&message, pdMS_TO_TICKS(1000));
-    if (err == ESP_OK) {
+    if (err == ESP_OK)
+    {
         ESP_LOGI(TAG, "Message queued for transmission");
-    } else {
+    }
+    else
+    {
         ESP_LOGE(TAG, "Failed to queue message for transmission: %s", esp_err_to_name(err));
         twai_stop();
         twai_start();

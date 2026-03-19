@@ -1,7 +1,7 @@
 #ifndef __WCAN_UTILS_H__
 #define __WCAN_UTILS_H__
 
-#include "wcan_communication.h"
+#include "wcan.h"
 
 esp_now_packet_t *EncodeDataPacket(const data_packet_t *data_packet);
 
