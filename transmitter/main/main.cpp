@@ -45,6 +45,8 @@ static void ReadDataTask(void *pvParameter)
     {
         data_packet_t send_data;
         send_data.can_id = 0x100;
+        send_data.tick_count = xTaskGetTickCount();
+        send_data.data_count = 1;
         send_data.payload_len = sizeof(counter);
         send_data.payload = (uint8_t *)malloc(send_data.payload_len);
 
@@ -87,8 +89,8 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     // #region Development, instead of making a build for sensor and receiver, just separate the software flow using MAC
-    char *receiver = "34:5f:45:ab:82:0c";
-    char *sensor = "f0:f5:bd:2c:16:b8";
+    char *receiver = "54:32:04:8c:0b:8c";
+    char *sensor = "74:4d:bd:e1:d5:b8";
 
     uint8_t mac[6];
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
@@ -100,24 +102,23 @@ extern "C" void app_main(void)
 
     WiFiInit();
     ESP_LOGI(TAG, "WiFi initialized");
-    uint16_t allowed_ids[] = {};
-    size_t allowed_ids_size = 0;
 
     if (strcmp(mac_str, receiver) == 0)
     {
         ESP_LOGI(TAG, "This is the receiver");
 
-        CanInit();
-        size_t car_allowed_recv_ids_size = 16;
-        static uint16_t car_allowed_recv_ids[] = {
-            0x550, 0x551, 0x552, 0x553, 0x554, 0x555, 0x556, 0x557,
-            0x558, 0x559, 0x55A, 0x55B, 0x55C, 0x55D, 0x55E, 0x55F};
+        CanInit(GPIO_NUM_1, GPIO_NUM_4);
 
+        size_t car_allowed_recv_ids_size = 1;
+        static uint16_t car_allowed_recv_ids[] = {0x100};
         WCAN_Init(true, car_allowed_recv_ids, car_allowed_recv_ids_size);
     }
     else if (strcmp(mac_str, sensor) == 0)
     {
         ESP_LOGI(TAG, "This is the sensor");
+
+        uint16_t allowed_ids[] = {};
+        size_t allowed_ids_size = 0;
         WCAN_Init(false, allowed_ids, allowed_ids_size);
 
         xTaskCreate(ReadDataTask, "ReadDataTask", 4096, NULL, 5, NULL);
@@ -129,5 +130,3 @@ extern "C" void app_main(void)
         return;
     }
 }
-
-// read data task, just a place holder for a generic task that will increment a number one by one and then send it, this will be used to check data transmmission

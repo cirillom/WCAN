@@ -29,7 +29,7 @@ void RecvProcessingTask(void *pvParameter)
     {
         if (xQueueReceive(recv_queue, &recv_data_packet, portMAX_DELAY) == pdTRUE)
         {
-            ESP_LOGV(TAG, "Processing data with id: %04x", recv_data_packet.can_id);
+            ESP_LOGV(TAG, "Processing data with id: %08lx", (unsigned long)recv_data_packet.can_id);
             AckSend(recv_data_packet);
             if (RecvCallback)
             {
@@ -59,13 +59,14 @@ void AckSend(const data_packet_t recv_packet)
 {
     static const char *TAG = "ACK";
 
-    ESP_LOGV(TAG, "Acknowledging that received ID: %04X from %02X:%02X:%02X:%02X:%02X:%02X",
-             recv_packet.can_id, recv_packet.mac_addr[0], recv_packet.mac_addr[1], recv_packet.mac_addr[2],
+    ESP_LOGD(TAG, "Acknowledging that received ID: %08lx from %02X:%02X:%02X:%02X:%02X:%02X",
+             (unsigned long)recv_packet.can_id, recv_packet.mac_addr[0], recv_packet.mac_addr[1], recv_packet.mac_addr[2],
              recv_packet.mac_addr[3], recv_packet.mac_addr[4], recv_packet.mac_addr[5]);
 
     data_packet_t ack_data;
     memcpy(ack_data.mac_addr, recv_packet.mac_addr, ESP_NOW_ETH_ALEN);
-    ack_data.can_id = ACK_ID;
+    ack_data.can_id = CAN_ACK;
+    ack_data.tick_count = recv_packet.tick_count;
     ack_data.payload = (uint8_t *)malloc(sizeof(uint16_t));
     ESP_LOGV(TAG, "ack_data.payload: %p\n", (void *)ack_data.payload);
     if (ack_data.payload == NULL)
@@ -86,7 +87,7 @@ void FilterData(data_packet_t data)
 {
     static const char *TAG = "FILTER";
 
-    ESP_LOGV(TAG, "Received data with id: %04x", data.can_id);
+    ESP_LOGV(TAG, "Received data with id: %08lx", (unsigned long)data.can_id);
     if (recv_filter)
     {
         bool found = false;
@@ -100,7 +101,7 @@ void FilterData(data_packet_t data)
         }
         if (!found)
         {
-            ESP_LOGV(TAG, "Filtered out data with id: %04x", data.can_id);
+            ESP_LOGV(TAG, "Filtered out data with id: %08lx", (unsigned long)data.can_id);
 
             if (data.payload != NULL)
             {

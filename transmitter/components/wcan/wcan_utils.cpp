@@ -44,7 +44,8 @@ esp_now_packet_t *EncodeDataPacket(const data_packet_t *data_packet){
         ESP_LOGE(TAG, "Malloc esp now packet fail");
         return NULL;
     } 
-    esp_now_packet->data_len = sizeof(data_packet->can_id) + data_packet->payload_len;
+    size_t header_len = sizeof(data_packet->can_id) + sizeof(data_packet->tick_count);
+    esp_now_packet->data_len = header_len + data_packet->payload_len;
     esp_now_packet->data = (uint8_t *)malloc(esp_now_packet->data_len);
     ESP_LOGV(TAG, "esp_now_packet->data: %p\n", (void*)esp_now_packet->data);
     if (esp_now_packet->data == NULL) {
@@ -53,9 +54,12 @@ esp_now_packet_t *EncodeDataPacket(const data_packet_t *data_packet){
         esp_now_packet = NULL;
         return NULL;
     }
-    size_t can_id_len = sizeof(data_packet->can_id);
-    memcpy(esp_now_packet->data, &data_packet->can_id, can_id_len);
-    memcpy(esp_now_packet->data + can_id_len, data_packet->payload, data_packet->payload_len);
+    size_t offset = 0;
+    memcpy(esp_now_packet->data + offset, &data_packet->can_id, sizeof(data_packet->can_id));
+    offset += sizeof(data_packet->can_id);
+    memcpy(esp_now_packet->data + offset, &data_packet->tick_count, sizeof(data_packet->tick_count));
+    offset += sizeof(data_packet->tick_count);
+    memcpy(esp_now_packet->data + offset, data_packet->payload, data_packet->payload_len);
     return esp_now_packet;
 }
 
@@ -68,8 +72,13 @@ data_packet_t *DecodeDataPacket(const esp_now_packet_t *esp_now_packet){
         return NULL;
     }
     memcpy(data_packet->mac_addr, esp_now_packet->mac_addr, ESP_NOW_ETH_ALEN);
-    data_packet->can_id = *(uint16_t *)(esp_now_packet->data);
-    data_packet->payload_len = esp_now_packet->data_len - sizeof(data_packet->can_id);
+    size_t header_len = sizeof(data_packet->can_id) + sizeof(data_packet->tick_count);
+    size_t offset = 0;
+    memcpy(&data_packet->can_id, esp_now_packet->data + offset, sizeof(data_packet->can_id));
+    offset += sizeof(data_packet->can_id);
+    memcpy(&data_packet->tick_count, esp_now_packet->data + offset, sizeof(data_packet->tick_count));
+    offset += sizeof(data_packet->tick_count);
+    data_packet->payload_len = esp_now_packet->data_len - header_len;
     data_packet->payload = (uint8_t *)malloc(data_packet->payload_len);
     ESP_LOGV(TAG, "data_packet->payload: %p\n", (void*)data_packet->payload);
     if (data_packet->payload == NULL) {
@@ -78,7 +87,7 @@ data_packet_t *DecodeDataPacket(const esp_now_packet_t *esp_now_packet){
         data_packet = NULL;
         return NULL;
     }
-    memcpy(data_packet->payload, esp_now_packet->data + sizeof(data_packet->can_id), data_packet->payload_len);
+    memcpy(data_packet->payload, esp_now_packet->data + offset, data_packet->payload_len);
     return data_packet;
 }
 

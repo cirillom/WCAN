@@ -18,8 +18,8 @@
 typedef struct
 {
   uint8_t mac_addr[ESP_NOW_ETH_ALEN];
-  uint16_t can_id;
-  uint8_t attempt_number;
+  uint32_t can_id;
+  TickType_t tick_count;
   uint8_t data_count;
   uint8_t *payload;
   uint8_t payload_len;
@@ -32,7 +32,7 @@ typedef struct
   int data_len;
 } esp_now_packet_t;
 
-extern const uint16_t ACK_ID;
+#define CAN_ACK 0xE0000000
 extern bool recv_filter;
 extern uint16_t *recv_allowed_ids;
 extern size_t recv_allowed_ids_size;

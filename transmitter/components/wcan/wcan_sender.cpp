@@ -35,7 +35,6 @@ void SendProcessingTask(void *pvParameter)
         ESP_LOGE(TAG, "Failed to create send semaphore");
         vTaskDelete(NULL);
     }
-    xSemaphoreGive(send_semaphore);
 
     ESP_LOGI(TAG, "Send processing task started");
 
@@ -44,7 +43,7 @@ void SendProcessingTask(void *pvParameter)
     {
         if (xQueueReceive(send_queue, &send_data, portMAX_DELAY) == pdTRUE)
         {
-            ESP_LOGV(TAG, "Processing data with id: %04x", send_data.can_id);
+            ESP_LOGV(TAG, "Processing data with id: %08lx", (unsigned long)send_data.can_id);
 
             resend_ctx.data_packet = (data_packet_t *)malloc(sizeof(data_packet_t));
             ESP_LOGV(TAG, "resend_ctx.data_packet: %p\n", (void *)resend_ctx.data_packet);
@@ -53,7 +52,7 @@ void SendProcessingTask(void *pvParameter)
                 ESP_LOGE(TAG, "Malloc for current send packet fail");
                 free(send_data.payload);
                 xSemaphoreGive(send_semaphore);
-                break;
+                continue;
             }
             memcpy(resend_ctx.data_packet, &send_data, sizeof(data_packet_t));
 
@@ -79,7 +78,7 @@ void SendData(const uint8_t *mac_addr, const data_packet_t data_packet)
     PrintCharPacket(esp_now_packet->data, esp_now_packet->data_len);
 
     ESP_ERROR_CHECK(esp_now_send(esp_now_packet->mac_addr, esp_now_packet->data, esp_now_packet->data_len));
-    ESP_LOGD(TAG, "[%04x] broadcasted", data_packet.can_id);
+    ESP_LOGD(TAG, "[%08lx] broadcasted", (unsigned long)data_packet.can_id);
     //free packet
     if (esp_now_packet->data != NULL)
     {
@@ -148,8 +147,8 @@ void ResendData(TimerHandle_t xTimer)
 
     if (resend_ctx.retry_count < WCAN_MAX_RETRY_COUNT)
     {
-        ESP_LOGW(TAG, "Timeout reached, resending %04x... Attempt: %d of %d",
-                 resend_ctx.data_packet->can_id, resend_ctx.retry_count + 1, WCAN_MAX_RETRY_COUNT);
+        ESP_LOGW(TAG, "Timeout reached, resending %08lx... Attempt: %d of %d",
+                 (unsigned long)resend_ctx.data_packet->can_id, resend_ctx.retry_count + 1, WCAN_MAX_RETRY_COUNT);
 
         SendData(BROADCAST_MAC, *resend_ctx.data_packet);
         resend_ctx.retry_count++;
@@ -165,10 +164,17 @@ void ResendData(TimerHandle_t xTimer)
     }
 }
 
-void AckRecv()
+void AckRecv(data_packet_t recv_data)
 {
     static const char *TAG = "ACK";
-    ESP_LOGI(TAG, "Acknowledged data received");
+
+    //we use tick_count to identify the data packet, multiple receivers may be sending ACKs
+    if (recv_data.tick_count != resend_ctx.data_packet->tick_count)
+    {
+        ESP_LOGW(TAG, "ACK tick count does not match");
+        return;
+    }
+
     if (uxSemaphoreGetCount(send_semaphore) == 0)
     {
         xSemaphoreGive(send_semaphore);

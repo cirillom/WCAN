@@ -14,7 +14,6 @@
 #include "wcan_sender.h"
 #include "wcan_receiver.h"
 
-const uint16_t ACK_ID = 0xF800;
 bool recv_filter = false;
 uint16_t *recv_allowed_ids = NULL;
 size_t recv_allowed_ids_size = 0;
@@ -34,7 +33,7 @@ static void ESPNOW_SendCallback(const uint8_t *mac_addr, esp_now_send_status_t s
     }
     else
     {
-        ESP_LOGI(TAG, "Success");
+        ESP_LOGD(TAG, "Success");
     }
 }
 
@@ -68,7 +67,7 @@ static void ESPNOW_RecvCallback(const esp_now_recv_info_t *recv_info, const uint
     memcpy(recv_packet->data, data, data_len);
     recv_packet->data_len = data_len;
 
-    ESP_LOGI(TAG, "Received payload of size %d from %02x:%02x:%02x:%02x:%02x:%02x",
+    ESP_LOGD(TAG, "Received payload of size %d from %02x:%02x:%02x:%02x:%02x:%02x",
              data_len, mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
     PrintCharPacket(recv_packet->data, data_len);
 
@@ -78,9 +77,10 @@ static void ESPNOW_RecvCallback(const esp_now_recv_info_t *recv_info, const uint
     free(recv_packet);
     recv_packet = NULL;
 
-    if (recv_data->can_id == ACK_ID)
+    ESP_LOGD(TAG, "Received data with id: %08lx", (unsigned long)recv_data->can_id);
+    if (recv_data->can_id == CAN_ACK) // CAN EXT ID uses 29 bits, we use the last 3 bits to identify if the message is an ACK
     {
-        AckRecv();
+        AckRecv(*recv_data);
         if (recv_data->payload != NULL)
         {
             free(recv_data->payload);

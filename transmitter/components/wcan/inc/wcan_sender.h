@@ -15,7 +15,7 @@ typedef struct
 } resend_t;
 
 void SendProcessingTask(void *pvParameter);
-void AckRecv();
+void AckRecv(data_packet_t data);
 void SendData(const uint8_t *mac_addr, const data_packet_t data_packet);
 
 #endif
