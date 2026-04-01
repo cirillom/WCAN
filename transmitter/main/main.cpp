@@ -76,6 +76,31 @@ static void ReadDataTask(void *pvParameter)
     vTaskDelete(NULL);
 }
 
+void RecvCallback(data_packet_t data)
+{
+    static const char *TAG = "USER-RECV";
+    switch (data.can_id)
+    {
+    case 0x100:
+    {
+        uint32_t uint_data = *(uint32_t *)(data.payload);
+        ESP_LOGI(TAG, "Counter [%08lx]: %lu", (unsigned long)data.can_id, uint_data);
+        break;
+    }
+    default:
+    {
+        ESP_LOGE(TAG, "[%08lx] Unknown", (unsigned long)data.can_id);
+        break;
+    }
+    }
+
+    esp_err_t tx_err = CanSend((uint32_t)data.can_id, data.payload_len, data.payload);
+    if (tx_err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "CAN forward failed for ID [%08lx]: %s", (unsigned long)data.can_id, esp_err_to_name(tx_err));
+    }
+}
+
 extern "C" void app_main(void)
 {
     static const char *TAG = "MAIN";
@@ -89,8 +114,11 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     // #region Development, instead of making a build for sensor and receiver, just separate the software flow using MAC
-    char *receiver = "54:32:04:8c:0b:8c";
-    char *sensor = "74:4d:bd:e1:d5:b8";
+    char *daq = "54:32:04:8c:0b:8c";
+    char *receiver_0 = "74:4d:bd:e1:d5:b8";
+    char *receiver_1 = "";
+    char *sensor_0 = "";
+    char *sensor_1 = "";
 
     uint8_t mac[6];
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
@@ -103,7 +131,27 @@ extern "C" void app_main(void)
     WiFiInit();
     ESP_LOGI(TAG, "WiFi initialized");
 
-    if (strcmp(mac_str, receiver) == 0)
+    if (strcmp(mac_str, daq) == 0)
+    {
+        ESP_LOGI(TAG, "This is the daq");
+        CanInit(GPIO_NUM_5, GPIO_NUM_7);
+        xTaskCreate(CanReceiveTask, "CanReceiveTask", 4096, NULL, 5, NULL);
+    }
+    else if (strcmp(mac_str, receiver_0) == 0)
+    {
+        ESP_LOGI(TAG, "This is the receiver");
+
+        CanInit(GPIO_NUM_5, GPIO_NUM_7);
+
+        xTaskCreate(CanTxTestTask, "CanTestTask", 4096, NULL, 5, NULL);
+
+        /*
+        size_t car_allowed_recv_ids_size = 1;
+        static uint16_t car_allowed_recv_ids[] = {0x100};
+        WCAN_Init(true, car_allowed_recv_ids, car_allowed_recv_ids_size);
+        */
+    }
+    else if (strcmp(mac_str, receiver_1) == 0)
     {
         ESP_LOGI(TAG, "This is the receiver");
 
@@ -113,7 +161,17 @@ extern "C" void app_main(void)
         static uint16_t car_allowed_recv_ids[] = {0x100};
         WCAN_Init(true, car_allowed_recv_ids, car_allowed_recv_ids_size);
     }
-    else if (strcmp(mac_str, sensor) == 0)
+    else if (strcmp(mac_str, sensor_0) == 0)
+    {
+        ESP_LOGI(TAG, "This is the sensor");
+
+        uint16_t allowed_ids[] = {};
+        size_t allowed_ids_size = 0;
+        WCAN_Init(false, allowed_ids, allowed_ids_size);
+
+        xTaskCreate(ReadDataTask, "ReadDataTask", 4096, NULL, 5, NULL);
+    }
+    else if (strcmp(mac_str, sensor_1) == 0)
     {
         ESP_LOGI(TAG, "This is the sensor");
 
