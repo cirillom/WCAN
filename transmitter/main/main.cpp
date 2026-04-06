@@ -37,14 +37,15 @@ static void WiFiInit(void)
 static void ReadDataTask(void *pvParameter)
 {
     static const char *TAG = "ReadDataTask";
+    uint32_t can_id = (uint32_t)(uintptr_t)pvParameter;
     uint32_t counter = 0;
 
-    ESP_LOGI(TAG, "ReadDataTask started");
+    ESP_LOGI(TAG, "ReadDataTask started with CAN ID 0x%lx", (unsigned long)can_id);
 
     while (1)
     {
         data_packet_t send_data;
-        send_data.can_id = 0x100;
+        send_data.can_id = can_id;
         send_data.tick_count = xTaskGetTickCount();
         send_data.data_count = 1;
         send_data.payload_len = sizeof(counter);
@@ -117,8 +118,8 @@ extern "C" void app_main(void)
     char *daq = "54:32:04:8c:0b:8c";
     char *receiver_0 = "74:4d:bd:e1:d5:b8";
     char *receiver_1 = "";
-    char *sensor_0 = "";
-    char *sensor_1 = "";
+    char *sensor_0 = "28:05:a5:31:d6:d0";
+    char *sensor_1 = ""; //"28:05:a5:31:c9:78";
 
     uint8_t mac[6];
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
@@ -143,13 +144,11 @@ extern "C" void app_main(void)
 
         CanInit(GPIO_NUM_5, GPIO_NUM_7);
 
-        xTaskCreate(CanTxTestTask, "CanTestTask", 4096, NULL, 5, NULL);
+        //xTaskCreate(CanTxTestTask, "CanTestTask", 4096, NULL, 5, NULL);
 
-        /*
-        size_t car_allowed_recv_ids_size = 1;
-        static uint16_t car_allowed_recv_ids[] = {0x100};
+        size_t car_allowed_recv_ids_size = 2;
+        static uint16_t car_allowed_recv_ids[] = {0x100, 0x200};
         WCAN_Init(true, car_allowed_recv_ids, car_allowed_recv_ids_size);
-        */
     }
     else if (strcmp(mac_str, receiver_1) == 0)
     {
@@ -169,7 +168,7 @@ extern "C" void app_main(void)
         size_t allowed_ids_size = 0;
         WCAN_Init(false, allowed_ids, allowed_ids_size);
 
-        xTaskCreate(ReadDataTask, "ReadDataTask", 4096, NULL, 5, NULL);
+        xTaskCreate(ReadDataTask, "ReadDataTask", 4096, (void *)(uintptr_t)0x100, 5, NULL);
     }
     else if (strcmp(mac_str, sensor_1) == 0)
     {
@@ -179,7 +178,7 @@ extern "C" void app_main(void)
         size_t allowed_ids_size = 0;
         WCAN_Init(false, allowed_ids, allowed_ids_size);
 
-        xTaskCreate(ReadDataTask, "ReadDataTask", 4096, NULL, 5, NULL);
+        xTaskCreate(ReadDataTask, "ReadDataTask", 4096, (void *)(uintptr_t)0x200, 5, NULL);
     }
     else
     {

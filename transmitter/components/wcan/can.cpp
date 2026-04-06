@@ -24,7 +24,7 @@ static esp_err_t CanEnsureRunning(void)
         ESP_LOGE(CAN_TAG, "Failed to get TWAI status: %s", esp_err_to_name(status_err));
         return status_err;
     }
-    
+
     ESP_LOGI(CAN_TAG, "State: %d", status.state);
     ESP_LOGI(CAN_TAG, "TX error counter: %ld", status.tx_error_counter);
     ESP_LOGI(CAN_TAG, "RX error counter: %ld", status.rx_error_counter);
@@ -81,8 +81,8 @@ void CanInit(gpio_num_t tx_pin, gpio_num_t rx_pin)
     //esp_log_level_set(CAN_TAG, ESP_LOG_WARN);
     ESP_LOGI(CAN_TAG, "Initializing TWAI with TX pin %d, RX pin %d", tx_pin, rx_pin);
 
-    twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(tx_pin, rx_pin, TWAI_MODE_NO_ACK);
-    twai_timing_config_t t_config = TWAI_TIMING_CONFIG_1KBITS();
+    twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(tx_pin, rx_pin, TWAI_MODE_NORMAL);
+    twai_timing_config_t t_config = TWAI_TIMING_CONFIG_125KBITS();
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
     if (s_twai_driver_installed)
@@ -174,15 +174,9 @@ void CanReceiveTask(void *pvParameter)
         esp_err_t err = twai_receive(&message, pdMS_TO_TICKS(1000));
         if (err == ESP_OK)
         {
-            ESP_LOGI(TAG, "Received ID: 0x%08lx DLC: %d",
-                     (unsigned long)message.identifier, message.data_length_code);
-
-            printf("  Data:");
-            for (int i = 0; i < message.data_length_code; i++)
-            {
-                printf(" %02X", message.data[i]);
-            }
-            printf("\n");
+            uint32_t value = 0;
+            memcpy(&value, message.data, message.data_length_code > sizeof(value) ? sizeof(value) : message.data_length_code);
+            ESP_LOGI(TAG, "[%08lx] %lu", (unsigned long int)message.identifier, (unsigned long)value);
         }
         else if (err == ESP_ERR_TIMEOUT)
         {

@@ -1,31 +1,30 @@
-# deploy.ps1
-$esp32Ports   = @("COM3", "COM4", "COM5")
-$esp32c3Ports = @("COM6", "COM7")
+# deploy.ps1 — build & flash in separate terminals, then open monitors for all ports
+$scriptDir = $PSScriptRoot
 
-# --- BUILD ---
-Write-Host "==> Setting targets..."
-idf.py -B build_esp32   set-target esp32
-idf.py -B build_esp32c3 set-target esp32c3
+$esp32Ports   = @("COM24")
+$esp32c3Ports = @("COM10", "COM11")
 
-Write-Host "==> Building in parallel..."
-$j1 = Start-Process "idf.py" -ArgumentList "-B build_esp32 build"   -PassThru -NoNewWindow
-$j2 = Start-Process "idf.py" -ArgumentList "-B build_esp32c3 build" -PassThru -NoNewWindow
-$j1.WaitForExit(); $j2.WaitForExit()
-Write-Host "Build complete!"
+# --- BUILD & FLASH (two terminals, wait for both to finish) ---
+Write-Host "==> Launching build & flash terminals..."
+$p1 = Start-Process powershell -ArgumentList "-File `"$scriptDir\deploy_target.ps1`" -Target esp32   -BuildDir build_esp32   -SdkConfig sdkconfig_esp32   -Ports $($esp32Ports -join ',')"   -PassThru
+$p2 = Start-Process powershell -ArgumentList "-File `"$scriptDir\deploy_target.ps1`" -Target esp32c3 -BuildDir build_esp32c3 -SdkConfig sdkconfig_esp32c3 -Ports $($esp32c3Ports -join ',')" -PassThru
 
-# --- FLASH ---
-Write-Host "==> Flashing all devices..."
-$jobs = @()
-foreach ($p in $esp32Ports)   { $jobs += Start-Process "idf.py" -ArgumentList "-B build_esp32   -p $p flash" -PassThru -NoNewWindow }
-foreach ($p in $esp32c3Ports) { $jobs += Start-Process "idf.py" -ArgumentList "-B build_esp32c3 -p $p flash" -PassThru -NoNewWindow }
-$jobs | ForEach-Object { $_.WaitForExit() }
-Write-Host "All devices flashed!"
+Write-Host "Waiting for build & flash to finish..."
+$p1.WaitForExit()
+$p2.WaitForExit()
 
-# --- MONITOR ---
+if ($p1.ExitCode -ne 0 -or $p2.ExitCode -ne 0) {
+    Write-Host "Build/flash failed. Aborting." -ForegroundColor Red
+    exit 1
+}
+Write-Host "Build & flash complete!" -ForegroundColor Green
+
+# --- MONITOR (one terminal per port, all stay open) ---
 Write-Host "==> Opening monitors..."
-wt `
-  new-tab --title "ESP32 $($esp32Ports[0])"   cmd /k "idf.py -B build_esp32   -p $($esp32Ports[0]) monitor" `; `
-  new-tab --title "ESP32 $($esp32Ports[1])"   cmd /k "idf.py -B build_esp32   -p $($esp32Ports[1]) monitor" `; `
-  new-tab --title "ESP32 $($esp32Ports[2])"   cmd /k "idf.py -B build_esp32   -p $($esp32Ports[2]) monitor" `; `
-  new-tab --title "ESP32C3 $($esp32c3Ports[0])" cmd /k "idf.py -B build_esp32c3 -p $($esp32c3Ports[0]) monitor" `; `
-  new-tab --title "ESP32C3 $($esp32c3Ports[1])" cmd /k "idf.py -B build_esp32c3 -p $($esp32c3Ports[1]) monitor"
+$cmakeEsp32   = "--define-cache-entry SDKCONFIG=sdkconfig_esp32"
+$cmakeEsp32c3 = "--define-cache-entry SDKCONFIG=sdkconfig_esp32c3"
+
+foreach ($p in $esp32Ports)   { Start-Process cmd -ArgumentList "/k title ESP32 $p && idf.py -B build_esp32 $cmakeEsp32 -p $p monitor" }
+foreach ($p in $esp32c3Ports) { Start-Process cmd -ArgumentList "/k title ESP32C3 $p && idf.py -B build_esp32c3 $cmakeEsp32c3 -p $p monitor" }
+
+Write-Host "All monitors opened." -ForegroundColor Green
