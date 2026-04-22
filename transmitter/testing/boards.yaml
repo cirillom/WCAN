@@ -1,0 +1,35 @@
+# boards.yaml — Board inventory and test configuration
+# Edit this file to match your physical setup.
+
+boards:
+  - id: B0
+    chip: esp32
+    port: COM21
+
+  - id: B1
+    chip: esp32   
+    port: COM24
+
+  - id: B2
+    chip: esp32
+    port: COM27
+
+  - id: B3
+    chip: esp32c3
+    port: COM10
+
+  - id: B4
+    chip: esp32c3
+    port: COM11
+
+  # Add more boards as needed:
+  # - id: B4
+  #   chip: esp32
+  #   port: COM7
+
+test_config:
+  duration_seconds: 30     # How long to capture serial output per test
+  repeats: 3               # How many times each (S,R) combo runs
+  cooldown_seconds: 5      # Pause between tests for boards to settle
+  baud_rate: 115200        # Serial monitor baud rate
+  project_path: ".."       # ESP-IDF project root (one level up from testing/)

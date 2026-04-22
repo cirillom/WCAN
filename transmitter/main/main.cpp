@@ -3,11 +3,9 @@
 #include <stdio.h>
 
 #include "driver/gpio.h"
-#include "driver/twai.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_mac.h"
-#include "esp_sleep.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
@@ -16,7 +14,11 @@
 
 #include "wcan.h"
 #include "wcan_utils.h"
-#include "can.h"
+
+// Compile-time role validation
+#if !defined(ROLE_SENSOR) && !defined(ROLE_RECEIVER)
+#error "Build must define ROLE=SENSOR or ROLE=RECEIVER via CMake (-DROLE=SENSOR or -DROLE=RECEIVER)"
+#endif
 
 static void WiFiInit(void)
 {
@@ -33,14 +35,16 @@ static void WiFiInit(void)
     ESP_ERROR_CHECK(esp_wifi_set_channel(ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE));
 }
 
-// Placeholder task: increments a counter and sends it over WCAN to test data transmission
+#ifdef ROLE_SENSOR
+// Sensor task: increments a counter and sends it over WCAN
+// CAN ID is derived from the board's MAC address for unique identification
 static void ReadDataTask(void *pvParameter)
 {
     static const char *TAG = "ReadDataTask";
     uint32_t can_id = (uint32_t)(uintptr_t)pvParameter;
     uint32_t counter = 0;
 
-    ESP_LOGI(TAG, "ReadDataTask started with CAN ID 0x%lx", (unsigned long)can_id);
+    ESP_LOGI(TAG, "ReadDataTask started with CAN ID 0x%04lx", (unsigned long)can_id);
 
     while (1)
     {
@@ -76,31 +80,30 @@ static void ReadDataTask(void *pvParameter)
 
     vTaskDelete(NULL);
 }
+#endif // ROLE_SENSOR
 
+#ifdef ROLE_RECEIVER
+// Receiver callback: logs any incoming CAN ID and payload
 void RecvCallback(data_packet_t data)
 {
     static const char *TAG = "USER-RECV";
-    switch (data.can_id)
-    {
-    case 0x100:
-    {
-        uint32_t uint_data = *(uint32_t *)(data.payload);
-        ESP_LOGI(TAG, "Counter [%08lx]: %lu", (unsigned long)data.can_id, uint_data);
-        break;
-    }
-    default:
-    {
-        ESP_LOGE(TAG, "[%08lx] Unknown", (unsigned long)data.can_id);
-        break;
-    }
-    }
 
-    esp_err_t tx_err = CanSend((uint32_t)data.can_id, data.payload_len, data.payload);
-    if (tx_err != ESP_OK)
+    if (data.payload_len >= sizeof(uint32_t))
     {
-        ESP_LOGW(TAG, "CAN forward failed for ID [%08lx]: %s", (unsigned long)data.can_id, esp_err_to_name(tx_err));
+        uint32_t counter_value = *(uint32_t *)(data.payload);
+        ESP_LOGI(TAG, "Received [%04lx] len=%u counter=%lu",
+                 (unsigned long)data.can_id,
+                 data.payload_len,
+                 (unsigned long)counter_value);
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Received [%04lx] len=%u payload_too_short",
+                 (unsigned long)data.can_id,
+                 data.payload_len);
     }
 }
+#endif // ROLE_RECEIVER
 
 extern "C" void app_main(void)
 {
@@ -114,76 +117,29 @@ extern "C" void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
 
-    // #region Development, instead of making a build for sensor and receiver, just separate the software flow using MAC
-    char *daq = "54:32:04:8c:0b:8c";
-    char *receiver_0 = "74:4d:bd:e1:d5:b8";
-    char *receiver_1 = "";
-    char *sensor_0 = "28:05:a5:31:d6:d0";
-    char *sensor_1 = ""; //"28:05:a5:31:c9:78";
-
     uint8_t mac[6];
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
-    char *mac_str = (char *)malloc(18);
-    snprintf(mac_str, 18, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2],
-             mac[3], mac[4], mac[5]);
-    ESP_LOGI(TAG, "MAC address string: %s", mac_str);
-    // #endregion
+    ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x",
+             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     WiFiInit();
     ESP_LOGI(TAG, "WiFi initialized");
 
-    if (strcmp(mac_str, daq) == 0)
-    {
-        ESP_LOGI(TAG, "This is the daq");
-        CanInit(GPIO_NUM_5, GPIO_NUM_7);
-        xTaskCreate(CanReceiveTask, "CanReceiveTask", 4096, NULL, 5, NULL);
-    }
-    else if (strcmp(mac_str, receiver_0) == 0)
-    {
-        ESP_LOGI(TAG, "This is the receiver");
+#ifdef ROLE_SENSOR
+    // Derive a unique CAN ID from the last 2 bytes of the MAC address
+    uint32_t can_id = ((uint32_t)mac[4] << 8) | (uint32_t)mac[5];
+    ESP_LOGI(TAG, "SENSOR mode — CAN ID: 0x%04lx", (unsigned long)can_id);
 
-        CanInit(GPIO_NUM_5, GPIO_NUM_7);
+    // Sensor should not receive any messages, so we filter everything out
+    WCAN_Init(true, NULL, 0);
 
-        //xTaskCreate(CanTxTestTask, "CanTestTask", 4096, NULL, 5, NULL);
+    xTaskCreate(ReadDataTask, "ReadDataTask", 4096, (void *)(uintptr_t)can_id, 5, NULL);
 
-        size_t car_allowed_recv_ids_size = 2;
-        static uint16_t car_allowed_recv_ids[] = {0x100, 0x200};
-        WCAN_Init(true, car_allowed_recv_ids, car_allowed_recv_ids_size);
-    }
-    else if (strcmp(mac_str, receiver_1) == 0)
-    {
-        ESP_LOGI(TAG, "This is the receiver");
+#elif defined(ROLE_RECEIVER)
+    ESP_LOGI(TAG, "RECEIVER mode — accepting all CAN IDs");
 
-        CanInit(GPIO_NUM_1, GPIO_NUM_4);
+    // filter=false means accept everything
+    WCAN_Init(false, NULL, 0);
 
-        size_t car_allowed_recv_ids_size = 1;
-        static uint16_t car_allowed_recv_ids[] = {0x100};
-        WCAN_Init(true, car_allowed_recv_ids, car_allowed_recv_ids_size);
-    }
-    else if (strcmp(mac_str, sensor_0) == 0)
-    {
-        ESP_LOGI(TAG, "This is the sensor");
-
-        uint16_t allowed_ids[] = {};
-        size_t allowed_ids_size = 0;
-        WCAN_Init(false, allowed_ids, allowed_ids_size);
-
-        xTaskCreate(ReadDataTask, "ReadDataTask", 4096, (void *)(uintptr_t)0x100, 5, NULL);
-    }
-    else if (strcmp(mac_str, sensor_1) == 0)
-    {
-        ESP_LOGI(TAG, "This is the sensor");
-
-        uint16_t allowed_ids[] = {};
-        size_t allowed_ids_size = 0;
-        WCAN_Init(false, allowed_ids, allowed_ids_size);
-
-        xTaskCreate(ReadDataTask, "ReadDataTask", 4096, (void *)(uintptr_t)0x200, 5, NULL);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Unknown MAC address: %s", mac_str);
-        free(mac_str);
-        return;
-    }
+#endif
 }
