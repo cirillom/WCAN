@@ -66,8 +66,10 @@ def load_config(config_path: str) -> dict:
 BUILD_VARIANTS = {
     ("esp32", "SENSOR"):     ("build_esp32_sensor",     "sdkconfig_esp32"),
     ("esp32", "RECEIVER"):   ("build_esp32_receiver",   "sdkconfig_esp32"),
+    ("esp32", "IDLE"):       ("build_esp32_idle",       "sdkconfig_esp32"),
     ("esp32c3", "SENSOR"):   ("build_esp32c3_sensor",   "sdkconfig_esp32c3"),
     ("esp32c3", "RECEIVER"): ("build_esp32c3_receiver", "sdkconfig_esp32c3"),
+    ("esp32c3", "IDLE"):     ("build_esp32c3_idle",     "sdkconfig_esp32c3"),
 }
 
 
@@ -107,7 +109,11 @@ def build_variant(chip: str, role: str, project_path: str) -> bool:
         "build",
     ]
 
-    result = subprocess.run(cmd, cwd=project_path)
+    # Remove IDF_TARGET from env so idf.py picks the target from sdkconfig
+    env = os.environ.copy()
+    env.pop("IDF_TARGET", None)
+
+    result = subprocess.run(cmd, cwd=project_path, shell=True, env=env)
     if result.returncode != 0:
         print(f"[FAIL] Build failed: {chip}/{role}")
         return False
@@ -123,6 +129,7 @@ def build_all(boards: list, project_path: str) -> bool:
     for chip in chips_present:
         needed.add((chip, "SENSOR"))
         needed.add((chip, "RECEIVER"))
+        needed.add((chip, "IDLE"))
 
     print(f"\n[BUILD] Chips present: {chips_present}")
     print(f"[BUILD] Variants to build: {len(needed)}")
@@ -186,7 +193,11 @@ def flash_board(chip: str, role: str, port: str, project_path: str) -> bool:
         "flash",
     ]
 
-    result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True)
+    # Remove IDF_TARGET from env so idf.py picks the target from sdkconfig
+    env = os.environ.copy()
+    env.pop("IDF_TARGET", None)
+
+    result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, shell=True, env=env)
     if result.returncode != 0:
         print(f"  [FAIL] Flash failed on {port} ({chip}/{role})")
         print(f"         stderr: {result.stderr[-200:]}")
@@ -229,17 +240,21 @@ def monitor_board(port: str, baud: int, duration: float, log_path: str, stop_eve
     """
     try:
         ser = serial.Serial(port, baud, timeout=0.5)
+        time.sleep(0.1)  # let the port settle after opening
 
-        # Hard reset via DTR/RTS toggle (same sequence as idf.py monitor)
-        ser.dtr = False
-        ser.rts = True
-        time.sleep(0.1)
-        ser.rts = False
-        ser.dtr = True  # some boards need DTR high after reset
+        # Flush any leftover data from previous session
+        ser.reset_input_buffer()
+
+        # Hard reset: ESP-IDF standard sequence
+        # RTS controls EN (chip reset), DTR controls IO0 (boot mode)
+        ser.dtr = False   # IO0 = HIGH (normal boot, not download mode)
+        ser.rts = True    # EN = LOW  (hold chip in reset)
+        time.sleep(0.2)
+        ser.rts = False   # EN = HIGH (release reset — chip boots now)
+        ser.dtr = False   # keep IO0 HIGH
         time.sleep(0.5)
 
-        # Flush any boot garbage
-        ser.reset_input_buffer()
+        # Do NOT flush here — we want to capture everything from boot
 
         start = time.time()
         with open(log_path, "w", encoding="utf-8", errors="replace") as f:
@@ -307,31 +322,40 @@ def monitor_all_boards(boards_with_roles: list, baud: int, duration: float, log_
 def run_single_test(
     sensor_boards: list,
     receiver_boards: list,
+    idle_boards: list,
     config: dict,
     log_dir: str,
 ) -> str:
     """
     Run one test case: flash, monitor, save logs.
+    Idle boards are flashed with IDLE firmware (no WiFi, no WCAN — completely silent).
     Returns status string: "OK", "FLASH_FAIL", or "MONITOR_ERROR".
     """
     s_count = len(sensor_boards)
     r_count = len(receiver_boards)
-    all_boards = [(b, "SENSOR") for b in sensor_boards] + [(b, "RECEIVER") for b in receiver_boards]
 
-    port_list = ", ".join(f"{b['id']}={b['port']}({role[0]})" for b, role in all_boards)
-    print(f"\n  [{s_count}S-{r_count}R] Boards: {port_list}")
+    # Active boards: sensors + receivers (these get monitored)
+    active_boards = [(b, "SENSOR") for b in sensor_boards] + [(b, "RECEIVER") for b in receiver_boards]
+    # All boards to flash: active + idle (idle get IDLE firmware — completely off the network)
+    all_to_flash = active_boards + [(b, "IDLE") for b in idle_boards]
 
-    # Flash all boards
-    print(f"  Flashing {len(all_boards)} boards...")
-    if not flash_all_boards(all_boards, config["project_path"]):
+    port_list = ", ".join(f"{b['id']}={b['port']}({role[0]})" for b, role in active_boards)
+    idle_list = ", ".join(b["id"] for b in idle_boards)
+    print(f"\n  [{s_count}S-{r_count}R] Active: {port_list}")
+    if idle_boards:
+        print(f"  Idle (silenced): {idle_list}")
+
+    # Flash ALL boards (active + idle)
+    print(f"  Flashing {len(all_to_flash)} boards ({len(active_boards)} active + {len(idle_boards)} idle)...")
+    if not flash_all_boards(all_to_flash, config["project_path"]):
         return "FLASH_FAIL"
 
     # Brief pause after flashing before starting monitors
     time.sleep(1)
 
-    # Monitor all boards
+    # Monitor only active boards (not idle)
     print(f"  Monitoring for {config['duration']}s...")
-    ok = monitor_all_boards(all_boards, config["baud"], config["duration"], log_dir)
+    ok = monitor_all_boards(active_boards, config["baud"], config["duration"], log_dir)
 
     return "OK" if ok else "MONITOR_ERROR"
 
@@ -350,9 +374,11 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False):
         for s, r in cases:
             sensors = boards[:s]
             receivers = boards[s : s + r]
+            idle = boards[s + r :]
             s_ids = ", ".join(b["id"] for b in sensors)
             r_ids = ", ".join(b["id"] for b in receivers)
-            print(f"  {s}S-{r}R: sensors=[{s_ids}]  receivers=[{r_ids}]")
+            i_ids = ", ".join(b["id"] for b in idle) if idle else "none"
+            print(f"  {s}S-{r}R: sensors=[{s_ids}]  receivers=[{r_ids}]  idle=[{i_ids}]")
         print("\n[DRY RUN] No tests executed.")
         return
 
@@ -365,6 +391,7 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False):
     for s_count, r_count in cases:
         sensor_boards = boards[:s_count]
         receiver_boards = boards[s_count : s_count + r_count]
+        idle_boards = boards[s_count + r_count :]
 
         for rep in range(repeats):
             run_number += 1
@@ -376,7 +403,7 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False):
             print(f"{'─'*60}")
 
             status = run_single_test(
-                sensor_boards, receiver_boards, config, log_dir
+                sensor_boards, receiver_boards, idle_boards, config, log_dir
             )
 
             print(f"  Status: {status}")

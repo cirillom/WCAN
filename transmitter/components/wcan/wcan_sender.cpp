@@ -168,6 +168,12 @@ void AckRecv(data_packet_t recv_data)
 {
     static const char *TAG = "ACK";
 
+    if (resend_ctx.data_packet == NULL)
+    {
+        ESP_LOGD(TAG, "ACK received but no pending send");
+        return;
+    }
+
     //we use tick_count to identify the data packet, multiple receivers may be sending ACKs
     if (recv_data.tick_count != resend_ctx.data_packet->tick_count)
     {

@@ -16,8 +16,8 @@
 #include "wcan_utils.h"
 
 // Compile-time role validation
-#if !defined(ROLE_SENSOR) && !defined(ROLE_RECEIVER)
-#error "Build must define ROLE=SENSOR or ROLE=RECEIVER via CMake (-DROLE=SENSOR or -DROLE=RECEIVER)"
+#if !defined(ROLE_SENSOR) && !defined(ROLE_RECEIVER) && !defined(ROLE_IDLE)
+#error "Build must define ROLE=SENSOR or ROLE=RECEIVER or ROLE=IDLE via CMake (-DROLE=SENSOR or -DROLE=RECEIVER or -DROLE=IDLE)"
 #endif
 
 static void WiFiInit(void)
@@ -140,6 +140,13 @@ extern "C" void app_main(void)
 
     // filter=false means accept everything
     WCAN_Init(false, NULL, 0);
+
+#elif defined(ROLE_IDLE)
+    ESP_LOGI(TAG, "IDLE mode — doing nothing");
+    // No WiFi, no WCAN — board is completely silent
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(10000));
+    }
 
 #endif
 }
