@@ -173,8 +173,15 @@ void AckRecv(data_packet_t recv_data)
         return;
     }
 
-    //we use tick_count to identify the data packet, multiple receivers may be sending ACKs
-    if (recv_data.tick_count != resend_ctx.data_packet->tick_count)
+    // Extract the acked can_id from the ACK payload
+    uint16_t acked_can_id = 0;
+    if (recv_data.payload != NULL && recv_data.payload_len >= sizeof(uint16_t))
+    {
+        memcpy(&acked_can_id, recv_data.payload, sizeof(uint16_t));
+    }
+
+    // Check both tick_count AND can_id to avoid false ACK matches
+    if (recv_data.tick_count != resend_ctx.data_packet->tick_count || acked_can_id != resend_ctx.data_packet->can_id)
     {
         // must log recv macaddress, can id, payload and tick count and the resend expected tick count
         ESP_LOGW(TAG, "[%08lx] with tick_count %lu, but expected tick_count %lu",
