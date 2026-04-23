@@ -271,7 +271,6 @@ def monitor_board(port: str, baud: int, duration: float, log_path: str, stop_eve
         time.sleep(0.2)
         ser.rts = False   # EN = HIGH (release reset — chip boots now)
         ser.dtr = False   # keep IO0 HIGH
-        time.sleep(0.5)
 
         # Do NOT flush here — we want to capture everything from boot
 
@@ -379,11 +378,26 @@ def run_single_test(
     return "OK" if ok else "MONITOR_ERROR"
 
 
-def run_all_tests(config: dict, results_dir: str, dry_run: bool = False):
+def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_filter: set = None):
     """Run the complete test matrix."""
     boards = config["boards"]
     n = len(boards)
     cases = generate_test_matrix(n)
+
+    # Apply filter if specified
+    if test_filter:
+        filtered = [c for c in cases if c in test_filter]
+        invalid = test_filter - set(cases)
+        if invalid:
+            for s, r in invalid:
+                if s + r > n:
+                    print(f"[WARNING] Test {s}S-{r}R requires {s+r} boards but only {n} available. Skipping.")
+                else:
+                    print(f"[WARNING] Test {s}S-{r}R is not in the matrix. Skipping.")
+        cases = filtered
+        if not cases:
+            print("[ERROR] No valid test cases after filtering.")
+            return
     repeats = config["repeats"]
 
     print_test_matrix(cases, n, repeats, config["duration"], config["cooldown"])
@@ -486,6 +500,8 @@ def main():
     parser.add_argument("--config", default="boards.yaml", help="Path to boards.yaml (default: boards.yaml)")
     parser.add_argument("--skip-build", action="store_true", help="Skip building, reuse existing firmware")
     parser.add_argument("--dry-run", action="store_true", help="Print test matrix and assignments without executing")
+    parser.add_argument("--test", type=str, action="append", default=None,
+                        help="Run only specific S:R tests, e.g. --test 1:4 --test 2:3. Can be repeated.")
     args = parser.parse_args()
 
     # Load config
@@ -523,8 +539,20 @@ def main():
         import shutil as _shutil
         _shutil.copy2(args.config, config_copy)
 
+    # Parse --test filters
+    test_filter = None
+    if args.test:
+        test_filter = set()
+        for t in args.test:
+            try:
+                s, r = t.split(":")
+                test_filter.add((int(s), int(r)))
+            except ValueError:
+                print(f"[ERROR] Invalid --test format '{t}'. Use S:R, e.g. --test 1:4")
+                sys.exit(1)
+
     # Run tests
-    run_all_tests(config, results_dir, dry_run=args.dry_run)
+    run_all_tests(config, results_dir, dry_run=args.dry_run, test_filter=test_filter)
 
 
 if __name__ == "__main__":
