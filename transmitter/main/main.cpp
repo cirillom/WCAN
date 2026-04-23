@@ -40,7 +40,7 @@ static void WiFiInit(void)
 // CAN ID is derived from the board's MAC address for unique identification
 static void ReadDataTask(void *pvParameter)
 {
-    int frequency_hertz = 1; // Send data every 1 second
+    int frequency_hertz = 10; // Send data every 1 second
 
     static const char *TAG = "ReadDataTask";
     uint32_t can_id = (uint32_t)(uintptr_t)pvParameter;
@@ -72,7 +72,7 @@ static void ReadDataTask(void *pvParameter)
             }
             else
             {
-                ESP_LOGI(TAG, "Sent counter=%lu", (unsigned long)counter);
+                ESP_LOGI(TAG, "%lu", (unsigned long)counter);
             }
             counter++;
         }
@@ -88,19 +88,18 @@ static void ReadDataTask(void *pvParameter)
 // Receiver callback: logs any incoming CAN ID and payload
 void RecvCallback(data_packet_t data)
 {
-    static const char *TAG = "USER-RECV";
+    static const char *TAG = "RecvCallback";
 
     if (data.payload_len >= sizeof(uint32_t))
     {
         uint32_t counter_value = *(uint32_t *)(data.payload);
-        ESP_LOGI(TAG, "Received [%04lx] len=%u counter=%lu",
+        ESP_LOGI(TAG, "[%04lx] %lu",
                  (unsigned long)data.can_id,
-                 data.payload_len,
                  (unsigned long)counter_value);
     }
     else
     {
-        ESP_LOGI(TAG, "Received [%04lx] len=%u payload_too_short",
+        ESP_LOGI(TAG, "[%04lx] len=%u payload_too_short",
                  (unsigned long)data.can_id,
                  data.payload_len);
     }

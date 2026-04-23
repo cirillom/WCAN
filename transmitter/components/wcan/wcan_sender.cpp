@@ -70,15 +70,14 @@ void SendProcessingTask(void *pvParameter)
 
 void SendData(const uint8_t *mac_addr, const data_packet_t data_packet)
 {
-    static const char *TAG = "SEND";
+    static const char *TAG = "SendData";
 
     esp_now_packet_t *esp_now_packet = EncodeDataPacket(&data_packet);
     memcpy(esp_now_packet->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
 
     PrintCharPacket(esp_now_packet->data, esp_now_packet->data_len);
-
     ESP_ERROR_CHECK(esp_now_send(esp_now_packet->mac_addr, esp_now_packet->data, esp_now_packet->data_len));
-    ESP_LOGD(TAG, "[%08lx] broadcasted", (unsigned long)data_packet.can_id);
+    ESP_LOGI(TAG, "[%08lx] %lu (%lu)", (unsigned long)data_packet.can_id, (unsigned long)*(uint32_t *)(data_packet.payload), (unsigned long)data_packet.tick_count);
     //free packet
     if (esp_now_packet->data != NULL)
     {
@@ -177,9 +176,13 @@ void AckRecv(data_packet_t recv_data)
     //we use tick_count to identify the data packet, multiple receivers may be sending ACKs
     if (recv_data.tick_count != resend_ctx.data_packet->tick_count)
     {
-        ESP_LOGW(TAG, "ACK tick count does not match");
+        // must log recv macaddress, can id, payload and tick count and the resend expected tick count
+        ESP_LOGW(TAG, "[%08lx] with tick_count %lu, but expected tick_count %lu",
+                 (unsigned long)recv_data.payload,
+                 (unsigned long)recv_data.tick_count, (unsigned long)resend_ctx.data_packet->tick_count);
         return;
     }
+    ESP_LOGD(TAG, "(%lu)", (unsigned long)recv_data.tick_count);
 
     if (uxSemaphoreGetCount(send_semaphore) == 0)
     {
