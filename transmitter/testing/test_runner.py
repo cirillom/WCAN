@@ -20,6 +20,7 @@ Must be run from an ESP-IDF shell (idf.py must be on PATH).
 import argparse
 import csv
 import os
+import random
 import shutil
 import subprocess
 import sys
@@ -403,15 +404,9 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_fi
     print_test_matrix(cases, n, repeats, config["duration"], config["cooldown"])
 
     if dry_run:
-        print("[DRY RUN] Showing board assignments:\n")
+        print("[DRY RUN] Showing board assignments (actual runs will be shuffled):\n")
         for s, r in cases:
-            sensors = boards[:s]
-            receivers = boards[s : s + r]
-            idle = boards[s + r :]
-            s_ids = ", ".join(b["id"] for b in sensors)
-            r_ids = ", ".join(b["id"] for b in receivers)
-            i_ids = ", ".join(b["id"] for b in idle) if idle else "none"
-            print(f"  {s}S-{r}R: sensors=[{s_ids}]  receivers=[{r_ids}]  idle=[{i_ids}]")
+            print(f"  {s}S-{r}R: {s} random sensors, {r} random receivers, {n - s - r} idle")
         print("\n[DRY RUN] No tests executed.")
         return
 
@@ -422,11 +417,15 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_fi
     run_number = 0
 
     for s_count, r_count in cases:
-        sensor_boards = boards[:s_count]
-        receiver_boards = boards[s_count : s_count + r_count]
-        idle_boards = boards[s_count + r_count :]
-
         for rep in range(repeats):
+            # Shuffle board order each repeat so different boards get different roles
+            shuffled = boards.copy()
+            random.shuffle(shuffled)
+
+            sensor_boards = shuffled[:s_count]
+            receiver_boards = shuffled[s_count : s_count + r_count]
+            idle_boards = shuffled[s_count + r_count :]
+
             run_number += 1
             test_name = f"test_{s_count}S-{r_count}R"
             log_dir = os.path.join(results_dir, f"{test_name}_rep{rep}")
