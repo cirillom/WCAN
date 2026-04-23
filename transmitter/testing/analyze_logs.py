@@ -61,10 +61,10 @@ class SensorSummary:
 # ── Parsing ──────────────────────────────────────────────────────────────────
 
 RE_SENSOR_CAN_ID = re.compile(r"SENSOR mode.*CAN ID:\s*0x([0-9a-fA-F]+)")
-RE_SENSOR_COUNTER = re.compile(r"ReadDataTask:\s*Sent counter=(\d+)")
+RE_SENSOR_COUNTER = re.compile(r"ReadDataTask:\s*(\d+)")
 RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
 RE_RECEIVER_MSG = re.compile(
-    r"USER-RECV:\s*Received\s*\[([0-9a-fA-F]+)\]\s*len=\d+\s*counter=(\d+)"
+    r"RecvCallback:\s*\[([0-9a-fA-F]+)\]\s*(\d+)"
 )
 RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_([A-Za-z0-9]+)\.log")
 
