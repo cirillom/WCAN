@@ -49,6 +49,15 @@ class ComparisonResult:
     missed: list[int]
 
 
+@dataclass
+class SensorSummary:
+    """Per-sensor view: was each counter received by *any* receiver?"""
+    sensor: SensorData
+    sent: list[int]
+    received_by_any: set[int]
+    total_misses: list[int]
+
+
 # ── Parsing ──────────────────────────────────────────────────────────────────
 
 RE_SENSOR_CAN_ID = re.compile(r"SENSOR mode.*CAN ID:\s*0x([0-9a-fA-F]+)")
@@ -126,9 +135,35 @@ def compare(
     return results
 
 
+def sensor_summary(
+    sensors: list[SensorData], receivers: list[ReceiverData]
+) -> list[SensorSummary]:
+    """For each sensor, union all receivers to find total misses."""
+    summaries = []
+    for sensor in sensors:
+        sent = sensor.counters[:-1] if sensor.counters else []
+        union: set[int] = set()
+        for receiver in receivers:
+            union |= receiver.received.get(sensor.can_id, set())
+        total_misses = sorted(c for c in sent if c not in union)
+        summaries.append(
+            SensorSummary(
+                sensor=sensor,
+                sent=sent,
+                received_by_any=union & set(sent),
+                total_misses=total_misses,
+            )
+        )
+    return summaries
+
+
 # ── Text report ──────────────────────────────────────────────────────────────
 
-def format_report(test_name: str, results: list[ComparisonResult]) -> str:
+def format_report(
+    test_name: str,
+    results: list[ComparisonResult],
+    summaries: list[SensorSummary],
+) -> str:
     """Generate a human-readable text summary."""
     lines = [f"=== {test_name} ==="]
     for r in results:
@@ -143,6 +178,22 @@ def format_report(test_name: str, results: list[ComparisonResult]) -> str:
         if r.missed:
             line += f" {r.missed}"
         lines.append(line)
+
+    lines.append("")
+    lines.append("--- Sensor summary ---")
+    for s in summaries:
+        n_sent = len(s.sent)
+        n_recv = len(s.received_by_any)
+        n_miss = len(s.total_misses)
+        line = (
+            f"Sensor {s.sensor.board_id} (0x{s.sensor.can_id}): "
+            f"{n_sent} sent, {n_recv} received by at least one receiver, "
+            f"{n_miss} total misses"
+        )
+        if s.total_misses:
+            line += f" {s.total_misses}"
+        lines.append(line)
+
     lines.append("")
     return "\n".join(lines)
 
@@ -154,86 +205,53 @@ def plot_results(
     sensors: list[SensorData],
     receivers: list[ReceiverData],
     results: list[ComparisonResult],
+    summaries: list[SensorSummary],
     output_path: Path,
 ) -> None:
-    """Create a grid of subplots: rows=sensors, cols=receivers."""
+    """Create a grid of subplots: rows=sensors, cols=receivers + ANY."""
     n_sensors = len(sensors)
-    n_receivers = len(receivers)
+    n_cols = len(receivers) + 1  # +1 for the ANY column
 
     fig, axes = plt.subplots(
         n_sensors,
-        n_receivers,
-        figsize=(4 * n_receivers + 1, 3 * n_sensors + 1),
+        n_cols,
+        figsize=(4 * n_cols + 1, 3 * n_sensors + 1),
         squeeze=False,
     )
     fig.suptitle(test_name, fontsize=14, fontweight="bold")
 
-    # Build a lookup: (sensor.board_id, receiver.board_id) -> ComparisonResult
-    lookup = {
+    # Build lookups
+    comp_lookup = {
         (r.sensor.board_id, r.receiver.board_id): r for r in results
     }
+    summary_lookup = {s.sensor.board_id: s for s in summaries}
 
     for row, sensor in enumerate(sensors):
+        # Per-receiver columns
         for col, receiver in enumerate(receivers):
             ax = axes[row][col]
-            comp = lookup[(sensor.board_id, receiver.board_id)]
-
-            missed_set = set(comp.missed)
-            greens = [c for c in comp.sent if c not in missed_set]
-            reds = list(comp.missed)
-
-            # Plot received (green) and missed (red)
-            ax.scatter(
-                greens,
-                [1] * len(greens),
-                color="#2ecc71",
-                s=50,
-                zorder=3,
-                label="Received",
-            )
-            ax.scatter(
-                reds,
-                [1] * len(reds),
-                color="#e74c3c",
-                s=50,
-                zorder=4,
-                marker="x",
-                linewidths=2,
-                label="Missed",
+            comp = comp_lookup[(sensor.board_id, receiver.board_id)]
+            _plot_subplot(
+                ax,
+                title=f"{sensor.board_id} (0x{sensor.can_id}) → {receiver.board_id}",
+                sent=comp.sent,
+                received_counters=set(comp.sent) - set(comp.missed),
+                missed=comp.missed,
+                n_recv_display=len(comp.received),
             )
 
-            # Styling
-            n_miss = len(comp.missed)
-            n_sent = len(comp.sent)
-            n_recv = len(comp.received)
-
-            ax.set_title(
-                f"{sensor.board_id} (0x{sensor.can_id}) → {receiver.board_id}",
-                fontsize=10,
-                fontweight="bold",
-                pad=12,
-            )
-            # Subtitle with stats
-            color = "#e74c3c" if n_miss > 0 else "#2ecc71"
-            ax.text(
-                0.5,
-                1.01,
-                f"{n_sent} sent, {n_recv} recv, {n_miss} missed",
-                transform=ax.transAxes,
-                ha="center",
-                va="bottom",
-                fontsize=8,
-                color=color,
-            )
-
-            ax.set_xlabel("Counter")
-            ax.set_yticks([])
-            ax.set_ylim(0.5, 1.5)
-
-            if comp.sent:
-                ax.set_xlim(min(comp.sent) - 0.5, max(comp.sent) + 0.5)
-
-            ax.grid(axis="x", alpha=0.3)
+        # ANY column (last)
+        ax = axes[row][n_cols - 1]
+        summary = summary_lookup[sensor.board_id]
+        _plot_subplot(
+            ax,
+            title=f"{sensor.board_id} (0x{sensor.can_id}) → ANY",
+            sent=summary.sent,
+            received_counters=summary.received_by_any,
+            missed=summary.total_misses,
+            n_recv_display=len(summary.received_by_any),
+            is_summary=True,
+        )
 
     # Single legend for the whole figure
     handles, labels = axes[0][0].get_legend_handles_labels()
@@ -242,6 +260,57 @@ def plot_results(
     plt.tight_layout(rect=[0, 0.04, 1, 0.95])
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
+
+
+def _plot_subplot(
+    ax,
+    title: str,
+    sent: list[int],
+    received_counters: set[int],
+    missed: list[int],
+    n_recv_display: int,
+    is_summary: bool = False,
+) -> None:
+    """Render a single scatter subplot."""
+    missed_set = set(missed)
+    greens = [c for c in sent if c not in missed_set]
+    reds = list(missed)
+
+    ax.scatter(
+        greens, [1] * len(greens),
+        color="#2ecc71", s=50, zorder=3, label="Received",
+    )
+    ax.scatter(
+        reds, [1] * len(reds),
+        color="#e74c3c", s=50, zorder=4, marker="x", linewidths=2, label="Missed",
+    )
+
+    n_sent = len(sent)
+    n_miss = len(missed)
+
+    ax.set_title(title, fontsize=10, fontweight="bold", pad=12)
+
+    color = "#e74c3c" if n_miss > 0 else "#2ecc71"
+    ax.text(
+        0.5, 1.01,
+        f"{n_sent} sent, {n_recv_display} recv, {n_miss} missed",
+        transform=ax.transAxes, ha="center", va="bottom",
+        fontsize=8, color=color,
+    )
+
+    ax.set_xlabel("Counter")
+    ax.set_yticks([])
+    ax.set_ylim(0.5, 1.5)
+
+    if sent:
+        ax.set_xlim(min(sent) - 0.5, max(sent) + 0.5)
+
+    ax.grid(axis="x", alpha=0.3)
+
+    # Visual separator for the ANY column
+    if is_summary:
+        ax.spines["left"].set_linewidth(2.5)
+        ax.spines["left"].set_color("#333333")
 
 
 # ── Folder discovery ─────────────────────────────────────────────────────────
@@ -286,9 +355,10 @@ def analyze_test(test_dir: Path) -> str:
 
     # Compare
     results = compare(sensors, receivers)
+    summaries = sensor_summary(sensors, receivers)
 
     # Text report
-    report = format_report(test_name, results)
+    report = format_report(test_name, results, summaries)
 
     # Save text report
     report_path = test_dir / "analysis.txt"
@@ -296,7 +366,7 @@ def analyze_test(test_dir: Path) -> str:
 
     # Plot
     plot_path = test_dir / "analysis.png"
-    plot_results(test_name, sensors, receivers, results, plot_path)
+    plot_results(test_name, sensors, receivers, results, summaries, plot_path)
 
     print(report)
     print(f"  Plot saved: {plot_path}")

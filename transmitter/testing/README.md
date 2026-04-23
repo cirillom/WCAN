@@ -124,9 +124,10 @@ For each test folder it finds:
 
 1. **Parses sensor logs** — extracts the CAN ID and all sent counter values from `ReadDataTask` lines.
 2. **Parses receiver logs** — groups received counter values by CAN ID from `USER-RECV` lines.
-3. **Cross-references** — for each sensor/receiver pair, compares sent vs received counters for the matching CAN ID. The last sent counter is excluded to avoid false misses caused by timing at monitor shutdown.
-4. **Generates a scatter plot** (`analysis.png`) — a grid where rows are sensors and columns are receivers. Each cell shows every sent counter: green dots for received, red crosses for missed.
-5. **Writes a text report** (`analysis.txt`) with per-pair stats: sent count, received count, and any missed counter values.
+3. **Cross-references (per pair)** — for each sensor/receiver pair, compares sent vs received counters for the matching CAN ID. The last sent counter is excluded to avoid false misses caused by timing at monitor shutdown.
+4. **Sensor summary (ANY)** — for each sensor, unions the received sets across all receivers to determine whether each counter was picked up by at least one receiver. This gives a network-level miss count independent of individual receiver failures.
+5. **Generates a scatter plot** (`analysis.png`) — a grid where rows are sensors and columns are receivers, plus an extra **ANY** column on the right showing the union view per sensor. Each cell shows every sent counter: green dots for received, red crosses for missed. The ANY column has a bold left border to visually separate it.
+6. **Writes a text report** (`analysis.txt`) with per-pair stats followed by a sensor summary section.
 
 When running over a full timestamped directory, a combined `analysis_summary.txt` is also written at the root level.
 
@@ -137,6 +138,10 @@ When running over a full timestamped directory, a combined `analysis_summary.txt
 Sensor B0 (0x1a1) → Receiver B1 (COM22): 149 sent, 149 received, 0 missed
 Sensor B0 (0x1a1) → Receiver B2 (COM23): 149 sent, 147 received, 2 missed [74, 103]
 Sensor B1 (0x1a2) → Receiver B2 (COM23): 149 sent, 149 received, 0 missed
+
+--- Sensor summary ---
+Sensor B0 (0x1a1): 149 sent, 149 received by at least one receiver, 0 total misses
+Sensor B1 (0x1a2): 149 sent, 149 received by at least one receiver, 0 total misses
 ```
 
 ### Output files per test folder
