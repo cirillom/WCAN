@@ -37,9 +37,9 @@ extern bool recv_filter;
 extern uint16_t *recv_allowed_ids;
 extern size_t recv_allowed_ids_size;
 
-#define RECV_QUEUE_SIZE 10
+#define RECV_QUEUE_SIZE 25
 extern QueueHandle_t recv_queue;
-#define SEND_QUEUE_SIZE 10
+#define SEND_QUEUE_SIZE 25
 extern QueueHandle_t send_queue;
 
 void WCAN_Init(bool filter, uint16_t *allowed_ids, size_t allowed_ids_size);

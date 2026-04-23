@@ -5,8 +5,8 @@
 
 extern const uint8_t BROADCAST_MAC[ESP_NOW_ETH_ALEN];
 
-#define WCAN_MAX_RETRY_COUNT 3
-#define WCAN_RETRY_DELAY 200
+#define WCAN_MAX_RETRY_COUNT 10
+#define WCAN_RETRY_DELAY 20 // milliseconds
 typedef struct
 {
     data_packet_t *data_packet;
