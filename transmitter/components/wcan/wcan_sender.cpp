@@ -103,8 +103,8 @@ void StartResendScheduler()
         if (resend_ctx.data_packet->payload != NULL)
         {
             free(resend_ctx.data_packet->payload);
-            free(resend_ctx.data_packet);
             resend_ctx.data_packet->payload = NULL;
+            free(resend_ctx.data_packet);
             resend_ctx.data_packet = NULL;
         }
         return;
