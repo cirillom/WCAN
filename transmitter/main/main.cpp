@@ -40,6 +40,8 @@ static void WiFiInit(void)
 // CAN ID is derived from the board's MAC address for unique identification
 static void ReadDataTask(void *pvParameter)
 {
+    int frequency_hertz = 1; // Send data every 1 second
+
     static const char *TAG = "ReadDataTask";
     uint32_t can_id = (uint32_t)(uintptr_t)pvParameter;
     uint32_t counter = 0;
@@ -55,27 +57,27 @@ static void ReadDataTask(void *pvParameter)
         send_data.payload_len = sizeof(counter);
         send_data.payload = (uint8_t *)malloc(send_data.payload_len);
 
-        if (send_data.payload == NULL)
+        if (send_data.payload == NULL) 
         {
             ESP_LOGE(TAG, "Payload malloc failed");
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            continue;
-        }
-
-        memcpy(send_data.payload, &counter, send_data.payload_len);
-
-        if (xQueueSend(send_queue, &send_data, pdMS_TO_TICKS(10)) != pdTRUE)
+        } 
+        else 
         {
-            ESP_LOGW(TAG, "Send queue full, dropping counter=%lu", (unsigned long)counter);
-            free(send_data.payload);
-        }
-        else
-        {
-            ESP_LOGI(TAG, "Sent counter=%lu", (unsigned long)counter);
+            memcpy(send_data.payload, &counter, send_data.payload_len);
+    
+            if (xQueueSend(send_queue, &send_data, pdMS_TO_TICKS(10)) != pdTRUE)
+            {
+                ESP_LOGW(TAG, "Send queue full, dropping counter=%lu", (unsigned long)counter);
+                free(send_data.payload);
+            }
+            else
+            {
+                ESP_LOGI(TAG, "Sent counter=%lu", (unsigned long)counter);
+            }
+            counter++;
         }
 
-        counter++;
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(1000 / frequency_hertz));
     }
 
     vTaskDelete(NULL);
