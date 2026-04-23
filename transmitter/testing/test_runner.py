@@ -62,6 +62,27 @@ def load_config(config_path: str) -> dict:
 
 # ─── Build ───────────────────────────────────────────────────────────────────
 
+
+def _idf_env() -> dict:
+    """
+    Return a clean copy of os.environ for calling idf.py.
+    Strips IDF_TARGET (let sdkconfig decide) and any active
+    virtualenv so it doesn't conflict with ESP-IDF's own Python.
+    """
+    env = os.environ.copy()
+    env.pop("IDF_TARGET", None)
+    env.pop("VIRTUAL_ENV", None)
+
+    # Remove venv bin/Scripts from PATH so idf.py uses system/IDF python
+    venv_path = os.environ.get("VIRTUAL_ENV")
+    if venv_path and "PATH" in env:
+        path_parts = env["PATH"].split(os.pathsep)
+        path_parts = [p for p in path_parts if not p.startswith(venv_path)]
+        env["PATH"] = os.pathsep.join(path_parts)
+
+    return env
+
+
 # Maps (chip, role) -> (build_dir, sdkconfig)
 BUILD_VARIANTS = {
     ("esp32", "SENSOR"):     ("build_esp32_sensor",     "sdkconfig_esp32"),
@@ -109,9 +130,8 @@ def build_variant(chip: str, role: str, project_path: str) -> bool:
         "build",
     ]
 
-    # Remove IDF_TARGET from env so idf.py picks the target from sdkconfig
-    env = os.environ.copy()
-    env.pop("IDF_TARGET", None)
+    # Clean env: no venv conflict, no IDF_TARGET override
+    env = _idf_env()
 
     result = subprocess.run(cmd, cwd=project_path, shell=True, env=env)
     if result.returncode != 0:
@@ -193,9 +213,8 @@ def flash_board(chip: str, role: str, port: str, project_path: str) -> bool:
         "flash",
     ]
 
-    # Remove IDF_TARGET from env so idf.py picks the target from sdkconfig
-    env = os.environ.copy()
-    env.pop("IDF_TARGET", None)
+    # Clean env: no venv conflict, no IDF_TARGET override
+    env = _idf_env()
 
     result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, shell=True, env=env)
     if result.returncode != 0:
