@@ -38,17 +38,17 @@ void RecvProcessingTask(void *pvParameter)
             else
             {
                 ESP_LOGW(TAG, "No callback function defined for received data");
-                if (recv_data_packet.payload != NULL)
+                if (recv_data_packet.data != NULL)
                 {
-                    free(recv_data_packet.payload);
-                    recv_data_packet.payload = NULL;
+                    free(recv_data_packet.data);
+                    recv_data_packet.data = NULL;
                 }
                 break;
             }
-            if (recv_data_packet.payload != NULL)
+            if (recv_data_packet.data != NULL)
             {
-                free(recv_data_packet.payload);
-                recv_data_packet.payload = NULL;
+                free(recv_data_packet.data);
+                recv_data_packet.data = NULL;
             }
         }
     }
@@ -67,20 +67,19 @@ void AckSend(const data_packet_t recv_packet)
     memcpy(ack_data.mac_addr, recv_packet.mac_addr, ESP_NOW_ETH_ALEN);
     ack_data.can_id = CAN_ACK;
     ack_data.tick_count = recv_packet.tick_count;
-    ack_data.payload = (uint8_t *)malloc(sizeof(uint16_t));
-    ESP_LOGV(TAG, "ack_data.payload: %p\n", (void *)ack_data.payload);
-    if (ack_data.payload == NULL)
+    ack_data.data = (uint32_t *)malloc(sizeof(uint32_t));
+    ESP_LOGV(TAG, "ack_data.payload: %p\n", (void *)ack_data.data);
+    if (ack_data.data == NULL)
     {
         ESP_LOGE(TAG, "Malloc ack payload fail");
         return;
     }
-    memcpy(ack_data.payload, &recv_packet.can_id, sizeof(uint16_t));
-    ack_data.payload_len = sizeof(uint16_t);
+    memcpy(ack_data.data, &recv_packet.can_id, sizeof(uint32_t));
+    ack_data.data_count = 1;
 
     AddPeer(ack_data.mac_addr);
     SendData(ack_data.mac_addr, ack_data);
-    RemovePeer(ack_data.mac_addr);
-    free(ack_data.payload);
+    free(ack_data.data);
 }
 
 void FilterData(data_packet_t data)
@@ -91,9 +90,9 @@ void FilterData(data_packet_t data)
     if (recv_filter)
     {
         bool found = false;
-        for (int i = 0; i < recv_allowed_ids_size; i++)
+        for (int i = 0; i < rx_can_ids_size; i++)
         {
-            if (data.can_id == recv_allowed_ids[i])
+            if (data.can_id == rx_can_ids[i])
             {
                 found = true;
                 break;
@@ -103,10 +102,10 @@ void FilterData(data_packet_t data)
         {
             ESP_LOGV(TAG, "Filtered out data with id: %08lx", (unsigned long)data.can_id);
 
-            if (data.payload != NULL)
+            if (data.data != NULL)
             {
-                free(data.payload);
-                data.payload = NULL;
+                free(data.data);
+                data.data = NULL;
             }
             return;
         }
@@ -115,10 +114,10 @@ void FilterData(data_packet_t data)
     if (xQueueSend(recv_queue, &data, ESPNOW_MAXDELAY) != pdTRUE)
     {
         ESP_LOGW(TAG, "Send receive queue fail");
-        if (data.payload != NULL)
+        if (data.data != NULL)
         {
-            free(data.payload);
-            data.payload = NULL;
+            free(data.data);
+            data.data = NULL;
         }
     }
 }

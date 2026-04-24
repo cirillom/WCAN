@@ -14,6 +14,9 @@ typedef struct
     TimerHandle_t timer;
 } resend_t;
 
+extern resend_t *can_resend_ctx;
+
+void CanProcessingTask(void *pvParameter);
 void SendProcessingTask(void *pvParameter);
 void AckRecv(data_packet_t data);
 void SendData(const uint8_t *mac_addr, const data_packet_t data_packet);
