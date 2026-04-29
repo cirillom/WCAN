@@ -77,7 +77,9 @@ void CanProcessingTask(void *pvParameter)
                     break;
             }
 
-            ESP_LOGI(TAG, "%08lx sending %d data points", GetCanIDFromQueueIndex(can_queue_index), count);
+            ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu]",
+                     (unsigned long)GetCanIDFromQueueIndex(can_queue_index), count,
+                     (unsigned long)data_point[0], (unsigned long)data_point[count - 1]);
             data_packet_t *packet = (data_packet_t *)malloc(sizeof(data_packet_t));
             if (packet == NULL)
             {
@@ -167,12 +169,6 @@ void SendData(const uint8_t *mac_addr, const data_packet_t data_packet)
             esp_now_packet = NULL;
         }
     }
-
-    ESP_LOGI(TAG, "Queued %lu packets with CAN ID 0x%08lx for sending", (unsigned long)data_packet.data_count, (unsigned long)data_packet.can_id);
-    for (size_t i = 0; i < data_packet.data_count; i++)
-    {
-        ESP_LOGI(TAG, "  Data[%u]: %08lx", (unsigned int)i, (unsigned long)data_packet.data[i]);
-    }
 }
 
 void StartResendScheduler(size_t can_queue_index)
@@ -232,6 +228,13 @@ void ResendData(TimerHandle_t xTimer)
     char TAG[20];
     snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
 
+    // Prevent race condition: If StopResendScheduler already freed the packet
+    // (e.g. because an ACK arrived concurrently), safely abort the timeout execution.
+    if (can_resend_ctx[can_queue_index].data_packet == NULL)
+    {
+        return;
+    }
+
     if (can_resend_ctx[can_queue_index].retry_count < WCAN_MAX_RETRY_COUNT)
     {
         ESP_LOGW(TAG, "Timeout reached, resending %08lx... Attempt: %d of %d",
@@ -265,6 +268,13 @@ void AckRecv(data_packet_t recv_data)
     size_t can_queue_index = GetCanTXQueueIndex(acked_can_id);
     if (can_queue_index == SIZE_MAX) {
         ESP_LOGW(TAG, "Received ACK for unknown CAN ID 0x%08lx", (unsigned long)acked_can_id);
+        return;
+    }
+
+    // If the data packet is NULL, it means the first ACK already cleared it
+    // We can safely ignore any subsequent duplicate ACKs from other receivers.
+    if (can_resend_ctx[can_queue_index].data_packet == NULL) {
+        ESP_LOGD(TAG, "Duplicate ACK ignored for 0x%08lx", (unsigned long)acked_can_id);
         return;
     }
 

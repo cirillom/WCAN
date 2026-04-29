@@ -177,7 +177,7 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
         const char *task_name = (const char *)malloc(20);
         snprintf((char *)task_name, 20, "CanProc_%u", (unsigned int)i);
 
-        xTaskCreate(CanProcessingTask, task_name, 4096, (void*)(uintptr_t)i, 5, NULL);
+        xTaskCreate(CanProcessingTask, task_name, 4096, (void*)(uintptr_t)i, 4, NULL);
 
         free((void *)task_name);
     }
