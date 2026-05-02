@@ -6,6 +6,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_mac.h"
+#include "esp_random.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
@@ -39,7 +40,7 @@ static void WiFiInit(void)
 // Sensor task: increments a counter and sends it over WCAN
 static void ReadDataTask(void *pvParameter)
 {
-    int frequency_hertz = 10;
+    int frequency_hertz = 100;
 
     static const char *TAG = "ReadDataTask";
     uint32_t can_id = (uint32_t)(uintptr_t)pvParameter;
@@ -73,11 +74,29 @@ void RecvCallback(data_packet_t recv_packet)
 {
     static const char *TAG = "RecvCallback";
 
-    for(size_t i = 0; i < recv_packet.data_count; i++) {
-        uint32_t counter_value = recv_packet.data[i];
-        ESP_LOGI(TAG, "[%04lx] %lu",
-                 (unsigned long)recv_packet.can_id,
-                 (unsigned long)counter_value);
+    if (recv_packet.data_count == 0) return;
+
+    // Print in chunks to minimize overhead while maintaining line-by-line formatting for Python
+    const size_t CHUNK_SIZE = 10; 
+    char str_buf[256]; 
+    
+    for (size_t i = 0; i < recv_packet.data_count; i += CHUNK_SIZE) {
+        char *p = str_buf;
+        size_t remaining_len = sizeof(str_buf);
+        
+        for(size_t j = i; j < i + CHUNK_SIZE && j < recv_packet.data_count; j++) {
+            int written = snprintf(p, remaining_len, "[%04lx] %lu\n", 
+                                  (unsigned long)recv_packet.can_id, 
+                                  (unsigned long)recv_packet.data[j]);
+            if (written > 0 && written < remaining_len) {
+                p += written;
+                remaining_len -= written;
+            }
+        }
+        
+        ESP_LOGI(TAG, "Received data"); // Log the chunk with ESP_LOGI for visibility in logs
+        // Print raw UART string in batches (printf ensures clean multi-line output without log prefixes interrupting)
+        printf("%s", str_buf);
     }
 }
 #endif // ROLE_RECEIVER
@@ -106,6 +125,13 @@ extern "C" void app_main(void)
     // Derive a unique CAN ID from the last 2 bytes of the MAC address
     uint32_t can_id = ((uint32_t)mac[4] << 8) | (uint32_t)mac[5];
     ESP_LOGI(TAG, "SENSOR mode — CAN ID: 0x%04lx", (unsigned long)can_id);
+
+    // Random startup jitter (0–1000 ms) BEFORE registering any ESP-NOW callbacks.
+    // Staggers simultaneous sensors so that early senders can't crash late starters
+    // by hitting their recv_queue before it is created.
+    uint32_t jitter_ms = esp_random() % 1000;
+    ESP_LOGI(TAG, "Startup jitter: %lu ms", (unsigned long)jitter_ms);
+    vTaskDelay(pdMS_TO_TICKS(jitter_ms));
 
     // Sensor should not receive any messages, so we filter everything out
     WCAN_Init(true, NULL, 0, &can_id, 1, 100);

@@ -111,10 +111,6 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
     ESP_LOGV(TAG, "ESP-NOW initialized");
     AddPeer(BROADCAST_MAC);
     ESP_LOGV(TAG, "Broadcast peer added");
-    ESP_ERROR_CHECK(esp_now_register_send_cb(ESPNOW_SendCallback));
-    ESP_LOGV(TAG, "ESP-NOW send callback registered");
-    ESP_ERROR_CHECK(esp_now_register_recv_cb(ESPNOW_RecvCallback));
-    ESP_LOGV(TAG, "ESP-NOW receive callback registered");
 
     uint8_t mac[6];
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
@@ -181,6 +177,11 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
 
         free((void *)task_name);
     }
+
+    ESP_ERROR_CHECK(esp_now_register_send_cb(ESPNOW_SendCallback));
+    ESP_LOGV(TAG, "ESP-NOW send callback registered");
+    ESP_ERROR_CHECK(esp_now_register_recv_cb(ESPNOW_RecvCallback));
+    ESP_LOGV(TAG, "ESP-NOW receive callback registered");
 
     ESP_LOGI(TAG, "WCAN initialized");
 }

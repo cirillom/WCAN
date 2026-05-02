@@ -4,6 +4,7 @@
 #include "esp_now.h"
 #include "esp_log.h"
 #include "esp_heap_trace.h"
+#include "esp_random.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -89,6 +90,7 @@ void CanProcessingTask(void *pvParameter)
 
             *packet = data_packet;
             packet->data_count = count;
+            packet->tick_count = xTaskGetTickCount();
             packet->data = (uint32_t *)malloc(count * sizeof(uint32_t));
             if (packet->data == NULL)
             {
@@ -130,7 +132,14 @@ void SendProcessingTask(void *pvParameter)
     {
         if (xQueueReceive(send_queue, &esp_now_packet, portMAX_DELAY) == pdTRUE)
         {
-            ESP_ERROR_CHECK(esp_now_send(esp_now_packet->mac_addr, esp_now_packet->data, esp_now_packet->data_len));
+            esp_err_t err = esp_now_send(esp_now_packet->mac_addr, esp_now_packet->data, esp_now_packet->data_len);
+            if (err == ESP_ERR_ESPNOW_NO_MEM) {
+                vTaskDelay(pdMS_TO_TICKS(2));
+                err = esp_now_send(esp_now_packet->mac_addr, esp_now_packet->data, esp_now_packet->data_len);
+            }
+            if (err != ESP_OK) {
+                ESP_LOGW(TAG, "esp_now_send dropped: %s", esp_err_to_name(err));
+            }
 
             if (esp_now_packet->data != NULL)
             {
@@ -143,6 +152,7 @@ void SendProcessingTask(void *pvParameter)
                 esp_now_packet = NULL;
             }
         }
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
     vTaskDelete(NULL);
 }
@@ -177,7 +187,8 @@ void StartResendScheduler(size_t can_queue_index)
     snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
 
     can_resend_ctx[can_queue_index].retry_count = 0;
-    can_resend_ctx[can_queue_index].timer = xTimerCreate("ResendTimer", pdMS_TO_TICKS(WCAN_RETRY_DELAY), pdTRUE, (void *)can_queue_index, ResendData);
+    uint32_t initial_delay = WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
+    can_resend_ctx[can_queue_index].timer = xTimerCreate("ResendTimer", pdMS_TO_TICKS(initial_delay), pdFALSE, (void *)can_queue_index, ResendData);
     if (can_resend_ctx[can_queue_index].timer == NULL)
     {
         ESP_LOGE(TAG, "Create resend timer fail");
@@ -206,6 +217,7 @@ void StopResendScheduler(size_t can_queue_index)
     {
         xTimerStop(can_resend_ctx[can_queue_index].timer, 0);
         xTimerDelete(can_resend_ctx[can_queue_index].timer, 0);
+        while (atomic_load(&can_resend_ctx[can_queue_index].cb_running)) { taskYIELD(); }
         can_resend_ctx[can_queue_index].timer = NULL;
         ESP_LOGV(TAG, "Resend timer deleted");
     }
@@ -228,8 +240,6 @@ void ResendData(TimerHandle_t xTimer)
     char TAG[20];
     snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
 
-    // Prevent race condition: If StopResendScheduler already freed the packet
-    // (e.g. because an ACK arrived concurrently), safely abort the timeout execution.
     if (can_resend_ctx[can_queue_index].data_packet == NULL)
     {
         return;
@@ -240,8 +250,17 @@ void ResendData(TimerHandle_t xTimer)
         ESP_LOGW(TAG, "Timeout reached, resending %08lx... Attempt: %d of %d",
                  (unsigned long)can_resend_ctx[can_queue_index].data_packet->can_id, can_resend_ctx[can_queue_index].retry_count + 1, WCAN_MAX_RETRY_COUNT);
 
+        atomic_store(&can_resend_ctx[can_queue_index].cb_running, true);
+        if (atomic_load(&can_resend_ctx[can_queue_index].cancelled)) {
+            atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
+            return;
+        }
         SendData(BROADCAST_MAC, *can_resend_ctx[can_queue_index].data_packet);
+        atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
         can_resend_ctx[can_queue_index].retry_count++;
+
+        uint32_t next_delay = WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
+        xTimerChangePeriod(xTimer, pdMS_TO_TICKS(next_delay), 0);
     }
     else
     {
@@ -291,6 +310,7 @@ void AckRecv(data_packet_t recv_data)
 
     if (uxSemaphoreGetCount(can_semaphores[can_queue_index]) == 0)
     {
+        atomic_store(&can_resend_ctx[can_queue_index].cancelled, true);
         xSemaphoreGive(can_semaphores[can_queue_index]);
         ESP_LOGV(TAG, "Send mutex released");
     }

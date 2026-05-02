@@ -64,7 +64,7 @@ RE_SENSOR_CAN_ID = re.compile(r"SENSOR mode.*CAN ID:\s*0x([0-9a-fA-F]+)")
 RE_SENSOR_COUNTER = re.compile(r"ReadDataTask:\s*(\d+)")
 RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
 RE_RECEIVER_MSG = re.compile(
-    r"RecvCallback:\s*\[([0-9a-fA-F]+)\]\s*(\d+)"
+    r"\s*\[([0-9a-fA-F]+)\]\s*(\d+)"
 )
 RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_([A-Za-z0-9]+)\.log")
 
@@ -146,6 +146,21 @@ def sensor_summary(
         for receiver in receivers:
             union |= receiver.received.get(sensor.can_id, set())
         total_misses = sorted(c for c in sent if c not in union)
+
+        # Trim any contiguous missed tail from sent — the monitoring cutoff
+        # likely prevented receivers from logging those final packets.
+        missed_set = set(total_misses)
+        n_tail = 0
+        for c in reversed(sent):
+            if c in missed_set:
+                n_tail += 1
+            else:
+                break
+        if n_tail:
+            tail_set = set(sent[-n_tail:])
+            sent = sent[:-n_tail]
+            total_misses = [c for c in total_misses if c not in tail_set]
+
         summaries.append(
             SensorSummary(
                 sensor=sensor,
