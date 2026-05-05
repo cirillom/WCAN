@@ -11,6 +11,7 @@ void AddPeer(const uint8_t *mac_addr)
     if (esp_now_is_peer_exist(mac_addr)) {
         return;
     }
+    
     esp_now_peer_info_t *peer = (esp_now_peer_info_t *)malloc(sizeof(esp_now_peer_info_t));
     ESP_LOGV(TAG, "peer: %p\n", (void*)peer);
     if (peer == NULL) {
@@ -84,7 +85,6 @@ data_packet_t *DecodeDataPacket(const esp_now_packet_t *esp_now_packet){
     }
     memcpy(data_packet->mac_addr, esp_now_packet->mac_addr, ESP_NOW_ETH_ALEN);
     
-    size_t header_len = sizeof(data_packet->can_id) + sizeof(data_packet->tick_count) + sizeof(data_packet->data_count);
     size_t offset = 0;
     
     memcpy(&data_packet->can_id, esp_now_packet->data + offset, sizeof(data_packet->can_id));
