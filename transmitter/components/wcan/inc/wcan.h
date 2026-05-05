@@ -42,9 +42,9 @@ extern size_t rx_can_ids_size;
 extern uint32_t linger_ms;
 extern uint32_t *tx_can_ids;
 
-#define RECV_QUEUE_SIZE 25
+#define RECV_QUEUE_SIZE 200
 extern QueueHandle_t recv_queue;
-#define SEND_QUEUE_SIZE 25
+#define SEND_QUEUE_SIZE 200
 extern QueueHandle_t send_queue;
 extern size_t num_can_queues;
 extern QueueHandle_t *can_queues;

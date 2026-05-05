@@ -25,20 +25,30 @@ size_t num_can_queues = 0;
 
 static void ESPNOW_SendCallback(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
-    static const char *TAG = "SEND";
+    static const char *TAG = "SEND_CB";
     if (mac_addr == NULL)
     {
         ESP_LOGE(TAG, "Send cb arg error");
-        return;
     }
 
     if (status == ESP_NOW_SEND_FAIL)
     {
-        ESP_LOGE(TAG, "Failed");
+        ESP_LOGW(TAG, "MAC-layer TX failed (no 802.11 ACK from peer)");
     }
     else
     {
-        ESP_LOGD(TAG, "Success");
+        ESP_LOGI(TAG, "Successfully sent packet.");
+    }
+
+    if (espnow_tx_sem != NULL)
+    {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        xSemaphoreGiveFromISR(espnow_tx_sem, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+    else
+    {
+        ESP_LOGE(TAG, "espnow_tx_sem is NULL in send callback — init order error");
     }
 }
 
@@ -57,6 +67,7 @@ static void ESPNOW_RecvCallback(const esp_now_recv_info_t *recv_info, const uint
     if (mac_addr == NULL || data == NULL || data_len <= 0)
     {
         ESP_LOGE(TAG, "Receive cb arg error");
+        free(recv_packet);
         return;
     }
     memcpy(recv_packet->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
@@ -82,8 +93,14 @@ static void ESPNOW_RecvCallback(const esp_now_recv_info_t *recv_info, const uint
     free(recv_packet);
     recv_packet = NULL;
 
+    if (recv_data == NULL)
+    {
+        ESP_LOGE(TAG, "DecodeDataPacket returned NULL");
+        return;
+    }
+
     ESP_LOGD(TAG, "Received data with id: %08lx", (unsigned long)recv_data->can_id);
-    if (recv_data->can_id == CAN_ACK) // CAN EXT ID uses 29 bits, we use the last 3 bits to identify if the message is an ACK
+    if (recv_data->can_id == CAN_ACK)
     {
         AckRecv(*recv_data);
         if (recv_data->data != NULL)
@@ -133,11 +150,10 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
 
     tx_can_ids = _tx_can_ids;
     linger_ms = _linger_ms;
-
     num_can_queues = _tx_can_ids_size;
 
-    if (num_can_queues > 0){
-
+    if (num_can_queues > 0)
+    {
         can_queues = (QueueHandle_t *)malloc(num_can_queues * sizeof(QueueHandle_t));
         if (can_queues == NULL)
         {
@@ -169,12 +185,11 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
     xTaskCreate(SendProcessingTask, "SendProcessingTask", 4096, NULL, 5, NULL);
     xTaskCreate(RecvProcessingTask, "RecvProcessingTask", 4096, NULL, 5, NULL);
 
-    for(size_t i = 0; i < num_can_queues; i++) {
+    for (size_t i = 0; i < num_can_queues; i++)
+    {
         const char *task_name = (const char *)malloc(20);
         snprintf((char *)task_name, 20, "CanProc_%u", (unsigned int)i);
-
         xTaskCreate(CanProcessingTask, task_name, 4096, (void*)(uintptr_t)i, 4, NULL);
-
         free((void *)task_name);
     }
 
