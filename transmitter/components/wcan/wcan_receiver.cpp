@@ -13,6 +13,32 @@ QueueHandle_t recv_queue = NULL;
 
 void AckSend(const data_packet_t recv_packet);
 
+static dedup_entry_t dedup_table[DEDUP_TABLE_SIZE] = {};
+
+static bool IsDuplicate(const data_packet_t *pkt)
+{
+    for (int i = 0; i < DEDUP_TABLE_SIZE; i++) {
+        if (dedup_table[i].valid && dedup_table[i].can_id == pkt->can_id) {
+            if (dedup_table[i].last_tick_count == pkt->tick_count) {
+                return true;
+            }
+            dedup_table[i].last_tick_count = pkt->tick_count;
+            return false;
+        }
+    }
+    // Not seen this CAN ID before — find a free slot
+    for (int i = 0; i < DEDUP_TABLE_SIZE; i++) {
+        if (!dedup_table[i].valid) {
+            dedup_table[i].can_id = pkt->can_id;
+            dedup_table[i].last_tick_count = pkt->tick_count;
+            dedup_table[i].valid = true;
+            return false;
+        }
+    }
+    // Table full — let it through rather than silently drop
+    return false;
+}
+
 void RecvProcessingTask(void *pvParameter)
 {
     static const char *TAG = "RECV";
@@ -30,6 +56,14 @@ void RecvProcessingTask(void *pvParameter)
         if (xQueueReceive(recv_queue, &recv_data_packet, portMAX_DELAY) == pdTRUE)
         {
             ESP_LOGV(TAG, "Processing data with id: %08lx", (unsigned long)recv_data_packet.can_id);
+
+            if (IsDuplicate(&recv_data_packet)) {
+                ESP_LOGI(TAG, "Dropping duplicate id=0x%08lx tc=%lu",
+                        (unsigned long)recv_data_packet.can_id,
+                        (unsigned long)recv_data_packet.tick_count);
+                continue;
+            }
+
             AckSend(recv_data_packet);
             if (RecvCallback)
             {
