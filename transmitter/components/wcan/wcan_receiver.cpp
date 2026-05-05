@@ -85,6 +85,7 @@ void RecvProcessingTask(void *pvParameter)
                 recv_data_packet.data = NULL;
             }
         }
+        vTaskDelay(pdMS_TO_TICKS(5));  // Small delay to prevent task hogging CPU
     }
     vTaskDelete(NULL);
 }
@@ -114,6 +115,7 @@ void AckSend(const data_packet_t recv_packet)
     AddPeer(ack_data.mac_addr);
     SendData(ack_data.mac_addr, ack_data);
     free(ack_data.data);
+    ESP_LOGI(TAG, "ACK sent for CAN ID 0x%08lx with tick_count %lu", (unsigned long)recv_packet.can_id, (unsigned long)recv_packet.tick_count);
 }
 
 void FilterData(data_packet_t data)
