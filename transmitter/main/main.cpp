@@ -122,13 +122,9 @@ extern "C" void app_main(void)
     ESP_LOGI(TAG, "WiFi initialized");
 
 #ifdef ROLE_SENSOR
-    // Derive a unique CAN ID from the last 2 bytes of the MAC address
     uint32_t can_id = ((uint32_t)mac[4] << 8) | (uint32_t)mac[5];
     ESP_LOGI(TAG, "SENSOR mode — CAN ID: 0x%04lx", (unsigned long)can_id);
 
-    // Random startup jitter (0–1000 ms) BEFORE registering any ESP-NOW callbacks.
-    // Staggers simultaneous sensors so that early senders can't crash late starters
-    // by hitting their recv_queue before it is created.
     uint32_t jitter_ms = esp_random() % 1000;
     ESP_LOGI(TAG, "Startup jitter: %lu ms", (unsigned long)jitter_ms);
     vTaskDelay(pdMS_TO_TICKS(jitter_ms));
