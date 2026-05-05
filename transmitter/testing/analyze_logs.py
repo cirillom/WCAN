@@ -66,7 +66,7 @@ RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
 RE_RECEIVER_MSG = re.compile(
     r"\s*\[([0-9a-fA-F]+)\]\s*(\d+)"
 )
-RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_([A-Za-z0-9]+)\.log")
+RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_(.+)\.log")
 
 
 def parse_filename(path: Path) -> tuple[str, str, str]:

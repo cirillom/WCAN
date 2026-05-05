@@ -134,7 +134,7 @@ def build_variant(chip: str, role: str, project_path: str) -> bool:
     # Clean env: no venv conflict, no IDF_TARGET override
     env = _idf_env()
 
-    result = subprocess.run(cmd, cwd=project_path, shell=True, env=env)
+    result = subprocess.run(cmd, cwd=project_path, shell=False, env=env)
     if result.returncode != 0:
         print(f"[FAIL] Build failed: {chip}/{role}")
         return False
@@ -217,7 +217,7 @@ def flash_board(chip: str, role: str, port: str, project_path: str) -> bool:
     # Clean env: no venv conflict, no IDF_TARGET override
     env = _idf_env()
 
-    result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, shell=True, env=env)
+    result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, shell=False, env=env)
     if result.returncode != 0:
         print(f"  [FAIL] Flash failed on {port} ({chip}/{role})")
         print(f"         stderr: {result.stderr[-200:]}")
