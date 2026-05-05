@@ -114,20 +114,28 @@ def parse_receiver_log(path: Path) -> ReceiverData:
 def compare(
     sensors: list[SensorData], receivers: list[ReceiverData]
 ) -> list[ComparisonResult]:
-    """Cross-reference all sensors against all receivers."""
     results = []
     for sensor in sensors:
-        # Drop the last counter — the monitor may have stopped before
-        # receivers could log it, creating a false "missed" edge case.
         sent = sensor.counters[:-1] if sensor.counters else []
         for receiver in receivers:
             recv_counters = receiver.received.get(sensor.can_id, set())
-            missed = sorted(c for c in sent if c not in recv_counters)
+
+            # Trim trailing counters this receiver never saw
+            missed_set = set(sent) - recv_counters
+            n_tail = 0
+            for c in reversed(sent):
+                if c in missed_set:
+                    n_tail += 1
+                else:
+                    break
+            trimmed_sent = sent[:-n_tail] if n_tail else sent
+
+            missed = sorted(c for c in trimmed_sent if c not in recv_counters)
             results.append(
                 ComparisonResult(
                     sensor=sensor,
                     receiver=receiver,
-                    sent=sent,
+                    sent=trimmed_sent,
                     received=recv_counters,
                     missed=missed,
                 )
