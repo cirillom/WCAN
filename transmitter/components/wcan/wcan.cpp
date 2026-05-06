@@ -37,7 +37,8 @@ static void ESPNOW_SendCallback(const uint8_t *mac_addr, esp_now_send_status_t s
     }
     else
     {
-        ESP_LOGI(TAG, "Successfully sent packet.");
+        ESP_LOGI(TAG, "Successfully sent packet to %02x%02x",
+                 mac_addr[4], mac_addr[5]);
     }
 
     if (espnow_tx_sem != NULL)
@@ -130,7 +131,7 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
     ESP_LOGV(TAG, "Broadcast peer added");
 
     uint8_t mac[6];
-    ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
+    ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_SOFTAP));
     ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x",
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 

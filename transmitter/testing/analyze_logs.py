@@ -17,6 +17,7 @@ Dependencies:
 import re
 import sys
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -30,6 +31,9 @@ class SensorData:
     port: str
     can_id: str
     counters: list[int] = field(default_factory=list)
+    counter_times: dict[int, float] = field(default_factory=dict)  # counter -> epoch seconds
+    ack_delays: dict[int, float] = field(default_factory=dict)  # packet_tick -> delay in ms
+    packet_counters: dict[int, int] = field(default_factory=dict)  # packet_tick -> first_counter in batch
 
 
 @dataclass
@@ -38,6 +42,15 @@ class ReceiverData:
     port: str
     received: dict[str, set[int]] = field(default_factory=dict)
     # can_id -> set of counter values
+    received_times: dict[str, dict[int, float]] = field(default_factory=dict)
+    # can_id -> counter -> epoch seconds
+
+
+@dataclass
+class DelayResult:
+    sensor: SensorData
+    receiver: ReceiverData
+    delays: dict[int, float]  # counter -> delay in ms
 
 
 @dataclass
@@ -61,12 +74,24 @@ class SensorSummary:
 # ── Parsing ──────────────────────────────────────────────────────────────────
 
 RE_SENSOR_CAN_ID = re.compile(r"SENSOR mode.*CAN ID:\s*0x([0-9a-fA-F]+)")
-RE_SENSOR_COUNTER = re.compile(r"ReadDataTask:\s*(\d+)")
+RE_SENSOR_CAN_PROC = re.compile(
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?CAN_PROC_\d+:\s*(0x[0-9a-fA-F]+)\s*batch\s*\d+\s*\[(\d+)\.\.\d+\]\s*at\s*\((\d+)\)"
+)
+RE_SENSOR_ACK = re.compile(
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?ACK:\s*Received ACK for packet tick\s*(\d+)"
+)
+RE_SENSOR_COUNTER = re.compile(
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?ReadDataTask:\s*(\d+)"
+)
 RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
-RE_RECEIVER_MSG = re.compile(
-    r"\s*\[([0-9a-fA-F]+)\]\s*(\d+)"
+RE_RECEIVER_BATCH = re.compile(
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?RecvCallback:\s*\[([0-9a-fA-F]+)\]\s*tick=(\d+)\s*\[(\d+)\.\.(\d+)\]\s*(\d+)\s*items"
 )
 RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_(.+)\.log")
+
+
+def _parse_ts(ts_str: str) -> float:
+    return datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S.%f").timestamp()
 
 
 def parse_filename(path: Path) -> tuple[str, str, str]:
@@ -87,9 +112,29 @@ def parse_sensor_log(path: Path) -> SensorData:
         raise ValueError(f"No CAN ID found in sensor log: {path.name}")
     can_id = can_match.group(1).lower()
 
-    counters = sorted(int(m.group(1)) for m in RE_SENSOR_COUNTER.finditer(text))
+    counter_times: dict[int, float] = {}
+    for m in RE_SENSOR_COUNTER.finditer(text):
+        counter_times[int(m.group(2))] = _parse_ts(m.group(1))
 
-    return SensorData(board_id=board_id, port=port, can_id=can_id, counters=counters)
+    counters = sorted(counter_times.keys())
+    
+    can_proc_times = {}
+    packet_counters = {}
+    for m in RE_SENSOR_CAN_PROC.finditer(text):
+        ts = _parse_ts(m.group(1))
+        first_counter = int(m.group(3))
+        tick = int(m.group(4))
+        can_proc_times[tick] = ts
+        packet_counters[tick] = first_counter
+        
+    ack_delays = {}
+    for m in RE_SENSOR_ACK.finditer(text):
+        ts = _parse_ts(m.group(1))
+        tick = int(m.group(2))
+        if tick in can_proc_times:
+            ack_delays[tick] = (ts - can_proc_times[tick]) * 1000
+
+    return SensorData(board_id=board_id, port=port, can_id=can_id, counters=counters, counter_times=counter_times, ack_delays=ack_delays, packet_counters=packet_counters)
 
 
 def parse_receiver_log(path: Path) -> ReceiverData:
@@ -101,12 +146,15 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         raise ValueError(f"Not a receiver log: {path.name}")
 
     received: dict[str, set[int]] = {}
-    for m in RE_RECEIVER_MSG.finditer(text):
-        can_id = m.group(1).lower()
-        counter = int(m.group(2))
-        received.setdefault(can_id, set()).add(counter)
+    received_times: dict[str, dict[int, float]] = {}
+    for m in RE_RECEIVER_BATCH.finditer(text):
+        ts = _parse_ts(m.group(1))
+        can_id = m.group(2).lower()
+        first, last = int(m.group(4)), int(m.group(5))
+        received.setdefault(can_id, set()).update(range(first, last + 1))
+        received_times.setdefault(can_id, {})[first] = ts
 
-    return ReceiverData(board_id=board_id, port=port, received=received)
+    return ReceiverData(board_id=board_id, port=port, received=received, received_times=received_times)
 
 
 # ── Analysis ─────────────────────────────────────────────────────────────────
@@ -336,6 +384,56 @@ def _plot_subplot(
         ax.spines["left"].set_color("#333333")
 
 
+# ── Delay analysis ───────────────────────────────────────────────────────────
+
+def plot_delays(
+    test_name: str,
+    sensors: list[SensorData],
+    output_path: Path,
+) -> None:
+    """Scatter plot of per-packet send-to-ACK delay for each sensor."""
+    sensors = sorted(sensors, key=lambda s: s.board_id)
+    n_sensors = len(sensors)
+
+    fig, axes = plt.subplots(
+        n_sensors, 1,
+        figsize=(8, 3 * n_sensors + 1),
+        squeeze=False,
+    )
+    fig.suptitle(f"{test_name} — CAN_PROC to ACK Delay", fontsize=14, fontweight="bold")
+
+    for row, sensor in enumerate(sensors):
+        ax = axes[row][0]
+
+        ax.set_title(
+            f"{sensor.board_id} (0x{sensor.can_id})",
+            fontsize=10, fontweight="bold",
+        )
+        ax.set_xlabel("First Counter in Batch")
+        ax.set_ylabel("Delay (ms)")
+        ax.grid(alpha=0.3)
+
+        if not sensor.ack_delays:
+            ax.text(0.5, 0.5, "No matched ACKs", transform=ax.transAxes, ha="center", va="center")
+            continue
+
+        ticks = sorted(sensor.ack_delays.keys())
+        counters = [sensor.packet_counters[t] for t in ticks]
+        delays_ms = [sensor.ack_delays[t] for t in ticks]
+        median_d = sorted(delays_ms)[len(delays_ms) // 2]
+
+        ax.scatter(counters, delays_ms, s=20, color="#3498db", alpha=0.7, zorder=3)
+        ax.axhline(
+            median_d, color="#e74c3c", linewidth=1.2, linestyle="--",
+            label=f"median {median_d:.1f} ms",
+        )
+        ax.legend(fontsize=8)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
 # ── Folder discovery ─────────────────────────────────────────────────────────
 
 def is_test_folder(path: Path) -> bool:
@@ -387,12 +485,17 @@ def analyze_test(test_dir: Path) -> str:
     report_path = test_dir / "analysis.txt"
     report_path.write_text(report, encoding="utf-8")
 
-    # Plot
+    # Plot packet delivery
     plot_path = test_dir / "analysis.png"
     plot_results(test_name, sensors, receivers, results, summaries, plot_path)
 
+    # Plot delays
+    delay_plot_path = test_dir / "analysis_delays.png"
+    plot_delays(test_name, sensors, delay_plot_path)
+
     print(report)
     print(f"  Plot saved: {plot_path}")
+    print(f"  Delay plot saved: {delay_plot_path}")
     print(f"  Report saved: {report_path}")
     print()
 

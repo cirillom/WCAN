@@ -73,31 +73,13 @@ static void ReadDataTask(void *pvParameter)
 void RecvCallback(data_packet_t recv_packet)
 {
     static const char *TAG = "RecvCallback";
-
     if (recv_packet.data_count == 0) return;
-
-    // Print in chunks to minimize overhead while maintaining line-by-line formatting for Python
-    const size_t CHUNK_SIZE = 10; 
-    char str_buf[256]; 
-    
-    for (size_t i = 0; i < recv_packet.data_count; i += CHUNK_SIZE) {
-        char *p = str_buf;
-        size_t remaining_len = sizeof(str_buf);
-        
-        for(size_t j = i; j < i + CHUNK_SIZE && j < recv_packet.data_count; j++) {
-            int written = snprintf(p, remaining_len, "[%04lx] %lu\n", 
-                                  (unsigned long)recv_packet.can_id, 
-                                  (unsigned long)recv_packet.data[j]);
-            if (written > 0 && written < remaining_len) {
-                p += written;
-                remaining_len -= written;
-            }
-        }
-        
-        ESP_LOGI(TAG, "Received data"); // Log the chunk with ESP_LOGI for visibility in logs
-        // Print raw UART string in batches (printf ensures clean multi-line output without log prefixes interrupting)
-        printf("%s", str_buf);
-    }
+    ESP_LOGI(TAG, "[%04lx] tick=%lu [%lu..%lu] %u items",
+             (unsigned long)recv_packet.can_id,
+             (unsigned long)recv_packet.tick_count,
+             (unsigned long)recv_packet.data[0],
+             (unsigned long)recv_packet.data[recv_packet.data_count - 1],
+             recv_packet.data_count);
 }
 #endif // ROLE_RECEIVER
 
@@ -114,7 +96,7 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     uint8_t mac[6];
-    ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
+    ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_SOFTAP));
     ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x",
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
@@ -122,7 +104,7 @@ extern "C" void app_main(void)
     ESP_LOGI(TAG, "WiFi initialized");
 
 #ifdef ROLE_SENSOR
-    uint32_t can_id = ((uint32_t)mac[4] << 8) | (uint32_t)mac[5];
+    static uint32_t can_id = ((uint32_t)mac[4] << 8) | (uint32_t)mac[5];
     ESP_LOGI(TAG, "SENSOR mode — CAN ID: 0x%04lx", (unsigned long)can_id);
 
     uint32_t jitter_ms = esp_random() % 1000;

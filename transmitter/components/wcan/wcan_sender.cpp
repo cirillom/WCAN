@@ -241,7 +241,7 @@ void StopResendScheduler(size_t can_queue_index)
     {
         xTimerStop(can_resend_ctx[can_queue_index].timer, 0);
         xTimerDelete(can_resend_ctx[can_queue_index].timer, 0);
-        while (atomic_load(&can_resend_ctx[can_queue_index].cb_running)) { taskYIELD(); }
+        while (atomic_load(&can_resend_ctx[can_queue_index].cb_running)) { vTaskDelay(1); }
         can_resend_ctx[can_queue_index].timer = NULL;
         ESP_LOGV(TAG, "Resend timer deleted");
     }
@@ -319,7 +319,7 @@ void AckRecv(data_packet_t recv_data)
 
     if (can_resend_ctx[can_queue_index].data_packet == NULL)
     {
-        ESP_LOGI(TAG, "Duplicate ACK ignored for 0x%08lx", (unsigned long)acked_can_id);
+        ESP_LOGW(TAG, "Duplicate ACK ignored for 0x%08lx", (unsigned long)acked_can_id);
         return;
     }
 
@@ -334,7 +334,9 @@ void AckRecv(data_packet_t recv_data)
         return;
     }
 
-    ESP_LOGI(TAG, "Received ACK for packet tick %lu", (unsigned long)recv_data.tick_count);
+    ESP_LOGD(TAG, "Received ACK for packet tick %lu from %02X:%02X:%02X:%02X:%02X:%02X", 
+        (unsigned long)recv_data.tick_count, 
+        recv_data.mac_addr[0], recv_data.mac_addr[1], recv_data.mac_addr[2], recv_data.mac_addr[3], recv_data.mac_addr[4], recv_data.mac_addr[5]);
 
     if (uxSemaphoreGetCount(can_semaphores[can_queue_index]) == 0)
     {

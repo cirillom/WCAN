@@ -41,7 +41,7 @@ static bool IsDuplicate(const data_packet_t *pkt)
 
 void RecvProcessingTask(void *pvParameter)
 {
-    static const char *TAG = "RECV";
+    static const char *TAG = "RecvProcTask";
     recv_queue = xQueueCreate(RECV_QUEUE_SIZE, sizeof(data_packet_t));
     if (recv_queue == NULL)
     {
@@ -55,10 +55,10 @@ void RecvProcessingTask(void *pvParameter)
     {
         if (xQueueReceive(recv_queue, &recv_data_packet, portMAX_DELAY) == pdTRUE)
         {
-            ESP_LOGV(TAG, "Processing data with id: %08lx", (unsigned long)recv_data_packet.can_id);
+            ESP_LOGD(TAG, "[%04lx] %lu", (unsigned long)recv_data_packet.can_id, (unsigned long)recv_data_packet.tick_count);
 
             if (IsDuplicate(&recv_data_packet)) {
-                ESP_LOGI(TAG, "Dropping duplicate id=0x%08lx tc=%lu",
+                ESP_LOGW(TAG, "Dropping duplicate id=0x%08lx tc=%lu",
                         (unsigned long)recv_data_packet.can_id,
                         (unsigned long)recv_data_packet.tick_count);
                 continue;
@@ -85,7 +85,7 @@ void RecvProcessingTask(void *pvParameter)
                 recv_data_packet.data = NULL;
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(5));  // Small delay to prevent task hogging CPU
+        vTaskDelay(pdMS_TO_TICKS(1));  // Small delay to prevent task hogging CPU
     }
     vTaskDelete(NULL);
 }
@@ -115,7 +115,7 @@ void AckSend(const data_packet_t recv_packet)
     AddPeer(ack_data.mac_addr);
     SendData(ack_data.mac_addr, ack_data);
     free(ack_data.data);
-    ESP_LOGI(TAG, "ACK sent for CAN ID 0x%08lx with tick_count %lu", (unsigned long)recv_packet.can_id, (unsigned long)recv_packet.tick_count);
+    ESP_LOGD(TAG, "ACK sent for CAN ID 0x%08lx with tick_count %lu", (unsigned long)recv_packet.can_id, (unsigned long)recv_packet.tick_count);
 }
 
 void FilterData(data_packet_t data)
