@@ -221,6 +221,11 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
         return;
     }
 
+    ESP_ERROR_CHECK(esp_now_register_send_cb(ESPNOW_SendCallback));
+    ESP_LOGV(TAG, "ESP-NOW send callback registered");
+    ESP_ERROR_CHECK(esp_now_register_recv_cb(ESPNOW_RecvCallback));
+    ESP_LOGV(TAG, "ESP-NOW receive callback registered");
+
     xTaskCreate(SendProcessingTask, "SendProcessingTask", 4096, NULL, 5, NULL);
     // Skip RecvProcessingTask when filter=true with an empty allowlist: ACKs are
     // routed directly through AckRecv and nothing else will ever reach the queue.
@@ -241,11 +246,6 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
         snprintf(task_name, sizeof(task_name), "CanProc_%u", (unsigned int)i);
         xTaskCreate(CanProcessingTask, task_name, 4096, (void*)(uintptr_t)i, 4, NULL);
     }
-
-    ESP_ERROR_CHECK(esp_now_register_send_cb(ESPNOW_SendCallback));
-    ESP_LOGV(TAG, "ESP-NOW send callback registered");
-    ESP_ERROR_CHECK(esp_now_register_recv_cb(ESPNOW_RecvCallback));
-    ESP_LOGV(TAG, "ESP-NOW receive callback registered");
 
     ESP_LOGI(TAG, "WCAN initialized");
 }
