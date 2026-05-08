@@ -40,6 +40,11 @@ static bool IsDuplicate(const data_packet_t *pkt)
         }
     }
     // Table full — let it through rather than silently drop
+    static bool table_full_warned = false;
+    if (!table_full_warned) {
+        ESP_LOGW("IsDuplicate", "dedup table full (%d entries); increase DEDUP_TABLE_SIZE", DEDUP_TABLE_SIZE);
+        table_full_warned = true;
+    }
     return false;
 }
 
