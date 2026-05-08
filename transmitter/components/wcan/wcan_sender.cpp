@@ -17,6 +17,7 @@ QueueHandle_t send_queue = NULL;
 QueueHandle_t *can_queues = NULL;
 SemaphoreHandle_t *can_tx_semaphores = NULL;
 data_packet_t **can_tx_packets = NULL;
+volatile TickType_t *can_tx_tick_counts = NULL;
 
 SemaphoreHandle_t espnow_tx_sem = NULL;
 
@@ -98,6 +99,7 @@ void CanProcessingTask(void *pvParameter)
         if (packet == NULL)
             continue;
 
+        can_tx_tick_counts[can_queue_index] = packet->tick_count;
         can_tx_packets[can_queue_index] = packet;
         SendData(BROADCAST_MAC, *packet);
 
@@ -212,14 +214,12 @@ void AckRecv(data_packet_t recv_data)
         return;
     }
 
-    if (recv_data.tick_count != can_tx_packets[can_queue_index]->tick_count ||
-        acked_can_id != can_tx_packets[can_queue_index]->can_id)
+    if (recv_data.tick_count != can_tx_tick_counts[can_queue_index])
     {
-        // Fixed: was logging recv_data.data (the pointer address) instead of acked_can_id
         ESP_LOGW(TAG, "[0x%08lx] with tick_count %lu, but expected tick_count %lu",
                  (unsigned long)acked_can_id,
                  (unsigned long)recv_data.tick_count,
-                 (unsigned long)can_tx_packets[can_queue_index]->tick_count);
+                 (unsigned long)can_tx_tick_counts[can_queue_index]);
         return;
     }
 

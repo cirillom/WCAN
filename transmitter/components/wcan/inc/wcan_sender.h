@@ -10,6 +10,7 @@ extern const uint8_t BROADCAST_MAC[ESP_NOW_ETH_ALEN];
 #define WCAN_RETRY_DELAY_MAX 80 // milliseconds
 
 extern data_packet_t **can_tx_packets;
+extern volatile TickType_t *can_tx_tick_counts;
 
 extern SemaphoreHandle_t espnow_tx_sem;
 #define WCAN_TX_SEM_TIMEOUT_MS 500

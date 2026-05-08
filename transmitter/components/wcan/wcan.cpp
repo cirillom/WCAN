@@ -121,6 +121,19 @@ static bool CreateHandles(void)
             can_tx_semaphores = NULL;
             return false;
         }
+
+        can_tx_tick_counts = (volatile TickType_t *)calloc(num_can_queues, sizeof(TickType_t));
+        if (can_tx_tick_counts == NULL)
+        {
+            ESP_LOGE(TAG, "Failed to allocate memory for CAN tick count slots");
+            free(can_queues);
+            can_queues = NULL;
+            free(can_tx_semaphores);
+            can_tx_semaphores = NULL;
+            free(can_tx_packets);
+            can_tx_packets = NULL;
+            return false;
+        }
     }
 
     espnow_tx_sem = xSemaphoreCreateBinary();
