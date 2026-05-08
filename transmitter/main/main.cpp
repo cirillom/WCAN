@@ -104,7 +104,7 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     uint8_t mac[6];
-    ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_SOFTAP));
+    ESP_ERROR_CHECK(esp_read_mac(mac, ESPNOW_MAC_TYPE));
     ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x",
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
