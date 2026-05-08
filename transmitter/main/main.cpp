@@ -15,6 +15,7 @@
 
 #include "wcan.h"
 #include "wcan_utils.h"
+// #include "can.h"
 
 // Compile-time role validation
 #if !defined(ROLE_SENSOR) && !defined(ROLE_RECEIVER) && !defined(ROLE_IDLE)
@@ -80,6 +81,13 @@ void RecvCallback(data_packet_t recv_packet)
              (unsigned long)recv_packet.data[0],
              (unsigned long)recv_packet.data[recv_packet.data_count - 1],
              recv_packet.data_count);
+
+    /*
+    // We are testing WCAN, CAN is already validated.
+    for (size_t i = 0; i < recv_packet.data_count; i++) {
+        CanSend(recv_packet.can_id, sizeof(recv_packet.data[i]), (uint8_t *)&recv_packet.data[i]);
+    }
+    */
 }
 #endif // ROLE_RECEIVER
 
@@ -103,6 +111,9 @@ extern "C" void app_main(void)
 #if !defined(ROLE_IDLE)
     WiFiInit();
     ESP_LOGI(TAG, "WiFi initialized");
+
+    // CanInit(GPIO_NUM_21, GPIO_NUM_22); // as this project is only validating WCAN, 
+    //we don't need to initialize the CAN driver
 #endif
 
 #ifdef ROLE_SENSOR
@@ -118,6 +129,7 @@ extern "C" void app_main(void)
     WCAN_Init(true, NULL, 0, &can_id, 1, 100);
 
     xTaskCreate(ReadDataTask, "ReadDataTask", 4096, (void *)(uintptr_t)can_id, 5, NULL);
+    // xTaskCreate(CanReceiveTask, "CanReceiveTask", 4096, NULL, 5, NULL);
 
 #elif defined(ROLE_RECEIVER)
     ESP_LOGI(TAG, "RECEIVER mode — accepting all CAN IDs");
