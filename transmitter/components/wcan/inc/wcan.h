@@ -37,6 +37,7 @@ typedef struct
 } esp_now_packet_t;
 
 #define CAN_ACK 0xE0000000
+#define CAN_ID_MAX 0x1FFFFFFF
 extern uint8_t own_mac_addr[ESP_NOW_ETH_ALEN];
 extern bool recv_filter;
 extern uint32_t *rx_can_ids;

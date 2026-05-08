@@ -204,6 +204,28 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
         rx_can_ids_size = 0;
     }
 
+    for (size_t i = 0; i < _tx_can_ids_size; i++)
+    {
+        if (_tx_can_ids[i] > CAN_ID_MAX)
+        {
+            ESP_LOGE(TAG, "tx_can_ids[%u] = 0x%08lx exceeds 29-bit CAN extended ID limit",
+                     (unsigned int)i, (unsigned long)_tx_can_ids[i]);
+            return;
+        }
+    }
+    if (_filter)
+    {
+        for (size_t i = 0; i < _rx_can_ids_size; i++)
+        {
+            if (_rx_can_ids[i] > CAN_ID_MAX)
+            {
+                ESP_LOGE(TAG, "rx_can_ids[%u] = 0x%08lx exceeds 29-bit CAN extended ID limit",
+                         (unsigned int)i, (unsigned long)_rx_can_ids[i]);
+                return;
+            }
+        }
+    }
+
     tx_can_ids = _tx_can_ids;
     linger_ms = _linger_ms;
     num_can_queues = _tx_can_ids_size;
