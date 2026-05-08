@@ -93,7 +93,7 @@ void RemovePeer(const uint8_t *mac_addr)
 esp_now_packet_t *EncodeDataPacket(const data_packet_t *data_packet){
     static const char *TAG = "ENCODE";
     esp_now_packet_t *esp_now_packet = (esp_now_packet_t *)malloc(sizeof(esp_now_packet_t));
-    ESP_LOGV(TAG, "esp_now_packet: %p\n", (void*)esp_now_packet);
+    ESP_LOGV(TAG, "esp_now_packet: %p", (void*)esp_now_packet);
     if (esp_now_packet == NULL) {
         ESP_LOGE(TAG, "Malloc esp now packet fail");
         return NULL;
@@ -101,7 +101,7 @@ esp_now_packet_t *EncodeDataPacket(const data_packet_t *data_packet){
     size_t header_len = sizeof(data_packet->can_id) + sizeof(data_packet->tick_count) + sizeof(data_packet->data_count);
     esp_now_packet->data_len = header_len + data_packet->data_count * sizeof(uint32_t);
     esp_now_packet->data = (uint8_t *)malloc(esp_now_packet->data_len);
-    ESP_LOGV(TAG, "esp_now_packet->data: %p\n", (void*)esp_now_packet->data);
+    ESP_LOGV(TAG, "esp_now_packet->data: %p", (void*)esp_now_packet->data);
     if (esp_now_packet->data == NULL) {
         ESP_LOGE(TAG, "Malloc esp now packet fail");
         free(esp_now_packet);
@@ -145,7 +145,7 @@ bool DecodeDataPacket(const esp_now_packet_t *packet, data_packet_t *out)
         out->data = NULL;
     } else {
         out->data = (uint32_t *)malloc(payload_len);
-        ESP_LOGV(TAG, "data_packet->data: %p\n", (void *)out->data);
+        ESP_LOGV(TAG, "data_packet->data: %p", (void *)out->data);
         if (out->data == NULL) {
             ESP_LOGE(TAG, "Malloc payload fail");
             return false;

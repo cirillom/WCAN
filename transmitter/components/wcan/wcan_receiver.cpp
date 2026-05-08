@@ -106,7 +106,7 @@ void AckSend(const data_packet_t recv_packet)
     ack_data.can_id = CAN_ACK;
     ack_data.tick_count = recv_packet.tick_count;
     ack_data.data = (uint32_t *)malloc(sizeof(uint32_t));
-    ESP_LOGV(TAG, "ack_data.payload: %p\n", (void *)ack_data.data);
+    ESP_LOGV(TAG, "ack_data.payload: %p", (void *)ack_data.data);
     if (ack_data.data == NULL)
     {
         ESP_LOGE(TAG, "Malloc ack payload fail");
