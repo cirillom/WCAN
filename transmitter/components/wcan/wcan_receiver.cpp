@@ -150,9 +150,9 @@ void FilterData(data_packet_t data)
         }
     }
 
-    if (xQueueSend(recv_queue, &data, ESPNOW_MAXDELAY) != pdTRUE)
+    if (xQueueSend(recv_queue, &data, 0) != pdTRUE)
     {
-        ESP_LOGW(TAG, "Send receive queue fail");
+        ESP_LOGW(TAG, "Recv queue full, dropping packet (id: %08lx)", (unsigned long)data.can_id);
         if (data.data != NULL)
         {
             free(data.data);
