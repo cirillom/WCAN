@@ -32,8 +32,10 @@ static data_packet_t *CollectPacket(size_t can_queue_index, const data_packet_t 
     TickType_t deadline = xTaskGetTickCount() + pdMS_TO_TICKS(linger_ms);
     while (count < WCAN_DATA_PACKET_MAX_DATA_COUNT)
     {
-        TickType_t remaining = deadline - xTaskGetTickCount();
-        if (remaining <= 0 || xQueueReceive(can_queues[can_queue_index], &data_point[count], remaining) != pdTRUE)
+        TickType_t now = xTaskGetTickCount();
+        if ((int32_t)(deadline - now) <= 0) break; //avoids overflow issues with tick count wraparound
+        TickType_t remaining = deadline - now;
+        if (xQueueReceive(can_queues[can_queue_index], &data_point[count], remaining) != pdTRUE)
             break;
         count++;
     }
