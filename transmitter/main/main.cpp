@@ -111,7 +111,8 @@ extern "C" void app_main(void)
     ESP_LOGI(TAG, "Startup jitter: %lu ms", (unsigned long)jitter_ms);
     vTaskDelay(pdMS_TO_TICKS(jitter_ms));
 
-    // Sensor should not receive any messages, so we filter everything out
+    // filter=true + empty rx allowlist drops all non-ACK data; ACKs are routed
+    // directly through AckRecv and do not need RecvProcessingTask.
     WCAN_Init(true, NULL, 0, &can_id, 1, 100);
 
     xTaskCreate(ReadDataTask, "ReadDataTask", 4096, (void *)(uintptr_t)can_id, 5, NULL);

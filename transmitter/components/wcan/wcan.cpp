@@ -242,7 +242,12 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
     }
 
     xTaskCreate(SendProcessingTask, "SendProcessingTask", 4096, NULL, 5, NULL);
-    xTaskCreate(RecvProcessingTask, "RecvProcessingTask", 4096, NULL, 5, NULL);
+    // Skip RecvProcessingTask when filter=true with an empty allowlist: ACKs are
+    // routed directly through AckRecv and nothing else will ever reach the queue.
+    if (!(_filter && _rx_can_ids_size == 0))
+    {
+        xTaskCreate(RecvProcessingTask, "RecvProcessingTask", 4096, NULL, 5, NULL);
+    }
 
     for (size_t i = 0; i < num_can_queues; i++)
     {
