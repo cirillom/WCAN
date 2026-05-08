@@ -275,11 +275,14 @@ void AckRecv(data_packet_t recv_data)
 {
     static const char *TAG = "ACK";
 
-    uint32_t acked_can_id = 0;
-    if (recv_data.data != NULL)
+    if (recv_data.data == NULL || recv_data.data_count < 1)
     {
-        memcpy(&acked_can_id, recv_data.data, sizeof(uint32_t));
+        ESP_LOGW(TAG, "Malformed ACK: missing payload");
+        return;
     }
+
+    uint32_t acked_can_id = 0;
+    memcpy(&acked_can_id, recv_data.data, sizeof(uint32_t));
 
     size_t can_queue_index = GetCanTXQueueIndex(acked_can_id);
     if (can_queue_index == SIZE_MAX)
