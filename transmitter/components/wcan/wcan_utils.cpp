@@ -158,24 +158,6 @@ data_packet_t *DecodeDataPacket(const esp_now_packet_t *esp_now_packet){
     return data_packet;
 }
 
-void PrintCharPacket(const uint8_t *data, const int data_len){
-    // create a string buffer to hold the formatted string
-    static const char *TAG = "DATA";
-    size_t buf_len = data_len * 3 + 1;
-    char *str = (char*)malloc(buf_len);
-    ESP_LOGV(TAG, "str: %p\n", (void*)str);
-    if (!str) return;
-    char *p = str;
-    for (size_t i = 0; i < data_len; i++) {
-        int written = snprintf(p, 4, "%02x ", data[i]);
-        p += written;
-    }
-    *p = '\0';
-    // print the formatted string
-    ESP_LOGV(TAG, "%s", str);
-    free(str);
-}
-
 bool DecodeDataPacketInto(const uint8_t *mac_addr, const uint8_t *data, int data_len, data_packet_t *out)
 {
     static const char *TAG = "DECODE";

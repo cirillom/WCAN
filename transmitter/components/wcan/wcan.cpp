@@ -65,7 +65,6 @@ static void ESPNOW_RecvCallback(const esp_now_recv_info_t *recv_info, const uint
     ESP_LOGD(TAG, "Received payload of size %d from %02x:%02x:%02x:%02x:%02x:%02x",
              data_len, recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
              recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
-    PrintCharPacket(data, data_len);
 
     data_packet_t recv_data;
     if (!DecodeDataPacketInto(recv_info->src_addr, data, data_len, &recv_data))

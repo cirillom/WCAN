@@ -8,8 +8,6 @@ esp_now_packet_t *EncodeDataPacket(const data_packet_t *data_packet);
 data_packet_t *DecodeDataPacket(const esp_now_packet_t *esp_now_packet);
 bool DecodeDataPacketInto(const uint8_t *mac_addr, const uint8_t *data, int data_len, data_packet_t *out);
 
-void PrintCharPacket(const uint8_t *data, const int data_len);
-
 void AddPeer(const uint8_t *mac_addr);
 void RemovePeer(const uint8_t *mac_addr);
 

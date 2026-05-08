@@ -174,7 +174,6 @@ void SendData(const uint8_t *mac_addr, const data_packet_t data_packet)
     }
     memcpy(esp_now_packet->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
 
-    PrintCharPacket(esp_now_packet->data, esp_now_packet->data_len);
     if (xQueueSend(send_queue, &esp_now_packet, 0) != pdTRUE)
     {
         ESP_LOGW(TAG, "Send queue full, dropping packet with CAN ID 0x%08lx", (unsigned long)data_packet.can_id);
