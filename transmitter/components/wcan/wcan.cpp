@@ -55,69 +55,37 @@ static void ESPNOW_SendCallback(const uint8_t *mac_addr, esp_now_send_status_t s
 static void ESPNOW_RecvCallback(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len)
 {
     static const char *TAG = "RECV";
-    esp_now_packet_t *recv_packet = (esp_now_packet_t *)malloc(sizeof(esp_now_packet_t));
-    ESP_LOGV(TAG, "recv_packet: %p\n", (void *)recv_packet);
-    if (recv_packet == NULL)
-    {
-        ESP_LOGE(TAG, "Malloc receive cb fail");
-        return;
-    }
 
-    uint8_t *mac_addr = recv_info->src_addr;
-    if (mac_addr == NULL || data == NULL || data_len <= 0)
+    if (recv_info->src_addr == NULL || data == NULL || data_len <= 0)
     {
         ESP_LOGE(TAG, "Receive cb arg error");
-        free(recv_packet);
         return;
     }
-    memcpy(recv_packet->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
-
-    recv_packet->data = (uint8_t *)malloc(data_len);
-    ESP_LOGV(TAG, "recv_packet->data: %p\n", (void *)recv_packet->data);
-    if (recv_packet->data == NULL)
-    {
-        ESP_LOGE(TAG, "Malloc receive data fail");
-        free(recv_packet);
-        return;
-    }
-    memcpy(recv_packet->data, data, data_len);
-    recv_packet->data_len = data_len;
 
     ESP_LOGD(TAG, "Received payload of size %d from %02x:%02x:%02x:%02x:%02x:%02x",
-             data_len, mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-    PrintCharPacket(recv_packet->data, data_len);
+             data_len, recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
+             recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
+    PrintCharPacket(data, data_len);
 
-    data_packet_t *recv_data = DecodeDataPacket(recv_packet);
-
-    free(recv_packet->data);
-    free(recv_packet);
-    recv_packet = NULL;
-
-    if (recv_data == NULL)
+    data_packet_t recv_data;
+    if (!DecodeDataPacketInto(recv_info->src_addr, data, data_len, &recv_data))
     {
-        ESP_LOGE(TAG, "DecodeDataPacket returned NULL");
+        ESP_LOGE(TAG, "DecodeDataPacketInto failed");
         return;
     }
 
-    ESP_LOGD(TAG, "Received data with id: %08lx", (unsigned long)recv_data->can_id);
-    if (recv_data->can_id == CAN_ACK)
+    ESP_LOGD(TAG, "Received data with id: %08lx", (unsigned long)recv_data.can_id);
+    if (recv_data.can_id == CAN_ACK)
     {
-        AckRecv(*recv_data);
-        if (recv_data->data != NULL)
+        AckRecv(recv_data);
+        if (recv_data.data != NULL)
         {
-            free(recv_data->data);
-            recv_data->data = NULL;
+            free(recv_data.data);
         }
     }
     else
     {
-        FilterData(*recv_data);
-    }
-
-    if (recv_data != NULL)
-    {
-        free(recv_data);
-        recv_data = NULL;
+        FilterData(recv_data);
     }
 }
 
