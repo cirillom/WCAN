@@ -15,6 +15,10 @@ void AckSend(const data_packet_t recv_packet);
 
 static dedup_entry_t dedup_table[DEDUP_TABLE_SIZE] = {};
 
+// Stores only the most recent tick per CAN ID. A retransmit carrying an older
+// tick that arrives after a newer tick has been recorded will not be suppressed
+// — it looks like a new packet. With the current ACK-up-to-N-retries flow this
+// is benign because retransmits converge on the same tick, not regress.
 static bool IsDuplicate(const data_packet_t *pkt)
 {
     for (int i = 0; i < DEDUP_TABLE_SIZE; i++) {
