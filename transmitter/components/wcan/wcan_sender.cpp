@@ -150,6 +150,11 @@ void SendData(const uint8_t *mac_addr, const data_packet_t data_packet)
     static const char *TAG = "SendData";
 
     esp_now_packet_t *esp_now_packet = EncodeDataPacket(&data_packet);
+    if (esp_now_packet == NULL)
+    {
+        ESP_LOGE(TAG, "EncodeDataPacket failed, dropping packet with CAN ID 0x%08lx", (unsigned long)data_packet.can_id);
+        return;
+    }
     memcpy(esp_now_packet->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
 
     PrintCharPacket(esp_now_packet->data, esp_now_packet->data_len);
