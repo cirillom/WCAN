@@ -96,15 +96,17 @@ data_packet_t *DecodeDataPacket(const esp_now_packet_t *esp_now_packet){
     memcpy(&data_packet->data_count, esp_now_packet->data + offset, sizeof(data_packet->data_count));
     offset += sizeof(data_packet->data_count);
 
-    size_t payload_len = data_packet->data_count * sizeof(uint32_t); // or esp_now_packet->data_len - header_len
-    data_packet->data = (uint32_t *)malloc(payload_len);
-    ESP_LOGV(TAG, "data_packet->data: %p\n", (void*)data_packet->data);
-    if (data_packet->data == NULL && payload_len > 0) {
-        ESP_LOGE(TAG, "Malloc payload fail");
-        free(data_packet);
-        return NULL;
-    }
-    if (payload_len > 0) {
+    size_t payload_len = data_packet->data_count * sizeof(uint32_t);
+    if (payload_len == 0) {
+        data_packet->data = NULL;
+    } else {
+        data_packet->data = (uint32_t *)malloc(payload_len);
+        ESP_LOGV(TAG, "data_packet->data: %p\n", (void*)data_packet->data);
+        if (data_packet->data == NULL) {
+            ESP_LOGE(TAG, "Malloc payload fail");
+            free(data_packet);
+            return NULL;
+        }
         memcpy(data_packet->data, esp_now_packet->data + offset, payload_len);
     }
     return data_packet;
