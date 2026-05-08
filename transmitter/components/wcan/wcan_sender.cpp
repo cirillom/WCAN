@@ -20,7 +20,7 @@ resend_t *can_resend_ctx = NULL;
 
 SemaphoreHandle_t espnow_tx_sem = NULL;
 
-void StartResendScheduler(size_t can_queue_index);
+bool StartResendScheduler(size_t can_queue_index);
 void StopResendScheduler(size_t can_queue_index);
 void ResendData(TimerHandle_t xTimer);
 
@@ -92,7 +92,8 @@ void CanProcessingTask(void *pvParameter)
                      (unsigned long)data_point[0], (unsigned long)data_point[count - 1],
                      (unsigned long)packet->tick_count);
 
-            StartResendScheduler(can_queue_index);
+            if (!StartResendScheduler(can_queue_index))
+                continue;
 
             xSemaphoreTake(can_semaphores[can_queue_index], portMAX_DELAY);
 
@@ -171,7 +172,7 @@ void SendData(const uint8_t *mac_addr, const data_packet_t data_packet)
     }
 }
 
-void StartResendScheduler(size_t can_queue_index)
+bool StartResendScheduler(size_t can_queue_index)
 {
     char TAG[20];
     snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
@@ -193,11 +194,12 @@ void StartResendScheduler(size_t can_queue_index)
             free(can_resend_ctx[can_queue_index].data_packet);
             can_resend_ctx[can_queue_index].data_packet = NULL;
         }
-        return;
+        return false;
     }
 
     xTimerStart(can_resend_ctx[can_queue_index].timer, 0);
     ESP_LOGV(TAG, "Resend timer started");
+    return true;
 }
 
 void StopResendScheduler(size_t can_queue_index)
