@@ -211,13 +211,13 @@ void StopResendScheduler(size_t can_queue_index)
         ESP_LOGV(TAG, "Resend timer deleted");
     }
 
-    if (can_resend_ctx[can_queue_index].data_packet->data != NULL)
-    {
-        free(can_resend_ctx[can_queue_index].data_packet->data);
-        can_resend_ctx[can_queue_index].data_packet->data = NULL;
-    }
     if (can_resend_ctx[can_queue_index].data_packet != NULL)
     {
+        if (can_resend_ctx[can_queue_index].data_packet->data != NULL)
+        {
+            free(can_resend_ctx[can_queue_index].data_packet->data);
+            can_resend_ctx[can_queue_index].data_packet->data = NULL;
+        }
         free(can_resend_ctx[can_queue_index].data_packet);
         can_resend_ctx[can_queue_index].data_packet = NULL;
     }
@@ -229,8 +229,14 @@ void ResendData(TimerHandle_t xTimer)
     char TAG[20];
     snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
 
+    // Must be set before any data_packet dereference. StopResendScheduler
+    // spins on cb_running after xTimerStop/Delete; if we set it late, the
+    // spinner exits early and frees data_packet while we still hold the pointer.
+    atomic_store(&can_resend_ctx[can_queue_index].cb_running, true);
+
     if (can_resend_ctx[can_queue_index].data_packet == NULL)
     {
+        atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
         return;
     }
 
@@ -241,14 +247,12 @@ void ResendData(TimerHandle_t xTimer)
                  can_resend_ctx[can_queue_index].retry_count + 1,
                  WCAN_MAX_RETRY_COUNT);
 
-        atomic_store(&can_resend_ctx[can_queue_index].cb_running, true);
         if (atomic_load(&can_resend_ctx[can_queue_index].cancelled))
         {
             atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
             return;
         }
         SendData(BROADCAST_MAC, *can_resend_ctx[can_queue_index].data_packet);
-        atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
         can_resend_ctx[can_queue_index].retry_count++;
 
         uint32_t next_delay = WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
@@ -263,6 +267,8 @@ void ResendData(TimerHandle_t xTimer)
             ESP_LOGV(TAG, "Send mutex released");
         }
     }
+
+    atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
 }
 
 void AckRecv(data_packet_t recv_data)
