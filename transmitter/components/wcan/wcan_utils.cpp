@@ -2,35 +2,75 @@
 #include <stdio.h>
 
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "wcan_utils.h"
+
+// ESP-NOW caps at 20 unencrypted peers total.
+#define PEER_CACHE_SIZE 20
+
+typedef struct {
+    uint8_t mac_addr[ESP_NOW_ETH_ALEN];
+    TickType_t last_used;
+    bool in_use;
+} peer_cache_entry_t;
+
+static peer_cache_entry_t peer_cache[PEER_CACHE_SIZE] = {};
 
 void AddPeer(const uint8_t *mac_addr)
 {
     static const char *TAG = "PEER";
-    if (esp_now_is_peer_exist(mac_addr)) {
-        return;
+
+    // Already tracked — refresh LRU timestamp and return.
+    for (int i = 0; i < PEER_CACHE_SIZE; i++) {
+        if (peer_cache[i].in_use && memcmp(peer_cache[i].mac_addr, mac_addr, ESP_NOW_ETH_ALEN) == 0) {
+            peer_cache[i].last_used = xTaskGetTickCount();
+            return;
+        }
     }
-    
-    esp_now_peer_info_t *peer = (esp_now_peer_info_t *)malloc(sizeof(esp_now_peer_info_t));
-    ESP_LOGV(TAG, "peer: %p\n", (void*)peer);
-    if (peer == NULL) {
-        ESP_LOGE(TAG, "Malloc peer information fail");
-        return;
+
+    // Find a free slot; if none, pick the LRU occupied slot.
+    int slot = 0;
+    TickType_t oldest = portMAX_DELAY;
+    for (int i = 0; i < PEER_CACHE_SIZE; i++) {
+        if (!peer_cache[i].in_use) {
+            slot = i;
+            oldest = 0;
+            break;
+        }
+        if (peer_cache[i].last_used < oldest) {
+            oldest = peer_cache[i].last_used;
+            slot = i;
+        }
     }
-    memset(peer, 0, sizeof(esp_now_peer_info_t));
-    peer->channel = ESPNOW_CHANNEL;
-    peer->ifidx = ESPNOW_WIFI_IF;
-    peer->encrypt = false;
-    memcpy(peer->peer_addr, mac_addr, ESP_NOW_ETH_ALEN);
-    esp_err_t ret = esp_now_add_peer(peer);
+
+    // Evict the LRU peer to stay within the hardware limit.
+    if (peer_cache[slot].in_use) {
+        ESP_LOGD(TAG, "Evicting LRU peer %02x:%02x:%02x:%02x:%02x:%02x",
+                 peer_cache[slot].mac_addr[0], peer_cache[slot].mac_addr[1],
+                 peer_cache[slot].mac_addr[2], peer_cache[slot].mac_addr[3],
+                 peer_cache[slot].mac_addr[4], peer_cache[slot].mac_addr[5]);
+        esp_now_del_peer(peer_cache[slot].mac_addr);
+        peer_cache[slot].in_use = false;
+    }
+
+    esp_now_peer_info_t peer = {};
+    peer.channel = ESPNOW_CHANNEL;
+    peer.ifidx = ESPNOW_WIFI_IF;
+    peer.encrypt = false;
+    memcpy(peer.peer_addr, mac_addr, ESP_NOW_ETH_ALEN);
+    esp_err_t ret = esp_now_add_peer(&peer);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Add peer failed: %s", esp_err_to_name(ret));
-    } else {
-        ESP_LOGV(TAG, "Peer added: %02x:%02x:%02x:%02x:%02x:%02x", 
-                mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+        return;
     }
-    free(peer);
+
+    memcpy(peer_cache[slot].mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
+    peer_cache[slot].last_used = xTaskGetTickCount();
+    peer_cache[slot].in_use = true;
+    ESP_LOGV(TAG, "Peer added: %02x:%02x:%02x:%02x:%02x:%02x",
+             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 }
 
 void RemovePeer(const uint8_t *mac_addr)
@@ -40,6 +80,12 @@ void RemovePeer(const uint8_t *mac_addr)
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Remove peer failed: %s", esp_err_to_name(ret));
         return;
+    }
+    for (int i = 0; i < PEER_CACHE_SIZE; i++) {
+        if (peer_cache[i].in_use && memcmp(peer_cache[i].mac_addr, mac_addr, ESP_NOW_ETH_ALEN) == 0) {
+            peer_cache[i].in_use = false;
+            break;
+        }
     }
     ESP_LOGV(TAG, "Peer removed");
 }
