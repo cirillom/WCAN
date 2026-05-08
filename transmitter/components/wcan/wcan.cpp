@@ -66,10 +66,15 @@ static void ESPNOW_RecvCallback(const esp_now_recv_info_t *recv_info, const uint
              data_len, recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
              recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
 
+    esp_now_packet_t recv_packet;
+    memcpy(recv_packet.mac_addr, recv_info->src_addr, ESP_NOW_ETH_ALEN);
+    recv_packet.data = (uint8_t *)data;
+    recv_packet.data_len = data_len;
+
     data_packet_t recv_data;
-    if (!DecodeDataPacketInto(recv_info->src_addr, data, data_len, &recv_data))
+    if (!DecodeDataPacket(&recv_packet, &recv_data))
     {
-        ESP_LOGE(TAG, "DecodeDataPacketInto failed");
+        ESP_LOGE(TAG, "DecodeDataPacket failed");
         return;
     }
 

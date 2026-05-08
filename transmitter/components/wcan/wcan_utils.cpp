@@ -121,23 +121,23 @@ esp_now_packet_t *EncodeDataPacket(const data_packet_t *data_packet){
     return esp_now_packet;
 }
 
-bool DecodeDataPacketInto(const uint8_t *mac_addr, const uint8_t *data, int data_len, data_packet_t *out)
+bool DecodeDataPacket(const esp_now_packet_t *packet, data_packet_t *out)
 {
     static const char *TAG = "DECODE";
     size_t min_len = sizeof(out->can_id) + sizeof(out->tick_count) + sizeof(out->data_count);
-    if (data_len < (int)min_len) {
-        ESP_LOGE(TAG, "Packet too short: %d < %u", data_len, (unsigned)min_len);
+    if (packet->data_len < (int)min_len) {
+        ESP_LOGE(TAG, "Packet too short: %d < %u", packet->data_len, (unsigned)min_len);
         return false;
     }
 
-    memcpy(out->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
+    memcpy(out->mac_addr, packet->mac_addr, ESP_NOW_ETH_ALEN);
 
     size_t offset = 0;
-    memcpy(&out->can_id, data + offset, sizeof(out->can_id));
+    memcpy(&out->can_id, packet->data + offset, sizeof(out->can_id));
     offset += sizeof(out->can_id);
-    memcpy(&out->tick_count, data + offset, sizeof(out->tick_count));
+    memcpy(&out->tick_count, packet->data + offset, sizeof(out->tick_count));
     offset += sizeof(out->tick_count);
-    memcpy(&out->data_count, data + offset, sizeof(out->data_count));
+    memcpy(&out->data_count, packet->data + offset, sizeof(out->data_count));
     offset += sizeof(out->data_count);
 
     size_t payload_len = out->data_count * sizeof(uint32_t);
@@ -150,7 +150,7 @@ bool DecodeDataPacketInto(const uint8_t *mac_addr, const uint8_t *data, int data
             ESP_LOGE(TAG, "Malloc payload fail");
             return false;
         }
-        memcpy(out->data, data + offset, payload_len);
+        memcpy(out->data, packet->data + offset, payload_len);
     }
     return true;
 }
