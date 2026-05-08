@@ -32,8 +32,12 @@ class SensorData:
     can_id: str
     counters: list[int] = field(default_factory=list)
     counter_times: dict[int, float] = field(default_factory=dict)  # counter -> epoch seconds
-    ack_delays: dict[int, float] = field(default_factory=dict)  # packet_tick -> delay in ms
+    ack_delays: dict[int, float] = field(default_factory=dict)  # packet_tick -> delay in ms (legacy)
     packet_counters: dict[int, int] = field(default_factory=dict)  # packet_tick -> first_counter in batch
+    sent_times: dict[int, float] = field(default_factory=dict)  # first_counter -> send timestamp (epoch seconds)
+    crash_count: int = 0
+    retry_count: int = 0
+    max_retry_chain: int = 0
 
 
 @dataclass
@@ -43,14 +47,15 @@ class ReceiverData:
     received: dict[str, set[int]] = field(default_factory=dict)
     # can_id -> set of counter values
     received_times: dict[str, dict[int, float]] = field(default_factory=dict)
-    # can_id -> counter -> epoch seconds
+    # can_id -> first_counter -> epoch seconds
+    crash_count: int = 0
 
 
 @dataclass
 class DelayResult:
     sensor: SensorData
     receiver: ReceiverData
-    delays: dict[int, float]  # counter -> delay in ms
+    delays: dict[int, float]  # first_counter -> delay in ms
 
 
 @dataclass
@@ -89,6 +94,10 @@ RE_RECEIVER_BATCH = re.compile(
 )
 RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_(.+)\.log")
 
+CRASH_MARKER = "WCAN initialized"
+RETRY_MARKER = "Timeout reached"
+RE_RETRY_ATTEMPT = re.compile(r"Timeout reached.*?Attempt:\s*(\d+)\s*of\s*\d+")
+
 
 def _parse_ts(ts_str: str) -> float:
     return datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S.%f").timestamp()
@@ -117,24 +126,45 @@ def parse_sensor_log(path: Path) -> SensorData:
         counter_times[int(m.group(2))] = _parse_ts(m.group(1))
 
     counters = sorted(counter_times.keys())
-    
-    can_proc_times = {}
-    packet_counters = {}
+
+    can_proc_times: dict[int, float] = {}
+    packet_counters: dict[int, int] = {}
+    sent_times: dict[int, float] = {}
     for m in RE_SENSOR_CAN_PROC.finditer(text):
         ts = _parse_ts(m.group(1))
         first_counter = int(m.group(3))
         tick = int(m.group(4))
         can_proc_times[tick] = ts
         packet_counters[tick] = first_counter
-        
-    ack_delays = {}
+        sent_times[first_counter] = ts
+
+    ack_delays: dict[int, float] = {}
     for m in RE_SENSOR_ACK.finditer(text):
         ts = _parse_ts(m.group(1))
         tick = int(m.group(2))
         if tick in can_proc_times:
             ack_delays[tick] = (ts - can_proc_times[tick]) * 1000
 
-    return SensorData(board_id=board_id, port=port, can_id=can_id, counters=counters, counter_times=counter_times, ack_delays=ack_delays, packet_counters=packet_counters)
+    crash_count = max(0, text.count(CRASH_MARKER) - 1)
+    retry_count = text.count(RETRY_MARKER)
+    max_retry_chain = max(
+        (int(m.group(1)) for m in RE_RETRY_ATTEMPT.finditer(text)),
+        default=0,
+    )
+
+    return SensorData(
+        board_id=board_id,
+        port=port,
+        can_id=can_id,
+        counters=counters,
+        counter_times=counter_times,
+        ack_delays=ack_delays,
+        packet_counters=packet_counters,
+        sent_times=sent_times,
+        crash_count=crash_count,
+        retry_count=retry_count,
+        max_retry_chain=max_retry_chain,
+    )
 
 
 def parse_receiver_log(path: Path) -> ReceiverData:
@@ -154,7 +184,15 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         received.setdefault(can_id, set()).update(range(first, last + 1))
         received_times.setdefault(can_id, {})[first] = ts
 
-    return ReceiverData(board_id=board_id, port=port, received=received, received_times=received_times)
+    crash_count = max(0, text.count(CRASH_MARKER) - 1)
+
+    return ReceiverData(
+        board_id=board_id,
+        port=port,
+        received=received,
+        received_times=received_times,
+        crash_count=crash_count,
+    )
 
 
 # ── Analysis ─────────────────────────────────────────────────────────────────
@@ -228,45 +266,87 @@ def sensor_summary(
     return summaries
 
 
+def compute_delays(
+    sensors: list[SensorData], receivers: list[ReceiverData]
+) -> list[DelayResult]:
+    """Match sender CAN_PROC timestamps with receiver RecvCallback timestamps per pair."""
+    results = []
+    for sensor in sensors:
+        for receiver in receivers:
+            recv_times = receiver.received_times.get(sensor.can_id, {})
+            delays: dict[int, float] = {}
+            for first_counter, recv_ts in recv_times.items():
+                send_ts = sensor.sent_times.get(first_counter)
+                if send_ts is not None:
+                    delays[first_counter] = (recv_ts - send_ts) * 1000
+            results.append(DelayResult(sensor=sensor, receiver=receiver, delays=delays))
+    return results
+
+
 # ── Text report ──────────────────────────────────────────────────────────────
 
 def format_report(
     test_name: str,
+    sensors: list[SensorData],
+    receivers: list[ReceiverData],
     results: list[ComparisonResult],
     summaries: list[SensorSummary],
-) -> str:
-    """Generate a human-readable text summary."""
+) -> tuple[str, bool]:
+    """Generate a human-readable text summary. Returns (report, passed)."""
     lines = [f"=== {test_name} ==="]
+
     for r in results:
         n_sent = len(r.sent)
         n_recv = len(r.received)
-        n_miss = len(r.missed)
         line = (
-            f"Sensor {r.sensor.board_id} (0x{r.sensor.can_id}) → "
-            f"Receiver {r.receiver.board_id} ({r.receiver.port}): "
-            f"{n_sent} sent, {n_recv} received, {n_miss} missed"
+            f"Sensor {r.sensor.board_id} → Receiver {r.receiver.board_id}: "
+            f"{n_sent} sent, {n_recv} received"
         )
         if r.missed:
-            line += f" {r.missed}"
+            line += f"\n - MISSED: {r.missed}"
         lines.append(line)
 
     lines.append("")
-    lines.append("--- Sensor summary ---")
-    for s in summaries:
+    lines.append("--- Summary ---")
+
+    total_misses = sum(len(s.total_misses) for s in summaries)
+    total_crashes = sum(1 for x in (*sensors, *receivers) if x.crash_count > 0)
+
+    passed = total_misses == 0 and total_crashes == 0
+    status = "PASS" if passed else "FAIL"
+    lines.append(f"{status}: {total_misses} misses, {total_crashes} crashes")
+
+    for receiver in receivers:
+        total_received = sum(
+            len(receiver.received.get(s.can_id, set())) for s in sensors
+        )
+        lines.append(
+            f"Receiver {receiver.board_id} ({receiver.port}): "
+            f"{total_received} received, {receiver.crash_count} crashes"
+        )
+
+    summary_lookup = {s.sensor.board_id: s for s in summaries}
+    for sensor in sensors:
+        s = summary_lookup[sensor.board_id]
         n_sent = len(s.sent)
         n_recv = len(s.received_by_any)
         n_miss = len(s.total_misses)
+        retries_str = (
+            f"{sensor.retry_count}({sensor.max_retry_chain})"
+            if sensor.max_retry_chain > 1
+            else f"{sensor.retry_count}"
+        )
         line = (
-            f"Sensor {s.sensor.board_id} (0x{s.sensor.can_id}): "
-            f"{n_sent} sent, {n_recv} received by at least one receiver, "
-            f"{n_miss} total misses"
+            f"Sensor {sensor.board_id} (0x{sensor.can_id} | {sensor.port}): "
+            f"{n_sent} sent, {n_recv} received, {n_miss} misses, "
+            f"{sensor.crash_count} crashes, {retries_str} retries"
         )
         if s.total_misses:
-            line += f" {s.total_misses}"
+            line += f"\n - MISSED: {s.total_misses}"
         lines.append(line)
 
     lines.append("")
-    return "\n".join(lines)
+    return "\n".join(lines), passed
 
 
 # ── Plotting ─────────────────────────────────────────────────────────────────
@@ -389,45 +469,59 @@ def _plot_subplot(
 def plot_delays(
     test_name: str,
     sensors: list[SensorData],
+    receivers: list[ReceiverData],
+    delay_results: list[DelayResult],
     output_path: Path,
 ) -> None:
-    """Scatter plot of per-packet send-to-ACK delay for each sensor."""
+    """Scatter plot of per-batch send-to-receive delay for each sensor/receiver pair."""
     sensors = sorted(sensors, key=lambda s: s.board_id)
+    receivers = sorted(receivers, key=lambda r: r.board_id)
     n_sensors = len(sensors)
+    n_receivers = len(receivers)
 
     fig, axes = plt.subplots(
-        n_sensors, 1,
-        figsize=(8, 3 * n_sensors + 1),
+        n_sensors, n_receivers,
+        figsize=(4 * n_receivers + 1, 3 * n_sensors + 1),
         squeeze=False,
     )
-    fig.suptitle(f"{test_name} — CAN_PROC to ACK Delay", fontsize=14, fontweight="bold")
+    fig.suptitle(
+        f"{test_name} — Send-to-Receive Delay",
+        fontsize=14, fontweight="bold",
+    )
+
+    delay_lookup = {
+        (d.sensor.board_id, d.receiver.board_id): d for d in delay_results
+    }
 
     for row, sensor in enumerate(sensors):
-        ax = axes[row][0]
+        for col, receiver in enumerate(receivers):
+            ax = axes[row][col]
+            ax.set_title(
+                f"{sensor.board_id} (0x{sensor.can_id}) → {receiver.board_id}",
+                fontsize=10, fontweight="bold",
+            )
+            ax.set_xlabel("First Counter in Batch")
+            ax.set_ylabel("Delay (ms)")
+            ax.grid(alpha=0.3)
 
-        ax.set_title(
-            f"{sensor.board_id} (0x{sensor.can_id})",
-            fontsize=10, fontweight="bold",
-        )
-        ax.set_xlabel("First Counter in Batch")
-        ax.set_ylabel("Delay (ms)")
-        ax.grid(alpha=0.3)
+            d = delay_lookup.get((sensor.board_id, receiver.board_id))
+            if d is None or not d.delays:
+                ax.text(
+                    0.5, 0.5, "No matched batches",
+                    transform=ax.transAxes, ha="center", va="center",
+                )
+                continue
 
-        if not sensor.ack_delays:
-            ax.text(0.5, 0.5, "No matched ACKs", transform=ax.transAxes, ha="center", va="center")
-            continue
+            counters = sorted(d.delays.keys())
+            delays_ms = [d.delays[c] for c in counters]
+            median_d = sorted(delays_ms)[len(delays_ms) // 2]
 
-        ticks = sorted(sensor.ack_delays.keys())
-        counters = [sensor.packet_counters[t] for t in ticks]
-        delays_ms = [sensor.ack_delays[t] for t in ticks]
-        median_d = sorted(delays_ms)[len(delays_ms) // 2]
-
-        ax.scatter(counters, delays_ms, s=20, color="#3498db", alpha=0.7, zorder=3)
-        ax.axhline(
-            median_d, color="#e74c3c", linewidth=1.2, linestyle="--",
-            label=f"median {median_d:.1f} ms",
-        )
-        ax.legend(fontsize=8)
+            ax.scatter(counters, delays_ms, s=20, color="#3498db", alpha=0.7, zorder=3)
+            ax.axhline(
+                median_d, color="#e74c3c", linewidth=1.2, linestyle="--",
+                label=f"median {median_d:.1f} ms",
+            )
+            ax.legend(fontsize=8)
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
@@ -455,8 +549,8 @@ def find_test_folders(root: Path) -> list[Path]:
 
 # ── Single test analysis ─────────────────────────────────────────────────────
 
-def analyze_test(test_dir: Path) -> str:
-    """Analyze one test folder: parse, compare, plot, report."""
+def analyze_test(test_dir: Path) -> tuple[str, bool]:
+    """Analyze one test folder: parse, compare, plot, report. Returns (report, passed)."""
     test_name = test_dir.name
 
     # Parse all logs
@@ -470,16 +564,17 @@ def analyze_test(test_dir: Path) -> str:
     )
 
     if not sensors:
-        return f"=== {test_name} ===\nNo sensor logs found.\n"
+        return f"=== {test_name} ===\nNo sensor logs found.\n", False
     if not receivers:
-        return f"=== {test_name} ===\nNo receiver logs found.\n"
+        return f"=== {test_name} ===\nNo receiver logs found.\n", False
 
     # Compare
     results = compare(sensors, receivers)
     summaries = sensor_summary(sensors, receivers)
+    delay_results = compute_delays(sensors, receivers)
 
     # Text report
-    report = format_report(test_name, results, summaries)
+    report, passed = format_report(test_name, sensors, receivers, results, summaries)
 
     # Save text report
     report_path = test_dir / "analysis.txt"
@@ -491,7 +586,7 @@ def analyze_test(test_dir: Path) -> str:
 
     # Plot delays
     delay_plot_path = test_dir / "analysis_delays.png"
-    plot_delays(test_name, sensors, delay_plot_path)
+    plot_delays(test_name, sensors, receivers, delay_results, delay_plot_path)
 
     print(report)
     print(f"  Plot saved: {plot_path}")
@@ -499,7 +594,7 @@ def analyze_test(test_dir: Path) -> str:
     print(f"  Report saved: {report_path}")
     print()
 
-    return report
+    return report, passed
 
 
 # ── Entry point ──────────────────────────────────────────────────────────────
@@ -520,15 +615,22 @@ def main():
 
     test_folders = find_test_folders(root)
     all_reports = []
+    n_passed = 0
 
     for folder in test_folders:
-        report = analyze_test(folder)
+        report, passed = analyze_test(folder)
         all_reports.append(report)
+        if passed:
+            n_passed += 1
+
+    result_line = f"RESULT: {n_passed}/{len(test_folders)} tests passed"
+    print(result_line)
 
     # If multiple tests, write combined summary at root level
     if len(test_folders) > 1:
         summary_path = root / "analysis_summary.txt"
-        summary_path.write_text("\n".join(all_reports), encoding="utf-8")
+        combined = "\n".join(all_reports) + "\n" + result_line + "\n"
+        summary_path.write_text(combined, encoding="utf-8")
         print(f"Combined summary saved: {summary_path}")
 
 
