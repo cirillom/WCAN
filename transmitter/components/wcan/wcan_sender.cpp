@@ -15,14 +15,62 @@
 const uint8_t BROADCAST_MAC[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 QueueHandle_t send_queue = NULL;
 QueueHandle_t *can_queues = NULL;
-SemaphoreHandle_t *can_semaphores = NULL;
-resend_t *can_resend_ctx = NULL;
+SemaphoreHandle_t *can_tx_semaphores = NULL;
+data_packet_t **can_tx_packets = NULL;
 
 SemaphoreHandle_t espnow_tx_sem = NULL;
 
-bool StartResendScheduler(size_t can_queue_index);
-void StopResendScheduler(size_t can_queue_index);
-void ResendData(TimerHandle_t xTimer);
+
+static data_packet_t *CollectPacket(size_t can_queue_index, const data_packet_t *tmpl)
+{
+    uint32_t data_point[WCAN_DATA_PACKET_MAX_DATA_COUNT];
+
+    if (xQueueReceive(can_queues[can_queue_index], &data_point[0], portMAX_DELAY) != pdTRUE)
+        return NULL;
+
+    int count = 1;
+    TickType_t deadline = xTaskGetTickCount() + pdMS_TO_TICKS(linger_ms);
+    while (count < WCAN_DATA_PACKET_MAX_DATA_COUNT)
+    {
+        TickType_t remaining = deadline - xTaskGetTickCount();
+        if (remaining <= 0 || xQueueReceive(can_queues[can_queue_index], &data_point[count], remaining) != pdTRUE)
+            break;
+        count++;
+    }
+
+    data_packet_t *packet = (data_packet_t *)malloc(sizeof(data_packet_t));
+    if (packet == NULL)
+        return NULL;
+
+    *packet = *tmpl;
+    packet->data_count = count;
+    packet->tick_count = xTaskGetTickCount();
+    packet->data = (uint32_t *)malloc(count * sizeof(uint32_t));
+    if (packet->data == NULL)
+    {
+        free(packet);
+        return NULL;
+    }
+    memcpy(packet->data, data_point, count * sizeof(uint32_t));
+    return packet;
+}
+
+static bool SendWithRetry(size_t can_queue_index, const data_packet_t *packet)
+{
+    char TAG[20];
+    snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
+
+    for (int attempt = 0; attempt < WCAN_MAX_RETRY_COUNT; attempt++)
+    {
+        uint32_t delay = WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
+        if (xSemaphoreTake(can_tx_semaphores[can_queue_index], pdMS_TO_TICKS(delay)) == pdTRUE)
+            return true;
+        ESP_LOGW(TAG, "Timeout reached, resending %08lx... Attempt: %d of %d",
+                 (unsigned long)packet->can_id, attempt + 1, WCAN_MAX_RETRY_COUNT);
+        SendData(BROADCAST_MAC, *packet);
+    }
+    return false;
+}
 
 void CanProcessingTask(void *pvParameter)
 {
@@ -31,74 +79,38 @@ void CanProcessingTask(void *pvParameter)
     char TAG[20];
     snprintf(TAG, sizeof(TAG), "CAN_PROC_%u", (unsigned int)can_queue_index);
 
-    data_packet_t data_packet = {
+    data_packet_t tmpl = {
+        .mac_addr = {0},
         .can_id = GetCanIDFromQueueIndex(can_queue_index),
         .tick_count = 0,
         .data_count = 0,
-        .data = NULL};
-    memcpy(data_packet.mac_addr, own_mac_addr, ESP_NOW_ETH_ALEN);
+        .data = NULL,
+    };
+    memcpy(tmpl.mac_addr, own_mac_addr, ESP_NOW_ETH_ALEN);
 
     ESP_LOGI(TAG, "CAN processing task %u started", (unsigned int)can_queue_index);
 
-    uint32_t data_point[WCAN_DATA_PACKET_MAX_DATA_COUNT];
     while (1)
     {
-        int count = 0;
-        if (xQueueReceive(can_queues[can_queue_index], &data_point[0], portMAX_DELAY) == pdTRUE)
-        {
-            count = 1;
-            ESP_LOGV(TAG, "Processing data from: %08lx", GetCanIDFromQueueIndex(can_queue_index));
+        data_packet_t *packet = CollectPacket(can_queue_index, &tmpl);
+        if (packet == NULL)
+            continue;
 
-            TickType_t deadline = xTaskGetTickCount() + pdMS_TO_TICKS(linger_ms);
-            while (count < WCAN_DATA_PACKET_MAX_DATA_COUNT)
-            {
-                ESP_LOGD(TAG, "Waiting for more data... count=%d", count);
-                TickType_t remaining = deadline - xTaskGetTickCount();
-                if (remaining <= 0)
-                    break;
-                if (xQueueReceive(can_queues[can_queue_index], &data_point[count], remaining) == pdTRUE)
-                    count++;
-                else
-                    break;
-            }
+        can_tx_packets[can_queue_index] = packet;
+        SendData(BROADCAST_MAC, *packet);
 
-            
-            data_packet_t *packet = (data_packet_t *)malloc(sizeof(data_packet_t));
-            if (packet == NULL)
-            {
-                ESP_LOGE(TAG, "Malloc for current send packet fail");
-                continue;
-            }
+        ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu)",
+                 (unsigned long)packet->can_id, packet->data_count,
+                 (unsigned long)packet->data[0], (unsigned long)packet->data[packet->data_count - 1],
+                 (unsigned long)packet->tick_count);
 
-            *packet = data_packet;
-            packet->data_count = count;
-            packet->tick_count = xTaskGetTickCount();
-            packet->data = (uint32_t *)malloc(count * sizeof(uint32_t));
-            if (packet->data == NULL)
-            {
-                ESP_LOGE(TAG, "Malloc for data packet payload fail");
-                free(packet);
-                continue;
-            }
-            memcpy(packet->data, data_point, count * sizeof(uint32_t));
-            
-            can_resend_ctx[can_queue_index].data_packet = packet;
-            ESP_LOGV(TAG, "can_resend_ctx[%u].data_packet: %p\n", (unsigned int)can_queue_index, (void *)packet);
-            
-            SendData(BROADCAST_MAC, *can_resend_ctx[can_queue_index].data_packet);
+        if (!SendWithRetry(can_queue_index, packet))
+            ESP_LOGE(TAG, "Max retry attempts reached for %08lx", (unsigned long)packet->can_id);
 
-            ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu)",
-                     (unsigned long)GetCanIDFromQueueIndex(can_queue_index), count,
-                     (unsigned long)data_point[0], (unsigned long)data_point[count - 1],
-                     (unsigned long)packet->tick_count);
-
-            if (!StartResendScheduler(can_queue_index))
-                continue;
-
-            xSemaphoreTake(can_semaphores[can_queue_index], portMAX_DELAY);
-
-            StopResendScheduler(can_queue_index);
-        }
+        xSemaphoreTake(can_tx_semaphores[can_queue_index], 0);
+        can_tx_packets[can_queue_index] = NULL;
+        free(packet->data);
+        free(packet);
     }
     vTaskDelete(NULL);
 }
@@ -172,112 +184,6 @@ void SendData(const uint8_t *mac_addr, const data_packet_t data_packet)
     }
 }
 
-bool StartResendScheduler(size_t can_queue_index)
-{
-    char TAG[20];
-    snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
-
-    can_resend_ctx[can_queue_index].retry_count = 0;
-    atomic_store(&can_resend_ctx[can_queue_index].cancelled, false);
-    atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
-
-    uint32_t initial_delay = WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
-    can_resend_ctx[can_queue_index].timer = xTimerCreate("ResendTimer", pdMS_TO_TICKS(initial_delay), pdFALSE, (void *)can_queue_index, ResendData);
-
-    if (can_resend_ctx[can_queue_index].timer == NULL)
-    {
-        ESP_LOGE(TAG, "Create resend timer fail");
-        if (can_resend_ctx[can_queue_index].data_packet->data != NULL)
-        {
-            free(can_resend_ctx[can_queue_index].data_packet->data);
-            can_resend_ctx[can_queue_index].data_packet->data = NULL;
-            free(can_resend_ctx[can_queue_index].data_packet);
-            can_resend_ctx[can_queue_index].data_packet = NULL;
-        }
-        return false;
-    }
-
-    xTimerStart(can_resend_ctx[can_queue_index].timer, 0);
-    ESP_LOGV(TAG, "Resend timer started");
-    return true;
-}
-
-void StopResendScheduler(size_t can_queue_index)
-{
-    char TAG[20];
-    snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
-
-    ESP_LOGV(TAG, "Stopping resend timer (%d)", uxSemaphoreGetCount(can_semaphores[can_queue_index]));
-
-    if (can_resend_ctx[can_queue_index].timer != NULL)
-    {
-        xTimerStop(can_resend_ctx[can_queue_index].timer, 0);
-        xTimerDelete(can_resend_ctx[can_queue_index].timer, 0);
-        while (atomic_load(&can_resend_ctx[can_queue_index].cb_running)) { vTaskDelay(1); }
-        can_resend_ctx[can_queue_index].timer = NULL;
-        ESP_LOGV(TAG, "Resend timer deleted");
-    }
-
-    if (can_resend_ctx[can_queue_index].data_packet != NULL)
-    {
-        if (can_resend_ctx[can_queue_index].data_packet->data != NULL)
-        {
-            free(can_resend_ctx[can_queue_index].data_packet->data);
-            can_resend_ctx[can_queue_index].data_packet->data = NULL;
-        }
-        free(can_resend_ctx[can_queue_index].data_packet);
-        can_resend_ctx[can_queue_index].data_packet = NULL;
-    }
-}
-
-void ResendData(TimerHandle_t xTimer)
-{
-    size_t can_queue_index = (size_t)pvTimerGetTimerID(xTimer);
-    char TAG[20];
-    snprintf(TAG, sizeof(TAG), "RESEND_%u", (unsigned int)can_queue_index);
-
-    // Must be set before any data_packet dereference. StopResendScheduler
-    // spins on cb_running after xTimerStop/Delete; if we set it late, the
-    // spinner exits early and frees data_packet while we still hold the pointer.
-    atomic_store(&can_resend_ctx[can_queue_index].cb_running, true);
-
-    if (can_resend_ctx[can_queue_index].data_packet == NULL)
-    {
-        atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
-        return;
-    }
-
-    if (can_resend_ctx[can_queue_index].retry_count < WCAN_MAX_RETRY_COUNT)
-    {
-        ESP_LOGW(TAG, "Timeout reached, resending %08lx... Attempt: %d of %d",
-                 (unsigned long)can_resend_ctx[can_queue_index].data_packet->can_id,
-                 can_resend_ctx[can_queue_index].retry_count + 1,
-                 WCAN_MAX_RETRY_COUNT);
-
-        if (atomic_load(&can_resend_ctx[can_queue_index].cancelled))
-        {
-            atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
-            return;
-        }
-        SendData(BROADCAST_MAC, *can_resend_ctx[can_queue_index].data_packet);
-        can_resend_ctx[can_queue_index].retry_count++;
-
-        uint32_t next_delay = WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
-        xTimerChangePeriod(xTimer, pdMS_TO_TICKS(next_delay), 0);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Max retry attempts reached");
-        if (uxSemaphoreGetCount(can_semaphores[can_queue_index]) == 0)
-        {
-            xSemaphoreGive(can_semaphores[can_queue_index]);
-            ESP_LOGV(TAG, "Send mutex released");
-        }
-    }
-
-    atomic_store(&can_resend_ctx[can_queue_index].cb_running, false);
-}
-
 void AckRecv(data_packet_t recv_data)
 {
     static const char *TAG = "ACK";
@@ -298,20 +204,20 @@ void AckRecv(data_packet_t recv_data)
         return;
     }
 
-    if (can_resend_ctx[can_queue_index].data_packet == NULL)
+    if (can_tx_packets[can_queue_index] == NULL)
     {
         ESP_LOGW(TAG, "Duplicate ACK ignored for 0x%08lx", (unsigned long)acked_can_id);
         return;
     }
 
-    if (recv_data.tick_count != can_resend_ctx[can_queue_index].data_packet->tick_count ||
-        acked_can_id != can_resend_ctx[can_queue_index].data_packet->can_id)
+    if (recv_data.tick_count != can_tx_packets[can_queue_index]->tick_count ||
+        acked_can_id != can_tx_packets[can_queue_index]->can_id)
     {
         // Fixed: was logging recv_data.data (the pointer address) instead of acked_can_id
         ESP_LOGW(TAG, "[0x%08lx] with tick_count %lu, but expected tick_count %lu",
                  (unsigned long)acked_can_id,
                  (unsigned long)recv_data.tick_count,
-                 (unsigned long)can_resend_ctx[can_queue_index].data_packet->tick_count);
+                 (unsigned long)can_tx_packets[can_queue_index]->tick_count);
         return;
     }
 
@@ -319,10 +225,9 @@ void AckRecv(data_packet_t recv_data)
         (unsigned long)recv_data.tick_count, 
         recv_data.mac_addr[0], recv_data.mac_addr[1], recv_data.mac_addr[2], recv_data.mac_addr[3], recv_data.mac_addr[4], recv_data.mac_addr[5]);
 
-    if (uxSemaphoreGetCount(can_semaphores[can_queue_index]) == 0)
+    if (uxSemaphoreGetCount(can_tx_semaphores[can_queue_index]) == 0)
     {
-        atomic_store(&can_resend_ctx[can_queue_index].cancelled, true);
-        xSemaphoreGive(can_semaphores[can_queue_index]);
+        xSemaphoreGive(can_tx_semaphores[can_queue_index]);
         ESP_LOGV(TAG, "Send mutex released");
     }
 }

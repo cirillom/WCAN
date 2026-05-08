@@ -49,7 +49,7 @@ extern QueueHandle_t send_queue;
 extern size_t num_can_queues;
 extern QueueHandle_t *can_queues;
 
-extern SemaphoreHandle_t *can_semaphores;
+extern SemaphoreHandle_t *can_tx_semaphores;
 
 void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uint32_t *_tx_can_ids, size_t _tx_can_ids_size, uint32_t _linger_ms);
 void RecvCallback(data_packet_t data) __attribute__((weak));

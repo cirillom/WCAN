@@ -134,8 +134,8 @@ static bool CreateHandles(void)
             return false;
         }
 
-        can_semaphores = (SemaphoreHandle_t *)malloc(num_can_queues * sizeof(SemaphoreHandle_t));
-        if (can_semaphores == NULL)
+        can_tx_semaphores = (SemaphoreHandle_t *)malloc(num_can_queues * sizeof(SemaphoreHandle_t));
+        if (can_tx_semaphores == NULL)
         {
             ESP_LOGE(TAG, "Failed to allocate memory for CAN semaphores");
             free(can_queues);
@@ -143,14 +143,14 @@ static bool CreateHandles(void)
             return false;
         }
 
-        can_resend_ctx = (resend_t *)malloc(num_can_queues * sizeof(resend_t));
-        if (can_resend_ctx == NULL)
+        can_tx_packets = (data_packet_t **)malloc(num_can_queues * sizeof(data_packet_t *));
+        if (can_tx_packets == NULL)
         {
-            ESP_LOGE(TAG, "Failed to allocate memory for CAN resend context");
+            ESP_LOGE(TAG, "Failed to allocate memory for CAN packet slots");
             free(can_queues);
             can_queues = NULL;
-            free(can_semaphores);
-            can_semaphores = NULL;
+            free(can_tx_semaphores);
+            can_tx_semaphores = NULL;
             return false;
         }
     }
@@ -186,18 +186,14 @@ static bool CreateHandles(void)
             return false;
         }
 
-        can_semaphores[i] = xSemaphoreCreateBinary();
-        if (can_semaphores[i] == NULL)
+        can_tx_semaphores[i] = xSemaphoreCreateBinary();
+        if (can_tx_semaphores[i] == NULL)
         {
             ESP_LOGE(TAG, "Failed to create CAN semaphore %u", (unsigned int)i);
             return false;
         }
 
-        can_resend_ctx[i].timer = NULL;
-        can_resend_ctx[i].data_packet = NULL;
-        can_resend_ctx[i].retry_count = 0;
-        atomic_init(&can_resend_ctx[i].cancelled, false);
-        atomic_init(&can_resend_ctx[i].cb_running, false);
+        can_tx_packets[i] = NULL;
     }
 
     return true;
