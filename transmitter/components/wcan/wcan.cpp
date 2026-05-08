@@ -122,6 +122,88 @@ static void ESPNOW_RecvCallback(const esp_now_recv_info_t *recv_info, const uint
     }
 }
 
+static bool CreateHandles(void)
+{
+    static const char *TAG = "WCAN";
+
+    if (num_can_queues > 0)
+    {
+        can_queues = (QueueHandle_t *)malloc(num_can_queues * sizeof(QueueHandle_t));
+        if (can_queues == NULL)
+        {
+            ESP_LOGE(TAG, "Failed to allocate memory for CAN queues");
+            return false;
+        }
+
+        can_semaphores = (SemaphoreHandle_t *)malloc(num_can_queues * sizeof(SemaphoreHandle_t));
+        if (can_semaphores == NULL)
+        {
+            ESP_LOGE(TAG, "Failed to allocate memory for CAN semaphores");
+            free(can_queues);
+            can_queues = NULL;
+            return false;
+        }
+
+        can_resend_ctx = (resend_t *)malloc(num_can_queues * sizeof(resend_t));
+        if (can_resend_ctx == NULL)
+        {
+            ESP_LOGE(TAG, "Failed to allocate memory for CAN resend context");
+            free(can_queues);
+            can_queues = NULL;
+            free(can_semaphores);
+            can_semaphores = NULL;
+            return false;
+        }
+    }
+
+    espnow_tx_sem = xSemaphoreCreateBinary();
+    if (espnow_tx_sem == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to create espnow_tx_sem");
+        return false;
+    }
+    xSemaphoreGive(espnow_tx_sem);
+
+    send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(esp_now_packet_t *));
+    if (send_queue == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to create send queue");
+        return false;
+    }
+
+    recv_queue = xQueueCreate(RECV_QUEUE_SIZE, sizeof(data_packet_t));
+    if (recv_queue == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to create receive queue");
+        return false;
+    }
+
+    for (size_t i = 0; i < num_can_queues; i++)
+    {
+        can_queues[i] = xQueueCreate(RECV_QUEUE_SIZE, sizeof(uint32_t));
+        if (can_queues[i] == NULL)
+        {
+            ESP_LOGE(TAG, "Failed to create CAN queue %u", (unsigned int)i);
+            return false;
+        }
+
+        can_semaphores[i] = xSemaphoreCreateBinary();
+        if (can_semaphores[i] == NULL)
+        {
+            ESP_LOGE(TAG, "Failed to create CAN semaphore %u", (unsigned int)i);
+            return false;
+        }
+
+        can_resend_ctx[i].timer = NULL;
+        can_resend_ctx[i].data_packet = NULL;
+        can_resend_ctx[i].retry_count = 0;
+        atomic_init(&can_resend_ctx[i].cancelled, false);
+        atomic_init(&can_resend_ctx[i].cb_running, false);
+    }
+
+    return true;
+}
+
 void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uint32_t *_tx_can_ids, size_t _tx_can_ids_size, uint32_t _linger_ms)
 {
     static const char *TAG = "WCAN";
@@ -153,34 +235,10 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
     linger_ms = _linger_ms;
     num_can_queues = _tx_can_ids_size;
 
-    if (num_can_queues > 0)
+    if (!CreateHandles())
     {
-        can_queues = (QueueHandle_t *)malloc(num_can_queues * sizeof(QueueHandle_t));
-        if (can_queues == NULL)
-        {
-            ESP_LOGE(TAG, "Failed to allocate memory for CAN queues");
-            return;
-        }
-
-        can_semaphores = (SemaphoreHandle_t *)malloc(num_can_queues * sizeof(SemaphoreHandle_t));
-        if (can_semaphores == NULL)
-        {
-            ESP_LOGE(TAG, "Failed to allocate memory for CAN semaphores");
-            free(can_queues);
-            can_queues = NULL;
-            return;
-        }
-
-        can_resend_ctx = (resend_t *)malloc(num_can_queues * sizeof(resend_t));
-        if (can_resend_ctx == NULL)
-        {
-            ESP_LOGE(TAG, "Failed to allocate memory for CAN resend context");
-            free(can_queues);
-            can_queues = NULL;
-            free(can_semaphores);
-            can_semaphores = NULL;
-            return;
-        }
+        ESP_LOGE(TAG, "Failed to create RTOS handles — aborting init");
+        return;
     }
 
     xTaskCreate(SendProcessingTask, "SendProcessingTask", 4096, NULL, 5, NULL);

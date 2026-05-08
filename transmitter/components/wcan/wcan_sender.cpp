@@ -31,24 +31,6 @@ void CanProcessingTask(void *pvParameter)
     char TAG[20];
     snprintf(TAG, sizeof(TAG), "CAN_PROC_%u", (unsigned int)can_queue_index);
 
-    can_queues[can_queue_index] = xQueueCreate(RECV_QUEUE_SIZE, sizeof(uint32_t));
-    if (can_queues[can_queue_index] == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create CAN queue");
-        vTaskDelete(NULL);
-    }
-
-    can_semaphores[can_queue_index] = xSemaphoreCreateBinary();
-    if (can_semaphores[can_queue_index] == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create CAN semaphore");
-        vTaskDelete(NULL);
-    }
-
-    can_resend_ctx[can_queue_index].timer = NULL;
-    can_resend_ctx[can_queue_index].data_packet = NULL;
-    can_resend_ctx[can_queue_index].retry_count = 0;
-
     data_packet_t data_packet = {
         .can_id = GetCanIDFromQueueIndex(can_queue_index),
         .tick_count = 0,
@@ -123,23 +105,6 @@ void CanProcessingTask(void *pvParameter)
 void SendProcessingTask(void *pvParameter)
 {
     static const char *TAG = "SEND";
-
-    espnow_tx_sem = xSemaphoreCreateBinary();
-    if (espnow_tx_sem == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create espnow_tx_sem");
-        vTaskDelete(NULL);
-        return;
-    }
-    xSemaphoreGive(espnow_tx_sem);
-
-    send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(esp_now_packet_t *));
-    if (send_queue == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create send queue");
-        vTaskDelete(NULL);
-        return;
-    }
 
     ESP_LOGI(TAG, "Send processing task started");
 

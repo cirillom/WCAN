@@ -42,12 +42,6 @@ static bool IsDuplicate(const data_packet_t *pkt)
 void RecvProcessingTask(void *pvParameter)
 {
     static const char *TAG = "RecvProcTask";
-    recv_queue = xQueueCreate(RECV_QUEUE_SIZE, sizeof(data_packet_t));
-    if (recv_queue == NULL)
-    {
-        ESP_LOGE(TAG, "Create receive queue fail");
-        return;
-    }
     ESP_LOGI(TAG, "Receive processing task started");
 
     data_packet_t recv_data_packet;
