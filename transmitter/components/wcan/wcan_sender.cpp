@@ -15,7 +15,7 @@
 const uint8_t BROADCAST_MAC[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 QueueHandle_t send_queue = NULL;
 QueueHandle_t *can_queues = NULL;
-SemaphoreHandle_t *can_tx_semaphores = NULL;
+TaskHandle_t *can_tx_tasks = NULL;
 data_packet_t **can_tx_packets = NULL;
 volatile TickType_t *can_tx_tick_counts = NULL;
 
@@ -66,7 +66,7 @@ static bool SendWithRetry(size_t can_queue_index, const data_packet_t *packet)
     for (int attempt = 0; attempt < WCAN_MAX_RETRY_COUNT; attempt++)
     {
         uint32_t delay = WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
-        if (xSemaphoreTake(can_tx_semaphores[can_queue_index], pdMS_TO_TICKS(delay)) == pdTRUE)
+        if (xTaskNotifyWait(0xFFFFFFFFUL, 0, NULL, pdMS_TO_TICKS(delay)) == pdTRUE)
             return true;
         ESP_LOGW(TAG, "Timeout reached, resending %08lx... Attempt: %d of %d",
                  (unsigned long)packet->can_id, attempt + 1, WCAN_MAX_RETRY_COUNT);
@@ -111,7 +111,6 @@ void CanProcessingTask(void *pvParameter)
         if (!SendWithRetry(can_queue_index, packet))
             ESP_LOGE(TAG, "Max retry attempts reached for %08lx", (unsigned long)packet->can_id);
 
-        xSemaphoreTake(can_tx_semaphores[can_queue_index], 0);
         can_tx_packets[can_queue_index] = NULL;
         free(packet->data);
         free(packet);
@@ -226,9 +225,9 @@ void AckRecv(data_packet_t recv_data)
         (unsigned long)recv_data.tick_count, 
         recv_data.mac_addr[0], recv_data.mac_addr[1], recv_data.mac_addr[2], recv_data.mac_addr[3], recv_data.mac_addr[4], recv_data.mac_addr[5]);
 
-    if (uxSemaphoreGetCount(can_tx_semaphores[can_queue_index]) == 0)
+    if (can_tx_tasks[can_queue_index] != NULL)
     {
-        xSemaphoreGive(can_tx_semaphores[can_queue_index]);
-        ESP_LOGV(TAG, "Send mutex released");
+        xTaskNotify(can_tx_tasks[can_queue_index], 0, eNoAction);
+        ESP_LOGV(TAG, "Sender task notified");
     }
 }

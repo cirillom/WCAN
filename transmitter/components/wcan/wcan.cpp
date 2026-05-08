@@ -106,10 +106,10 @@ static bool CreateHandles(void)
             return false;
         }
 
-        can_tx_semaphores = (SemaphoreHandle_t *)malloc(num_can_queues * sizeof(SemaphoreHandle_t));
-        if (can_tx_semaphores == NULL)
+        can_tx_tasks = (TaskHandle_t *)calloc(num_can_queues, sizeof(TaskHandle_t));
+        if (can_tx_tasks == NULL)
         {
-            ESP_LOGE(TAG, "Failed to allocate memory for CAN semaphores");
+            ESP_LOGE(TAG, "Failed to allocate memory for CAN task handles");
             free(can_queues);
             can_queues = NULL;
             return false;
@@ -121,8 +121,8 @@ static bool CreateHandles(void)
             ESP_LOGE(TAG, "Failed to allocate memory for CAN packet slots");
             free(can_queues);
             can_queues = NULL;
-            free(can_tx_semaphores);
-            can_tx_semaphores = NULL;
+            free(can_tx_tasks);
+            can_tx_tasks = NULL;
             return false;
         }
 
@@ -132,8 +132,8 @@ static bool CreateHandles(void)
             ESP_LOGE(TAG, "Failed to allocate memory for CAN tick count slots");
             free(can_queues);
             can_queues = NULL;
-            free(can_tx_semaphores);
-            can_tx_semaphores = NULL;
+            free(can_tx_tasks);
+            can_tx_tasks = NULL;
             free(can_tx_packets);
             can_tx_packets = NULL;
             return false;
@@ -168,13 +168,6 @@ static bool CreateHandles(void)
         if (can_queues[i] == NULL)
         {
             ESP_LOGE(TAG, "Failed to create CAN queue %u", (unsigned int)i);
-            return false;
-        }
-
-        can_tx_semaphores[i] = xSemaphoreCreateBinary();
-        if (can_tx_semaphores[i] == NULL)
-        {
-            ESP_LOGE(TAG, "Failed to create CAN semaphore %u", (unsigned int)i);
             return false;
         }
 
@@ -244,7 +237,7 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
     {
         char task_name[20];
         snprintf(task_name, sizeof(task_name), "CanProc_%u", (unsigned int)i);
-        xTaskCreate(CanProcessingTask, task_name, 4096, (void*)(uintptr_t)i, 4, NULL);
+        xTaskCreate(CanProcessingTask, task_name, 4096, (void*)(uintptr_t)i, 4, &can_tx_tasks[i]);
     }
 
     ESP_LOGI(TAG, "WCAN initialized");
