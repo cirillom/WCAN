@@ -15,7 +15,7 @@
 #define ESPNOW_CHANNEL 1
 #define ESPNOW_MAXDELAY 500
 
-#define WCAN_DATA_PACKET_HEADER_SIZE (sizeof(uint8_t)*ESP_NOW_ETH_ALEN + sizeof(uint32_t) + sizeof(TickType_t) + sizeof(uint8_t))
+#define WCAN_DATA_PACKET_HEADER_SIZE (sizeof(uint32_t) + sizeof(TickType_t) + sizeof(uint8_t))
 #define WCAN_DATA_PACKET_MAX_DATA_COUNT (ESP_NOW_MAX_DATA_LEN - WCAN_DATA_PACKET_HEADER_SIZE)/ sizeof(uint32_t)
 
 typedef struct
