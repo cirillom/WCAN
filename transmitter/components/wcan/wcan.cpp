@@ -246,6 +246,12 @@ void WCAN_Init(bool _filter, uint32_t *_rx_can_ids, size_t _rx_can_ids_size, uin
     // routed directly through AckRecv and nothing else will ever reach the queue.
     if (!(_filter && _rx_can_ids_size == 0))
     {
+        if (!RecvCallback)
+        {
+            ESP_LOGE(TAG, "RecvCallback is not defined — RecvProcessingTask will not start. "
+                          "Define RecvCallback or use filter=true with an empty allowlist.");
+            return;
+        }
         xTaskCreate(RecvProcessingTask, "RecvProcessingTask", 4096, NULL, 5, NULL);
     }
 

@@ -71,7 +71,7 @@ void RecvProcessingTask(void *pvParameter)
                     free(recv_data_packet.data);
                     recv_data_packet.data = NULL;
                 }
-                break;
+                continue;
             }
             if (recv_data_packet.data != NULL)
             {
