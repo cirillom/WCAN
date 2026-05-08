@@ -46,6 +46,12 @@ static void ReadDataTask(void *pvParameter)
     static const char *TAG = "ReadDataTask";
     uint32_t can_id = (uint32_t)(uintptr_t)pvParameter;
     size_t can_queue_index = GetCanTXQueueIndex(can_id);
+    if (can_queue_index == SIZE_MAX)
+    {
+        ESP_LOGE(TAG, "Unknown CAN ID 0x%04lx, aborting task", (unsigned long)can_id);
+        vTaskDelete(NULL);
+        return;
+    }
     uint32_t counter = 0;
 
     ESP_LOGI(TAG, "ReadDataTask started with CAN ID 0x%04lx", (unsigned long)can_id);
