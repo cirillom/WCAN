@@ -10,6 +10,8 @@ Usage:
     python test_runner.py --skip-build       # Skip build, reuse existing firmware
     python test_runner.py --dry-run          # Print test matrix without executing
     python test_runner.py --config my.yaml   # Use a custom config file
+    python test_runner.py --analyze          # Run analyze_logs after the run, show pass/fail count
+    python test_runner.py --name my_run      # Save logs to results/my_run instead of timestamp
 
 Requirements:
     pip install pyserial pyyaml
@@ -379,8 +381,8 @@ def run_single_test(
     return "OK" if ok else "MONITOR_ERROR"
 
 
-def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_filter: set = None):
-    """Run the complete test matrix."""
+def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_filter: set = None) -> int:
+    """Run the complete test matrix. Returns the number of runs executed (0 on dry-run / empty filter)."""
     boards = config["boards"]
     n = len(boards)
     cases = generate_test_matrix(n)
@@ -398,7 +400,7 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_fi
         cases = filtered
         if not cases:
             print("[ERROR] No valid test cases after filtering.")
-            return
+            return 0
     repeats = config["repeats"]
 
     print_test_matrix(cases, n, repeats, config["duration"], config["cooldown"])
@@ -408,7 +410,7 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_fi
         for s, r in cases:
             print(f"  {s}S-{r}R: {s} random sensors, {r} random receivers, {n - s - r} idle")
         print("\n[DRY RUN] No tests executed.")
-        return
+        return 0
 
     # Summary data
     summary_rows = []
@@ -461,10 +463,7 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_fi
 
     # Write summary
     write_summary(summary_rows, results_dir)
-    print(f"\n{'='*60}")
-    print(f"  ALL DONE — {total_runs} runs completed")
-    print(f"  Results: {results_dir}")
-    print(f"{'='*60}\n")
+    return total_runs
 
 
 # ─── Summary ─────────────────────────────────────────────────────────────────
@@ -492,6 +491,62 @@ def write_summary(rows: list, results_dir: str):
     print(f"  Results: {ok} OK, {fail} failed")
 
 
+# ─── Analysis ────────────────────────────────────────────────────────────────
+
+def run_analysis(results_dir: str) -> tuple[int, int]:
+    """Run analyze_logs on every test folder under results_dir, suppressing its
+    stdout. Returns (passed, total). Writes analysis.txt + plots per test, plus
+    analysis_summary.txt at the root when there's more than one test."""
+    import contextlib
+    import io
+
+    # Lazy import — analyze_logs requires matplotlib
+    try:
+        from analyze_logs import analyze_test
+    except ImportError as e:
+        print(f"[ANALYZE] Could not import analyze_logs: {e}")
+        return 0, 0
+
+    root = Path(results_dir)
+
+    # Collect test folders directly (avoid analyze_logs.find_test_folders' sys.exit)
+    if any(root.glob("sensor_*.log")) and any(root.glob("receiver_*.log")):
+        test_folders = [root]
+    else:
+        test_folders = sorted(
+            p for p in root.iterdir()
+            if p.is_dir()
+            and any(p.glob("sensor_*.log"))
+            and any(p.glob("receiver_*.log"))
+        )
+
+    if not test_folders:
+        print(f"[ANALYZE] No test folders found in {root}")
+        return 0, 0
+
+    n_passed = 0
+    all_reports = []
+
+    with contextlib.redirect_stdout(io.StringIO()):
+        for folder in test_folders:
+            try:
+                report, passed = analyze_test(folder)
+                all_reports.append(report)
+                if passed:
+                    n_passed += 1
+            except Exception as e:
+                all_reports.append(f"=== {folder.name} ===\n[ANALYZE ERROR] {e}\n")
+
+    total = len(test_folders)
+    if total > 1:
+        result_line = f"RESULT: {n_passed}/{total} tests passed"
+        summary_path = root / "analysis_summary.txt"
+        combined = "\n".join(all_reports) + "\n" + result_line + "\n"
+        summary_path.write_text(combined, encoding="utf-8")
+
+    return n_passed, total
+
+
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 def main():
@@ -501,7 +556,16 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Print test matrix and assignments without executing")
     parser.add_argument("--test", type=str, action="append", default=None,
                         help="Run only specific S:R tests, e.g. --test 1:4 --test 2:3. Can be repeated.")
+    parser.add_argument("--analyze", action="store_true",
+                        help="After all tests complete, run analyze_logs and report pass/fail count.")
+    parser.add_argument("--name", type=str, default=None,
+                        help="Override the results folder name (always inside results/). Defaults to the current timestamp.")
     args = parser.parse_args()
+
+    if args.name is not None:
+        if "/" in args.name or "\\" in args.name or ".." in args.name or not args.name.strip():
+            print(f"[ERROR] --name must be a simple folder name (no path separators or '..'): '{args.name}'")
+            sys.exit(1)
 
     # Load config
     config = load_config(args.config)
@@ -529,8 +593,11 @@ def main():
             sys.exit(1)
 
     # Create results directory
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    results_dir = os.path.join("results", timestamp)
+    if args.name:
+        results_dir = os.path.join("results", args.name)
+    else:
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        results_dir = os.path.join("results", timestamp)
     if not args.dry_run:
         os.makedirs(results_dir, exist_ok=True)
         # Copy config for reproducibility
@@ -551,7 +618,20 @@ def main():
                 sys.exit(1)
 
     # Run tests
-    run_all_tests(config, results_dir, dry_run=args.dry_run, test_filter=test_filter)
+    total_runs = run_all_tests(config, results_dir, dry_run=args.dry_run, test_filter=test_filter)
+
+    if total_runs > 0:
+        analyze_line = None
+        if args.analyze:
+            n_passed, n_total = run_analysis(results_dir)
+            analyze_line = f"  Results: {n_passed}/{n_total} tests passed"
+
+        print(f"\n{'='*60}")
+        print(f"  ALL DONE — {total_runs} runs completed")
+        print(f"  Logs: {results_dir}")
+        if analyze_line:
+            print(analyze_line)
+        print(f"{'='*60}\n")
 
 
 if __name__ == "__main__":
