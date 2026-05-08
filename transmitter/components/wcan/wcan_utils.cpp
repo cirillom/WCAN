@@ -130,7 +130,7 @@ void PrintCharPacket(const uint8_t *data, const int data_len){
 
 size_t GetCanTXQueueIndex(uint32_t can_id){
     for (size_t i = 0; i < num_can_queues; i++) {
-        if ((can_id & 0xFFFF0000) == (tx_can_ids[i] & 0xFFFF0000)) {
+        if (can_id == tx_can_ids[i]) {
             return i;
         }
     }
