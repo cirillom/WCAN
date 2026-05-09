@@ -19,7 +19,8 @@
 
 // Compile-time role validation
 #if !defined(ROLE_SENSOR) && !defined(ROLE_RECEIVER) && !defined(ROLE_IDLE)
-#error "Build must define ROLE=SENSOR or ROLE=RECEIVER or ROLE=IDLE via CMake (-DROLE=SENSOR or -DROLE=RECEIVER or -DROLE=IDLE)"
+#error                                                                                                                 \
+    "Build must define ROLE=SENSOR or ROLE=RECEIVER or ROLE=IDLE via CMake (-DROLE=SENSOR or -DROLE=RECEIVER or -DROLE=IDLE)"
 #endif
 
 #ifdef ROLE_SENSOR

@@ -27,8 +27,7 @@ void add_peer(const uint8_t *mac_addr)
 
     // Already tracked - refresh LRU timestamp and return.
     for (size_t i = 0; i < PEER_CACHE_SIZE; i++) {
-        if (s_peer_cache[i].in_use &&
-            std::memcmp(s_peer_cache[i].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN) == 0) {
+        if (s_peer_cache[i].in_use && std::memcmp(s_peer_cache[i].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN) == 0) {
             s_peer_cache[i].last_used = xTaskGetTickCount();
             return;
         }
@@ -85,8 +84,7 @@ void remove_peer(const uint8_t *mac_addr)
         return;
     }
     for (size_t i = 0; i < PEER_CACHE_SIZE; i++) {
-        if (s_peer_cache[i].in_use &&
-            std::memcmp(s_peer_cache[i].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN) == 0) {
+        if (s_peer_cache[i].in_use && std::memcmp(s_peer_cache[i].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN) == 0) {
             s_peer_cache[i].in_use = false;
             break;
         }

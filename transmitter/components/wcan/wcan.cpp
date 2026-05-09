@@ -190,16 +190,16 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
 
     for (size_t i = 0; i < tx_ids_size; i++) {
         if (tx_ids[i] > CAN_ID_MAX) {
-            ESP_LOGE(TAG, "tx_can_ids[%u] = 0x%08lx exceeds 29-bit CAN extended ID limit",
-                     static_cast<unsigned>(i), static_cast<unsigned long>(tx_ids[i]));
+            ESP_LOGE(TAG, "tx_can_ids[%u] = 0x%08lx exceeds 29-bit CAN extended ID limit", static_cast<unsigned>(i),
+                     static_cast<unsigned long>(tx_ids[i]));
             return;
         }
     }
     if (filter) {
         for (size_t i = 0; i < rx_ids_size; i++) {
             if (rx_ids[i] > CAN_ID_MAX) {
-                ESP_LOGE(TAG, "rx_can_ids[%u] = 0x%08lx exceeds 29-bit CAN extended ID limit",
-                         static_cast<unsigned>(i), static_cast<unsigned long>(rx_ids[i]));
+                ESP_LOGE(TAG, "rx_can_ids[%u] = 0x%08lx exceeds 29-bit CAN extended ID limit", static_cast<unsigned>(i),
+                         static_cast<unsigned long>(rx_ids[i]));
                 return;
             }
         }

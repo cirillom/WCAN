@@ -13,18 +13,18 @@
 
 #if CONFIG_ESPNOW_WIFI_MODE_STATION
 #define ESPNOW_WIFI_MODE WIFI_MODE_STA
-#define ESPNOW_WIFI_IF   WIFI_IF_STA
-#define ESPNOW_MAC_TYPE  ESP_MAC_WIFI_STA
+#define ESPNOW_WIFI_IF WIFI_IF_STA
+#define ESPNOW_MAC_TYPE ESP_MAC_WIFI_STA
 #else
 #define ESPNOW_WIFI_MODE WIFI_MODE_AP
-#define ESPNOW_WIFI_IF   WIFI_IF_AP
-#define ESPNOW_MAC_TYPE  ESP_MAC_WIFI_SOFTAP
+#define ESPNOW_WIFI_IF WIFI_IF_AP
+#define ESPNOW_MAC_TYPE ESP_MAC_WIFI_SOFTAP
 #endif
 
-#define ESPNOW_CHANNEL  1
+#define ESPNOW_CHANNEL 1
 #define ESPNOW_MAXDELAY 500
 
-#define WCAN_DATA_PACKET_HEADER_SIZE    (sizeof(uint32_t) + sizeof(TickType_t) + sizeof(uint8_t))
+#define WCAN_DATA_PACKET_HEADER_SIZE (sizeof(uint32_t) + sizeof(TickType_t) + sizeof(uint8_t))
 #define WCAN_DATA_PACKET_MAX_DATA_COUNT ((ESP_NOW_MAX_DATA_LEN - WCAN_DATA_PACKET_HEADER_SIZE) / sizeof(uint32_t))
 
 struct data_packet_t {
@@ -41,7 +41,7 @@ struct esp_now_packet_t {
     size_t data_len;
 };
 
-#define CAN_ACK    0xE0000000
+#define CAN_ACK 0xE0000000
 #define CAN_ID_MAX 0x1FFFFFFF
 
 extern uint8_t own_mac_addr[ESP_NOW_ETH_ALEN];
