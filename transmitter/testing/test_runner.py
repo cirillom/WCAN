@@ -23,16 +23,17 @@ import argparse
 import csv
 import os
 import random
-import shutil
-import subprocess
 import sys
 import threading
 import time
 from datetime import datetime
 from pathlib import Path
-
-import serial
 import yaml
+
+from idf_env import check_idf
+from build import build_needed, build_all
+from flash import flash_all
+from monitor import monitor_all_boards
 
 
 # ─── Config Loading ──────────────────────────────────────────────────────────
@@ -61,108 +62,6 @@ def load_config(config_path: str) -> dict:
         "project_path": tc.get("project_path", "."),
     }
     return config
-
-
-# ─── Build ───────────────────────────────────────────────────────────────────
-
-
-def _idf_env() -> dict:
-    """
-    Return a clean copy of os.environ for calling idf.py.
-    Strips IDF_TARGET (let sdkconfig decide) and any active
-    virtualenv so it doesn't conflict with ESP-IDF's own Python.
-    """
-    env = os.environ.copy()
-    env.pop("IDF_TARGET", None)
-    env.pop("VIRTUAL_ENV", None)
-
-    # Remove venv bin/Scripts from PATH so idf.py uses system/IDF python
-    venv_path = os.environ.get("VIRTUAL_ENV")
-    if venv_path and "PATH" in env:
-        path_parts = env["PATH"].split(os.pathsep)
-        path_parts = [p for p in path_parts if not p.startswith(venv_path)]
-        env["PATH"] = os.pathsep.join(path_parts)
-
-    return env
-
-
-# Maps (chip, role) -> (build_dir, sdkconfig)
-BUILD_VARIANTS = {
-    ("esp32", "SENSOR"):     ("build_esp32_sensor",     "sdkconfig_esp32"),
-    ("esp32", "RECEIVER"):   ("build_esp32_receiver",   "sdkconfig_esp32"),
-    ("esp32", "IDLE"):       ("build_esp32_idle",       "sdkconfig_esp32"),
-    ("esp32c3", "SENSOR"):   ("build_esp32c3_sensor",   "sdkconfig_esp32c3"),
-    ("esp32c3", "RECEIVER"): ("build_esp32c3_receiver", "sdkconfig_esp32c3"),
-    ("esp32c3", "IDLE"):     ("build_esp32c3_idle",     "sdkconfig_esp32c3"),
-}
-
-
-def get_build_dir(chip: str, role: str) -> str:
-    return BUILD_VARIANTS[(chip, role)][0]
-
-
-def get_sdkconfig(chip: str, role: str) -> str:
-    return BUILD_VARIANTS[(chip, role)][1]
-
-
-def check_idf():
-    """Verify idf.py is available."""
-    if shutil.which("idf.py") is None:
-        print("[ERROR] idf.py not found on PATH.")
-        print("        Run this script from an ESP-IDF terminal (source export.sh / export.bat).")
-        sys.exit(1)
-    print("[OK] idf.py found")
-
-
-def build_variant(chip: str, role: str, project_path: str) -> bool:
-    """Build a single firmware variant. Returns True on success."""
-    build_dir = get_build_dir(chip, role)
-    sdkconfig = get_sdkconfig(chip, role)
-
-    print(f"\n{'='*60}")
-    print(f"  BUILDING: {chip} / {role}")
-    print(f"  Build dir: {build_dir}")
-    print(f"  sdkconfig: {sdkconfig}")
-    print(f"{'='*60}")
-
-    cmd = [
-        "idf.py",
-        "-B", build_dir,
-        "--define-cache-entry", f"SDKCONFIG={sdkconfig}",
-        f"-DROLE={role}",
-        "build",
-    ]
-
-    # Clean env: no venv conflict, no IDF_TARGET override
-    env = _idf_env()
-
-    result = subprocess.run(cmd, cwd=project_path, shell=False, env=env)
-    if result.returncode != 0:
-        print(f"[FAIL] Build failed: {chip}/{role}")
-        return False
-
-    print(f"[OK] Build succeeded: {chip}/{role}")
-    return True
-
-
-def build_all(boards: list, project_path: str) -> bool:
-    """Build only the variants needed for the boards we have."""
-    chips_present = set(b["chip"] for b in boards)
-    needed = set()
-    for chip in chips_present:
-        needed.add((chip, "SENSOR"))
-        needed.add((chip, "RECEIVER"))
-        needed.add((chip, "IDLE"))
-
-    print(f"\n[BUILD] Chips present: {chips_present}")
-    print(f"[BUILD] Variants to build: {len(needed)}")
-
-    for chip, role in sorted(needed):
-        if not build_variant(chip, role, project_path):
-            return False
-
-    print(f"\n[BUILD] All {len(needed)} variants built successfully.\n")
-    return True
 
 
 # ─── Test Matrix ─────────────────────────────────────────────────────────────
@@ -201,143 +100,6 @@ def print_test_matrix(cases: list, n_boards: int, repeats: int, duration: int, c
     print()
 
 
-# ─── Flashing ────────────────────────────────────────────────────────────────
-
-def flash_board(chip: str, role: str, port: str, project_path: str) -> bool:
-    """Flash a pre-built firmware to a board. Returns True on success."""
-    build_dir = get_build_dir(chip, role)
-    sdkconfig = get_sdkconfig(chip, role)
-
-    cmd = [
-        "idf.py",
-        "-B", build_dir,
-        "--define-cache-entry", f"SDKCONFIG={sdkconfig}",
-        "-p", port,
-        "flash",
-    ]
-
-    # Clean env: no venv conflict, no IDF_TARGET override
-    env = _idf_env()
-
-    result = subprocess.run(cmd, cwd=project_path, capture_output=True, text=True, shell=False, env=env)
-    if result.returncode != 0:
-        print(f"  [FAIL] Flash failed on {port} ({chip}/{role})")
-        print(f"         stderr: {result.stderr[-200:]}")
-        return False
-
-    print(f"  [OK] Flashed {port} ({chip}/{role})")
-    return True
-
-
-def flash_all_boards(assignments: list, project_path: str) -> bool:
-    """
-    Flash all boards in parallel.
-    assignments: list of (board_dict, role_str)
-    Returns True if all succeeded.
-    """
-    results = {}
-    threads = []
-
-    def _flash(board, role):
-        ok = flash_board(board["chip"], role, board["port"], project_path)
-        results[board["id"]] = ok
-
-    for board, role in assignments:
-        t = threading.Thread(target=_flash, args=(board, role))
-        threads.append(t)
-        t.start()
-
-    for t in threads:
-        t.join()
-
-    return all(results.values())
-
-
-# ─── Serial Monitoring ───────────────────────────────────────────────────────
-
-def monitor_board(port: str, baud: int, duration: float, log_path: str, stop_event: threading.Event):
-    """
-    Open serial port, hard-reset the board, capture output to a log file.
-    Runs until duration elapses or stop_event is set.
-    """
-    try:
-        ser = serial.Serial(port, baud, timeout=0.5)
-        time.sleep(0.1)  # let the port settle after opening
-
-        # Flush any leftover data from previous session
-        ser.reset_input_buffer()
-
-        # Hard reset: ESP-IDF standard sequence
-        # RTS controls EN (chip reset), DTR controls IO0 (boot mode)
-        ser.dtr = False   # IO0 = HIGH (normal boot, not download mode)
-        ser.rts = True    # EN = LOW  (hold chip in reset)
-        time.sleep(0.2)
-        ser.rts = False   # EN = HIGH (release reset — chip boots now)
-        ser.dtr = False   # keep IO0 HIGH
-
-        # Do NOT flush here — we want to capture everything from boot
-
-        start = time.time()
-        with open(log_path, "w", encoding="utf-8", errors="replace") as f:
-            f.write(f"# Monitor started: {datetime.now().isoformat()}\n")
-            f.write(f"# Port: {port}, Baud: {baud}, Duration: {duration}s\n\n")
-
-            while not stop_event.is_set() and (time.time() - start) < duration:
-                try:
-                    line = ser.readline()
-                    if line:
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-                        decoded = line.decode("utf-8", errors="replace").rstrip()
-                        f.write(f"[{timestamp}] {decoded}\n")
-                        f.flush()
-                except serial.SerialException as e:
-                    f.write(f"[ERROR] Serial exception: {e}\n")
-                    break
-
-            f.write(f"\n# Monitor stopped: {datetime.now().isoformat()}\n")
-
-        ser.close()
-        return True
-
-    except serial.SerialException as e:
-        # Write error to log even if port couldn't open
-        with open(log_path, "w") as f:
-            f.write(f"# FAILED TO OPEN PORT: {port}\n# Error: {e}\n")
-        print(f"  [FAIL] Could not open {port}: {e}")
-        return False
-
-
-def monitor_all_boards(boards_with_roles: list, baud: int, duration: float, log_dir: str) -> bool:
-    """
-    Start monitoring all boards in parallel threads.
-    boards_with_roles: list of (board_dict, role_str)
-    Returns True if all monitors succeeded.
-    """
-    os.makedirs(log_dir, exist_ok=True)
-    stop_event = threading.Event()
-    threads = []
-    results = {}
-
-    for board, role in boards_with_roles:
-        log_filename = f"{role.lower()}_{board['id']}_{board['port'].replace('/', '_')}.log"
-        log_path = os.path.join(log_dir, log_filename)
-
-        def _monitor(p=board["port"], lp=log_path, bid=board["id"]):
-            ok = monitor_board(p, baud, duration, lp, stop_event)
-            results[bid] = ok
-
-        t = threading.Thread(target=_monitor)
-        threads.append(t)
-        t.start()
-
-    # Wait for all monitors to finish (they self-terminate after duration)
-    for t in threads:
-        t.join(timeout=duration + 10)
-
-    stop_event.set()  # Signal any stragglers
-    return all(results.values())
-
-
 # ─── Test Execution ──────────────────────────────────────────────────────────
 
 def run_single_test(
@@ -368,7 +130,7 @@ def run_single_test(
 
     # Flash ALL boards (active + idle)
     print(f"  Flashing {len(all_to_flash)} boards ({len(active_boards)} active + {len(idle_boards)} idle)...")
-    if not flash_all_boards(all_to_flash, config["project_path"]):
+    if not flash_all(all_to_flash, config["project_path"]):
         return "FLASH_FAIL"
 
     # Brief pause after flashing before starting monitors
@@ -494,22 +256,19 @@ def write_summary(rows: list, results_dir: str):
 # ─── Analysis ────────────────────────────────────────────────────────────────
 
 def run_analysis(results_dir: str) -> tuple[int, int]:
-    """Run analyze_logs on every test folder under results_dir, suppressing its
-    stdout. Returns (passed, total). Writes analysis.txt + plots per test, plus
-    analysis_summary.txt at the root when there's more than one test."""
+    """Run analyze_all from analysis.py on every test folder under results_dir, suppressing its
+    stdout. Returns (passed, total). Writes summary.txt at the root when there's more than one test."""
     import contextlib
     import io
 
-    # Lazy import — analyze_logs requires matplotlib
     try:
-        from analyze_logs import analyze_test
+        from analysis import analyze_all
     except ImportError as e:
-        print(f"[ANALYZE] Could not import analyze_logs: {e}")
+        print(f"[ANALYZE] Could not import analysis: {e}")
         return 0, 0
 
     root = Path(results_dir)
 
-    # Collect test folders directly (avoid analyze_logs.find_test_folders' sys.exit)
     if any(root.glob("sensor_*.log")) and any(root.glob("receiver_*.log")):
         test_folders = [root]
     else:
@@ -530,7 +289,7 @@ def run_analysis(results_dir: str) -> tuple[int, int]:
     with contextlib.redirect_stdout(io.StringIO()):
         for folder in test_folders:
             try:
-                report, passed = analyze_test(folder)
+                report, passed = analyze_all(folder)
                 all_reports.append(report)
                 if passed:
                     n_passed += 1
@@ -557,7 +316,7 @@ def main():
     parser.add_argument("--test", type=str, action="append", default=None,
                         help="Run only specific S:R tests, e.g. --test 1:4 --test 2:3. Can be repeated.")
     parser.add_argument("--analyze", action="store_true",
-                        help="After all tests complete, run analyze_logs and report pass/fail count.")
+                        help="After all tests complete, run analysis on results.")
     parser.add_argument("--name", type=str, default=None,
                         help="Override the results folder name (always inside results/). Defaults to the current timestamp.")
     args = parser.parse_args()
@@ -588,7 +347,7 @@ def main():
 
     # Build phase
     if not args.skip_build and not args.dry_run:
-        if not build_all(boards, config["project_path"]):
+        if not build_needed(set(b["chip"] for b in boards), config["project_path"]):
             print("\n[ABORT] Build failed. Fix errors and retry.")
             sys.exit(1)
 
