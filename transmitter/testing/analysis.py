@@ -17,6 +17,16 @@ class HeapStats:
     leak_status: str = "NO_DATA"
 
 @dataclass
+class MeasureStats:
+    boot_ts_us: int = -1                # sensor or receiver
+    first_rx_ts_us: int = -1            # receiver only
+    airtime_samples: list = field(default_factory=list)   # (ts, util_per_mille, d_airtime_us, d_packets)
+    lat_cb_us: list = field(default_factory=list)         # unicast: HW-ACK turnaround microseconds
+    lat_cb_fail_count: int = 0
+    lat_rtt_ms: list = field(default_factory=list)        # broadcast: app-ACK RTT milliseconds
+    task_hwm_min: dict = field(default_factory=dict)      # name -> minimum hwm_bytes seen across samples
+
+@dataclass
 class SensorData:
     board_id: str
     port: str
@@ -30,6 +40,7 @@ class SensorData:
     retry_count: int = 0
     max_retry_chain: int = 0
     heap: HeapStats = field(default_factory=HeapStats)
+    measure: MeasureStats = field(default_factory=MeasureStats)
 
 @dataclass
 class ReceiverData:
@@ -39,6 +50,7 @@ class ReceiverData:
     received_times: dict = field(default_factory=dict)
     crash_count: int = 0
     heap: HeapStats = field(default_factory=HeapStats)
+    measure: MeasureStats = field(default_factory=MeasureStats)
 
 @dataclass
 class DelayResult:
@@ -80,6 +92,24 @@ RE_RECEIVER_BATCH = re.compile(
 RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_(.+)\.log")
 RE_HEAP = re.compile(
     r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?HEAP:\s*free=(\d+)\s*min_free=(\d+)\s*largest=(\d+)"
+)
+
+# Phase 4 MEASURE instrumentation log lines
+RE_BOOT_TS = re.compile(r"BOOT_TS:\s*us=(\d+)")
+RE_FIRST_RX_TS = re.compile(r"FIRST_RX_TS:\s*us=(\d+)\s*id=0x([0-9a-fA-F]+)")
+RE_MEASURE = re.compile(
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?MEASURE:\s*"
+    r"airtime_us_total=(\d+)\s*packets_total=(\d+)\s*"
+    r"d_airtime_us=(\d+)\s*d_packets=(\d+)\s*util_per_mille=(\d+)"
+)
+RE_LAT_CB = re.compile(
+    r"LAT_CB:\s*peer=([0-9a-fA-F:]+)\s*dt_us=(-?\d+)\s*status=(\w+)"
+)
+RE_LAT_RTT = re.compile(
+    r"LAT_RTT:\s*id=0x([0-9a-fA-F]+)\s*rtt_ms=(\d+)"
+)
+RE_TASK_STATS = re.compile(
+    r"TASK:\s*name=(\S+)\s*prio=\d+\s*state=\d+\s*hwm_bytes=(\d+)\s*runtime=\d+\s*total_runtime=\d+"
 )
 
 CRASH_MARKER = "WCAN initialized"
@@ -137,6 +167,47 @@ def parse_filename(path: Path) -> tuple:
         raise ValueError(f"Unexpected filename format: {path.name}")
     return m.group(1), m.group(2), m.group(3)
 
+def parse_measure(text: str) -> MeasureStats:
+    """Parse Phase-4 MEASURE_INSTR log lines. Returns empty stats if MEASURE
+    instrumentation wasn't compiled into the firmware (no matching lines).
+    """
+    stats = MeasureStats()
+
+    m = RE_BOOT_TS.search(text)
+    if m:
+        stats.boot_ts_us = int(m.group(1))
+
+    m = RE_FIRST_RX_TS.search(text)
+    if m:
+        stats.first_rx_ts_us = int(m.group(1))
+
+    for m in RE_MEASURE.finditer(text):
+        ts = _parse_ts(m.group(1))
+        d_airtime_us = int(m.group(4))
+        d_packets = int(m.group(5))
+        util_per_mille = int(m.group(6))
+        stats.airtime_samples.append((ts, util_per_mille, d_airtime_us, d_packets))
+
+    for m in RE_LAT_CB.finditer(text):
+        dt = int(m.group(2))
+        status = m.group(3)
+        if status == "OK" and dt >= 0:
+            stats.lat_cb_us.append(dt)
+        else:
+            stats.lat_cb_fail_count += 1
+
+    for m in RE_LAT_RTT.finditer(text):
+        stats.lat_rtt_ms.append(int(m.group(2)))
+
+    for m in RE_TASK_STATS.finditer(text):
+        name = m.group(1)
+        hwm = int(m.group(2))
+        prev = stats.task_hwm_min.get(name)
+        if prev is None or hwm < prev:
+            stats.task_hwm_min[name] = hwm
+
+    return stats
+
 def parse_sensor_log(path: Path) -> SensorData:
     _, board_id, port = parse_filename(path)
     text = path.read_text(encoding="utf-8", errors="replace")
@@ -186,6 +257,7 @@ def parse_sensor_log(path: Path) -> SensorData:
         retry_count=retry_count,
         max_retry_chain=max_retry_chain,
         heap=parse_heap_stats(text),
+        measure=parse_measure(text),
     )
 
 def parse_receiver_log(path: Path) -> ReceiverData:
@@ -213,6 +285,7 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         received_times=received_times,
         crash_count=crash_count,
         heap=parse_heap_stats(text),
+        measure=parse_measure(text),
     )
 
 def compare(sensors, receivers):
@@ -394,6 +467,82 @@ def analyze_heap_integrity(sensors, receivers):
     report_lines.insert(0, f"HEAP INTEGRITY: {status} (Fails: {leak_fails}, Suspected: {leak_suspect})")
     return "\n".join(report_lines), passed
 
+def _percentile(sorted_values: list, fraction: float):
+    """fraction in [0, 1]. Linear nearest-rank percentile on a sorted list."""
+    if not sorted_values:
+        return None
+    if fraction <= 0:
+        return sorted_values[0]
+    if fraction >= 1:
+        return sorted_values[-1]
+    idx = int(round(fraction * (len(sorted_values) - 1)))
+    return sorted_values[idx]
+
+def analyze_measure(sensors, receivers):
+    """Summarize Phase-4 MEASURE_INSTR data: latency, airtime, stack HWM, cold-start.
+    No-op when measurement instrumentation was not compiled in.
+    """
+    report_lines = []
+
+    has_any = any(
+        d.measure.lat_cb_us or d.measure.lat_rtt_ms or d.measure.airtime_samples
+        or d.measure.boot_ts_us >= 0 or d.measure.task_hwm_min
+        for d in sensors + receivers
+    )
+    if not has_any:
+        return "MEASURE: no instrumentation data (build with -DMEASURE=1)", True
+
+    report_lines.append("MEASURE:")
+
+    for s in sensors:
+        m = s.measure
+        if m.lat_cb_us:
+            xs = sorted(m.lat_cb_us)
+            report_lines.append(
+                f"  Sensor {s.board_id} HW-ACK latency (unicast): "
+                f"n={len(xs)} median={_percentile(xs, 0.5)}us p99={_percentile(xs, 0.99)}us "
+                f"max={xs[-1]}us fails={m.lat_cb_fail_count}"
+            )
+        if m.lat_rtt_ms:
+            xs = sorted(m.lat_rtt_ms)
+            report_lines.append(
+                f"  Sensor {s.board_id} app-ACK RTT (broadcast): "
+                f"n={len(xs)} median={_percentile(xs, 0.5)}ms p99={_percentile(xs, 0.99)}ms "
+                f"max={xs[-1]}ms"
+            )
+        if m.airtime_samples:
+            utils = [u for (_, u, _, _) in m.airtime_samples]
+            avg_util = sum(utils) / len(utils)
+            d_packets_total = sum(p for (_, _, _, p) in m.airtime_samples)
+            d_airtime_total = sum(a for (_, _, a, _) in m.airtime_samples)
+            report_lines.append(
+                f"  Sensor {s.board_id} airtime: avg_util={avg_util:.1f}/1000 "
+                f"d_packets_sum={d_packets_total} d_airtime_sum={d_airtime_total}us"
+            )
+
+    for r in receivers:
+        m = r.measure
+        if m.boot_ts_us >= 0 and m.first_rx_ts_us >= 0:
+            cold_ms = (m.first_rx_ts_us - m.boot_ts_us) / 1000.0
+            report_lines.append(
+                f"  Receiver {r.board_id} cold-start to first frame: {cold_ms:.1f}ms"
+            )
+
+    # Aggregate stack HWM across all devices: report the minimum hwm seen per task
+    # name (right-sizing signal: how close to overflow each task ran).
+    all_task_hwm = {}
+    for d in sensors + receivers:
+        for name, hwm in d.measure.task_hwm_min.items():
+            prev = all_task_hwm.get(name)
+            if prev is None or hwm < prev:
+                all_task_hwm[name] = hwm
+    if all_task_hwm:
+        report_lines.append("  Stack HWM (min free across all devices, smaller = closer to overflow):")
+        for name in sorted(all_task_hwm):
+            report_lines.append(f"    {name}: {all_task_hwm[name]} bytes free")
+
+    return "\n".join(report_lines), True
+
 def analyze_delay(sensors, receivers):
     """Analyze package delay between sensor and receivers."""
     delay_results = compute_delays(sensors, receivers)
@@ -434,7 +583,8 @@ def analyze_all(test_dir: Path):
     r_crash, p_crash = analyze_crashes(sensors, receivers)
     r_heap, p_heap = analyze_heap_integrity(sensors, receivers)
     r_delay, _ = analyze_delay(sensors, receivers)
-    
+    r_measure, _ = analyze_measure(sensors, receivers)
+
     out.append(r_data_o)
     out.append("")
     out.append(r_data_p)
@@ -444,6 +594,8 @@ def analyze_all(test_dir: Path):
     out.append(r_heap)
     out.append("")
     out.append(r_delay)
+    out.append("")
+    out.append(r_measure)
     
     overall_passed = p_data_o and p_data_p and p_crash and p_heap
     out.insert(0, f"OVERALL STATUS: {'PASS' if overall_passed else 'FAIL'}\n")

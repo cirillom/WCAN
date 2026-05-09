@@ -228,6 +228,38 @@ void ack_recv(const data_packet_t &recv_data)
 #ifdef MEASURE_INSTR
 #define MEASURE_LOG_INTERVAL_MS 5000
 
+#if CONFIG_FREERTOS_USE_TRACE_FACILITY
+static void log_task_stats(void)
+{
+    const UBaseType_t n_tasks = uxTaskGetNumberOfTasks();
+    if (n_tasks == 0) {
+        return;
+    }
+    TaskStatus_t *task_status = static_cast<TaskStatus_t *>(
+        pvPortMalloc(static_cast<size_t>(n_tasks) * sizeof(TaskStatus_t)));
+    if (task_status == nullptr) {
+        ESP_LOGW("MEASURE", "task stats: OOM (n_tasks=%u)", static_cast<unsigned>(n_tasks));
+        return;
+    }
+    uint32_t total_runtime = 0;
+    const UBaseType_t got = uxTaskGetSystemState(task_status, n_tasks, &total_runtime);
+    for (UBaseType_t i = 0; i < got; i++) {
+        const TaskStatus_t &t = task_status[i];
+        const uint32_t hwm_bytes =
+            static_cast<uint32_t>(t.usStackHighWaterMark) * sizeof(StackType_t);
+        ESP_LOGI("TASK",
+                 "name=%s prio=%lu state=%lu hwm_bytes=%lu runtime=%lu total_runtime=%lu",
+                 t.pcTaskName,
+                 static_cast<unsigned long>(t.uxCurrentPriority),
+                 static_cast<unsigned long>(t.eCurrentState),
+                 static_cast<unsigned long>(hwm_bytes),
+                 static_cast<unsigned long>(t.ulRunTimeCounter),
+                 static_cast<unsigned long>(total_runtime));
+    }
+    vPortFree(task_status);
+}
+#endif
+
 static void measure_periodic_task(void *)
 {
     static const char *TAG = "MEASURE";
@@ -251,6 +283,10 @@ static void measure_periodic_task(void *)
         ESP_LOGI(TAG,
                  "airtime_us_total=%llu packets_total=%llu d_airtime_us=%llu d_packets=%llu util_per_mille=%lu",
                  airtime, packets, d_airtime, d_packets, static_cast<unsigned long>(util_per_mille));
+
+#if CONFIG_FREERTOS_USE_TRACE_FACILITY
+        log_task_stats();
+#endif
     }
 }
 
