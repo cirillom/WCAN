@@ -239,5 +239,9 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
 
     xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, 1, nullptr);
 
+#ifdef MEASURE_INSTR
+    measure_start();
+#endif
+
     ESP_LOGI(TAG, "WCAN initialized");
 }

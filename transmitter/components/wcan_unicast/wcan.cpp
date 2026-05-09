@@ -15,6 +15,10 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 
+#ifdef MEASURE_INSTR
+#include "esp_timer.h"
+#endif
+
 #include "wcan.hpp"
 #include "wcan_receiver.hpp"
 #include "wcan_sender.hpp"
@@ -45,6 +49,16 @@ static void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status
         ESP_LOGV(TAG, "Sent to %02x:%02x:%02x:%02x:%02x:%02x",
                  mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
     }
+
+#ifdef MEASURE_INSTR
+    {
+        const int64_t now_us = esp_timer_get_time();
+        const int64_t dt_us = now_us - g_in_flight_send_us;
+        ESP_LOGI("LAT_CB", "peer=%02x:%02x:%02x:%02x:%02x:%02x dt_us=%lld status=%s",
+                 mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5],
+                 dt_us, success ? "OK" : "FAIL");
+    }
+#endif
 
     // Update per-peer TX health. No-op for non-subscriber MACs (e.g., broadcast).
     subscription_record_tx_status(mac_addr, success);
@@ -281,6 +295,10 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
     } else {
         xTaskCreate(hello_beacon_task, "hello_beacon", 4096, nullptr, 4, nullptr);
     }
+
+#ifdef MEASURE_INSTR
+    measure_start();
+#endif
 
     ESP_LOGI(TAG, "WCAN initialized");
 }

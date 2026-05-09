@@ -24,6 +24,14 @@ volatile TickType_t *can_tx_tick_counts = nullptr;
 
 SemaphoreHandle_t espnow_tx_sem = nullptr;
 
+#ifdef MEASURE_INSTR
+// Mirrors the airtime accounting in wcan_unicast for fair cross-variant
+// comparison. Same constant + formula so the bias is identical.
+#define WCAN_PHY_RATE_MBPS 6
+volatile uint64_t g_airtime_total_us = 0;
+volatile uint64_t g_packets_sent_total = 0;
+#endif
+
 static std::unique_ptr<data_packet_t> collect_packet(size_t can_queue_index, uint32_t can_id)
 {
     uint32_t data_point[WCAN_DATA_PACKET_MAX_DATA_COUNT];
@@ -136,6 +144,12 @@ void send_processing_task(void *)
             ESP_LOGE(TAG, "esp_now_send failed synchronously: %s - restoring TX slot", esp_err_to_name(err));
             xSemaphoreGive(espnow_tx_sem);
         }
+#ifdef MEASURE_INSTR
+        else {
+            g_airtime_total_us += (static_cast<uint64_t>(pkt->data_len) * 8) / WCAN_PHY_RATE_MBPS;
+            g_packets_sent_total++;
+        }
+#endif
         // pkt destructor releases the payload + struct.
     }
 }
@@ -193,8 +207,55 @@ void ack_recv(const data_packet_t &recv_data)
              static_cast<unsigned long>(recv_data.tick_count), recv_data.mac_addr[0], recv_data.mac_addr[1],
              recv_data.mac_addr[2], recv_data.mac_addr[3], recv_data.mac_addr[4], recv_data.mac_addr[5]);
 
+#ifdef MEASURE_INSTR
+    {
+        const TickType_t now = xTaskGetTickCount();
+        const uint32_t rtt_ms =
+            static_cast<uint32_t>(pdTICKS_TO_MS(now - can_tx_tick_counts[can_queue_index]));
+        ESP_LOGI("LAT_RTT", "id=0x%08lx rtt_ms=%lu peer=%02x:%02x:%02x:%02x:%02x:%02x",
+                 static_cast<unsigned long>(acked_can_id), static_cast<unsigned long>(rtt_ms),
+                 recv_data.mac_addr[0], recv_data.mac_addr[1], recv_data.mac_addr[2],
+                 recv_data.mac_addr[3], recv_data.mac_addr[4], recv_data.mac_addr[5]);
+    }
+#endif
+
     if (can_tx_tasks[can_queue_index] != nullptr) {
         xTaskNotify(can_tx_tasks[can_queue_index], 0, eNoAction);
         ESP_LOGV(TAG, "Sender task notified");
     }
 }
+
+#ifdef MEASURE_INSTR
+#define MEASURE_LOG_INTERVAL_MS 5000
+
+static void measure_periodic_task(void *)
+{
+    static const char *TAG = "MEASURE";
+    const TickType_t period = pdMS_TO_TICKS(MEASURE_LOG_INTERVAL_MS);
+    uint64_t prev_airtime_us = 0;
+    uint64_t prev_packets = 0;
+
+    while (true) {
+        vTaskDelay(period);
+        const uint64_t airtime = g_airtime_total_us;
+        const uint64_t packets = g_packets_sent_total;
+        const uint64_t d_airtime = airtime - prev_airtime_us;
+        const uint64_t d_packets = packets - prev_packets;
+        prev_airtime_us = airtime;
+        prev_packets = packets;
+
+        const uint64_t window_us = static_cast<uint64_t>(MEASURE_LOG_INTERVAL_MS) * 1000ULL;
+        const uint32_t util_per_mille = window_us == 0 ? 0
+            : static_cast<uint32_t>((d_airtime * 1000ULL) / window_us);
+
+        ESP_LOGI(TAG,
+                 "airtime_us_total=%llu packets_total=%llu d_airtime_us=%llu d_packets=%llu util_per_mille=%lu",
+                 airtime, packets, d_airtime, d_packets, static_cast<unsigned long>(util_per_mille));
+    }
+}
+
+void measure_start(void)
+{
+    xTaskCreate(measure_periodic_task, "measure", 3072, nullptr, 1, nullptr);
+}
+#endif

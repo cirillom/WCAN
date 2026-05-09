@@ -23,3 +23,9 @@ void can_processing_task(void *pv_parameter);
 void send_processing_task(void *pv_parameter);
 void ack_recv(const data_packet_t &data);
 void send_data(const uint8_t *mac_addr, const data_packet_t &data_packet);
+
+#ifdef MEASURE_INSTR
+extern volatile uint64_t g_airtime_total_us;
+extern volatile uint64_t g_packets_sent_total;
+void measure_start(void);
+#endif

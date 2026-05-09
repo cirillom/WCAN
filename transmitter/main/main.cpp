@@ -17,6 +17,10 @@
 #include "wcan.hpp"
 #include "wcan_utils.hpp"
 
+#ifdef MEASURE_INSTR
+#include "esp_timer.h"
+#endif
+
 // Compile-time role validation
 #if !defined(ROLE_SENSOR) && !defined(ROLE_RECEIVER) && !defined(ROLE_IDLE)
 #error                                                                                                                 \
@@ -83,6 +87,16 @@ void wcan_recv_callback(const data_packet_t &recv_packet)
     if (recv_packet.data_count == 0) {
         return;
     }
+
+#ifdef MEASURE_INSTR
+    static bool s_first_rx_logged = false;
+    if (!s_first_rx_logged) {
+        s_first_rx_logged = true;
+        ESP_LOGI("FIRST_RX_TS", "us=%lld id=0x%08lx",
+                 esp_timer_get_time(), static_cast<unsigned long>(recv_packet.can_id));
+    }
+#endif
+
     ESP_LOGI(TAG, "[%04lx] tick=%lu [%lu..%lu] %u items", static_cast<unsigned long>(recv_packet.can_id),
              static_cast<unsigned long>(recv_packet.tick_count), static_cast<unsigned long>(recv_packet.data[0]),
              static_cast<unsigned long>(recv_packet.data[recv_packet.data_count - 1]), recv_packet.data_count);
@@ -92,6 +106,10 @@ void wcan_recv_callback(const data_packet_t &recv_packet)
 extern "C" void app_main(void)
 {
     static const char *TAG = "MAIN";
+
+#ifdef MEASURE_INSTR
+    ESP_LOGI("BOOT_TS", "us=%lld", esp_timer_get_time());
+#endif
 
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {

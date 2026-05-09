@@ -10,6 +10,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#ifdef MEASURE_INSTR
+#include "esp_timer.h"
+#endif
+
 #include "wcan.hpp"
 #include "wcan_sender.hpp"
 #include "wcan_subscriptions.hpp"
@@ -20,6 +24,20 @@ QueueHandle_t send_queue = nullptr;
 QueueHandle_t *can_queues = nullptr;
 
 SemaphoreHandle_t espnow_tx_sem = nullptr;
+
+#ifdef MEASURE_INSTR
+// Approximate radio rate. ESP-NOW uses 802.11 base rates; 6 Mbps is a
+// conservative midrange choice that ignores preamble + 802.11 ACK air time.
+// Bias is constant across variants — fine for relative comparison.
+#define WCAN_PHY_RATE_MBPS 6
+volatile uint64_t g_airtime_total_us = 0;
+volatile uint64_t g_packets_sent_total = 0;
+
+// HW-ACK latency stamps. The TX semaphore enforces single-in-flight, so
+// these are race-free as long as the cb fires before the next esp_now_send.
+volatile int64_t g_in_flight_send_us = 0;
+volatile uint8_t g_in_flight_peer_mac[ESP_NOW_ETH_ALEN] = {};
+#endif
 
 static std::unique_ptr<data_packet_t> collect_packet(size_t can_queue_index, uint32_t can_id)
 {
@@ -116,11 +134,22 @@ void send_processing_task(void *)
             continue; // pkt destructor frees
         }
 
+#ifdef MEASURE_INSTR
+        g_in_flight_send_us = esp_timer_get_time();
+        std::memcpy(const_cast<uint8_t *>(g_in_flight_peer_mac), pkt->mac_addr.data(), ESP_NOW_ETH_ALEN);
+#endif
+
         const esp_err_t err = esp_now_send(pkt->mac_addr.data(), pkt->data.get(), pkt->data_len);
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "esp_now_send failed synchronously: %s - restoring TX slot", esp_err_to_name(err));
             xSemaphoreGive(espnow_tx_sem);
         }
+#ifdef MEASURE_INSTR
+        else {
+            g_airtime_total_us += (static_cast<uint64_t>(pkt->data_len) * 8) / WCAN_PHY_RATE_MBPS;
+            g_packets_sent_total++;
+        }
+#endif
         // pkt destructor releases the payload + struct.
     }
 }
@@ -144,3 +173,39 @@ void send_data(const uint8_t *mac_addr, const data_packet_t &data_packet)
         delete raw;
     }
 }
+
+#ifdef MEASURE_INSTR
+#define MEASURE_LOG_INTERVAL_MS 5000
+
+static void measure_periodic_task(void *)
+{
+    static const char *TAG = "MEASURE";
+    const TickType_t period = pdMS_TO_TICKS(MEASURE_LOG_INTERVAL_MS);
+    uint64_t prev_airtime_us = 0;
+    uint64_t prev_packets = 0;
+
+    while (true) {
+        vTaskDelay(period);
+        const uint64_t airtime = g_airtime_total_us;
+        const uint64_t packets = g_packets_sent_total;
+        const uint64_t d_airtime = airtime - prev_airtime_us;
+        const uint64_t d_packets = packets - prev_packets;
+        prev_airtime_us = airtime;
+        prev_packets = packets;
+
+        // utilisation per mille (parts per thousand) over the interval window
+        const uint64_t window_us = static_cast<uint64_t>(MEASURE_LOG_INTERVAL_MS) * 1000ULL;
+        const uint32_t util_per_mille = window_us == 0 ? 0
+            : static_cast<uint32_t>((d_airtime * 1000ULL) / window_us);
+
+        ESP_LOGI(TAG,
+                 "airtime_us_total=%llu packets_total=%llu d_airtime_us=%llu d_packets=%llu util_per_mille=%lu",
+                 airtime, packets, d_airtime, d_packets, static_cast<unsigned long>(util_per_mille));
+    }
+}
+
+void measure_start(void)
+{
+    xTaskCreate(measure_periodic_task, "measure", 3072, nullptr, 1, nullptr);
+}
+#endif

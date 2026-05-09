@@ -25,5 +25,15 @@ endif()
 
 message(STATUS "Building with TRANSPORT=${TRANSPORT}, component=${WCAN_COMPONENT_NAME}")
 
+# Optional measurement instrumentation. Enable with -DMEASURE=1 to compile in
+# airtime counters, latency logs, cold-start markers, etc. Production builds
+# leave it off so the binary is unaffected.
+if(DEFINED MEASURE AND MEASURE)
+    add_compile_definitions(MEASURE_INSTR)
+    message(STATUS "MEASURE instrumentation: ENABLED")
+else()
+    message(STATUS "MEASURE instrumentation: disabled")
+endif()
+
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(sensor_acquirer)
