@@ -53,7 +53,7 @@ At least 2 boards are required. Supported chips are `esp32` and `esp32c3`.
 ## Running Tests
 
 ```bash
-# Full run: build firmware + execute all tests
+# Full run: build firmware + execute all tests (default: BROADCAST transport)
 uv run test_runner.py
 
 # Skip rebuild (reuse existing firmware binaries)
@@ -64,19 +64,30 @@ uv run test_runner.py --dry-run
 
 # Use a custom config file
 uv run test_runner.py --config my_boards.yaml
+
+# Pick a transport variant (default BROADCAST; UNICAST builds the wcan_unicast
+# component instead of wcan_broadcast)
+uv run test_runner.py --transport UNICAST --name v_unicast
+
+# Enable measurement instrumentation (-DMEASURE=1 + sdkconfig.measure overlay)
+uv run test_runner.py --transport UNICAST --measure --name v_unicast_m
 ```
 
 ### What happens during a run
 
-**1. Build phase** — For each chip type present in the board list, three firmware variants are compiled: `SENSOR`, `RECEIVER`, and `IDLE`. Each variant uses its own build directory and sdkconfig:
+**1. Build phase** — For each chip type present in the board list, three firmware variants are compiled: `SENSOR`, `RECEIVER`, and `IDLE`. The transport (`BROADCAST` / `UNICAST`) is selected via `--transport` and is part of the build directory name. `IDLE` is transport-agnostic.
 
-| Chip      | Role     | Build dir               | sdkconfig        |
-|-----------|----------|-------------------------|------------------|
-| esp32     | SENSOR   | `build_esp32_sensor`    | `sdkconfig_esp32`  |
-| esp32     | RECEIVER | `build_esp32_receiver`  | `sdkconfig_esp32`  |
-| esp32     | IDLE     | `build_esp32_idle`      | `sdkconfig_esp32`  |
-| esp32c3   | SENSOR   | `build_esp32c3_sensor`  | `sdkconfig_esp32c3` |
-| …         | …        | …                       | …                  |
+| Chip      | Role     | Transport          | Build dir                              | sdkconfig                       |
+|-----------|----------|--------------------|----------------------------------------|---------------------------------|
+| esp32     | SENSOR   | BROADCAST          | `build_esp32_sensor_bcast`             | `sdkconfig_esp32`               |
+| esp32     | SENSOR   | UNICAST            | `build_esp32_sensor_unicast`           | `sdkconfig_esp32`               |
+| esp32     | SENSOR   | UNICAST + measure  | `build_esp32_sensor_unicast_measure`   | `sdkconfig.gen_esp32_measure`   |
+| esp32     | RECEIVER | BROADCAST          | `build_esp32_receiver_bcast`           | `sdkconfig_esp32`               |
+| esp32     | IDLE     | (n/a)              | `build_esp32_idle`                     | `sdkconfig_esp32`               |
+| esp32c3   | SENSOR   | UNICAST            | `build_esp32c3_sensor_unicast`         | `sdkconfig_esp32c3`             |
+| …         | …        | …                  | …                                      | …                               |
+
+`--measure` enables `-DMEASURE=1` in the firmware and overlays `sdkconfig.measure` on top of the chip's base sdkconfig (via `SDKCONFIG_DEFAULTS`). The merged result lives in `sdkconfig.gen_<chip>_measure` and is regenerated on first build.
 
 **2. Test matrix generation** — All valid `(S, R)` combinations are generated where `S ≥ 1`, `R ≥ 1`, and `S + R ≤ N` (N = total boards). Each combination is repeated `repeats` times.
 
@@ -156,3 +167,34 @@ And at the run root (multi-test only):
 | File                    | Description                       |
 |-------------------------|-----------------------------------|
 | `analysis_summary.txt`  | All per-test reports concatenated |
+
+---
+
+## Thesis comparison workflow
+
+For the thesis comparison study, run the test matrix once per transport, then aggregate.
+
+```bash
+# 1. Build and run BROADCAST variant, with measurement instrumentation
+uv run test_runner.py --transport BROADCAST --measure --name v_bcast --analyze
+
+# 2. Build and run UNICAST variant
+uv run test_runner.py --transport UNICAST  --measure --name v_unicast --analyze
+
+# 3. Aggregate cross-variant metrics into a single CSV for thesis tables/plots
+uv run aggregate_thesis_data.py results/v_bcast results/v_unicast \
+    --output results/thesis_comparison.csv
+```
+
+The aggregation script emits one CSV row per `(variant, S, R, repeat)` with columns for delivery rate, latency median/p99 (HW-ACK µs for unicast, app-ACK ms for broadcast — different layers, see methodology note below), airtime utilisation, cold-start, and minimum stack HWM. The `variant` column comes from each input directory's basename, so naming runs `v_bcast` / `v_unicast` keeps the table readable.
+
+### Methodology notes (latency)
+
+The two transports measure latency at different layers and the resulting numbers are not directly comparable in absolute terms:
+
+| Variant   | Mechanism                                                           | Units    | Field           |
+|-----------|---------------------------------------------------------------------|----------|-----------------|
+| BROADCAST | Application-level ACK round-trip (`tick_at_send → ack_recv tick`)   | ms       | `lat_rtt_*`     |
+| UNICAST   | ESP-NOW link-layer HW-ACK turnaround (`esp_timer_get_time → cb`)    | µs       | `lat_cb_*`      |
+
+This is captured intentionally — the comparison shows the latency cost broadcast pays for application-layer reliability, not a measurement artifact. The thesis must disclose the methodology of each variant.

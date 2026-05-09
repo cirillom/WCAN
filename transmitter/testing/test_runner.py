@@ -31,7 +31,7 @@ from pathlib import Path
 import yaml
 
 from idf_env import check_idf
-from build import build_needed, build_all
+from build import build_needed, build_all, VALID_TRANSPORTS
 from flash import flash_all
 from monitor import monitor_all_boards
 
@@ -60,6 +60,10 @@ def load_config(config_path: str) -> dict:
         "cooldown": tc.get("cooldown_seconds", 5),
         "baud": tc.get("baud_rate", 115200),
         "project_path": tc.get("project_path", "."),
+        # transport + measure are populated from CLI args in main(); defaults match
+        # the legacy behaviour so existing scripts keep working.
+        "transport": "BROADCAST",
+        "measure": False,
     }
     return config
 
@@ -130,7 +134,7 @@ def run_single_test(
 
     # Flash ALL boards (active + idle)
     print(f"  Flashing {len(all_to_flash)} boards ({len(active_boards)} active + {len(idle_boards)} idle)...")
-    if not flash_all(all_to_flash, config["project_path"]):
+    if not flash_all(all_to_flash, config["transport"], config["measure"], config["project_path"]):
         return "FLASH_FAIL"
 
     # Brief pause after flashing before starting monitors
@@ -207,6 +211,8 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_fi
 
             summary_rows.append({
                 "test_name": test_name,
+                "transport": config["transport"],
+                "measure": "1" if config["measure"] else "0",
                 "sensors": ";".join(b["id"] for b in sensor_boards),
                 "receivers": ";".join(b["id"] for b in receiver_boards),
                 "sensor_chips": ";".join(b["chip"] for b in sensor_boards),
@@ -234,7 +240,8 @@ def write_summary(rows: list, results_dir: str):
     """Write summary.csv with one row per test run."""
     summary_path = os.path.join(results_dir, "summary.csv")
     fieldnames = [
-        "test_name", "sensors", "receivers",
+        "test_name", "transport", "measure",
+        "sensors", "receivers",
         "sensor_chips", "receiver_chips",
         "sensor_ports", "receiver_ports",
         "repeat", "status", "log_dir",
@@ -319,6 +326,12 @@ def main():
                         help="After all tests complete, run analysis on results.")
     parser.add_argument("--name", type=str, default=None,
                         help="Override the results folder name (always inside results/). Defaults to the current timestamp.")
+    parser.add_argument("--transport", default="BROADCAST", choices=VALID_TRANSPORTS,
+                        help="Transport variant to build, flash, and tag in summary.csv (default: BROADCAST). "
+                             "Run twice with different transports for the thesis comparison.")
+    parser.add_argument("--measure", action="store_true",
+                        help="Enable -DMEASURE=1 instrumentation in firmware builds and tag in summary.csv. "
+                             "Pairs with sdkconfig.measure overlay.")
     args = parser.parse_args()
 
     if args.name is not None:
@@ -329,14 +342,18 @@ def main():
     # Load config
     config = load_config(args.config)
     boards = config["boards"]
+    config["transport"] = args.transport
+    config["measure"] = args.measure
 
     print(f"\n{'='*60}")
     print(f"  WCAN Automated Test Runner")
     print(f"{'='*60}")
-    print(f"  Config:  {args.config}")
-    print(f"  Boards:  {len(boards)}")
+    print(f"  Config:    {args.config}")
+    print(f"  Boards:    {len(boards)}")
     for b in boards:
         print(f"    {b['id']:>4}  {b['chip']:<10}  {b['port']}")
+    print(f"  Transport: {config['transport']}")
+    print(f"  Measure:   {config['measure']}")
     print(f"  Duration:  {config['duration']}s per test")
     print(f"  Repeats:   {config['repeats']}")
     print(f"  Cooldown:  {config['cooldown']}s")
@@ -347,7 +364,9 @@ def main():
 
     # Build phase
     if not args.skip_build and not args.dry_run:
-        if not build_needed(set(b["chip"] for b in boards), config["project_path"]):
+        if not build_needed(set(b["chip"] for b in boards),
+                            config["transport"], config["measure"],
+                            config["project_path"]):
             print("\n[ABORT] Build failed. Fix errors and retry.")
             sys.exit(1)
 
