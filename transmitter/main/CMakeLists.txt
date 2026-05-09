@@ -1,5 +1,6 @@
 idf_component_register(SRCS "main.cpp"
-                       INCLUDE_DIRS ".")
+                       INCLUDE_DIRS "."
+                       PRIV_REQUIRES "${WCAN_COMPONENT_NAME}")
 
 # Inject ROLE_SENSOR / ROLE_RECEIVER / ROLE_IDLE as a compile definition.
 # Usage: idf.py -B build_dir -DROLE=SENSOR build

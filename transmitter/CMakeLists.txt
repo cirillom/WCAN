@@ -4,5 +4,26 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
+# Select WCAN transport variant. Two parallel components implement different
+# methodologies; only one is compiled and linked per build. The unselected
+# component is excluded so its source files never enter the build.
+# Usage: idf.py -B build_dir -DTRANSPORT=BROADCAST -DROLE=SENSOR build
+#    or: idf.py -B build_dir -DTRANSPORT=UNICAST   -DROLE=SENSOR build
+if(NOT DEFINED TRANSPORT)
+    set(TRANSPORT "BROADCAST")
+endif()
+
+if(TRANSPORT STREQUAL "BROADCAST")
+    set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE STRING "Selected WCAN component")
+    list(APPEND EXCLUDE_COMPONENTS wcan_unicast)
+elseif(TRANSPORT STREQUAL "UNICAST")
+    set(WCAN_COMPONENT_NAME "wcan_unicast" CACHE STRING "Selected WCAN component")
+    list(APPEND EXCLUDE_COMPONENTS wcan_broadcast)
+else()
+    message(FATAL_ERROR "TRANSPORT must be BROADCAST or UNICAST; got: ${TRANSPORT}")
+endif()
+
+message(STATUS "Building with TRANSPORT=${TRANSPORT}, component=${WCAN_COMPONENT_NAME}")
+
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(sensor_acquirer)
