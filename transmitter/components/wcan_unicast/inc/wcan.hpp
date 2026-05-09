@@ -41,7 +41,12 @@ struct esp_now_packet_t {
     size_t data_len;
 };
 
+// Control-frame sentinels live in the 0xExxxxxxx range (top 3 bits = 0b111),
+// which is outside the 29-bit CAN extended ID space (CAN_ID_MAX = 0x1FFFFFFF).
+// CAN_ACK is retained while transport remains broadcast+ACK in this component
+// during phase 2; phase 3 removes ACK and the sentinel slot is freed.
 #define CAN_ACK 0xE0000000
+#define CAN_HELLO 0xE0000001
 #define CAN_ID_MAX 0x1FFFFFFF
 
 extern uint8_t own_mac_addr[ESP_NOW_ETH_ALEN];

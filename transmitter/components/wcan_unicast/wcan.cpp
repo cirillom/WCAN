@@ -18,6 +18,7 @@
 #include "wcan.hpp"
 #include "wcan_receiver.hpp"
 #include "wcan_sender.hpp"
+#include "wcan_subscriptions.hpp"
 #include "wcan_utils.hpp"
 
 bool recv_filter = false;
@@ -72,6 +73,11 @@ static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *
     if (recv_data.can_id == CAN_ACK) {
         ack_recv(recv_data);
         // recv_data destructs at function exit; payload is freed.
+    } else if (recv_data.can_id == CAN_HELLO) {
+        // HELLO carries a subscriber's CAN-ID interest list. data_count==0 means wildcard.
+        // No-ops on nodes where subscription_init was not called (e.g., receiver-only).
+        const uint32_t *ids = (recv_data.data_count > 0 && recv_data.data) ? recv_data.data.get() : nullptr;
+        subscription_update(recv_data.mac_addr.data(), ids, recv_data.data_count);
     } else {
         auto heap_pkt = std::make_unique<data_packet_t>(std::move(recv_data));
         filter_data(std::move(heap_pkt));
@@ -88,6 +94,61 @@ static void heap_monitor_task(void *)
         ESP_LOGI(TAG, "free=%u min_free=%u largest=%u", static_cast<unsigned>(esp_get_free_heap_size()),
                  static_cast<unsigned>(esp_get_minimum_free_heap_size()),
                  static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)));
+        vTaskDelay(period);
+    }
+}
+
+#define WCAN_HELLO_BURST_COUNT 5
+#define WCAN_HELLO_BURST_INTERVAL_MS 50
+#define WCAN_HELLO_STEADY_INTERVAL_MS 1000
+
+static void send_hello(void)
+{
+    data_packet_t hello;
+    std::memcpy(hello.mac_addr.data(), own_mac_addr, ESP_NOW_ETH_ALEN);
+    hello.can_id = CAN_HELLO;
+    hello.tick_count = xTaskGetTickCount();
+
+    if (recv_filter && rx_can_ids != nullptr && rx_can_ids_size > 0) {
+        hello.data_count = static_cast<uint8_t>(rx_can_ids_size);
+        hello.data = std::make_unique<uint32_t[]>(rx_can_ids_size);
+        if (!hello.data) {
+            return;
+        }
+        std::memcpy(hello.data.get(), rx_can_ids, rx_can_ids_size * sizeof(uint32_t));
+    } else {
+        hello.data_count = 0;
+    }
+
+    send_data(BROADCAST_MAC, hello);
+}
+
+static void hello_beacon_task(void *)
+{
+    static const char *TAG = "HELLO_TX";
+    ESP_LOGI(TAG, "HELLO beacon task started (%s, %u ids)",
+             recv_filter ? "selective" : "wildcard",
+             static_cast<unsigned>(recv_filter ? rx_can_ids_size : 0));
+
+    for (int i = 0; i < WCAN_HELLO_BURST_COUNT; i++) {
+        send_hello();
+        vTaskDelay(pdMS_TO_TICKS(WCAN_HELLO_BURST_INTERVAL_MS));
+    }
+
+    const TickType_t period = pdMS_TO_TICKS(WCAN_HELLO_STEADY_INTERVAL_MS);
+    while (true) {
+        send_hello();
+        vTaskDelay(period);
+    }
+}
+
+#define WCAN_SUBS_LOG_INTERVAL_MS 10000
+
+static void subscription_log_task(void *)
+{
+    const TickType_t period = pdMS_TO_TICKS(WCAN_SUBS_LOG_INTERVAL_MS);
+    while (true) {
+        subscription_log_state();
         vTaskDelay(period);
     }
 }
@@ -238,6 +299,16 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
     }
 
     xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, 1, nullptr);
+
+    // Sensor: maintain the subscription table populated by HELLO frames from receivers,
+    // and periodically log it as a Phase-2 sanity check. Receivers don't need a table;
+    // they only beacon.
+    if (tx_ids_size > 0) {
+        subscription_init();
+        xTaskCreate(subscription_log_task, "subs_log", 2048, nullptr, 1, nullptr);
+    } else {
+        xTaskCreate(hello_beacon_task, "hello_beacon", 4096, nullptr, 4, nullptr);
+    }
 
     ESP_LOGI(TAG, "WCAN initialized");
 }
