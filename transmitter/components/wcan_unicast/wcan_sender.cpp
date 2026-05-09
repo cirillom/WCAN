@@ -7,20 +7,17 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_now.h"
-#include "esp_random.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 #include "wcan.hpp"
 #include "wcan_sender.hpp"
+#include "wcan_subscriptions.hpp"
 #include "wcan_utils.hpp"
 
 const uint8_t BROADCAST_MAC[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 QueueHandle_t send_queue = nullptr;
 QueueHandle_t *can_queues = nullptr;
-TaskHandle_t *can_tx_tasks = nullptr;
-data_packet_t **can_tx_packets = nullptr;
-volatile TickType_t *can_tx_tick_counts = nullptr;
 
 SemaphoreHandle_t espnow_tx_sem = nullptr;
 
@@ -60,24 +57,6 @@ static std::unique_ptr<data_packet_t> collect_packet(size_t can_queue_index, uin
     return packet;
 }
 
-static bool send_with_retry(size_t can_queue_index, const data_packet_t &packet)
-{
-    char TAG[20];
-    std::snprintf(TAG, sizeof(TAG), "RESEND_%u", static_cast<unsigned>(can_queue_index));
-
-    for (int attempt = 0; attempt < WCAN_MAX_RETRY_COUNT; attempt++) {
-        const uint32_t delay =
-            WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
-        if (xTaskNotifyWait(0xFFFFFFFFUL, 0, nullptr, pdMS_TO_TICKS(delay)) == pdTRUE) {
-            return true;
-        }
-        ESP_LOGW(TAG, "Timeout reached, resending %08lx... Attempt: %d of %d",
-                 static_cast<unsigned long>(packet.can_id), attempt + 1, WCAN_MAX_RETRY_COUNT);
-        send_data(BROADCAST_MAC, packet);
-    }
-    return false;
-}
-
 void can_processing_task(void *pv_parameter)
 {
     const size_t can_queue_index = reinterpret_cast<size_t>(pv_parameter);
@@ -89,26 +68,32 @@ void can_processing_task(void *pv_parameter)
 
     ESP_LOGI(TAG, "CAN processing task %u started", static_cast<unsigned>(can_queue_index));
 
+    uint8_t targets[WCAN_MAX_SUBSCRIBERS][ESP_NOW_ETH_ALEN];
+
     while (true) {
         auto packet = collect_packet(can_queue_index, can_id);
         if (!packet) {
             continue;
         }
 
-        can_tx_tick_counts[can_queue_index] = packet->tick_count;
-        can_tx_packets[can_queue_index] = packet.get();
-        send_data(BROADCAST_MAC, *packet);
-
-        ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu)", static_cast<unsigned long>(packet->can_id),
-                 packet->data_count, static_cast<unsigned long>(packet->data[0]),
-                 static_cast<unsigned long>(packet->data[packet->data_count - 1]),
-                 static_cast<unsigned long>(packet->tick_count));
-
-        if (!send_with_retry(can_queue_index, *packet)) {
-            ESP_LOGE(TAG, "Max retry attempts reached for %08lx", static_cast<unsigned long>(packet->can_id));
+        const size_t fan_out = subscription_snapshot_targets(can_id, targets);
+        if (fan_out == 0) {
+            ESP_LOGD(TAG, "Suppressing 0x%08lx (no alive subscribers)",
+                     static_cast<unsigned long>(can_id));
+            continue;
         }
 
-        can_tx_packets[can_queue_index] = nullptr;
+        for (size_t i = 0; i < fan_out; i++) {
+            add_peer(targets[i]);
+            send_data(targets[i], *packet);
+        }
+
+        ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> %u peers",
+                 static_cast<unsigned long>(packet->can_id), packet->data_count,
+                 static_cast<unsigned long>(packet->data[0]),
+                 static_cast<unsigned long>(packet->data[packet->data_count - 1]),
+                 static_cast<unsigned long>(packet->tick_count),
+                 static_cast<unsigned>(fan_out));
         // packet destructor releases the payload + struct.
     }
 }
@@ -157,44 +142,5 @@ void send_data(const uint8_t *mac_addr, const data_packet_t &data_packet)
         ESP_LOGW(TAG, "Send queue full, dropping packet with CAN ID 0x%08lx",
                  static_cast<unsigned long>(data_packet.can_id));
         delete raw;
-    }
-}
-
-void ack_recv(const data_packet_t &recv_data)
-{
-    static const char *TAG = "ACK";
-
-    if (!recv_data.data || recv_data.data_count < 1) {
-        ESP_LOGW(TAG, "Malformed ACK: missing payload");
-        return;
-    }
-
-    const uint32_t acked_can_id = recv_data.data[0];
-
-    const size_t can_queue_index = get_can_tx_queue_index(acked_can_id);
-    if (can_queue_index == SIZE_MAX) {
-        ESP_LOGW(TAG, "Received ACK for unknown CAN ID 0x%08lx", static_cast<unsigned long>(acked_can_id));
-        return;
-    }
-
-    if (can_tx_packets[can_queue_index] == nullptr) {
-        ESP_LOGW(TAG, "Duplicate ACK ignored for 0x%08lx", static_cast<unsigned long>(acked_can_id));
-        return;
-    }
-
-    if (recv_data.tick_count != can_tx_tick_counts[can_queue_index]) {
-        ESP_LOGW(TAG, "[0x%08lx] with tick_count %lu, but expected tick_count %lu",
-                 static_cast<unsigned long>(acked_can_id), static_cast<unsigned long>(recv_data.tick_count),
-                 static_cast<unsigned long>(can_tx_tick_counts[can_queue_index]));
-        return;
-    }
-
-    ESP_LOGD(TAG, "Received ACK for packet tick %lu from %02X:%02X:%02X:%02X:%02X:%02X",
-             static_cast<unsigned long>(recv_data.tick_count), recv_data.mac_addr[0], recv_data.mac_addr[1],
-             recv_data.mac_addr[2], recv_data.mac_addr[3], recv_data.mac_addr[4], recv_data.mac_addr[5]);
-
-    if (can_tx_tasks[can_queue_index] != nullptr) {
-        xTaskNotify(can_tx_tasks[can_queue_index], 0, eNoAction);
-        ESP_LOGV(TAG, "Sender task notified");
     }
 }

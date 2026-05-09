@@ -37,11 +37,17 @@ static void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status
         return;
     }
 
-    if (status == ESP_NOW_SEND_FAIL) {
-        ESP_LOGW(TAG, "MAC-layer TX failed (no 802.11 ACK from peer)");
+    const bool success = (status == ESP_NOW_SEND_SUCCESS);
+    if (!success) {
+        ESP_LOGW(TAG, "MAC-layer TX failed to %02x:%02x:%02x:%02x:%02x:%02x",
+                 mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
     } else {
-        ESP_LOGI(TAG, "Successfully sent packet to %02x%02x", mac_addr[4], mac_addr[5]);
+        ESP_LOGV(TAG, "Sent to %02x:%02x:%02x:%02x:%02x:%02x",
+                 mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
     }
+
+    // Update per-peer TX health. No-op for non-subscriber MACs (e.g., broadcast).
+    subscription_record_tx_status(mac_addr, success);
 
     if (espnow_tx_sem != nullptr) {
         xSemaphoreGive(espnow_tx_sem);
@@ -70,10 +76,7 @@ static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *
     }
 
     ESP_LOGD(TAG, "Received data with id: %08lx", static_cast<unsigned long>(recv_data.can_id));
-    if (recv_data.can_id == CAN_ACK) {
-        ack_recv(recv_data);
-        // recv_data destructs at function exit; payload is freed.
-    } else if (recv_data.can_id == CAN_HELLO) {
+    if (recv_data.can_id == CAN_HELLO) {
         // HELLO carries a subscriber's CAN-ID interest list. data_count==0 means wildcard.
         // No-ops on nodes where subscription_init was not called (e.g., receiver-only).
         const uint32_t *ids = (recv_data.data_count > 0 && recv_data.data) ? recv_data.data.get() : nullptr;
@@ -163,36 +166,6 @@ static bool create_handles(void)
             ESP_LOGE(TAG, "Failed to allocate memory for CAN queues");
             return false;
         }
-
-        can_tx_tasks = static_cast<TaskHandle_t *>(calloc(num_can_queues, sizeof(TaskHandle_t)));
-        if (can_tx_tasks == nullptr) {
-            ESP_LOGE(TAG, "Failed to allocate memory for CAN task handles");
-            free(can_queues);
-            can_queues = nullptr;
-            return false;
-        }
-
-        can_tx_packets = static_cast<data_packet_t **>(malloc(num_can_queues * sizeof(data_packet_t *)));
-        if (can_tx_packets == nullptr) {
-            ESP_LOGE(TAG, "Failed to allocate memory for CAN packet slots");
-            free(can_queues);
-            can_queues = nullptr;
-            free(can_tx_tasks);
-            can_tx_tasks = nullptr;
-            return false;
-        }
-
-        can_tx_tick_counts = static_cast<volatile TickType_t *>(calloc(num_can_queues, sizeof(TickType_t)));
-        if (can_tx_tick_counts == nullptr) {
-            ESP_LOGE(TAG, "Failed to allocate memory for CAN tick count slots");
-            free(can_queues);
-            can_queues = nullptr;
-            free(can_tx_tasks);
-            can_tx_tasks = nullptr;
-            free(can_tx_packets);
-            can_tx_packets = nullptr;
-            return false;
-        }
     }
 
     espnow_tx_sem = xSemaphoreCreateBinary();
@@ -220,7 +193,6 @@ static bool create_handles(void)
             ESP_LOGE(TAG, "Failed to create CAN queue %u", static_cast<unsigned>(i));
             return false;
         }
-        can_tx_packets[i] = nullptr;
     }
 
     return true;
@@ -295,7 +267,7 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
     for (size_t i = 0; i < num_can_queues; i++) {
         char task_name[20];
         std::snprintf(task_name, sizeof(task_name), "can_proc_%u", static_cast<unsigned>(i));
-        xTaskCreate(can_processing_task, task_name, 4096, reinterpret_cast<void *>(i), 4, &can_tx_tasks[i]);
+        xTaskCreate(can_processing_task, task_name, 4096, reinterpret_cast<void *>(i), 4, nullptr);
     }
 
     xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, 1, nullptr);

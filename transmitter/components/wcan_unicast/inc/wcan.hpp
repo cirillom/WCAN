@@ -43,10 +43,9 @@ struct esp_now_packet_t {
 
 // Control-frame sentinels live in the 0xExxxxxxx range (top 3 bits = 0b111),
 // which is outside the 29-bit CAN extended ID space (CAN_ID_MAX = 0x1FFFFFFF).
-// CAN_ACK is retained while transport remains broadcast+ACK in this component
-// during phase 2; phase 3 removes ACK and the sentinel slot is freed.
-#define CAN_ACK 0xE0000000
-#define CAN_HELLO 0xE0000001
+// This component has no application-level ACK; the slot at 0xE0000000 is
+// repurposed as the HELLO/discovery sentinel.
+#define CAN_HELLO 0xE0000000
 #define CAN_ID_MAX 0x1FFFFFFF
 
 extern uint8_t own_mac_addr[ESP_NOW_ETH_ALEN];
@@ -62,8 +61,6 @@ extern QueueHandle_t recv_queue;
 extern QueueHandle_t send_queue;
 extern size_t num_can_queues;
 extern QueueHandle_t *can_queues;
-
-extern TaskHandle_t *can_tx_tasks;
 
 void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_ids, size_t tx_ids_size,
                uint32_t linger);

@@ -92,6 +92,73 @@ void subscription_update(const uint8_t mac[ESP_NOW_ETH_ALEN], const uint32_t *id
     xSemaphoreGive(s_subs_mutex);
 }
 
+size_t subscription_snapshot_targets(uint32_t can_id,
+                                     uint8_t out_macs[WCAN_MAX_SUBSCRIBERS][ESP_NOW_ETH_ALEN])
+{
+    if (s_subs_mutex == nullptr) {
+        return 0;
+    }
+    if (xSemaphoreTake(s_subs_mutex, pdMS_TO_TICKS(50)) != pdTRUE) {
+        ESP_LOGW(TAG, "snapshot mutex timeout");
+        return 0;
+    }
+
+    const TickType_t now = xTaskGetTickCount();
+    const TickType_t liveness = pdMS_TO_TICKS(WCAN_SUBSCRIBER_LIVENESS_MS);
+
+    size_t count = 0;
+    for (size_t i = 0; i < WCAN_MAX_SUBSCRIBERS; i++) {
+        const auto &e = s_subscribers[i];
+        if (!e.in_use) continue;
+        if ((now - e.last_seen_tick) >= liveness) continue;
+
+        if (!e.wildcard) {
+            bool wants = false;
+            for (size_t k = 0; k < e.num_ids; k++) {
+                if (e.subscribed_ids[k] == can_id) {
+                    wants = true;
+                    break;
+                }
+            }
+            if (!wants) continue;
+        }
+
+        std::memcpy(out_macs[count], e.mac_addr, ESP_NOW_ETH_ALEN);
+        count++;
+    }
+
+    xSemaphoreGive(s_subs_mutex);
+    return count;
+}
+
+void subscription_record_tx_status(const uint8_t mac[ESP_NOW_ETH_ALEN], bool success)
+{
+    if (s_subs_mutex == nullptr) {
+        return;
+    }
+    if (xSemaphoreTake(s_subs_mutex, pdMS_TO_TICKS(50)) != pdTRUE) {
+        return;
+    }
+
+    int idx = find_slot_locked(mac);
+    if (idx >= 0) {
+        auto &e = s_subscribers[idx];
+        if (success) {
+            e.consecutive_tx_failures = 0;
+        } else {
+            e.consecutive_tx_failures++;
+            if (e.consecutive_tx_failures >= WCAN_TX_FAIL_THRESHOLD) {
+                ESP_LOGW(TAG, "evicting dead peer %02x:%02x:%02x:%02x:%02x:%02x after %u fails",
+                         mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+                         e.consecutive_tx_failures);
+                e.in_use = false;
+            }
+        }
+    }
+
+    xSemaphoreGive(s_subs_mutex);
+}
+
 void subscription_log_state(void)
 {
     if (s_subs_mutex == nullptr) {

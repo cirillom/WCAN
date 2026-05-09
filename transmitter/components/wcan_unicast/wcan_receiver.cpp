@@ -14,8 +14,6 @@
 
 QueueHandle_t recv_queue = nullptr;
 
-static void ack_send(const data_packet_t &recv_packet);
-
 static dedup_entry_t s_dedup_table[DEDUP_TABLE_SIZE] = {};
 
 // Stores only the most recent tick per CAN ID. A retransmit carrying an older
@@ -73,7 +71,6 @@ void recv_processing_task(void *)
             continue; // pkt destructor frees
         }
 
-        ack_send(*pkt);
         if (wcan_recv_callback) {
             wcan_recv_callback(*pkt);
         } else {
@@ -82,32 +79,6 @@ void recv_processing_task(void *)
         // pkt destructor frees at end of loop iteration.
         vTaskDelay(pdMS_TO_TICKS(1));
     }
-}
-
-static void ack_send(const data_packet_t &recv_packet)
-{
-    static const char *TAG = "ACK";
-
-    ESP_LOGD(TAG, "Acknowledging that received ID: %08lx from %02X:%02X:%02X:%02X:%02X:%02X",
-             static_cast<unsigned long>(recv_packet.can_id), recv_packet.mac_addr[0], recv_packet.mac_addr[1],
-             recv_packet.mac_addr[2], recv_packet.mac_addr[3], recv_packet.mac_addr[4], recv_packet.mac_addr[5]);
-
-    data_packet_t ack_data;
-    ack_data.mac_addr = recv_packet.mac_addr;
-    ack_data.can_id = CAN_ACK;
-    ack_data.tick_count = recv_packet.tick_count;
-    ack_data.data = std::make_unique<uint32_t[]>(1);
-    if (!ack_data.data) {
-        ESP_LOGE(TAG, "Allocate ACK payload failed");
-        return;
-    }
-    ack_data.data[0] = recv_packet.can_id;
-    ack_data.data_count = 1;
-
-    add_peer(ack_data.mac_addr.data());
-    send_data(ack_data.mac_addr.data(), ack_data);
-    ESP_LOGD(TAG, "ACK sent for CAN ID 0x%08lx with tick_count %lu", static_cast<unsigned long>(recv_packet.can_id),
-             static_cast<unsigned long>(recv_packet.tick_count));
 }
 
 void filter_data(std::unique_ptr<data_packet_t> data)
