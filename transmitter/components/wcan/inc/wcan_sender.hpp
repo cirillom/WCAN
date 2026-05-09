@@ -1,7 +1,11 @@
-#ifndef __WCAN_SENDER_H__
-#define __WCAN_SENDER_H__
+#pragma once
 
-#include "wcan.h"
+#include <memory>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
+#include "wcan.hpp"
 
 extern const uint8_t BROADCAST_MAC[ESP_NOW_ETH_ALEN];
 
@@ -15,9 +19,7 @@ extern volatile TickType_t *can_tx_tick_counts;
 extern SemaphoreHandle_t espnow_tx_sem;
 #define WCAN_TX_SEM_TIMEOUT_MS 500
 
-void CanProcessingTask(void *pvParameter);
-void SendProcessingTask(void *pvParameter);
-void AckRecv(data_packet_t data);
-void SendData(const uint8_t *mac_addr, const data_packet_t data_packet);
-
-#endif
+void can_processing_task(void *pv_parameter);
+void send_processing_task(void *pv_parameter);
+void ack_recv(const data_packet_t &data);
+void send_data(const uint8_t *mac_addr, const data_packet_t &data_packet);

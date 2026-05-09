@@ -26,6 +26,16 @@ import matplotlib.pyplot as plt
 # ── Data structures ──────────────────────────────────────────────────────────
 
 @dataclass
+class HeapStats:
+    """Heap monitor samples + leak verdict."""
+    samples: list[tuple[float, int, int, int]] = field(default_factory=list)  # (ts, free, min_free, largest)
+    slope_bytes_per_s: float = 0.0
+    end_min_free: int = 0
+    early_min_free: int = 0
+    leak_status: str = "NO_DATA"  # NO_DATA | OK | SUSPECTED | FAIL
+
+
+@dataclass
 class SensorData:
     board_id: str
     port: str
@@ -38,6 +48,7 @@ class SensorData:
     crash_count: int = 0
     retry_count: int = 0
     max_retry_chain: int = 0
+    heap: HeapStats = field(default_factory=HeapStats)
 
 
 @dataclass
@@ -49,6 +60,7 @@ class ReceiverData:
     received_times: dict[str, dict[int, float]] = field(default_factory=dict)
     # can_id -> first_counter -> epoch seconds
     crash_count: int = 0
+    heap: HeapStats = field(default_factory=HeapStats)
 
 
 @dataclass
@@ -86,17 +98,66 @@ RE_SENSOR_ACK = re.compile(
     r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?ACK:\s*Received ACK for packet tick\s*(\d+)"
 )
 RE_SENSOR_COUNTER = re.compile(
-    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?ReadDataTask:\s*(\d+)"
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?read_data_task:\s*(\d+)"
 )
 RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
 RE_RECEIVER_BATCH = re.compile(
-    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?RecvCallback:\s*\[([0-9a-fA-F]+)\]\s*tick=(\d+)\s*\[(\d+)\.\.(\d+)\]\s*(\d+)\s*items"
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?wcan_recv_callback:\s*\[([0-9a-fA-F]+)\]\s*tick=(\d+)\s*\[(\d+)\.\.(\d+)\]\s*(\d+)\s*items"
 )
 RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_(.+)\.log")
+RE_HEAP = re.compile(
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?HEAP:\s*free=(\d+)\s*min_free=(\d+)\s*largest=(\d+)"
+)
 
 CRASH_MARKER = "WCAN initialized"
 RETRY_MARKER = "Timeout reached"
 RE_RETRY_ATTEMPT = re.compile(r"Timeout reached.*?Attempt:\s*(\d+)\s*of\s*\d+")
+
+# Leak-detection thresholds.
+LEAK_SLOPE_FAIL = -64.0      # bytes/s sustained — definite leak
+LEAK_SLOPE_SUSPECTED = -16.0  # bytes/s sustained — borderline
+LEAK_END_DROP_RATIO = 0.80    # end min_free must stay >= 80% of early min_free
+HEAP_INIT_TRANSIENT_SEC = 5.0  # ignore samples in the first N seconds (boot/init noise)
+
+
+def parse_heap_stats(text: str) -> HeapStats:
+    """Extract HEAP samples from a log and compute a leak verdict."""
+    samples: list[tuple[float, int, int, int]] = []
+    for m in RE_HEAP.finditer(text):
+        ts = _parse_ts(m.group(1))
+        samples.append((ts, int(m.group(2)), int(m.group(3)), int(m.group(4))))
+
+    stats = HeapStats(samples=samples)
+    if len(samples) < 3:
+        return stats  # not enough data to fit a slope
+
+    t0 = samples[0][0]
+    # Drop init transient.
+    post_init = [(t - t0, mf) for (t, _free, mf, _largest) in samples if (t - t0) >= HEAP_INIT_TRANSIENT_SEC]
+    if len(post_init) < 3:
+        post_init = [(t - t0, mf) for (t, _free, mf, _largest) in samples]
+
+    n = len(post_init)
+    sum_t = sum(t for t, _ in post_init)
+    sum_y = sum(y for _, y in post_init)
+    sum_tt = sum(t * t for t, _ in post_init)
+    sum_ty = sum(t * y for t, y in post_init)
+    denom = n * sum_tt - sum_t * sum_t
+    slope = (n * sum_ty - sum_t * sum_y) / denom if denom != 0 else 0.0
+
+    early_min_free = post_init[0][1]
+    end_min_free = post_init[-1][1]
+    stats.slope_bytes_per_s = slope
+    stats.early_min_free = early_min_free
+    stats.end_min_free = end_min_free
+
+    if slope <= LEAK_SLOPE_FAIL or end_min_free < early_min_free * LEAK_END_DROP_RATIO:
+        stats.leak_status = "FAIL"
+    elif slope <= LEAK_SLOPE_SUSPECTED:
+        stats.leak_status = "SUSPECTED"
+    else:
+        stats.leak_status = "OK"
+    return stats
 
 
 def _parse_ts(ts_str: str) -> float:
@@ -164,6 +225,7 @@ def parse_sensor_log(path: Path) -> SensorData:
         crash_count=crash_count,
         retry_count=retry_count,
         max_retry_chain=max_retry_chain,
+        heap=parse_heap_stats(text),
     )
 
 
@@ -192,6 +254,7 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         received=received,
         received_times=received_times,
         crash_count=crash_count,
+        heap=parse_heap_stats(text),
     )
 
 
@@ -285,6 +348,15 @@ def compute_delays(
 
 # ── Text report ──────────────────────────────────────────────────────────────
 
+def _format_heap(stats: HeapStats) -> str:
+    if stats.leak_status == "NO_DATA":
+        return "no_samples"
+    return (
+        f"{stats.leak_status} (slope={stats.slope_bytes_per_s:+.1f} B/s, "
+        f"min_free {stats.early_min_free}->{stats.end_min_free})"
+    )
+
+
 def format_report(
     test_name: str,
     sensors: list[SensorData],
@@ -311,10 +383,15 @@ def format_report(
 
     total_misses = sum(len(s.total_misses) for s in summaries)
     total_crashes = sum(1 for x in (*sensors, *receivers) if x.crash_count > 0)
+    leak_fails = sum(1 for x in (*sensors, *receivers) if x.heap.leak_status == "FAIL")
+    leak_suspect = sum(1 for x in (*sensors, *receivers) if x.heap.leak_status == "SUSPECTED")
 
-    passed = total_misses == 0 and total_crashes == 0
+    passed = total_misses == 0 and total_crashes == 0 and leak_fails == 0
     status = "PASS" if passed else "FAIL"
-    lines.append(f"{status}: {total_misses} misses, {total_crashes} crashes")
+    lines.append(
+        f"{status}: {total_misses} misses, {total_crashes} crashes, "
+        f"leaks={leak_fails} fail / {leak_suspect} suspected"
+    )
 
     for receiver in receivers:
         total_received = sum(
@@ -322,7 +399,8 @@ def format_report(
         )
         lines.append(
             f"Receiver {receiver.board_id} ({receiver.port}): "
-            f"{total_received} received, {receiver.crash_count} crashes"
+            f"{total_received} received, {receiver.crash_count} crashes, "
+            f"heap={_format_heap(receiver.heap)}"
         )
 
     summary_lookup = {s.sensor.board_id: s for s in summaries}
@@ -339,7 +417,8 @@ def format_report(
         line = (
             f"Sensor {sensor.board_id} (0x{sensor.can_id} | {sensor.port}): "
             f"{n_sent} sent, {n_recv} received, {n_miss} misses, "
-            f"{sensor.crash_count} crashes, {retries_str} retries"
+            f"{sensor.crash_count} crashes, {retries_str} retries, "
+            f"heap={_format_heap(sensor.heap)}"
         )
         if s.total_misses:
             line += f"\n - MISSED: {s.total_misses}"

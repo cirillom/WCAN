@@ -1,6 +1,8 @@
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
+
 #include <nvs_flash.h>
-#include <stdbool.h>
-#include <stdio.h>
 
 #include "driver/gpio.h"
 #include "esp_err.h"
@@ -11,18 +13,23 @@
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "string.h"
 
-#include "wcan.h"
-#include "wcan_utils.h"
-// #include "can.h"
+#include "wcan.hpp"
+#include "wcan_utils.hpp"
 
 // Compile-time role validation
 #if !defined(ROLE_SENSOR) && !defined(ROLE_RECEIVER) && !defined(ROLE_IDLE)
 #error "Build must define ROLE=SENSOR or ROLE=RECEIVER or ROLE=IDLE via CMake (-DROLE=SENSOR or -DROLE=RECEIVER or -DROLE=IDLE)"
 #endif
 
-static void WiFiInit(void)
+#ifdef ROLE_SENSOR
+#ifndef SENSOR_HZ
+#define SENSOR_HZ 200
+#endif
+static constexpr int FREQUENCY_HERTZ = SENSOR_HZ;
+#endif
+
+static void wifi_init(void)
 {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -38,62 +45,46 @@ static void WiFiInit(void)
 }
 
 #ifdef ROLE_SENSOR
-// Sensor task: increments a counter and sends it over WCAN
-static void ReadDataTask(void *pvParameter)
+// Sensor task: increments a counter and sends it over WCAN at FREQUENCY_HERTZ.
+static void read_data_task(void *pv_parameter)
 {
-    int frequency_hertz = 100;
-
-    static const char *TAG = "ReadDataTask";
-    uint32_t can_id = (uint32_t)(uintptr_t)pvParameter;
-    size_t can_queue_index = GetCanTXQueueIndex(can_id);
-    if (can_queue_index == SIZE_MAX)
-    {
-        ESP_LOGE(TAG, "Unknown CAN ID 0x%04lx, aborting task", (unsigned long)can_id);
-        vTaskDelete(NULL);
+    static const char *TAG = "read_data_task";
+    const uint32_t can_id = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(pv_parameter));
+    const size_t can_queue_index = get_can_tx_queue_index(can_id);
+    if (can_queue_index == SIZE_MAX) {
+        ESP_LOGE(TAG, "Unknown CAN ID 0x%04lx, aborting task", static_cast<unsigned long>(can_id));
+        vTaskDelete(nullptr);
         return;
     }
     uint32_t counter = 0;
 
-    ESP_LOGI(TAG, "ReadDataTask started with CAN ID 0x%04lx", (unsigned long)can_id);
+    ESP_LOGI(TAG, "read_data_task started with CAN ID 0x%04lx at %d Hz", static_cast<unsigned long>(can_id),
+             FREQUENCY_HERTZ);
 
-    while (1)
-    {
-        if (xQueueSend(can_queues[can_queue_index], &counter, pdMS_TO_TICKS(10)) != pdTRUE)
-        {
-            ESP_LOGW(TAG, "Send queue full, dropping counter=%lu", (unsigned long)counter);
-        }
-        else
-        {
-            ESP_LOGI(TAG, "%lu", (unsigned long)counter);
+    while (true) {
+        if (xQueueSend(can_queues[can_queue_index], &counter, pdMS_TO_TICKS(10)) != pdTRUE) {
+            ESP_LOGW(TAG, "Send queue full, dropping counter=%lu", static_cast<unsigned long>(counter));
+        } else {
+            ESP_LOGI(TAG, "%lu", static_cast<unsigned long>(counter));
         }
         counter++;
 
-        vTaskDelay(pdMS_TO_TICKS(1000 / frequency_hertz));
+        vTaskDelay(pdMS_TO_TICKS(1000 / FREQUENCY_HERTZ));
     }
-
-    vTaskDelete(NULL);
 }
 #endif // ROLE_SENSOR
 
 #ifdef ROLE_RECEIVER
 // Receiver callback: logs any incoming CAN ID and payload
-void RecvCallback(data_packet_t recv_packet)
+void wcan_recv_callback(const data_packet_t &recv_packet)
 {
-    static const char *TAG = "RecvCallback";
-    if (recv_packet.data_count == 0) return;
-    ESP_LOGI(TAG, "[%04lx] tick=%lu [%lu..%lu] %u items",
-             (unsigned long)recv_packet.can_id,
-             (unsigned long)recv_packet.tick_count,
-             (unsigned long)recv_packet.data[0],
-             (unsigned long)recv_packet.data[recv_packet.data_count - 1],
-             recv_packet.data_count);
-
-    /*
-    // We are testing WCAN, CAN is already validated.
-    for (size_t i = 0; i < recv_packet.data_count; i++) {
-        CanSend(recv_packet.can_id, sizeof(recv_packet.data[i]), (uint8_t *)&recv_packet.data[i]);
+    static const char *TAG = "wcan_recv_callback";
+    if (recv_packet.data_count == 0) {
+        return;
     }
-    */
+    ESP_LOGI(TAG, "[%04lx] tick=%lu [%lu..%lu] %u items", static_cast<unsigned long>(recv_packet.can_id),
+             static_cast<unsigned long>(recv_packet.tick_count), static_cast<unsigned long>(recv_packet.data[0]),
+             static_cast<unsigned long>(recv_packet.data[recv_packet.data_count - 1]), recv_packet.data_count);
 }
 #endif // ROLE_RECEIVER
 
@@ -102,8 +93,7 @@ extern "C" void app_main(void)
     static const char *TAG = "MAIN";
 
     esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
@@ -111,42 +101,37 @@ extern "C" void app_main(void)
 
     uint8_t mac[6];
     ESP_ERROR_CHECK(esp_read_mac(mac, ESPNOW_MAC_TYPE));
-    ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x",
-             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
 #if !defined(ROLE_IDLE)
-    WiFiInit();
+    wifi_init();
     ESP_LOGI(TAG, "WiFi initialized");
-
-    // CanInit(GPIO_NUM_21, GPIO_NUM_22); // as this project is only validating WCAN, 
-    //we don't need to initialize the CAN driver
 #endif
 
 #ifdef ROLE_SENSOR
-    static uint32_t can_id = ((uint32_t)mac[4] << 8) | (uint32_t)mac[5];
-    ESP_LOGI(TAG, "SENSOR mode — CAN ID: 0x%04lx", (unsigned long)can_id);
+    static uint32_t can_id = (static_cast<uint32_t>(mac[4]) << 8) | static_cast<uint32_t>(mac[5]);
+    ESP_LOGI(TAG, "SENSOR mode - CAN ID: 0x%04lx", static_cast<unsigned long>(can_id));
 
-    uint32_t jitter_ms = esp_random() % 1000;
-    ESP_LOGI(TAG, "Startup jitter: %lu ms", (unsigned long)jitter_ms);
+    const uint32_t jitter_ms = esp_random() % 1000;
+    ESP_LOGI(TAG, "Startup jitter: %lu ms", static_cast<unsigned long>(jitter_ms));
     vTaskDelay(pdMS_TO_TICKS(jitter_ms));
 
     // filter=true + empty rx allowlist drops all non-ACK data; ACKs are routed
-    // directly through AckRecv and do not need RecvProcessingTask.
-    WCAN_Init(true, NULL, 0, &can_id, 1, 100);
+    // directly through ack_recv and do not need recv_processing_task.
+    wcan_init(true, nullptr, 0, &can_id, 1, 100);
 
-    xTaskCreate(ReadDataTask, "ReadDataTask", 4096, (void *)(uintptr_t)can_id, 5, NULL);
-    // xTaskCreate(CanReceiveTask, "CanReceiveTask", 4096, NULL, 5, NULL);
+    xTaskCreate(read_data_task, "read_data_task", 4096, reinterpret_cast<void *>(static_cast<uintptr_t>(can_id)), 5,
+                nullptr);
 
 #elif defined(ROLE_RECEIVER)
-    ESP_LOGI(TAG, "RECEIVER mode — accepting all CAN IDs");
+    ESP_LOGI(TAG, "RECEIVER mode - accepting all CAN IDs");
 
     // filter=false means accept everything
-    WCAN_Init(false, NULL, 0, NULL, 0, 0);
+    wcan_init(false, nullptr, 0, nullptr, 0, 0);
 
 #elif defined(ROLE_IDLE)
-    ESP_LOGI(TAG, "IDLE mode — doing nothing");
-    // No WiFi, no WCAN — board is completely silent
-    while (1) {
+    ESP_LOGI(TAG, "IDLE mode - doing nothing");
+    while (true) {
         vTaskDelay(pdMS_TO_TICKS(10000));
     }
 

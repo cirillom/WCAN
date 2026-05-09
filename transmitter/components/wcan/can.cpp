@@ -3,7 +3,7 @@
 #include "string.h"
 #include "esp_log.h"
 
-#include "can.h"
+#include "can.hpp"
 
 static const char *CAN_TAG = "CAN";
 static bool s_twai_driver_installed = false;

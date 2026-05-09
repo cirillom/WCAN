@@ -1,79 +1,82 @@
-#include <string.h>
-#include <stdio.h>
+#include <array>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <memory>
 
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "wcan_utils.h"
+#include "wcan_utils.hpp"
 
 // ESP-NOW caps at 20 unencrypted peers total.
 #define PEER_CACHE_SIZE 20
 
-typedef struct {
-    uint8_t mac_addr[ESP_NOW_ETH_ALEN];
+struct peer_cache_entry_t {
+    std::array<uint8_t, ESP_NOW_ETH_ALEN> mac_addr;
     TickType_t last_used;
     bool in_use;
-} peer_cache_entry_t;
+};
 
-static peer_cache_entry_t peer_cache[PEER_CACHE_SIZE] = {};
+static peer_cache_entry_t s_peer_cache[PEER_CACHE_SIZE] = {};
 
-void AddPeer(const uint8_t *mac_addr)
+void add_peer(const uint8_t *mac_addr)
 {
     static const char *TAG = "PEER";
 
-    // Already tracked — refresh LRU timestamp and return.
-    for (int i = 0; i < PEER_CACHE_SIZE; i++) {
-        if (peer_cache[i].in_use && memcmp(peer_cache[i].mac_addr, mac_addr, ESP_NOW_ETH_ALEN) == 0) {
-            peer_cache[i].last_used = xTaskGetTickCount();
+    // Already tracked - refresh LRU timestamp and return.
+    for (size_t i = 0; i < PEER_CACHE_SIZE; i++) {
+        if (s_peer_cache[i].in_use &&
+            std::memcmp(s_peer_cache[i].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN) == 0) {
+            s_peer_cache[i].last_used = xTaskGetTickCount();
             return;
         }
     }
 
     // Find a free slot; if none, pick the LRU occupied slot.
-    int slot = 0;
+    size_t slot = 0;
     TickType_t oldest = portMAX_DELAY;
-    for (int i = 0; i < PEER_CACHE_SIZE; i++) {
-        if (!peer_cache[i].in_use) {
+    for (size_t i = 0; i < PEER_CACHE_SIZE; i++) {
+        if (!s_peer_cache[i].in_use) {
             slot = i;
             oldest = 0;
             break;
         }
-        if (peer_cache[i].last_used < oldest) {
-            oldest = peer_cache[i].last_used;
+        if (s_peer_cache[i].last_used < oldest) {
+            oldest = s_peer_cache[i].last_used;
             slot = i;
         }
     }
 
     // Evict the LRU peer to stay within the hardware limit.
-    if (peer_cache[slot].in_use) {
-        ESP_LOGD(TAG, "Evicting LRU peer %02x:%02x:%02x:%02x:%02x:%02x",
-                 peer_cache[slot].mac_addr[0], peer_cache[slot].mac_addr[1],
-                 peer_cache[slot].mac_addr[2], peer_cache[slot].mac_addr[3],
-                 peer_cache[slot].mac_addr[4], peer_cache[slot].mac_addr[5]);
-        esp_now_del_peer(peer_cache[slot].mac_addr);
-        peer_cache[slot].in_use = false;
+    if (s_peer_cache[slot].in_use) {
+        ESP_LOGD(TAG, "Evicting LRU peer %02x:%02x:%02x:%02x:%02x:%02x", s_peer_cache[slot].mac_addr[0],
+                 s_peer_cache[slot].mac_addr[1], s_peer_cache[slot].mac_addr[2], s_peer_cache[slot].mac_addr[3],
+                 s_peer_cache[slot].mac_addr[4], s_peer_cache[slot].mac_addr[5]);
+        esp_now_del_peer(s_peer_cache[slot].mac_addr.data());
+        s_peer_cache[slot].in_use = false;
     }
 
     esp_now_peer_info_t peer = {};
     peer.channel = ESPNOW_CHANNEL;
     peer.ifidx = ESPNOW_WIFI_IF;
     peer.encrypt = false;
-    memcpy(peer.peer_addr, mac_addr, ESP_NOW_ETH_ALEN);
+    std::memcpy(peer.peer_addr, mac_addr, ESP_NOW_ETH_ALEN);
     esp_err_t ret = esp_now_add_peer(&peer);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Add peer failed: %s", esp_err_to_name(ret));
         return;
     }
 
-    memcpy(peer_cache[slot].mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
-    peer_cache[slot].last_used = xTaskGetTickCount();
-    peer_cache[slot].in_use = true;
-    ESP_LOGV(TAG, "Peer added: %02x:%02x:%02x:%02x:%02x:%02x",
-             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+    std::memcpy(s_peer_cache[slot].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN);
+    s_peer_cache[slot].last_used = xTaskGetTickCount();
+    s_peer_cache[slot].in_use = true;
+    ESP_LOGV(TAG, "Peer added: %02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3],
+             mac_addr[4], mac_addr[5]);
 }
 
-void RemovePeer(const uint8_t *mac_addr)
+void remove_peer(const uint8_t *mac_addr)
 {
     static const char *TAG = "PEER";
     esp_err_t ret = esp_now_del_peer(mac_addr);
@@ -81,92 +84,90 @@ void RemovePeer(const uint8_t *mac_addr)
         ESP_LOGE(TAG, "Remove peer failed: %s", esp_err_to_name(ret));
         return;
     }
-    for (int i = 0; i < PEER_CACHE_SIZE; i++) {
-        if (peer_cache[i].in_use && memcmp(peer_cache[i].mac_addr, mac_addr, ESP_NOW_ETH_ALEN) == 0) {
-            peer_cache[i].in_use = false;
+    for (size_t i = 0; i < PEER_CACHE_SIZE; i++) {
+        if (s_peer_cache[i].in_use &&
+            std::memcmp(s_peer_cache[i].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN) == 0) {
+            s_peer_cache[i].in_use = false;
             break;
         }
     }
     ESP_LOGV(TAG, "Peer removed");
 }
 
-esp_now_packet_t *EncodeDataPacket(const data_packet_t *data_packet){
+std::unique_ptr<esp_now_packet_t> encode_data_packet(const data_packet_t &data_packet)
+{
     static const char *TAG = "ENCODE";
-    esp_now_packet_t *esp_now_packet = (esp_now_packet_t *)malloc(sizeof(esp_now_packet_t));
-    ESP_LOGV(TAG, "esp_now_packet: %p", (void*)esp_now_packet);
-    if (esp_now_packet == NULL) {
-        ESP_LOGE(TAG, "Malloc esp now packet fail");
-        return NULL;
-    } 
-    size_t header_len = sizeof(data_packet->can_id) + sizeof(data_packet->tick_count) + sizeof(data_packet->data_count);
-    esp_now_packet->data_len = header_len + data_packet->data_count * sizeof(uint32_t);
-    esp_now_packet->data = (uint8_t *)malloc(esp_now_packet->data_len);
-    ESP_LOGV(TAG, "esp_now_packet->data: %p", (void*)esp_now_packet->data);
-    if (esp_now_packet->data == NULL) {
-        ESP_LOGE(TAG, "Malloc esp now packet fail");
-        free(esp_now_packet);
-        esp_now_packet = NULL;
-        return NULL;
+
+    auto pkt = std::make_unique<esp_now_packet_t>();
+    const size_t header_len =
+        sizeof(data_packet.can_id) + sizeof(data_packet.tick_count) + sizeof(data_packet.data_count);
+    pkt->data_len = header_len + data_packet.data_count * sizeof(uint32_t);
+    pkt->data = std::make_unique<uint8_t[]>(pkt->data_len);
+    if (!pkt->data) {
+        ESP_LOGE(TAG, "Allocate ESP-NOW payload failed");
+        return nullptr;
     }
+
     size_t offset = 0;
-    memcpy(esp_now_packet->data + offset, &data_packet->can_id, sizeof(data_packet->can_id));
-    offset += sizeof(data_packet->can_id);
-    memcpy(esp_now_packet->data + offset, &data_packet->tick_count, sizeof(data_packet->tick_count));
-    offset += sizeof(data_packet->tick_count);
-    memcpy(esp_now_packet->data + offset, &data_packet->data_count, sizeof(data_packet->data_count));
-    offset += sizeof(data_packet->data_count);
-    if (data_packet->data_count > 0) {
-        memcpy(esp_now_packet->data + offset, data_packet->data, data_packet->data_count * sizeof(uint32_t));
+    std::memcpy(pkt->data.get() + offset, &data_packet.can_id, sizeof(data_packet.can_id));
+    offset += sizeof(data_packet.can_id);
+    std::memcpy(pkt->data.get() + offset, &data_packet.tick_count, sizeof(data_packet.tick_count));
+    offset += sizeof(data_packet.tick_count);
+    std::memcpy(pkt->data.get() + offset, &data_packet.data_count, sizeof(data_packet.data_count));
+    offset += sizeof(data_packet.data_count);
+    if (data_packet.data_count > 0 && data_packet.data) {
+        std::memcpy(pkt->data.get() + offset, data_packet.data.get(), data_packet.data_count * sizeof(uint32_t));
     }
-    return esp_now_packet;
+    return pkt;
 }
 
-bool DecodeDataPacket(const esp_now_packet_t *packet, data_packet_t *out)
+bool decode_data_packet(const uint8_t *mac_addr, const uint8_t *buf, size_t len, data_packet_t &out)
 {
     static const char *TAG = "DECODE";
-    size_t min_len = sizeof(out->can_id) + sizeof(out->tick_count) + sizeof(out->data_count);
-    if (packet->data_len < (int)min_len) {
-        ESP_LOGE(TAG, "Packet too short: %d < %u", packet->data_len, (unsigned)min_len);
+    const size_t min_len = sizeof(out.can_id) + sizeof(out.tick_count) + sizeof(out.data_count);
+    if (len < min_len) {
+        ESP_LOGE(TAG, "Packet too short: %zu < %zu", len, min_len);
         return false;
     }
 
-    memcpy(out->mac_addr, packet->mac_addr, ESP_NOW_ETH_ALEN);
+    std::memcpy(out.mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN);
 
     size_t offset = 0;
-    memcpy(&out->can_id, packet->data + offset, sizeof(out->can_id));
-    offset += sizeof(out->can_id);
-    memcpy(&out->tick_count, packet->data + offset, sizeof(out->tick_count));
-    offset += sizeof(out->tick_count);
-    memcpy(&out->data_count, packet->data + offset, sizeof(out->data_count));
-    offset += sizeof(out->data_count);
+    std::memcpy(&out.can_id, buf + offset, sizeof(out.can_id));
+    offset += sizeof(out.can_id);
+    std::memcpy(&out.tick_count, buf + offset, sizeof(out.tick_count));
+    offset += sizeof(out.tick_count);
+    std::memcpy(&out.data_count, buf + offset, sizeof(out.data_count));
+    offset += sizeof(out.data_count);
 
-    size_t payload_len = out->data_count * sizeof(uint32_t);
+    const size_t payload_len = static_cast<size_t>(out.data_count) * sizeof(uint32_t);
     if (payload_len == 0) {
-        out->data = NULL;
+        out.data.reset();
     } else {
-        out->data = (uint32_t *)malloc(payload_len);
-        ESP_LOGV(TAG, "data_packet->data: %p", (void *)out->data);
-        if (out->data == NULL) {
-            ESP_LOGE(TAG, "Malloc payload fail");
+        out.data = std::make_unique<uint32_t[]>(out.data_count);
+        if (!out.data) {
+            ESP_LOGE(TAG, "Allocate decoded payload failed");
             return false;
         }
-        memcpy(out->data, packet->data + offset, payload_len);
+        std::memcpy(out.data.get(), buf + offset, payload_len);
     }
     return true;
 }
 
-size_t GetCanTXQueueIndex(uint32_t can_id){
+size_t get_can_tx_queue_index(uint32_t can_id)
+{
     for (size_t i = 0; i < num_can_queues; i++) {
         if (can_id == tx_can_ids[i]) {
             return i;
         }
     }
-    return SIZE_MAX; // Not found
+    return SIZE_MAX;
 }
 
-uint32_t GetCanIDFromQueueIndex(size_t queue_index){
+uint32_t get_can_id_from_queue_index(size_t queue_index)
+{
     if (queue_index < num_can_queues) {
         return tx_can_ids[queue_index];
     }
-    return 0; // Invalid index
+    return 0;
 }
