@@ -40,7 +40,7 @@ def get_build_dir(chip: str, role: str, transport: str = "BROADCAST",
     chip = chip.lower()
     role = role.upper()
     if role == "IDLE":
-        return f"build_{chip}_idle"
+        return "build" if chip == "esp32" else f"build_{chip}"
     transport_tag = "bcast" if transport.upper() == "BROADCAST" else "unicast"
     suffix = "_measure" if measure else ""
     return f"build_{chip}_{role.lower()}_{transport_tag}{suffix}"
