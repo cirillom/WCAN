@@ -1,0 +1,52 @@
+% Conteudo migrado de thesis/main.tex.
+% O titulo do capitulo fica definido em thesis.tex.
+
+
+Diante das limitações identificadas, três abordagens foram consideradas para
+expandir a capacidade de instrumentação do veículo.
+
+\section{Cabeamento Dedicado}
+
+A primeira opção consiste em aceitar os custos inerentes à arquitetura
+cabeada e investir na infraestrutura necessária para cada ponto de medição: acopladores
+rotativos para as rodas, chicotes dedicados para a asa traseira e extensões
+do chicote principal para outros pontos de difícil acesso. Essa abordagem preserva
+a arquitetura existente sem exigir nenhum desenvolvimento de software ou hardware
+adicional. No entanto, além dos custos de material e mão de obra já discutidos,
+ela não endereça o terceiro cenário levantado — sensores externos ao veículo
+— e continua impondo restrições físicas fundamentais que nenhum cabeamento é
+capaz de resolver.
+
+\section{Sistemas de Aquisição Independentes}
+
+A segunda opção consiste em desenvolver módulos de aquisição autônomos, cada
+um com sua própria memória local para gravação dos dados. Esses módulos operariam
+de forma completamente independente do sistema principal, sendo instalados
+nos pontos de interesse e recuperados após cada sessão para extração dos
+dados. Para viabilizar a análise conjunta, seria necessário algum mecanismo
+de sincronização temporal entre os módulos e o sistema embarcado no carro. Embora
+essa abordagem elimine a necessidade de cabeamento, ela introduz uma nova
+complexidade operacional: a sincronização entre sistemas independentes é propensa
+a erros, e os dados coletados não estariam disponíveis em tempo real, o que limita
+seu uso durante a sessão de testes.
+
+\section{Solução Sem Fio}
+
+A terceira opção — e a adotada neste projeto — é o desenvolvimento de uma
+ponte de comunicação sem fio entre os pontos de medição e o sistema de
+aquisição existente. Nessa abordagem, um nó sensor captura os dados
+localmente e os transmite por rádio para um nó receptor conectado ao
+barramento CAN do veículo. O receptor injeta os dados na rede como se fossem
+provenientes de qualquer outro nó cabeado, tornando a comunicação sem fio
+completamente transparente para o restante do sistema.
+
+Essa solução elimina as restrições de cabeamento, preserva o fluxo de dados existente
+sem alterações na arquitetura do sistema principal e abre espaço para instrumentação
+em pontos até então inacessíveis — incluindo componentes rotativos, regiões
+aerodinâmicas sensíveis e sensores externos ao veículo. A principal restrição
+a ser endereçada no desenvolvimento é a garantia de confiabilidade na entrega
+dos dados, uma vez que protocolos de comunicação sem fio, por natureza, não
+oferecem as mesmas garantias de integridade que uma conexão física.
+% the possible solutions we arrived
+% introduce the ideia of a wireless solution
+

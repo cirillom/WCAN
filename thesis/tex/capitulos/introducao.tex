@@ -1,0 +1,56 @@
+% Conteudo migrado de thesis/main.tex.
+% O titulo do capitulo fica definido em thesis.tex.
+
+\section{Equipes de Fórmula SAE}
+A Fórmula SAE é uma competição estudantil de âmbito mundial, organizada no Brasil
+pela SAE Brasil e realizada anualmente. As equipes são compostas por alunos
+de engenharia de uma mesma universidade, que ao longo do ano projetam,
+constroem e testam um protótipo de veículo monoposto de competição. Em 2019,
+a competição brasileira contou com mais de 70 equipes, evidenciando o crescimento
+e relevância da modalidade no cenário nacional. A competição é estruturada
+em provas estáticas e dinâmicas. As provas estáticas avaliam o projeto de engenharia,
+o plano de negócios e o detalhamento de custos e manufatura. As provas dinâmicas
+testam diretamente o desempenho do protótipo em situações como aceleração,
+skidpad, autocross e endurance — sendo esta última a de maior peso na pontuação,
+exigindo que o veículo percorra aproximadamente 22 km sem falhas. A equipe vencedora
+no Brasil garante ainda vaga para competir nos Estados Unidos no ano seguinte.
+Dado o calendário anual da competição, cada ciclo de desenvolvimento é único
+e irreversível: falhas durante as provas representam a perda de um ano
+inteiro de trabalho. Isso impõe à equipe uma exigência constante de robustez,
+confiabilidade e melhoria contínua em todos os subsistemas do veículo.
+\section{A Importância da Aquisição de Dados}
+Em ambientes de competição automotiva, entender o comportamento do veículo é
+condição essencial para extrair seu máximo desempenho. Sensores distribuídos
+ao longo do protótipo fornecem informações que permitem validar e aprimorar projetos
+de engenharia, orientar ajustes de setup, monitorar a integridade dos sistemas
+críticos em tempo real e comparar objetivamente o desempenho entre diferentes
+pilotos. Sem instrumentação adequada, a equipe depende exclusivamente do feedback
+subjetivo dos pilotos — informação valiosa, mas limitada e sujeita a
+variações de percepção. A aquisição de dados transforma essa subjetividade em
+grandezas mensuráveis: pressão de freio, curso de suspensão, ângulo de
+esterço, aceleração lateral, temperatura de óleo, entre outras. Isso permite
+identificar com precisão em qual trecho da pista o carro perde tempo, de que
+forma cada piloto utiliza os recursos do veículo e se as modificações realizadas
+entre testes produziram o efeito esperado. Em suma, o sistema de aquisição de
+dados é o principal elo entre o trabalho de engenharia realizado no galpão e
+as decisões tomadas na pista.
+\section{O Sistema de Aquisição da Equipe}
+O sistema de aquisição de dados da equipe foi consolidado ao longo de vários
+anos de desenvolvimento e testes. Sua arquitetura é baseada em dois módulos de
+aquisição com microcontroladores STM32, interligados por um barramento CAN a
+1 Mbit/s. Esse barramento conecta ainda os demais módulos eletrônicos do veículo
+— controle, transmissor e distribuição de energia — compondo uma rede coesa
+de nós de comunicação. Cada módulo de aquisição lê os sinais provenientes dos
+sensores analógicos e digitais instalados no carro — acelerômetro,
+giroscópio, sensores de pressão de freio, potenciômetros de suspensão e
+esterço, entre outros — e os transmite periodicamente pela rede CAN. Os
+dados são salvos localmente em cartão SD embarcado no próprio módulo e após
+cada sessão, os dados completos são extraídos do cartão SD e processados em um
+software dedicado, que gera arquivos estruturados para análise em
+ferramentas especializadas. Esse fluxo permite à equipe acompanhar a evolução
+do carro e dos pilotos ao longo do ano, embasando decisões de engenharia com
+informações objetivas e rastreáveis.
+% explain here what a formula sae team is
+% explain the importance of data validation
+% explain how data validation currently works for my team
+

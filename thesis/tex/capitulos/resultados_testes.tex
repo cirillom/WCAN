@@ -1,0 +1,115 @@
+% Conteudo migrado de thesis/main.tex.
+% O titulo do capitulo fica definido em thesis.tex.
+
+
+\section{Ambiente de Testes}
+
+Os testes foram executados com cinco placas ESP32 conectadas por USB serial ao computador de monitoramento. O conjunto incluía três placas ESP32 e duas ESP32-C3. Em cada repetição, os papéis de sensor e receptor foram atribuídos aleatoriamente entre as placas disponíveis, reduzindo a chance de associar um resultado a uma placa específica. As placas restantes foram gravadas com firmware \texttt{IDLE}, permanecendo fora do protocolo durante aquela execução.
+
+Cada ensaio teve duração de 30 s, com 3 repetições por topologia e 5 s de cooldown entre execuções. Foram avaliadas as duas variantes de transporte, broadcast e unicast, sempre com instrumentação de medição habilitada. A frequência de transmissão do sensor foi varrida em 1, 10, 100, 200, 500, 750 e 1000 Hz.
+
+\section{Topologias Testadas}
+
+A matriz de topologias incluiu todas as combinações com pelo menos um sensor e um receptor, limitadas pelo total de cinco placas disponíveis, isto é, \(S \geq 1\), \(R \geq 1\) e \(S + R \leq 5\). Isso resultou em 10 topologias: 1S-1R, 1S-2R, 1S-3R, 1S-4R, 2S-1R, 2S-2R, 2S-3R, 3S-1R, 3S-2R e 4S-1R.
+
+\section{Métricas Coletadas}
+
+A taxa de entrega foi calculada sobre os valores de contador transportados pelos lotes. No lado sensor, o firmware registra as amostras geradas e também emite uma linha \texttt{CAN\_PROC\_*} para cada lote colocado no transporte, contendo o CAN ID e o intervalo de contadores do lote, por exemplo \texttt{[0..10]}. No lado receptor, o callback \texttt{wcan\_recv\_callback} registra o mesmo intervalo quando o pacote é recebido. O script \texttt{analysis.py} reconstrói os intervalos recebidos e calcula a fração de contadores do sensor que aparecem em pelo menos um receptor. Um pacote perdido aparece como ausência completa do seu intervalo de contadores no log do receptor.
+
+A latência foi medida de formas diferentes nas duas variantes, portanto os valores não devem ser comparados diretamente. No broadcast, a métrica \texttt{LAT\_RTT} registra o tempo de ida e volta em milissegundos, desde o envio do pacote até o recebimento do ACK de aplicação. No unicast, a métrica \texttt{LAT\_CB} registra, em microssegundos, o tempo até o callback de transmissão do driver ESP-NOW. Esse segundo valor mede o comportamento do envio no nível do rádio, não a entrega fim a fim até o processamento da aplicação receptora. O script calcula mediana, percentil 99 e máximo a partir desses logs.
+
+O airtime foi estimado pela instrumentação do firmware. A cada janela periódica, o código acumula a quantidade de bytes transmitidos por ESP-NOW e, assumindo taxa física de 6 Mbps, estima a fração de tempo de canal consumida. O resultado é registrado nas linhas \texttt{MEASURE}, no campo \texttt{util\_per\_mille}, em partes por mil.
+
+Também foi coletado o high-water mark de pilha das tasks FreeRTOS. A instrumentação registra, nas linhas \texttt{TASK}, o campo \texttt{hwm\_bytes}, que indica o menor número de bytes livres observado na pilha daquela task. Valores abaixo de 100 bytes foram tratados como sinal de risco, pois indicam operação próxima de overflow de pilha.
+
+\section{Resultados}
+
+A Tabela a seguir resume a taxa de entrega média na topologia 1S-1R, usada como linha de base. Os valores representam a média das repetições válidas; repetições sem pacotes enviados foram tratadas como anomalias de coleta e não entram na média.
+
+\begin{table}[h]
+
+\centering
+
+\begin{tabular}{c|c|c}
+
+\hline
+
+Frequência & Broadcast & Unicast \\
+
+\hline
+
+1 Hz & 100,00\% & 96,55\% \\
+
+10 Hz & 100,00\% & 98,86\% \\
+
+100 Hz & 100,00\% & 99,62\% \\
+
+200 Hz & 100,00\% & 97,07\% \\
+
+500 Hz & 100,00\% & 99,42\% \\
+
+750 Hz & 100,00\% & 75,70\% \\
+
+1000 Hz & 100,00\% & 97,80\% \\
+
+\hline
+
+\end{tabular}
+
+\caption{Taxa de entrega média na topologia 1S-1R para cada transporte e frequência.}
+
+\end{table}
+
+A variante broadcast apresentou o comportamento mais estável. Na topologia 1S-1R, todas as frequências com dados válidos atingiram 100\% de entrega. Considerando todas as topologias, o broadcast manteve 100\% de entrega em praticamente toda a varredura. As únicas perdas relevantes foram pontuais: em 100 Hz houve uma repetição 4S-1R com 108 perdas, resultando em 99,06\% naquela linha, e em 750 Hz houve uma repetição 3S-2R com 60 perdas, resultando em 99,87\%. Em 200, 500 e 1000 Hz, não houve perdas agregadas no CSV.
+
+A latência do broadcast, medida como RTT de aplicação, ficou tipicamente entre 3 ms e 6 ms de mediana. O percentil 99 permaneceu, em média, na ordem de dezenas de milissegundos, mas ocorreram máximos isolados acima de 200 ms em algumas repetições. Esses picos não vieram acompanhados de perda sistemática de entrega, sugerindo eventos transitórios de contenção, retry ou agendamento.
+
+A variante unicast apresentou maior variabilidade. Em baixas frequências, parte das perdas está associada ao período inicial de descoberta por \texttt{HELLO}: em 1 Hz, por exemplo, a perda de uma única amostra em 29 já reduz a taxa para 96,55\%. Em frequências médias, a entrega ficou geralmente acima de 98\%, mas com perdas ocasionais. A degradação mais forte ocorreu em 500 Hz e 750 Hz, especialmente em repetições com atraso elevado até o primeiro recebimento. O pior caso foi 500 Hz em 1S-3R, com 20,64\% de entrega, seguido por casos em 750 Hz com entregas de 21,78\%, 29,77\%, 37,52\% e 43,91\%. Esses casos tiveram tempos de cold-start muito altos, indicando anomalias de descoberta, inicialização ou coleta que devem ser repetidas antes de serem tratadas como limite definitivo do rádio.
+
+A latência unicast, medida pelo callback de transmissão do driver, teve mediana típica entre aproximadamente 1,5 ms e 3,5 ms ao longo da varredura. Como essa métrica mede apenas o retorno do driver, ela não representa latência fim a fim de aplicação. Ainda assim, ela mostra aumento com frequência e fan-out. O uso de airtime também cresceu com o número de receptores: em 1000 Hz, a média ficou próxima de 5 partes por mil em 1S-1R e chegou a cerca de 19 partes por mil nas topologias 1S-4R. No broadcast, por outro lado, o airtime médio permaneceu próximo de 5 partes por mil em 750 Hz e 1000 Hz, praticamente independente da quantidade de receptores, graças ao envio único em broadcast e ao batching.
+
+Foram observadas anomalias de coleta que precisam ser consideradas na interpretação. O CSV contém 419 linhas de dados, embora a matriz completa previsse 420; a linha ausente corresponde a \texttt{1000Hz\_unicast}, topologia 2S-2R, repetição 2. Além disso, houve linhas com zero pacotes enviados e sem latência: duas repetições de 10 Hz broadcast em 1S-1R, uma repetição de 100 Hz unicast em 3S-1R, e duas repetições de 1000 Hz unicast em 2S-1R e 2S-2R. Também houve muitos casos com high-water mark de pilha abaixo de 100 bytes, chegando a 24 bytes em várias execuções unicast e a 68--72 bytes em algumas execuções broadcast. Isso indica necessidade de aumentar ou reajustar stacks antes de considerar os testes finais.
+
+\section{Rastreabilidade dos Requisitos}
+
+A Tabela~\ref{tab:rastreabilidade-requisitos} consolida a ligação entre os requisitos definidos para o projeto, os mecanismos implementados, as evidências obtidas nos ensaios e o estado atual de validação. Essa rastreabilidade explicita quais partes da solução já foram demonstradas experimentalmente e quais ainda dependem de ensaios adicionais ou integração em veículo.
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{p{0.17\linewidth}|p{0.27\linewidth}|p{0.33\linewidth}|p{0.12\linewidth}}
+\hline
+Requisito & Implementação & Evidência de teste & Status \\
+\hline
+\textbf{REQ-01}: desempenho e latência & ESP-NOW com filas FreeRTOS, batching por \texttt{linger\_ms} e transportes broadcast/unicast selecionáveis por \texttt{-DTRANSPORT}. & Varredura de 1 a 1000 Hz em 10 topologias. Broadcast manteve entrega de 100\% na linha de base 1S-1R e mediana de RTT tipicamente entre 3 ms e 6 ms. Unicast teve mediana de callback entre 1,5 ms e 3,5 ms, mas essa métrica não representa latência fim a fim. & Parcial \\
+\hline
+\textbf{REQ-02}: conexão instantânea & Uso de ESP-NOW sem ponto de acesso, endereço IP ou sessão prévia. Broadcast transmite diretamente; unicast usa descoberta por \texttt{HELLO}. & Broadcast não apresentou período de associação antes do envio. No unicast, perdas em baixa frequência e atrasos até o primeiro recebimento indicaram impacto do mecanismo de descoberta. & Parcial \\
+\hline
+\textbf{REQ-03}: múltiplas conexões simultâneas & Suporte a múltiplos sensores e receptores por meio de broadcast, filtros por CAN ID e tabela de assinaturas unicast com até 4 receptores e 8 IDs por receptor. & Ensaios cobriram topologias de 1S-1R até 4S-1R e 1S-4R usando cinco placas. Broadcast permaneceu estável; unicast apresentou maior variabilidade em topologias com fan-out e cold-start. & Parcial \\
+\hline
+\textbf{REQ-04}: transparência com o CAN existente & Pacotes \texttt{data\_packet\_t} preservam \texttt{can\_id}; IDs de controle ficam fora do espaço CAN estendido; receptor entrega o pacote para retransmissão via TWAI. & Logs de sensor e receptor correlacionam pacotes pelo mesmo CAN ID e intervalo de contadores. A fronteira de integração com TWAI foi definida, mas os testes descritos registraram os pacotes em log serial em vez de injetá-los no barramento do veículo. & Parcial \\
+\hline
+\textbf{REQ-05}: requisitos físicos e de custo & Escolha do ESP32 como plataforma integrada de rádio e processamento, evitando microcontrolador, módulo Wi-Fi e carregador de bateria separados. & Comparação de arquitetura descartou STM32 com módulo externo por footprint e complexidade; placas ESP32/ESP32-C3 foram usadas nos ensaios. Ainda falta validar placa final, massa, fixação e operação embarcada. & Parcial \\
+\hline
+\textbf{REQ-06}: modularidade & Papéis definidos por \texttt{-DROLE}, transporte selecionado por \texttt{-DTRANSPORT}, filas por CAN ID, filtros no receptor e assinaturas dinâmicas no unicast. & A mesma base de firmware executou sensores, receptores e nós ociosos durante a matriz de testes, com papéis alternados entre placas e topologias. Testes com múltiplos CAN IDs por sensor ainda foram deixados como trabalho futuro. & Parcial \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidade entre requisitos, implementação, evidência de teste e status de validação.}
+\label{tab:rastreabilidade-requisitos}
+\end{table}
+
+\section{Sugestões de Testes Futuros}
+
+\begin{enumerate}
+
+\item \textbf{\texttt{linger\_ms = 0}:} força cada amostra a ser transmitida em seu próprio pacote ESP-NOW. Esse teste deve evidenciar a saturação de airtime em altas frequências e validar se o batching é essencial para operação em 500 Hz ou mais.
+
+\item \textbf{Múltiplos CAN IDs por sensor:} um único nó sensor transmitindo simultaneamente 3 ou 4 CAN IDs simularia melhor um módulo real de aquisição. Esse teste avalia se a arquitetura de filas por CAN ID evita starvation entre fluxos concorrentes.
+
+\item \textbf{Filtragem ativa no receptor:} receptores configurados para aceitar apenas um subconjunto dos CAN IDs permitiriam validar se a filtragem descarta corretamente quadros indesejados e, no broadcast, se evita ACKs espúrios.
+
+\item \textbf{Mistura de frequências:} um sensor transmitindo a 10 Hz e outro a 1000 Hz para o mesmo receptor permitiria verificar se o fluxo de alta frequência ocupa filas, airtime ou tempo de processamento a ponto de prejudicar o fluxo lento.
+
+\end{enumerate}

@@ -1,0 +1,78 @@
+% Conteudo migrado de thesis/main.tex.
+% O titulo do capitulo fica definido em thesis.tex.
+
+
+A integração entre a ESP32 e o barramento CAN do veículo é encapsulada em uma camada própria baseada no driver TWAI. Essa camada inicializa o controlador CAN, configura os pinos de transmissão e recepção, verifica estados de erro do barramento e expõe funções simples para envio e recepção de mensagens. O desenvolvimento principal deste trabalho, entretanto, concentrou-se na camada WCAN, responsável por transportar mensagens de semântica CAN por meio do enlace sem fio.
+
+\section{Arquitetura Geral}
+
+O WCAN foi estruturado como um protocolo de aplicação sobre ESP-NOW. A aplicação enxerga uma interface única, inicializada por \texttt{wcan\_init}, enquanto a implementação interna pode ser selecionada em tempo de compilação. O arquivo principal de CMake escolhe qual componente será ligado ao firmware por meio da flag \texttt{-DTRANSPORT}, aceitando as opções \texttt{BROADCAST} e \texttt{UNICAST}. Assim, as duas variantes não coexistem no binário final: apenas a implementação selecionada entra no build.
+
+O papel de cada placa também é definido em tempo de compilação por \texttt{-DROLE}. Em \texttt{ROLE=SENSOR}, o firmware cria tarefas de geração de dados e filas de transmissão. Em \texttt{ROLE=RECEIVER}, o firmware inicializa o WCAN para receber pacotes e entregá-los ao callback da aplicação. Em \texttt{ROLE=IDLE}, a placa permanece fora do protocolo, o que foi útil para manter o mesmo conjunto físico de placas durante os testes. Nos ensaios, a frequência de geração do sensor foi parametrizada por \texttt{-DSENSOR\_HZ}, e a instrumentação de métricas por \texttt{-DMEASURE=1}.
+
+A existência de duas variantes de transporte foi uma decisão deliberada de projeto. A variante broadcast se aproxima mais do modelo mental do CAN, no qual todos os nós escutam o mesmo barramento. A variante unicast introduz descoberta de receptores e envio direcionado por endereço MAC. Implementar ambas permitiu verificar empiricamente se a complexidade adicional do unicast se justificava em termos de entrega, latência e uso do canal.
+
+\section{Formato do Pacote}
+
+A unidade fundamental de comunicação do WCAN é a estrutura \texttt{data\_packet\_t}. Ela contém o endereço MAC de origem (\texttt{mac\_addr}), o identificador CAN original (\texttt{can\_id}), um contador de ticks do FreeRTOS (\texttt{tick\_count}), a quantidade de amostras no pacote (\texttt{data\_count}) e um vetor de payload com amostras de 32 bits.
+
+Para transmissão via ESP-NOW, essa estrutura é serializada em um buffer linear. O \texttt{can\_id} ocupa os bytes a partir do offset 0, o \texttt{tick\_count} ocupa o offset 4, o \texttt{data\_count} ocupa o offset 8 e as amostras começam no offset 9. Na configuração utilizada, o cabeçalho tem 9 bytes. Como o payload máximo do ESP-NOW é de 250 bytes, restam 241 bytes para dados; com amostras de 4 bytes, cada pacote pode transportar até 60 amostras, totalizando 249 bytes.
+
+Os identificadores de controle do protocolo foram colocados fora do espaço válido de IDs CAN estendidos. O CAN estendido utiliza 29 bits, com valor máximo \texttt{0x1FFFFFFF}. Por isso, a faixa \texttt{0xE0000000} foi reservada para sentinelas internas do WCAN. Na variante broadcast, \texttt{CAN\_ACK} usa \texttt{0xE0000000} para identificar pacotes de acknowledgment. Na variante unicast, o mesmo valor é usado como \texttt{CAN\_HELLO}, indicando quadros de descoberta de assinaturas. Como apenas uma variante é compilada por vez, não há ambiguidade no firmware final.
+
+\section{Desacoplamento por Filas}
+
+Uma decisão central da arquitetura foi manter os callbacks do ESP-NOW pequenos e determinísticos. O callback de recepção do Wi-Fi é chamado em um contexto sensível a tempo; portanto, ele apenas valida o pacote, desserializa seu conteúdo e o encaminha para a estrutura apropriada. O processamento efetivo ocorre em tasks FreeRTOS separadas.
+
+O sistema utiliza uma fila de envio, \texttt{send\_queue}, para pacotes já serializados que devem ser entregues ao driver ESP-NOW, e uma fila de recepção, \texttt{recv\_queue}, para pacotes de dados aceitos pelo filtro. Além delas, cada CAN ID transmitido possui uma fila própria em \texttt{can\_queues}. Essas filas por identificador são o ponto de entrada dos dados de sensor: a tarefa de aquisição coloca amostras na fila correspondente ao CAN ID, e uma \texttt{can\_processing\_task} dedicada coleta essas amostras, forma lotes e os entrega ao transporte.
+
+Essa separação desacopla aquisição, empacotamento, transmissão pelo rádio e processamento de recepção. Com isso, atrasos momentâneos no ESP-NOW não bloqueiam diretamente a leitura dos sensores, e o callback de rádio não precisa executar filtragem, retransmissão ou callbacks de aplicação.
+
+\section{Batching e o Parâmetro \texttt{linger\_ms}}
+
+O ESP-NOW é um enlace de pacotes, não um barramento físico como o CAN. Cada transmissão tem overhead fixo de rádio e de camada MAC. Em frequências altas, enviar cada amostra como um pacote independente aumenta rapidamente o uso do canal. Para reduzir esse overhead, o WCAN implementa batching controlado pelo parâmetro \texttt{linger\_ms}.
+
+Quando a primeira amostra de um CAN ID chega à sua fila, a task de processamento inicia uma janela de espera de até \texttt{linger\_ms}. Durante essa janela, novas amostras do mesmo CAN ID são agregadas ao mesmo \texttt{data\_packet\_t}, respeitando o limite de 60 amostras por pacote. Se a fila não recebe novas amostras dentro da janela, o pacote é enviado com apenas os dados disponíveis.
+
+Na prática, sinais mais lentos que a janela de \texttt{linger\_ms} não são agrupados com múltiplas amostras e sofrem apenas o atraso máximo imposto pela própria janela. Sinais mais rápidos são coalescidos em lotes maiores, reduzindo o número de quadros ESP-NOW, o uso de airtime e a pressão sobre as filas internas. O custo dessa escolha é um atraso adicional limitado por \texttt{linger\_ms} para a primeira amostra de cada lote.
+
+\section{Variante Broadcast}
+
+Na variante broadcast, todos os pacotes de dados são enviados para o endereço MAC \texttt{FF:FF:FF:FF:FF:FF}. Todos os receptores no mesmo canal ESP-NOW podem receber o pacote e aplicar localmente sua filtragem por CAN ID.
+
+Como o ESP-NOW não confirma entrega em broadcast, o WCAN implementa um mecanismo próprio de acknowledgment. Após enviar um pacote, a task associada ao CAN ID mantém aquele pacote como em trânsito e aguarda a chegada de um ACK correspondente. A transmissão física pelo driver é serializada por um semáforo binário, enquanto a liberação lógica do pacote ocorre quando o ACK notifica a task de envio.
+
+O receptor, ao aceitar um pacote de dados válido, envia um ACK unicast de volta ao MAC de origem. Esse ACK usa \texttt{CAN\_ACK} como identificador de controle, carrega o \texttt{tick\_count} do pacote original e inclui no payload o CAN ID confirmado. O transmissor usa o par CAN ID e \texttt{tick\_count} para correlacionar o ACK com o pacote em trânsito. Caso nenhum ACK correspondente seja recebido dentro da janela de retry, o pacote é reenviado. O intervalo de retransmissão possui jitter aleatório entre 30 ms e 80 ms, e o processo é repetido até \texttt{WCAN\_MAX\_RETRY\_COUNT}, configurado como 10 tentativas. Se o limite é atingido, o pacote é descartado e o erro é registrado em log.
+
+Múltiplos receptores podem responder ao mesmo broadcast. O WCAN adota a regra ``primeiro ACK vence'': o primeiro ACK válido encerra a espera e libera o próximo pacote. Essa escolha replica a semântica do barramento CAN, no qual o transmissor apenas observa se algum nó puxou o bit dominante no slot de ACK; o protocolo CAN também não distingue se um, vários ou todos os nós receberam a mensagem.
+
+\section{Variante Unicast}
+
+Na variante unicast, os pacotes de dados são enviados diretamente ao endereço MAC de cada receptor interessado. Para que o sensor descubra esses receptores, foi implementado um mecanismo de assinatura baseado em quadros \texttt{HELLO}. Um receptor transmite periodicamente um quadro de controle \texttt{CAN\_HELLO} em broadcast, contendo a lista de CAN IDs que deseja receber. Quando a lista está vazia, a assinatura é interpretada como curinga, ou seja, o receptor aceita todos os IDs.
+
+O sensor mantém uma tabela de assinaturas com até 4 receptores, cada um com até 8 CAN IDs. Cada entrada possui uma janela de vida de 5 segundos: se um receptor deixa de enviar \texttt{HELLO}, sua assinatura se torna obsoleta e deixa de ser usada. O transmissor também acompanha a saúde de transmissão por peer; após 3 falhas consecutivas reportadas pelo callback de envio do ESP-NOW, o assinante é removido da tabela e poderá ser redescoberto por novos \texttt{HELLO}.
+
+No envio de dados, a task do CAN ID consulta a tabela de assinaturas, tira uma cópia dos MACs interessados naquele identificador e enfileira um pacote unicast para cada assinante vivo. A confirmação de envio vem do callback do driver ESP-NOW, que informa se houve sucesso no nível MAC. Diferentemente da variante broadcast, não existe um ACK de aplicação separado para cada pacote de dados.
+
+O unicast oferece controle explícito por receptor e permite usar o status do driver Wi-Fi como sinal de saúde do link. Em contrapartida, exige descoberta, manutenção de tabela de assinaturas e fan-out no transmissor. Além disso, o número de quadros transmitidos cresce com o número de receptores interessados, enquanto o broadcast envia um único quadro de dados e resolve a confiabilidade em camada de aplicação. Por isso, a comparação entre as variantes depende diretamente dos resultados experimentais.
+
+\section{Mecanismo de Confiabilidade}
+
+As duas variantes tratam confiabilidade em camadas diferentes. No broadcast, a entrega é confirmada por ACK de aplicação enviado pelo receptor. Essa confirmação preserva a semântica do CAN: a mensagem é considerada aceita quando ao menos um receptor confirma o pacote. O mecanismo não garante entrega individual para todos os receptores, assim como o ACK nativo do CAN também não identifica quais nós receberam a mensagem.
+
+No unicast, a confirmação disponível é o status do callback de transmissão do ESP-NOW. Esse status indica que o quadro foi transmitido com sucesso no nível MAC para o peer, mas não substitui uma confirmação explícita de processamento pela aplicação receptora. A robustez da variante unicast vem da combinação entre envio direcionado, tabela de assinaturas, janela de liveness e remoção de peers com falhas consecutivas.
+
+\section{Filtragem de Mensagens}
+
+A filtragem por CAN ID é aplicada no lado receptor. Na inicialização, o nó pode receber uma lista de IDs permitidos. Quando a filtragem está habilitada, pacotes com \texttt{can\_id} fora dessa lista são descartados antes de chegar ao callback da aplicação. Na variante broadcast, isso evita também o envio de ACKs para mensagens que o receptor não deseja consumir. Quando a filtragem está desativada, todos os IDs são aceitos.
+
+Esse comportamento reproduz, em software, a função dos filtros de aceitação presentes em controladores CAN. Assim, múltiplos receptores podem coexistir no mesmo canal sem que todos precisem processar todos os dados transmitidos.
+
+\section{Integração com o Barramento CAN}
+
+A integração com o barramento CAN preserva o identificador original da mensagem. O receptor WCAN entrega à aplicação um \texttt{data\_packet\_t}; a aplicação pode então retransmitir o conteúdo no barramento físico usando o mesmo CAN ID. Dessa forma, para os demais módulos do veículo, os dados recebidos por rádio podem ser tratados como mensagens CAN comuns.
+
+Nos testes deste trabalho, o callback do receptor registrou os pacotes recebidos em log serial para permitir análise de entrega e latência. No uso embarcado final, a mesma fronteira de integração é o ponto em que o pacote recebido pelo WCAN é convertido em uma transmissão TWAI no barramento CAN local.
+
+% === SECTION: Resultados dos Testes ===
+

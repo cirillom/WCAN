@@ -1,0 +1,59 @@
+% Conteudo migrado de thesis/main.tex.
+% O titulo do capitulo fica definido em thesis.tex.
+
+
+Para que a solução sem fio seja viável em ambiente de competição, ela deve
+satisfazer um conjunto de requisitos funcionais e não funcionais que
+refletem tanto as restrições operacionais da equipe quanto as exigências
+técnicas de integração com o sistema existente.
+
+\section{Desempenho e Latência}
+
+O sistema deve ser capaz de transmitir dados com latência compatível com as frequências
+de aquisição já praticadas pela equipe. Atrasos na entrega dos dados
+comprometem a sincronização temporal com os demais canais do sistema e podem
+tornar a informação inutilizável para análise.
+
+\section{Conexão Instantânea}
+
+O sistema não pode depender de um processo de estabelecimento de conexão entre
+os nós antes do início da transmissão. Em cenários como um sensor de
+passagem externo ao veículo, o carro pode estar em alta velocidade quando passa
+pelo ponto de medição — qualquer overhead de handshake inviabilizaria a coleta
+do dado. A comunicação deve estar sempre pronta para transmitir, sem negociação
+prévia entre os dispositivos.
+
+\section{Múltiplas Conexões Simultâneas}
+
+O sistema deve suportar múltiplos nós sensores transmitindo simultaneamente
+para um ou mais receptores. Isso é especialmente relevante para a instrumentação
+das quatro rodas do veículo, onde todos os sensores precisam operar em
+paralelo e ter seus dados recebidos e injetados na rede CAN de forma
+coordenada.
+
+\section{Transparência com o Sistema CAN Existente}
+
+A integração com o barramento CAN deve ser feita com o mínimo de modificações
+possível na arquitetura existente. O sistema sem fio deve preservar os
+identificadores CAN originais de cada mensagem e manter as verificações de
+integridade nativas do protocolo — incluindo CRC e acknowledgment —
+garantindo que o restante da rede trate os dados recebidos sem fio de forma
+idêntica aos dados provenientes de nós cabeados.
+
+\section{Requisitos Físicos e de Custo}
+
+Os nós sensores devem ser fisicamente compactos e leves, uma vez que serão
+instalados em regiões onde massa e volume são restrições relevantes — como
+rodas e componentes aerodinâmicos. O custo total do sistema deve ser compatível
+com o orçamento de uma equipe universitária, priorizando componentes
+acessíveis sem comprometer os requisitos funcionais.
+
+\section{Modularidade}
+
+A arquitetura do sistema deve ser modular, permitindo adicionar novos nós
+sensores sem alterações na infraestrutura existente. Cada novo ponto de medição
+deve poder ser incorporado ao sistema de forma independente, com impacto
+mínimo nos demais nós e sem necessidade de reconfiguração do receptor ou do
+barramento CAN.
+% what are the requirements for a successful system
+

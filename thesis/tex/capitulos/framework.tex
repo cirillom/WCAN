@@ -1,0 +1,52 @@
+% Conteudo migrado de thesis/main.tex.
+% O titulo do capitulo fica definido em thesis.tex.
+
+\section{Microcontrolador}
+
+A primeira decisão de hardware foi a escolha do microcontrolador para o nó sensor.
+A opção mais natural inicialmente seria utilizar a família STM32, já presente
+no sistema de aquisição da equipe e fornecida por um patrocinador. % TODO: confirmar patrocínio
+
+A linha STM32 não possui nenhum chip com Wi-Fi nativo. A única família com comunicação
+sem fio integrada é a STM32WB, que oferece Bluetooth Low Energy e 802.15.4 —
+sem suporte a Wi-Fi. O STM32WB integra um núcleo Cortex-M4 para a aplicação
+e um Cortex-M0+ dedicado ao stack de rádio, sendo uma plataforma robusta, bem
+documentada e familiar à equipe — uma opção forte, desde que o BLE atendesse
+aos requisitos de comunicação.
+
+Para contornar a ausência de Wi-Fi nativo, uma alternativa seria combinar um
+STM32 convencional com um módulo Wi-Fi externo. No entanto, essa abordagem exigiria
+três componentes distintos na placa do nó sensor: o microcontrolador, o módulo
+de comunicação e um circuito de gerenciamento de bateria separado. A
+combinação resulta em uma solução com footprint físico, complexidade de integração
+e custo de desenvolvimento incompatíveis com os requisitos de compacidade e leveza
+do projeto, e foi descartada por esse motivo.
+
+A terceira opção considerada foi o ESP32, plataforma da Espressif que integra
+nativamente Wi-Fi e Bluetooth em um único chip. Módulos de desenvolvimento
+compactos e com gerenciamento de bateria integrado estão amplamente
+disponíveis para essa plataforma — como o Beetle ESP32-C6 da DFRobot, de apenas
+25×20,5 mm e 17 g, que inclui o circuito de carga Li-ion na própria placa, sem
+necessidade de componentes externos adicionais.
+
+A decisão entre as duas plataformas foi tomada em conjunto com a escolha do protocolo
+de comunicação, discutida a seguir.
+
+% === SECTION: Protocolo de Comunicação Sem Fio ===
+
+\section{Protocolo de Comunicação Sem Fio}
+
+As opções naturais de protocolo foram Bluetooth Low Energy, Wi-Fi convencional e, posteriormente, ESP-NOW.
+
+O BLE, disponível tanto no STM32WB quanto no ESP32, foi a primeira opção considerada. No entanto, o protocolo apresenta limitações fundamentais frente aos requisitos do sistema. O estabelecimento de uma conexão BLE envolve um processo de descoberta e pareamento que introduz latência inicial incompatível com o requisito de conexão instantânea. Além disso, o gerenciamento de múltiplas conexões simultâneas adiciona complexidade considerável à aplicação. Essas limitações descartaram o BLE como protocolo viável e, consequentemente, tornaram o STM32WB uma opção menos atrativa.
+
+O Wi-Fi convencional resolve parte do problema de múltiplas conexões, mas mantém o overhead de associação a uma rede, configuração de infraestrutura e estabelecimento de sessão. Esse comportamento é inadequado para um sistema que deve começar a transmitir imediatamente, sem depender de ponto de acesso, endereço IP ou negociação prévia entre os nós.
+
+Durante o desenvolvimento, foi identificado o ESP-NOW, protocolo proprietário da Espressif para comunicação direta entre dispositivos ESP32. O ESP-NOW opera sobre a camada física do Wi-Fi, mas não exige associação a uma rede. Os quadros são endereçados diretamente por endereço MAC, utilizam a verificação de integridade do próprio frame Wi-Fi, incluindo CRC em nível de enlace, e carregam até 250 bytes de payload por transmissão. Essa combinação atende diretamente aos requisitos de conexão instantânea, baixo overhead e comunicação entre múltiplos dispositivos.
+
+A principal limitação introduzida pelo ESP-NOW aparece no modo broadcast: não há confirmação nativa de entrega para o transmissor. Assim, quando um pacote é enviado para o endereço \texttt{FF:FF:FF:FF:FF:FF}, a confiabilidade precisa ser implementada na camada de aplicação. Essa restrição motivou o desenvolvimento de duas variantes internas do transporte WCAN sobre ESP-NOW: uma variante broadcast, que preserva a semântica de barramento compartilhado do CAN, e uma variante unicast, que utiliza assinaturas de receptores e confirmação do driver Wi-Fi por destinatário. As duas variantes implementam a mesma interface de aplicação e foram mantidas em paralelo para permitir comparação experimental em condições realistas, sem escolher uma solução definitiva antes dos testes.
+
+Esse trade-off foi considerado aceitável porque o objetivo do projeto é expandir a aquisição de dados do veículo, não substituir uma malha de controle crítica por rádio. A camada de aplicação pode acrescentar acknowledgments, retransmissões, filtragem e medição de perdas, enquanto o ESP-NOW fornece a transmissão imediata e sem infraestrutura que os requisitos exigem. A decisão final entre broadcast e unicast, portanto, deve ser guiada pelos resultados de entrega, latência e robustez observados nos ensaios.
+
+% === SECTION: Desenvolvimento ===
+
