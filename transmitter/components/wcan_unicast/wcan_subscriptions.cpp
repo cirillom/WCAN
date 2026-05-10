@@ -144,6 +144,7 @@ void subscription_record_tx_status(const uint8_t mac[ESP_NOW_ETH_ALEN], bool suc
     if (idx >= 0) {
         auto &e = s_subscribers[idx];
         if (success) {
+            e.last_seen_tick = xTaskGetTickCount();
             e.consecutive_tx_failures = 0;
         } else {
             e.consecutive_tx_failures++;

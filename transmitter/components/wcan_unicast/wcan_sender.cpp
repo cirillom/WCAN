@@ -171,6 +171,20 @@ static bool enqueue_tx_request(std::unique_ptr<tx_request_t> req, const char *ta
     return false;
 }
 
+static size_t send_fanout_once(uint8_t targets[WCAN_MAX_SUBSCRIBERS][ESP_NOW_ETH_ALEN],
+                               size_t fan_out,
+                               const data_packet_t &packet)
+{
+    size_t success_count = 0;
+    for (size_t i = 0; i < fan_out; i++) {
+        add_peer(targets[i]);
+        if (send_data_and_wait(targets[i], packet)) {
+            success_count++;
+        }
+    }
+    return success_count;
+}
+
 void can_processing_task(void *pv_parameter)
 {
     const size_t can_queue_index = reinterpret_cast<size_t>(pv_parameter);
@@ -213,10 +227,13 @@ void can_processing_task(void *pv_parameter)
         }
 
         size_t success_count = 0;
-        for (size_t i = 0; i < fan_out; i++) {
-            add_peer(targets[i]);
-            if (send_data_and_wait(targets[i], *packet)) {
-                success_count++;
+        for (uint8_t attempt = 1; attempt <= WCAN_UNICAST_BATCH_MAX_ATTEMPTS; attempt++) {
+            success_count = send_fanout_once(targets, fan_out, *packet);
+            if (success_count > 0) {
+                break;
+            }
+            if (attempt < WCAN_UNICAST_BATCH_MAX_ATTEMPTS) {
+                vTaskDelay(pdMS_TO_TICKS(5));
             }
         }
 

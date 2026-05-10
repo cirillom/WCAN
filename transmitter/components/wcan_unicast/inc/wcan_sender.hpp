@@ -18,6 +18,7 @@ extern SemaphoreHandle_t espnow_tx_sem;
 extern SemaphoreHandle_t s_in_flight_completion_sem;
 extern bool *s_in_flight_completion_success;
 #define WCAN_TX_SEM_TIMEOUT_MS 500
+#define WCAN_UNICAST_BATCH_MAX_ATTEMPTS 3
 
 void can_processing_task(void *pv_parameter);
 void send_processing_task(void *pv_parameter);
