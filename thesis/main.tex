@@ -1,0 +1,401 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\usepackage[brazil]{babel}
+
+\title{TCC}
+\author{matheuscirillo }
+\date{April 2026}
+
+\begin{document}
+    \maketitle
+
+    \section{Introdução}
+    \subsection{Equipes de Fórmula SAE}
+    A Fórmula SAE é uma competição estudantil de âmbito mundial, organizada no Brasil
+    pela SAE Brasil e realizada anualmente. As equipes são compostas por alunos
+    de engenharia de uma mesma universidade, que ao longo do ano projetam,
+    constroem e testam um protótipo de veículo monoposto de competição. Em 2019,
+    a competição brasileira contou com mais de 70 equipes, evidenciando o crescimento
+    e relevância da modalidade no cenário nacional. A competição é estruturada
+    em provas estáticas e dinâmicas. As provas estáticas avaliam o projeto de engenharia,
+    o plano de negócios e o detalhamento de custos e manufatura. As provas dinâmicas
+    testam diretamente o desempenho do protótipo em situações como aceleração,
+    skidpad, autocross e endurance — sendo esta última a de maior peso na pontuação,
+    exigindo que o veículo percorra aproximadamente 22 km sem falhas. A equipe vencedora
+    no Brasil garante ainda vaga para competir nos Estados Unidos no ano seguinte.
+    Dado o calendário anual da competição, cada ciclo de desenvolvimento é único
+    e irreversível: falhas durante as provas representam a perda de um ano
+    inteiro de trabalho. Isso impõe à equipe uma exigência constante de robustez,
+    confiabilidade e melhoria contínua em todos os subsistemas do veículo.
+    \subsection{A Importância da Aquisição de Dados}
+    Em ambientes de competição automotiva, entender o comportamento do veículo é
+    condição essencial para extrair seu máximo desempenho. Sensores distribuídos
+    ao longo do protótipo fornecem informações que permitem validar e aprimorar projetos
+    de engenharia, orientar ajustes de setup, monitorar a integridade dos sistemas
+    críticos em tempo real e comparar objetivamente o desempenho entre diferentes
+    pilotos. Sem instrumentação adequada, a equipe depende exclusivamente do feedback
+    subjetivo dos pilotos — informação valiosa, mas limitada e sujeita a
+    variações de percepção. A aquisição de dados transforma essa subjetividade em
+    grandezas mensuráveis: pressão de freio, curso de suspensão, ângulo de
+    esterço, aceleração lateral, temperatura de óleo, entre outras. Isso permite
+    identificar com precisão em qual trecho da pista o carro perde tempo, de que
+    forma cada piloto utiliza os recursos do veículo e se as modificações realizadas
+    entre testes produziram o efeito esperado. Em suma, o sistema de aquisição de
+    dados é o principal elo entre o trabalho de engenharia realizado no galpão e
+    as decisões tomadas na pista.
+    \subsection{O Sistema de Aquisição da Equipe}
+    O sistema de aquisição de dados da equipe foi consolidado ao longo de vários
+    anos de desenvolvimento e testes. Sua arquitetura é baseada em dois módulos de
+    aquisição com microcontroladores STM32, interligados por um barramento CAN a
+    1 Mbit/s. Esse barramento conecta ainda os demais módulos eletrônicos do veículo
+    — controle, transmissor e distribuição de energia — compondo uma rede coesa
+    de nós de comunicação. Cada módulo de aquisição lê os sinais provenientes dos
+    sensores analógicos e digitais instalados no carro — acelerômetro,
+    giroscópio, sensores de pressão de freio, potenciômetros de suspensão e
+    esterço, entre outros — e os transmite periodicamente pela rede CAN. Os
+    dados são salvos localmente em cartão SD embarcado no próprio módulo e após
+    cada sessão, os dados completos são extraídos do cartão SD e processados em um
+    software dedicado, que gera arquivos estruturados para análise em
+    ferramentas especializadas. Esse fluxo permite à equipe acompanhar a evolução
+    do carro e dos pilotos ao longo do ano, embasando decisões de engenharia com
+    informações objetivas e rastreáveis.
+    % explain here what a formula sae team is
+    % explain the importance of data validation
+    % explain how data validation currently works for my team
+
+    \section{O Problema}
+
+    \subsection{Limitações do Sistema Atual}
+
+    Embora o sistema de aquisição da equipe seja robusto e consolidado, sua arquitetura
+    cabeada impõe restrições estruturais que limitam a capacidade de instrumentação
+    do veículo. Essas limitações se manifestam em três cenários distintos, cada um
+    com suas próprias implicações práticas.
+
+    O primeiro cenário envolve componentes rotativos, como o interior das rodas.
+    Nesses pontos, a conexão com o chicote elétrico do veículo é tecnicamente
+    possível por meio de acopladores rotativos, porém a complexidade de instalação,
+    o custo e a fragilidade desses componentes em ambiente de competição tornam
+    a solução inviável na prática. Isso impede a leitura de sensores como temperatura
+    de cubo ou deformação de manga de eixo — informações de alto valor para a dinâmica
+    veicular.
+
+    O segundo cenário diz respeito a regiões onde o cabeamento interfere diretamente
+    no fenômeno a ser medido ou onde seu custo de instalação não se justifica pela
+    frequência de uso. A asa traseira é o exemplo mais crítico: trata-se de um componente
+    aerodinâmico cuja performance é sensível a qualquer perturbação no escoamento
+    de ar ao redor de sua superfície. Além disso, testes de instrumentação na asa
+    são pontuais e pouco frequentes, o que torna ainda menos justificável o
+    investimento em um chicote dedicado — tanto em termos de material quanto de
+    mão de obra para montagem e desmontagem a cada sessão.
+
+    O terceiro cenário extrapola os limites físicos do veículo. Sensores posicionados
+    fora do carro — como um sensor de passagem para detecção automática de voltas,
+    ou equipamentos de medição estacionários utilizados em testes controlados —
+    não têm como se comunicar com o sistema de aquisição embarcado por meios
+    cabeados. Essa limitação impede a integração de dados externos ao fluxo de aquisição,
+    obrigando a equipe a recorrer a registros manuais ou sistemas completamente
+    separados, sem sincronização temporal com os demais canais do carro.
+    % what are the limitations of our current setup
+    % where they are more proeminent
+
+    \section{Soluções Consideradas}
+
+    Diante das limitações identificadas, três abordagens foram consideradas para
+    expandir a capacidade de instrumentação do veículo.
+
+    \subsection{Cabeamento Dedicado}
+
+    A primeira opção consiste em aceitar os custos inerentes à arquitetura
+    cabeada e investir na infraestrutura necessária para cada ponto de medição: acopladores
+    rotativos para as rodas, chicotes dedicados para a asa traseira e extensões
+    do chicote principal para outros pontos de difícil acesso. Essa abordagem preserva
+    a arquitetura existente sem exigir nenhum desenvolvimento de software ou hardware
+    adicional. No entanto, além dos custos de material e mão de obra já discutidos,
+    ela não endereça o terceiro cenário levantado — sensores externos ao veículo
+    — e continua impondo restrições físicas fundamentais que nenhum cabeamento é
+    capaz de resolver.
+
+    \subsection{Sistemas de Aquisição Independentes}
+
+    A segunda opção consiste em desenvolver módulos de aquisição autônomos, cada
+    um com sua própria memória local para gravação dos dados. Esses módulos operariam
+    de forma completamente independente do sistema principal, sendo instalados
+    nos pontos de interesse e recuperados após cada sessão para extração dos
+    dados. Para viabilizar a análise conjunta, seria necessário algum mecanismo
+    de sincronização temporal entre os módulos e o sistema embarcado no carro. Embora
+    essa abordagem elimine a necessidade de cabeamento, ela introduz uma nova
+    complexidade operacional: a sincronização entre sistemas independentes é propensa
+    a erros, e os dados coletados não estariam disponíveis em tempo real, o que limita
+    seu uso durante a sessão de testes.
+
+    \subsection{Solução Sem Fio}
+
+    A terceira opção — e a adotada neste projeto — é o desenvolvimento de uma
+    ponte de comunicação sem fio entre os pontos de medição e o sistema de
+    aquisição existente. Nessa abordagem, um nó sensor captura os dados
+    localmente e os transmite por rádio para um nó receptor conectado ao
+    barramento CAN do veículo. O receptor injeta os dados na rede como se fossem
+    provenientes de qualquer outro nó cabeado, tornando a comunicação sem fio
+    completamente transparente para o restante do sistema.
+
+    Essa solução elimina as restrições de cabeamento, preserva o fluxo de dados existente
+    sem alterações na arquitetura do sistema principal e abre espaço para instrumentação
+    em pontos até então inacessíveis — incluindo componentes rotativos, regiões
+    aerodinâmicas sensíveis e sensores externos ao veículo. A principal restrição
+    a ser endereçada no desenvolvimento é a garantia de confiabilidade na entrega
+    dos dados, uma vez que protocolos de comunicação sem fio, por natureza, não
+    oferecem as mesmas garantias de integridade que uma conexão física.
+    % the possible solutions we arrived
+    % introduce the ideia of a wireless solution
+
+    \section{Requisitos}
+
+    Para que a solução sem fio seja viável em ambiente de competição, ela deve
+    satisfazer um conjunto de requisitos funcionais e não funcionais que
+    refletem tanto as restrições operacionais da equipe quanto as exigências
+    técnicas de integração com o sistema existente.
+
+    \subsection{Desempenho e Latência}
+
+    O sistema deve ser capaz de transmitir dados com latência compatível com as frequências
+    de aquisição já praticadas pela equipe. Atrasos na entrega dos dados
+    comprometem a sincronização temporal com os demais canais do sistema e podem
+    tornar a informação inutilizável para análise.
+
+    \subsection{Conexão Instantânea}
+
+    O sistema não pode depender de um processo de estabelecimento de conexão entre
+    os nós antes do início da transmissão. Em cenários como um sensor de
+    passagem externo ao veículo, o carro pode estar em alta velocidade quando passa
+    pelo ponto de medição — qualquer overhead de handshake inviabilizaria a coleta
+    do dado. A comunicação deve estar sempre pronta para transmitir, sem negociação
+    prévia entre os dispositivos.
+
+    \subsection{Múltiplas Conexões Simultâneas}
+
+    O sistema deve suportar múltiplos nós sensores transmitindo simultaneamente
+    para um ou mais receptores. Isso é especialmente relevante para a instrumentação
+    das quatro rodas do veículo, onde todos os sensores precisam operar em
+    paralelo e ter seus dados recebidos e injetados na rede CAN de forma
+    coordenada.
+
+    \subsection{Transparência com o Sistema CAN Existente}
+
+    A integração com o barramento CAN deve ser feita com o mínimo de modificações
+    possível na arquitetura existente. O sistema sem fio deve preservar os
+    identificadores CAN originais de cada mensagem e manter as verificações de
+    integridade nativas do protocolo — incluindo CRC e acknowledgment —
+    garantindo que o restante da rede trate os dados recebidos sem fio de forma
+    idêntica aos dados provenientes de nós cabeados.
+
+    \subsection{Requisitos Físicos e de Custo}
+
+    Os nós sensores devem ser fisicamente compactos e leves, uma vez que serão
+    instalados em regiões onde massa e volume são restrições relevantes — como
+    rodas e componentes aerodinâmicos. O custo total do sistema deve ser compatível
+    com o orçamento de uma equipe universitária, priorizando componentes
+    acessíveis sem comprometer os requisitos funcionais.
+
+    \subsection{Modularidade}
+
+    A arquitetura do sistema deve ser modular, permitindo adicionar novos nós
+    sensores sem alterações na infraestrutura existente. Cada novo ponto de medição
+    deve poder ser incorporado ao sistema de forma independente, com impacto
+    mínimo nos demais nós e sem necessidade de reconfiguração do receptor ou do
+    barramento CAN.
+    % what are the requirements for a successful system
+
+    \section{Framework}
+    \subsection{Microcontrolador}
+
+    A primeira decisão de hardware foi a escolha do microcontrolador para o nó sensor.
+    A opção mais natural inicialmente seria utilizar a família STM32, já presente
+    no sistema de aquisição da equipe e fornecida por um patrocinador. % TODO: confirmar patrocínio
+
+    A linha STM32 não possui nenhum chip com Wi-Fi nativo. A única família com comunicação
+    sem fio integrada é a STM32WB, que oferece Bluetooth Low Energy e 802.15.4 —
+    sem suporte a Wi-Fi. O STM32WB integra um núcleo Cortex-M4 para a aplicação
+    e um Cortex-M0+ dedicado ao stack de rádio, sendo uma plataforma robusta, bem
+    documentada e familiar à equipe — uma opção forte, desde que o BLE atendesse
+    aos requisitos de comunicação.
+
+    Para contornar a ausência de Wi-Fi nativo, uma alternativa seria combinar um
+    STM32 convencional com um módulo Wi-Fi externo. No entanto, essa abordagem exigiria
+    três componentes distintos na placa do nó sensor: o microcontrolador, o módulo
+    de comunicação e um circuito de gerenciamento de bateria separado. A
+    combinação resulta em uma solução com footprint físico, complexidade de integração
+    e custo de desenvolvimento incompatíveis com os requisitos de compacidade e leveza
+    do projeto, e foi descartada por esse motivo.
+
+    A terceira opção considerada foi o ESP32, plataforma da Espressif que integra
+    nativamente Wi-Fi e Bluetooth em um único chip. Módulos de desenvolvimento
+    compactos e com gerenciamento de bateria integrado estão amplamente
+    disponíveis para essa plataforma — como o Beetle ESP32-C6 da DFRobot, de apenas
+    25×20,5 mm e 17 g, que inclui o circuito de carga Li-ion na própria placa, sem
+    necessidade de componentes externos adicionais.
+
+    A decisão entre as duas plataformas foi tomada em conjunto com a escolha do protocolo
+    de comunicação, discutida a seguir.
+
+    \subsection{Protocolo de Comunicação Sem Fio}
+
+    As opções naturais de protocolo foram Bluetooth Low Energy, Wi-Fi e, posteriormente,
+    ESP-NOW.
+
+    O BLE, disponível tanto no STM32WB quanto no ESP32, foi a primeira opção
+    considerada. No entanto, o protocolo apresenta limitações fundamentais
+    frente aos requisitos do sistema. O estabelecimento de uma conexão BLE envolve
+    um processo de descoberta e pareamento que introduz latência inicial incompatível
+    com o requisito de conexão instantânea — um sensor externo ao veículo, por
+    exemplo, não teria tempo de completar esse handshake antes de o carro passar
+    pelo ponto de medição. Além disso, o gerenciamento de múltiplas conexões BLE
+    simultâneas adiciona complexidade considerável à aplicação. Essas limitações
+    descartaram o BLE como protocolo viável e, consequentemente, tornaram o
+    STM32WB uma opção menos atrativa, uma vez que seu diferencial principal não poderia
+    ser aproveitado.
+
+    O Wi-Fi resolve o problema de múltiplas conexões, mas mantém o overhead de
+    associação à rede, o que continua incompatível com o requisito de transmissão
+    instantânea.
+
+    Durante o desenvolvimento, foi identificado o ESP-NOW, um protocolo proprietário
+    da Espressif projetado especificamente para comunicação direta entre dispositivos
+    ESP32, sem infraestrutura de rede e sem necessidade de estabelecimento de
+    conexão. O ESP-NOW opera sobre a camada física do Wi-Fi, herdando sua
+    verificação de integridade por CRC em nível de frame, e permite que um dispositivo
+    transmita dados para outro imediatamente, sem qualquer negociação prévia. Essa
+    característica, combinada com o suporte nativo a transmissões em broadcast
+    para múltiplos receptores, atende diretamente aos requisitos de conexão instantânea
+    e múltiplos nós.
+
+    O protocolo é deliberadamente minimalista: não oferece confirmação de
+    entrega nativa em modo broadcast, o que significa que a confiabilidade de entrega
+    precisa ser construída na camada de aplicação. Esse trabalho adicional foi
+    considerado um custo aceitável, dado que o ESP-NOW resolve de forma elegante
+    os demais requisitos do sistema — e sua disponibilidade exclusiva na plataforma
+    ESP32 consolidou a escolha do ESP32 como microcontrolador do projeto.
+    % hardware selection, what were the options and why we choose what we choose
+    % wireless protocol selection
+
+    \section{Desenvolvimento}
+    A integração de uma ESP32 ao barramento CAN do veículo — leitura dos sinais do
+    transceiver, inicialização do driver TWAI e transmissão/recepção de frames —
+    é um procedimento amplamente documentado e foi implementada sem dificuldades
+    relevantes. O módulo \texttt{can.cpp} encapsula essa camada: inicializa o driver
+    com os pinos configuráveis, gerencia estados de erro e recuperação do
+    barramento, e expõe funções simples de envio e recepção. Por se tratar de
+    uma etapa bem estabelecida, o restante desta seção concentra-se no desenvolvimento
+    da camada de aplicação sem fio — o protocolo WCAN — que constitui a contribuição
+    principal deste trabalho.
+
+    \subsection{Arquitetura Geral}
+
+    O sistema WCAN foi estruturado em quatro módulos de software com
+    responsabilidades bem definidas: \texttt{wcan.cpp} (inicialização e callbacks
+    ESP-NOW), \texttt{wcan\_sender.cpp} (fila de envio e mecanismo de retransmissão),
+    \texttt{wcan\_receiver.cpp} (fila de recepção, filtragem e confirmação) e \texttt{wcan\_utils.cpp}
+    (codificação/decodificação de pacotes e gerenciamento de peers). A separação
+    em módulos permite que cada aspecto do protocolo seja desenvolvido e testado
+    de forma independente.
+
+    A unidade fundamental de dados do sistema é o \texttt{data\_packet\_t}, que encapsula
+    o identificador CAN da mensagem original (\texttt{can\_id}), um contador de ticks
+    do FreeRTOS (\texttt{tick\_count}) utilizado para correlacionar pacotes com
+    seus respectivos acknowledgments, o endereço MAC do remetente e o payload de
+    dados em tamanho variável. Esse pacote é serializado pelo módulo de
+    utilidades em um buffer de bytes para transmissão via ESP-NOW e
+    desserializado no lado receptor, mantendo a semântica CAN intacta ao longo de
+    todo o caminho sem fio.
+
+    \subsection{Desacoplamento por Filas}
+
+    Uma decisão de projeto central foi o desacoplamento entre os callbacks do
+    ESP-NOW e o processamento efetivo dos dados. O callback de recepção do ESP-NOW
+    é executado no contexto de interrupção do Wi-Fi, um ambiente com restrições
+    severas de tempo de execução e de operações permitidas. Realizar qualquer processamento
+    significativo nesse contexto — como filtragem, reenvio de acknowledgments ou
+    invocação de callbacks do usuário — comprometeria a responsividade do rádio
+    e poderia causar perda de pacotes subsequentes.
+
+    Para resolver essa restrição, o sistema utiliza duas filas do FreeRTOS: uma
+    fila de envio (\texttt{send\_queue}) e uma fila de recepção (\texttt{recv\_queue}).
+    O callback de recepção do ESP-NOW limita-se a desserializar o pacote recebido,
+    classificá-lo como dado ou acknowledgment, e encaminhá-lo para a fila apropriada.
+    Duas tasks dedicadas — \texttt{SendProcessingTask} e \texttt{RecvProcessingTask}
+    — consomem suas respectivas filas em contexto de task normal, onde não há restrições
+    de tempo ou de chamadas de sistema.
+
+    Essa arquitetura produtor-consumidor garante que o callback de interrupção execute
+    em tempo mínimo e constante, independentemente da complexidade do
+    processamento necessário, e permite que o sistema escale para múltiplos sensores
+    transmitindo simultaneamente sem degradação do tratamento de interrupções.
+
+    \subsection{Mecanismo de Confiabilidade}
+
+    Conforme discutido na seção anterior, o ESP-NOW em modo broadcast não oferece
+    confirmação de entrega nativa. O sistema WCAN implementa um mecanismo
+    próprio de acknowledgment e retransmissão para suprir essa lacuna.
+
+    Quando um nó sensor envia um pacote de dados, a \texttt{SendProcessingTask}
+    transmite o pacote via broadcast e inicia um timer periódico de
+    retransmissão. Um semáforo binário (\texttt{send\_semaphore}) bloqueia o
+    processamento do próximo pacote da fila até que uma das duas condições seja
+    satisfeita: o recebimento de um acknowledgment correspondente ou o esgotamento
+    do número máximo de tentativas de reenvio. Essa serialização garante que
+    apenas um pacote esteja em trânsito por vez, simplificando o rastreamento de
+    acknowledgments.
+
+    No lado receptor, ao receber um pacote de dados válido, a \texttt{RecvProcessingTask}
+    envia imediatamente um acknowledgment unicast de volta ao remetente, contendo
+    o \texttt{tick\_count} do pacote original. O remetente utiliza esse \texttt{tick\_count}
+    para correlacionar o acknowledgment com o pacote pendente — uma vez que
+    múltiplos receptores podem enviar acknowledgments para o mesmo pacote
+    broadcast. Ao receber o acknowledgment correspondente, o semáforo é liberado
+    e o próximo pacote da fila é processado.
+
+    Caso nenhum acknowledgment seja recebido dentro do intervalo configurado (\texttt{WCAN\_RETRY\_DELAY}),
+    o timer dispara automaticamente o reenvio do pacote, repetindo o processo até
+    o limite de tentativas (\texttt{WCAN\_MAX\_RETRY\_COUNT}). Se o limite for atingido
+    sem confirmação, o pacote é descartado e o sistema avança para o próximo, registrando
+    o erro via log.
+
+    \subsection{Filtragem de Mensagens}
+
+    Para atender ao requisito de comunicação N:M — onde múltiplos sensores
+    transmitem em broadcast e múltiplos receptores escutam — o sistema
+    implementa um mecanismo de filtragem por identificador CAN no lado receptor.
+    Na inicialização, cada nó receptor pode opcionalmente fornecer uma lista de
+    CAN IDs permitidos. A função \texttt{FilterData}, chamada para cada pacote recebido
+    que não seja um acknowledgment, verifica se o \texttt{can\_id} do pacote consta
+    na lista de IDs permitidos. Pacotes com identificadores fora da lista são
+    descartados silenciosamente, sem gerar acknowledgment nem ocupar espaço na fila
+    de recepção. Quando a filtragem está desativada, todos os pacotes são aceitos.
+
+    Esse mecanismo permite que cada receptor processe apenas os dados relevantes
+    para sua função, mesmo em um ambiente de broadcast onde todos os pacotes são
+    visíveis a todos os nós — comportamento análogo ao filtro de aceitação
+    presente em controladores CAN por hardware.
+
+    \subsection{Integração com o Barramento CAN}
+
+    O módulo \texttt{main.cpp} demonstra a integração completa do sistema. A aplicação
+    identifica o papel de cada ESP32 pelo seu endereço MAC: nós sensores
+    inicializam o WCAN sem filtragem e criam tasks de leitura de dados que
+    alimentam a fila de envio; nós receptores inicializam tanto o WCAN (com
+    filtragem habilitada) quanto o driver CAN, e definem um \texttt{RecvCallback}
+    que, ao receber um pacote via WCAN, retransmite seu conteúdo no barramento CAN
+    local utilizando o identificador CAN original. Do ponto de vista dos demais
+    módulos do veículo conectados ao barramento, os dados provenientes dos sensores
+    sem fio são indistinguíveis de dados originados em nós cabeados — preservando
+    a compatibilidade total com o sistema de aquisição existente.
+
+    \section{Test results}
+    % ainda preciso definir melhor quais testes rodar pra colocar aqui, aceito sugestões
+    % testes de rampa visandogarantir que a rampa chega inteira do outro lado, roda umas 50x e ve o quanto foi perdido
+    % teste 1:1
+    % teste N:1
+    % teste N:M
+    % eu tenho 5 ESP's em mão
+\end{document}

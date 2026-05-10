@@ -59,17 +59,18 @@ def gather_metrics(test_folder: Path) -> dict:
     misses_total = sum(len(s.total_misses) for s in summaries)
     delivery_rate = (sent_total - misses_total) / sent_total if sent_total > 0 else None
 
-    # Latency aggregations across sensors
-    all_lat_cb_us = []
-    all_lat_rtt_ms = []
-    lat_cb_fail = 0
+    # Latency aggregations across sensors (unifying CB and RTT into us)
+    all_lat_us = []
+    lat_fail = 0
     for s in sensors:
-        all_lat_cb_us.extend(s.measure.lat_cb_us)
-        all_lat_rtt_ms.extend(s.measure.lat_rtt_ms)
-        lat_cb_fail += s.measure.lat_cb_fail_count
+        if s.measure.lat_cb_us:
+            all_lat_us.extend(s.measure.lat_cb_us)
+        elif s.measure.lat_rtt_ms:
+            # Convert ms RTT to us
+            all_lat_us.extend(int(ms * 1000) for ms in s.measure.lat_rtt_ms)
+        lat_fail += s.measure.lat_cb_fail_count
 
-    lat_cb_sorted = sorted(all_lat_cb_us)
-    lat_rtt_sorted = sorted(all_lat_rtt_ms)
+    lat_sorted = sorted(all_lat_us)
 
     # Airtime utilisation (per-mille over the periodic windows), averaged
     util_samples = []
@@ -100,25 +101,20 @@ def gather_metrics(test_folder: Path) -> dict:
         return format(value, fmt) if fmt else value
 
     return {
-        "n_sensors": len(sensors),
-        "n_receivers": len(receivers),
-        "sent_total": sent_total,
-        "misses_total": misses_total,
-        "delivery_rate": fmt_or_blank(delivery_rate, ".4f") if delivery_rate is not None else "",
-        "n_lat_cb": len(lat_cb_sorted),
-        "lat_cb_median_us": fmt_or_blank(_percentile(lat_cb_sorted, 0.5)) if lat_cb_sorted else "",
-        "lat_cb_p99_us": fmt_or_blank(_percentile(lat_cb_sorted, 0.99)) if lat_cb_sorted else "",
-        "lat_cb_max_us": lat_cb_sorted[-1] if lat_cb_sorted else "",
-        "lat_cb_fail_count": lat_cb_fail,
-        "n_lat_rtt": len(lat_rtt_sorted),
-        "lat_rtt_median_ms": fmt_or_blank(_percentile(lat_rtt_sorted, 0.5)) if lat_rtt_sorted else "",
-        "lat_rtt_p99_ms": fmt_or_blank(_percentile(lat_rtt_sorted, 0.99)) if lat_rtt_sorted else "",
-        "lat_rtt_max_ms": lat_rtt_sorted[-1] if lat_rtt_sorted else "",
-        "airtime_util_per_mille_avg": fmt_or_blank(airtime_util_avg, ".1f") if airtime_util_avg is not None else "",
-        "cold_start_ms_min": fmt_or_blank(cold_start_ms, ".1f") if cold_start_ms is not None else "",
-        "min_stack_hwm_bytes": min_hwm if min_hwm is not None else "",
+        "active_sensor_count": len(sensors),
+        "active_receiver_count": len(receivers),
+        "total_packets_sent": sent_total,
+        "total_packets_missed": misses_total,
+        "delivery_success_rate": fmt_or_blank(delivery_rate, ".4f") if delivery_rate is not None else "",
+        "latency_measurements_count": len(lat_sorted),
+        "latency_median_microseconds": fmt_or_blank(_percentile(lat_sorted, 0.5)) if lat_sorted else "",
+        "latency_99th_percentile_microseconds": fmt_or_blank(_percentile(lat_sorted, 0.99)) if lat_sorted else "",
+        "latency_maximum_microseconds": lat_sorted[-1] if lat_sorted else "",
+        "latency_failure_count": lat_fail,
+        "airtime_utilization_per_mille_average": fmt_or_blank(airtime_util_avg, ".1f") if airtime_util_avg is not None else "",
+        "cold_start_minimum_milliseconds": fmt_or_blank(cold_start_ms, ".1f") if cold_start_ms is not None else "",
+        "minimum_stack_high_water_mark_bytes": min_hwm if min_hwm is not None else "",
     }
-
 
 def aggregate(variant_dirs, output_path) -> int:
     """Walk each directory in variant_dirs, parse test folders via analysis.py,
@@ -141,11 +137,11 @@ def aggregate(variant_dirs, output_path) -> int:
                 print(f"[WARN] Failed to parse {folder}: {exc}", file=sys.stderr)
                 continue
             rows.append({
-                "variant": variant,
-                "test": f"{s_count}S-{r_count}R",
-                "s_count": s_count,
-                "r_count": r_count,
-                "repeat": rep,
+                "transport_variant": variant,
+                "test_name": f"{s_count}S-{r_count}R",
+                "configured_sensor_count": s_count,
+                "configured_receiver_count": r_count,
+                "test_repetition_index": rep,
                 **metrics,
             })
 

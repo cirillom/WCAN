@@ -57,7 +57,7 @@ def get_sdkconfig(chip: str, measure: bool = False) -> str:
 
 
 def build_variant(chip: str, role: str, transport: str = "BROADCAST",
-                  measure: bool = False, project_path: str = "..") -> bool:
+                  measure: bool = False, project_path: str = "..", sensor_freq: int = 200) -> bool:
     """Build a single firmware variant. Returns True on success."""
     chip = chip.lower()
     role = role.upper()
@@ -68,7 +68,7 @@ def build_variant(chip: str, role: str, transport: str = "BROADCAST",
 
     print()
     print("=" * 60)
-    print(f"  BUILDING: {chip} / {role} / transport={transport} / measure={measure}")
+    print(f"  BUILDING: {chip} / {role} / transport={transport} / measure={measure} / sensor_freq={sensor_freq}Hz")
     print(f"  Build dir: {build_dir}")
     print(f"  sdkconfig: {sdkconfig}")
     print("=" * 60)
@@ -78,6 +78,9 @@ def build_variant(chip: str, role: str, transport: str = "BROADCAST",
         "-B", build_dir,
         f"-DROLE={role}",
     ]
+
+    if role == "SENSOR":
+        cmd.append(f"-DSENSOR_HZ={sensor_freq}")
 
     if measure:
         # ESP-IDF SDKCONFIG_DEFAULTS list is semicolon-separated. subprocess
@@ -104,7 +107,7 @@ def build_variant(chip: str, role: str, transport: str = "BROADCAST",
 
 
 def build_needed(chips: set, transport: str = "BROADCAST", measure: bool = False,
-                 project_path: str = "..") -> bool:
+                 project_path: str = "..", sensor_freq: int = 200) -> bool:
     """Build SENSOR + RECEIVER + IDLE for each chip at the given transport + measure.
     IDLE is built once per chip regardless (transport-agnostic).
     """
@@ -119,7 +122,7 @@ def build_needed(chips: set, transport: str = "BROADCAST", measure: bool = False
 
     needed.sort()
     for chip, role, t in needed:
-        if not build_variant(chip, role, t, measure, project_path):
+        if not build_variant(chip, role, t, measure, project_path, sensor_freq):
             return False
     return True
 

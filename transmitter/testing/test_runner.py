@@ -64,6 +64,7 @@ def load_config(config_path: str) -> dict:
         # the legacy behaviour so existing scripts keep working.
         "transport": "BROADCAST",
         "measure": False,
+        "frequencies": tc.get("frequency_hz", [200]),
     }
     return config
 
@@ -213,6 +214,7 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_fi
                 "test_name": test_name,
                 "transport": config["transport"],
                 "measure": "1" if config["measure"] else "0",
+                "sensor_freq": config.get("current_freq", 200),
                 "sensors": ";".join(b["id"] for b in sensor_boards),
                 "receivers": ";".join(b["id"] for b in receiver_boards),
                 "sensor_chips": ";".join(b["chip"] for b in sensor_boards),
@@ -240,7 +242,7 @@ def write_summary(rows: list, results_dir: str):
     """Write summary.csv with one row per test run."""
     summary_path = os.path.join(results_dir, "summary.csv")
     fieldnames = [
-        "test_name", "transport", "measure",
+        "test_name", "transport", "measure", "sensor_freq",
         "sensors", "receivers",
         "sensor_chips", "receiver_chips",
         "sensor_ports", "receiver_ports",
@@ -315,22 +317,23 @@ def run_analysis(results_dir: str) -> tuple[int, int]:
 
 # ─── Pipeline (one transport) ────────────────────────────────────────────────
 
-def run_pipeline(args, base_config, transport, results_dir_name, test_filter):
+def run_pipeline(args, base_config, transport, results_dir_name, test_filter, freq):
     """Run build + tests + optional analyze for a single transport.
     Returns (total_runs, results_dir or None, n_passed, n_total)."""
     config = dict(base_config)
     config["transport"] = transport
     config["measure"] = args.measure
+    config["current_freq"] = freq
 
     print(f"\n{'='*60}")
-    print(f"  Pipeline: transport={transport}  measure={config['measure']}")
+    print(f"  Pipeline: transport={transport}  measure={config['measure']}  freq={freq}Hz")
     print(f"  Results:  results/{results_dir_name}")
     print(f"{'='*60}")
 
     # Build phase
     if not args.skip_build and not args.dry_run:
         if not build_needed(set(b["chip"] for b in config["boards"]),
-                            transport, config["measure"], config["project_path"]):
+                            transport, config["measure"], config["project_path"], freq):
             print(f"\n[ABORT] Build failed for transport={transport}.")
             return 0, None, 0, 0
 
@@ -431,10 +434,8 @@ def main():
 
     if args.transport == "BOTH":
         transports = ["BROADCAST", "UNICAST"]
-        dir_names = {t: f"{base_name}_{t.lower()}" for t in transports}
     else:
         transports = [args.transport]
-        dir_names = {args.transport: base_name}
 
     # Run each transport's pipeline
     grand_runs = 0
@@ -442,12 +443,20 @@ def main():
     grand_total = 0
     results_dirs = []
     for t in transports:
-        runs, rdir, passed, total = run_pipeline(args, config, t, dir_names[t], test_filter)
-        grand_runs += runs
-        grand_passed += passed
-        grand_total += total
-        if rdir is not None:
-            results_dirs.append(rdir)
+        for freq in config["frequencies"]:
+            parts = [base_name]
+            if len(config["frequencies"]) > 1:
+                parts.append(f"{freq}Hz")
+            if args.transport == "BOTH":
+                parts.append(t.lower())
+            freq_dir_name = "_".join(parts)
+            
+            runs, rdir, passed, total = run_pipeline(args, config, t, freq_dir_name, test_filter, freq)
+            grand_runs += runs
+            grand_passed += passed
+            grand_total += total
+            if rdir is not None:
+                results_dirs.append(rdir)
 
     # Optional cross-variant aggregation
     if args.aggregate and not args.dry_run:
