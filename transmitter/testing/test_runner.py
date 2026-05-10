@@ -142,13 +142,12 @@ def run_single_test(
     time.sleep(1)
 
     # Monitor only active boards (not idle)
-    print(f"  Monitoring for {config['duration']}s...")
     ok = monitor_all_boards(active_boards, config["baud"], config["duration"], log_dir)
 
     return "OK" if ok else "MONITOR_ERROR"
 
 
-def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_filter: set = None) -> int:
+def run_all_tests(config: dict, results_dir: str, global_run_state: dict, dry_run: bool = False, test_filter: set = None) -> int:
     """Run the complete test matrix. Returns the number of runs executed (0 on dry-run / empty filter)."""
     boards = config["boards"]
     n = len(boards)
@@ -196,11 +195,12 @@ def run_all_tests(config: dict, results_dir: str, dry_run: bool = False, test_fi
             idle_boards = shuffled[s_count + r_count :]
 
             run_number += 1
+            global_run_state["current"] += 1
             test_name = f"test_{s_count}S-{r_count}R"
             log_dir = os.path.join(results_dir, f"{test_name}_rep{rep}")
 
             print(f"\n{'─'*60}")
-            print(f"  RUN {run_number}/{total_runs}: {test_name} rep={rep}")
+            print(f"  RUN {global_run_state['current']}/{global_run_state['total']}: {test_name} rep={rep} | {config['transport'].lower()} | {config.get('current_freq', 200)}Hz")
             print(f"{'─'*60}")
 
             status = run_single_test(
@@ -317,7 +317,7 @@ def run_analysis(results_dir: str) -> tuple[int, int]:
 
 # ─── Pipeline (one transport) ────────────────────────────────────────────────
 
-def run_pipeline(args, base_config, transport, results_dir_name, test_filter, freq):
+def run_pipeline(args, base_config, transport, results_dir_name, test_filter, freq, global_run_state):
     """Run build + tests + optional analyze for a single transport.
     Returns (total_runs, results_dir or None, n_passed, n_total)."""
     config = dict(base_config)
@@ -344,7 +344,7 @@ def run_pipeline(args, base_config, transport, results_dir_name, test_filter, fr
         import shutil as _shutil
         _shutil.copy2(args.config, os.path.join(results_dir, "boards.yaml"))
 
-    total_runs = run_all_tests(config, results_dir, dry_run=args.dry_run, test_filter=test_filter)
+    total_runs = run_all_tests(config, results_dir, global_run_state, dry_run=args.dry_run, test_filter=test_filter)
 
     n_passed, n_total = 0, 0
     if total_runs > 0 and args.analyze:
@@ -437,6 +437,13 @@ def main():
     else:
         transports = [args.transport]
 
+    # Calculate global runs total
+    cases = generate_test_matrix(len(boards))
+    if test_filter:
+        cases = [c for c in cases if c in test_filter]
+    global_total = len(transports) * len(config["frequencies"]) * len(cases) * config["repeats"]
+    global_run_state = {"current": 0, "total": global_total}
+
     # Run each transport's pipeline
     grand_runs = 0
     grand_passed = 0
@@ -451,7 +458,7 @@ def main():
                 parts.append(t.lower())
             freq_dir_name = "_".join(parts)
             
-            runs, rdir, passed, total = run_pipeline(args, config, t, freq_dir_name, test_filter, freq)
+            runs, rdir, passed, total = run_pipeline(args, config, t, freq_dir_name, test_filter, freq, global_run_state)
             grand_runs += runs
             grand_passed += passed
             grand_total += total

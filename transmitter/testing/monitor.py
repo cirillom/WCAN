@@ -74,8 +74,19 @@ def monitor_all_boards(boards_with_roles: list, baud: int, duration: float, log_
         threads.append(t)
         t.start()
 
+    from tqdm import tqdm
+    start_t = time.time()
+    with tqdm(total=int(duration), desc="  Monitoring", unit="s", leave=False, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}s") as pbar:
+        while time.time() - start_t < duration:
+            time.sleep(0.5)
+            elapsed = time.time() - start_t
+            pbar.n = min(int(duration), int(elapsed))
+            pbar.refresh()
+        pbar.n = int(duration)
+        pbar.refresh()
+
     for t in threads:
-        t.join(timeout=duration + 10)
+        t.join(timeout=5)
 
     stop_event.set()
     return all(results.values())
