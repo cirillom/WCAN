@@ -313,6 +313,43 @@ def run_analysis(results_dir: str) -> tuple[int, int]:
     return n_passed, total
 
 
+# ─── Pipeline (one transport) ────────────────────────────────────────────────
+
+def run_pipeline(args, base_config, transport, results_dir_name, test_filter):
+    """Run build + tests + optional analyze for a single transport.
+    Returns (total_runs, results_dir or None, n_passed, n_total)."""
+    config = dict(base_config)
+    config["transport"] = transport
+    config["measure"] = args.measure
+
+    print(f"\n{'='*60}")
+    print(f"  Pipeline: transport={transport}  measure={config['measure']}")
+    print(f"  Results:  results/{results_dir_name}")
+    print(f"{'='*60}")
+
+    # Build phase
+    if not args.skip_build and not args.dry_run:
+        if not build_needed(set(b["chip"] for b in config["boards"]),
+                            transport, config["measure"], config["project_path"]):
+            print(f"\n[ABORT] Build failed for transport={transport}.")
+            return 0, None, 0, 0
+
+    # Create results directory and snapshot config
+    results_dir = os.path.join("results", results_dir_name)
+    if not args.dry_run:
+        os.makedirs(results_dir, exist_ok=True)
+        import shutil as _shutil
+        _shutil.copy2(args.config, os.path.join(results_dir, "boards.yaml"))
+
+    total_runs = run_all_tests(config, results_dir, dry_run=args.dry_run, test_filter=test_filter)
+
+    n_passed, n_total = 0, 0
+    if total_runs > 0 and args.analyze:
+        n_passed, n_total = run_analysis(results_dir)
+
+    return total_runs, results_dir, n_passed, n_total
+
+
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 def main():
@@ -323,16 +360,31 @@ def main():
     parser.add_argument("--test", type=str, action="append", default=None,
                         help="Run only specific S:R tests, e.g. --test 1:4 --test 2:3. Can be repeated.")
     parser.add_argument("--analyze", action="store_true",
-                        help="After all tests complete, run analysis on results.")
+                        help="After all tests complete, run analysis on results. Implied by --aggregate.")
     parser.add_argument("--name", type=str, default=None,
-                        help="Override the results folder name (always inside results/). Defaults to the current timestamp.")
-    parser.add_argument("--transport", default="BROADCAST", choices=VALID_TRANSPORTS,
-                        help="Transport variant to build, flash, and tag in summary.csv (default: BROADCAST). "
-                             "Run twice with different transports for the thesis comparison.")
+                        help="Override the results folder name (always inside results/). "
+                             "Defaults to the current timestamp. With --transport BOTH, "
+                             "becomes the prefix: <name>_broadcast/ and <name>_unicast/.")
+    parser.add_argument("--transport", default="BROADCAST",
+                        choices=VALID_TRANSPORTS + ("BOTH",),
+                        help="Transport variant. BOTH runs the full matrix once per variant "
+                             "into separate folders (default: BROADCAST).")
     parser.add_argument("--measure", action="store_true",
                         help="Enable -DMEASURE=1 instrumentation in firmware builds and tag in summary.csv. "
                              "Pairs with sdkconfig.measure overlay.")
+    parser.add_argument("--aggregate", action="store_true",
+                        help="After both variants run, call aggregate_thesis_data into "
+                             "results/<name>_comparison.csv. Implies --analyze and "
+                             "requires --transport BOTH.")
     args = parser.parse_args()
+
+    # --aggregate implies --analyze
+    if args.aggregate:
+        args.analyze = True
+
+    if args.aggregate and args.transport != "BOTH":
+        print("[ERROR] --aggregate requires --transport BOTH (need both variants to compare).")
+        sys.exit(1)
 
     if args.name is not None:
         if "/" in args.name or "\\" in args.name or ".." in args.name or not args.name.strip():
@@ -342,8 +394,6 @@ def main():
     # Load config
     config = load_config(args.config)
     boards = config["boards"]
-    config["transport"] = args.transport
-    config["measure"] = args.measure
 
     print(f"\n{'='*60}")
     print(f"  WCAN Automated Test Runner")
@@ -352,8 +402,10 @@ def main():
     print(f"  Boards:    {len(boards)}")
     for b in boards:
         print(f"    {b['id']:>4}  {b['chip']:<10}  {b['port']}")
-    print(f"  Transport: {config['transport']}")
-    print(f"  Measure:   {config['measure']}")
+    print(f"  Transport: {args.transport}")
+    print(f"  Measure:   {args.measure}")
+    print(f"  Analyze:   {args.analyze}")
+    print(f"  Aggregate: {args.aggregate}")
     print(f"  Duration:  {config['duration']}s per test")
     print(f"  Repeats:   {config['repeats']}")
     print(f"  Cooldown:  {config['cooldown']}s")
@@ -361,27 +413,6 @@ def main():
 
     # Check idf.py is available
     check_idf()
-
-    # Build phase
-    if not args.skip_build and not args.dry_run:
-        if not build_needed(set(b["chip"] for b in boards),
-                            config["transport"], config["measure"],
-                            config["project_path"]):
-            print("\n[ABORT] Build failed. Fix errors and retry.")
-            sys.exit(1)
-
-    # Create results directory
-    if args.name:
-        results_dir = os.path.join("results", args.name)
-    else:
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        results_dir = os.path.join("results", timestamp)
-    if not args.dry_run:
-        os.makedirs(results_dir, exist_ok=True)
-        # Copy config for reproducibility
-        config_copy = os.path.join(results_dir, "boards.yaml")
-        import shutil as _shutil
-        _shutil.copy2(args.config, config_copy)
 
     # Parse --test filters
     test_filter = None
@@ -395,20 +426,51 @@ def main():
                 print(f"[ERROR] Invalid --test format '{t}'. Use S:R, e.g. --test 1:4")
                 sys.exit(1)
 
-    # Run tests
-    total_runs = run_all_tests(config, results_dir, dry_run=args.dry_run, test_filter=test_filter)
+    # Decide transport list and per-variant results-dir names
+    base_name = args.name if args.name else datetime.now().strftime("%Y-%m-%d_%H%M%S")
 
-    if total_runs > 0:
-        analyze_line = None
-        if args.analyze:
-            n_passed, n_total = run_analysis(results_dir)
-            analyze_line = f"  Results: {n_passed}/{n_total} tests passed"
+    if args.transport == "BOTH":
+        transports = ["BROADCAST", "UNICAST"]
+        dir_names = {t: f"{base_name}_{t.lower()}" for t in transports}
+    else:
+        transports = [args.transport]
+        dir_names = {args.transport: base_name}
 
+    # Run each transport's pipeline
+    grand_runs = 0
+    grand_passed = 0
+    grand_total = 0
+    results_dirs = []
+    for t in transports:
+        runs, rdir, passed, total = run_pipeline(args, config, t, dir_names[t], test_filter)
+        grand_runs += runs
+        grand_passed += passed
+        grand_total += total
+        if rdir is not None:
+            results_dirs.append(rdir)
+
+    # Optional cross-variant aggregation
+    if args.aggregate and not args.dry_run:
+        if len(results_dirs) < 2:
+            print("\n[WARN] --aggregate requested but only one variant produced results; skipping.")
+        else:
+            from pathlib import Path
+            from aggregate_thesis_data import aggregate
+            out_path = Path("results") / f"{base_name}_comparison.csv"
+            print(f"\nAggregating {len(results_dirs)} variants into {out_path}...")
+            n = aggregate([Path(d) for d in results_dirs], out_path)
+            if n == 0:
+                print("[WARN] No measurement data found across variants; CSV not written.")
+            else:
+                print(f"  Wrote {n} rows to {out_path}")
+
+    if grand_runs > 0:
         print(f"\n{'='*60}")
-        print(f"  ALL DONE — {total_runs} runs completed")
-        print(f"  Logs: {results_dir}")
-        if analyze_line:
-            print(analyze_line)
+        print(f"  ALL DONE — {grand_runs} runs across {len(results_dirs)} variant(s)")
+        for rd in results_dirs:
+            print(f"  Logs: {rd}")
+        if args.analyze and grand_total > 0:
+            print(f"  Analyze: {grand_passed}/{grand_total} tests passed")
         print(f"{'='*60}\n")
 
 

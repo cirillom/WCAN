@@ -120,22 +120,16 @@ def gather_metrics(test_folder: Path) -> dict:
     }
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Aggregate WCAN thesis metrics across transport variants"
-    )
-    parser.add_argument(
-        "variant_dirs", nargs="+", type=Path,
-        help="Result directories, one per variant. Variant name is the dir basename.",
-    )
-    parser.add_argument(
-        "--output", "-o", type=Path, default=Path("thesis_comparison.csv"),
-        help="Output CSV path (default: thesis_comparison.csv)",
-    )
-    args = parser.parse_args()
+def aggregate(variant_dirs, output_path) -> int:
+    """Walk each directory in variant_dirs, parse test folders via analysis.py,
+    write aggregated CSV to output_path. Returns the number of rows written.
 
+    Returns 0 if no test data was found (output file is not created in that case).
+    """
+    output_path = Path(output_path)
     rows = []
-    for variant_dir in args.variant_dirs:
+    for variant_dir in variant_dirs:
+        variant_dir = Path(variant_dir)
         if not variant_dir.is_dir():
             print(f"[WARN] Skipping non-directory: {variant_dir}", file=sys.stderr)
             continue
@@ -156,17 +150,37 @@ def main():
             })
 
     if not rows:
-        print("[ERROR] No test data found.", file=sys.stderr)
-        sys.exit(1)
+        return 0
 
     fieldnames = list(rows[0].keys())
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    with open(args.output, "w", newline="") as f:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         w.writerows(rows)
+    return len(rows)
 
-    print(f"Wrote {len(rows)} rows to {args.output}")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Aggregate WCAN thesis metrics across transport variants"
+    )
+    parser.add_argument(
+        "variant_dirs", nargs="+", type=Path,
+        help="Result directories, one per variant. Variant name is the dir basename.",
+    )
+    parser.add_argument(
+        "--output", "-o", type=Path, default=Path("thesis_comparison.csv"),
+        help="Output CSV path (default: thesis_comparison.csv)",
+    )
+    args = parser.parse_args()
+
+    n = aggregate(args.variant_dirs, args.output)
+    if n == 0:
+        print("[ERROR] No test data found.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Wrote {n} rows to {args.output}")
 
 
 if __name__ == "__main__":

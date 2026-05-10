@@ -172,16 +172,33 @@ And at the run root (multi-test only):
 
 ## Thesis comparison workflow
 
-For the thesis comparison study, run the test matrix once per transport, then aggregate.
+For the thesis comparison study, run both transports back-to-back and let the runner aggregate the results in one shot:
 
 ```bash
-# 1. Build and run BROADCAST variant, with measurement instrumentation
+# Run BROADCAST then UNICAST, analyze each, and emit the comparison CSV.
+uv run test_runner.py --transport BOTH --measure --aggregate --name v_thesis
+```
+
+This produces:
+- `results/v_thesis_broadcast/` — the BROADCAST variant's full test matrix + `analysis_summary.txt`
+- `results/v_thesis_unicast/`  — the UNICAST variant's full test matrix + `analysis_summary.txt`
+- `results/v_thesis_comparison.csv` — one row per `(variant, S, R, repeat)` with all measurement metrics for thesis tables / plots
+
+`--aggregate` implies `--analyze`. `--name` becomes the prefix for both variant folders and the CSV. Without `--name`, the runner uses `<timestamp>_<variant>/` and `<timestamp>_comparison.csv`.
+
+The other flags compose as expected:
+
+```bash
+# Same matrix, but skip the rebuild and only run the (1,1) and (1,3) cases
+uv run test_runner.py --transport BOTH --measure --aggregate --name v_smoke \
+    --skip-build --test 1:1 --test 1:3
+```
+
+If you'd rather drive each transport separately (e.g. on different days, different conditions), the lower-level form still works:
+
+```bash
 uv run test_runner.py --transport BROADCAST --measure --name v_bcast --analyze
-
-# 2. Build and run UNICAST variant
 uv run test_runner.py --transport UNICAST  --measure --name v_unicast --analyze
-
-# 3. Aggregate cross-variant metrics into a single CSV for thesis tables/plots
 uv run aggregate_thesis_data.py results/v_bcast results/v_unicast \
     --output results/thesis_comparison.csv
 ```
