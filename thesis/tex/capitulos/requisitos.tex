@@ -19,9 +19,10 @@ tornar a informação inutilizável para análise.
 O sistema não pode depender de um processo de estabelecimento de conexão entre
 os nós antes do início da transmissão. Em cenários como um sensor de
 passagem externo ao veículo, o carro pode estar em alta velocidade quando passa
-pelo ponto de medição — qualquer overhead de handshake inviabilizaria a coleta
-do dado. A comunicação deve estar sempre pronta para transmitir, sem negociação
-prévia entre os dispositivos.
+pelo ponto de medição — qualquer handshake obrigatório antes do primeiro dado
+inviabilizaria a coleta. A comunicação deve estar pronta para transmitir mesmo
+quando o sensor ainda não conhece os receptores disponíveis; mecanismos de
+descoberta são aceitáveis apenas se não impedirem a entrega inicial dos dados.
 
 \section{Múltiplas Conexões Simultâneas}
 
@@ -53,7 +54,7 @@ acessíveis sem comprometer os requisitos funcionais.
 A arquitetura do sistema deve ser modular, permitindo adicionar novos nós
 sensores sem alterações na infraestrutura existente. Cada novo ponto de medição
 deve poder ser incorporado ao sistema de forma independente, com impacto
-mínimo nos demais nós e sem necessidade de reconfiguração do receptor ou do
-barramento CAN.
+mínimo nos demais nós e sem necessidade de reconfiguração do barramento CAN.
+Quando houver filtros de interesse no receptor, a descoberta deve respeitar
+esses filtros para evitar tráfego de controle e processamento desnecessários.
 % what are the requirements for a successful system
-

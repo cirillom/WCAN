@@ -76,24 +76,24 @@ A Tabela~\ref{tab:rastreabilidade-requisitos} consolida a ligação entre os req
 
 \begin{table}[htbp]
 \centering
-\small
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.25}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.12}
 \begin{tabular}{p{0.17\linewidth}|p{0.27\linewidth}|p{0.33\linewidth}|p{0.12\linewidth}}
 \hline
 Requisito & Implementação & Evidência de teste & Status \\
 \hline
 \textbf{REQ-01}: desempenho e latência & ESP-NOW com filas FreeRTOS, batching por \texttt{linger\_ms} e transportes broadcast/unicast selecionáveis por \texttt{-DTRANSPORT}. & Varredura de 1 a 1000 Hz em 10 topologias. Broadcast manteve entrega de 100\% na linha de base 1S-1R e mediana de RTT tipicamente entre 3 ms e 6 ms. Unicast teve mediana de callback entre 1,5 ms e 3,5 ms, mas essa métrica não representa latência fim a fim. & Parcial \\
 \hline
-\textbf{REQ-02}: conexão instantânea & Uso de ESP-NOW sem ponto de acesso, endereço IP ou sessão prévia. Broadcast transmite diretamente; unicast usa descoberta por \texttt{HELLO}. & Broadcast não apresentou período de associação antes do envio. No unicast, perdas em baixa frequência e atrasos até o primeiro recebimento indicaram impacto do mecanismo de descoberta. & Parcial \\
+\textbf{REQ-02}: conexão instantânea & Uso de ESP-NOW sem ponto de acesso, endereço IP ou sessão prévia. Broadcast transmite diretamente; unicast usa descoberta híbrida: \texttt{HELLO} periódico, broadcast de dados quando não há assinantes vivos para um CAN ID e registro direcionado por \texttt{HELLO} unicast após o primeiro broadcast de interesse. & Broadcast não apresentou período de associação antes do envio. Nos ensaios anteriores, o unicast apresentou perdas de cold-start associadas à descoberta por \texttt{HELLO}; a nova descoberta híbrida foi implementada para que o primeiro pacote de um sensor externo já possa ser entregue em broadcast e usado para registrar o receptor. Requer nova rodada de testes. & Parcial \\
 \hline
-\textbf{REQ-03}: múltiplas conexões simultâneas & Suporte a múltiplos sensores e receptores por meio de broadcast, filtros por CAN ID e tabela de assinaturas unicast com até 4 receptores e 8 IDs por receptor. & Ensaios cobriram topologias de 1S-1R até 4S-1R e 1S-4R usando cinco placas. Broadcast permaneceu estável; unicast apresentou maior variabilidade em topologias com fan-out e cold-start. & Parcial \\
+\textbf{REQ-03}: múltiplas conexões simultâneas & Suporte a múltiplos sensores e receptores por meio de broadcast, filtros por CAN ID e tabela de assinaturas unicast com até 4 receptores e 8 IDs por receptor. No unicast híbrido, o estado de entrega e o fallback para broadcast são mantidos por CAN ID, não globalmente por sensor. & Ensaios cobriram topologias de 1S-1R até 4S-1R e 1S-4R usando cinco placas. Broadcast permaneceu estável; unicast apresentou maior variabilidade em topologias com fan-out e cold-start. A validação do fallback por CAN ID e da reconvergência para fan-out unicast depende dos novos ensaios. & Parcial \\
 \hline
 \textbf{REQ-04}: transparência com o CAN existente & Pacotes \texttt{data\_packet\_t} preservam \texttt{can\_id}; IDs de controle ficam fora do espaço CAN estendido; receptor entrega o pacote para retransmissão via TWAI. & Logs de sensor e receptor correlacionam pacotes pelo mesmo CAN ID e intervalo de contadores. A fronteira de integração com TWAI foi definida, mas os testes descritos registraram os pacotes em log serial em vez de injetá-los no barramento do veículo. & Parcial \\
 \hline
 \textbf{REQ-05}: requisitos físicos e de custo & Escolha do ESP32 como plataforma integrada de rádio e processamento, evitando microcontrolador, módulo Wi-Fi e carregador de bateria separados. & Comparação de arquitetura descartou STM32 com módulo externo por footprint e complexidade; placas ESP32/ESP32-C3 foram usadas nos ensaios. Ainda falta validar placa final, massa, fixação e operação embarcada. & Parcial \\
 \hline
-\textbf{REQ-06}: modularidade & Papéis definidos por \texttt{-DROLE}, transporte selecionado por \texttt{-DTRANSPORT}, filas por CAN ID, filtros no receptor e assinaturas dinâmicas no unicast. & A mesma base de firmware executou sensores, receptores e nós ociosos durante a matriz de testes, com papéis alternados entre placas e topologias. Testes com múltiplos CAN IDs por sensor ainda foram deixados como trabalho futuro. & Parcial \\
+\textbf{REQ-06}: modularidade & Papéis definidos por \texttt{-DROLE}, transporte selecionado por \texttt{-DTRANSPORT}, filas por CAN ID, filtros no receptor, assinaturas dinâmicas no unicast e registro direcionado sem novo formato de pacote. & A mesma base de firmware executou sensores, receptores e nós ociosos durante a matriz de testes, com papéis alternados entre placas e topologias. A nova lógica mantém a API pública e reutiliza \texttt{CAN\_HELLO}, mas ainda deve ser validada em nova matriz de testes, incluindo filtros ativos e múltiplos CAN IDs por sensor. & Parcial \\
 \hline
 \end{tabular}
 \caption{Matriz de rastreabilidade entre requisitos, implementação, evidência de teste e status de validação.}
