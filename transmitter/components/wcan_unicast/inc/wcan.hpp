@@ -32,6 +32,7 @@ struct data_packet_t {
     uint32_t can_id;
     TickType_t tick_count;
     uint8_t data_count;
+    bool received_via_broadcast = false;
     std::unique_ptr<uint32_t[]> data;
 };
 

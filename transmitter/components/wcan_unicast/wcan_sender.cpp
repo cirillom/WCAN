@@ -1,4 +1,5 @@
 #include <array>
+#include <cstdlib>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -8,6 +9,7 @@
 #include "esp_log.h"
 #include "esp_now.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
 
 #ifdef MEASURE_INSTR
@@ -38,6 +40,21 @@ volatile uint64_t g_packets_sent_total = 0;
 volatile int64_t g_in_flight_send_us = 0;
 volatile uint8_t g_in_flight_peer_mac[ESP_NOW_ETH_ALEN] = {};
 #endif
+
+#define WCAN_UNICAST_ZERO_SUCCESS_FALLBACK_THRESHOLD 3
+
+struct tx_request_t {
+    std::unique_ptr<esp_now_packet_t> packet;
+    SemaphoreHandle_t completion_sem;
+    bool *completion_success;
+};
+
+static delivery_mode_t *s_delivery_modes = nullptr;
+static uint8_t *s_zero_success_unicast_batches = nullptr;
+static SemaphoreHandle_t s_delivery_state_mutex = nullptr;
+
+SemaphoreHandle_t s_in_flight_completion_sem = nullptr;
+bool *s_in_flight_completion_success = nullptr;
 
 static std::unique_ptr<data_packet_t> collect_packet(size_t can_queue_index, uint32_t can_id)
 {
@@ -75,6 +92,85 @@ static std::unique_ptr<data_packet_t> collect_packet(size_t can_queue_index, uin
     return packet;
 }
 
+static int get_queue_index_for_can_id(uint32_t can_id)
+{
+    const size_t queue_index = get_can_tx_queue_index(can_id);
+    if (queue_index == SIZE_MAX || queue_index >= num_can_queues) {
+        return -1;
+    }
+    return static_cast<int>(queue_index);
+}
+
+static delivery_mode_t get_delivery_mode(size_t can_queue_index)
+{
+    if (s_delivery_modes == nullptr || s_delivery_state_mutex == nullptr || can_queue_index >= num_can_queues) {
+        return delivery_mode_t::BROADCAST_DISCOVERY;
+    }
+
+    delivery_mode_t mode = delivery_mode_t::BROADCAST_DISCOVERY;
+    if (xSemaphoreTake(s_delivery_state_mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+        mode = s_delivery_modes[can_queue_index];
+        xSemaphoreGive(s_delivery_state_mutex);
+    }
+    return mode;
+}
+
+static void mark_discovery_mode(size_t can_queue_index)
+{
+    if (s_delivery_modes == nullptr || s_zero_success_unicast_batches == nullptr ||
+        s_delivery_state_mutex == nullptr || can_queue_index >= num_can_queues) {
+        return;
+    }
+
+    if (xSemaphoreTake(s_delivery_state_mutex, pdMS_TO_TICKS(50)) != pdTRUE) {
+        return;
+    }
+    s_delivery_modes[can_queue_index] = delivery_mode_t::BROADCAST_DISCOVERY;
+    s_zero_success_unicast_batches[can_queue_index] = 0;
+    xSemaphoreGive(s_delivery_state_mutex);
+}
+
+static void record_unicast_batch_result(size_t can_queue_index, bool had_success)
+{
+    if (s_delivery_modes == nullptr || s_zero_success_unicast_batches == nullptr ||
+        s_delivery_state_mutex == nullptr || can_queue_index >= num_can_queues) {
+        return;
+    }
+
+    if (xSemaphoreTake(s_delivery_state_mutex, pdMS_TO_TICKS(50)) != pdTRUE) {
+        return;
+    }
+
+    if (had_success) {
+        s_delivery_modes[can_queue_index] = delivery_mode_t::UNICAST_ACTIVE;
+        s_zero_success_unicast_batches[can_queue_index] = 0;
+    } else {
+        uint8_t &failures = s_zero_success_unicast_batches[can_queue_index];
+        if (failures < UINT8_MAX) {
+            failures++;
+        }
+        if (failures >= WCAN_UNICAST_ZERO_SUCCESS_FALLBACK_THRESHOLD) {
+            s_delivery_modes[can_queue_index] = delivery_mode_t::BROADCAST_DISCOVERY;
+            failures = 0;
+        }
+    }
+
+    xSemaphoreGive(s_delivery_state_mutex);
+}
+
+static bool enqueue_tx_request(std::unique_ptr<tx_request_t> req, const char *tag, uint32_t can_id)
+{
+    tx_request_t *raw = req.release();
+    if (xQueueSend(send_queue, &raw, 0) == pdTRUE) {
+        return true;
+    }
+
+    ESP_LOGW(tag, "Send queue full, dropping packet with CAN ID 0x%08lx",
+             static_cast<unsigned long>(can_id));
+    delete raw;
+    return false;
+}
+
 void can_processing_task(void *pv_parameter)
 {
     const size_t can_queue_index = reinterpret_cast<size_t>(pv_parameter);
@@ -96,23 +192,43 @@ void can_processing_task(void *pv_parameter)
 
         const size_t fan_out = subscription_snapshot_targets(can_id, targets);
         if (fan_out == 0) {
-            ESP_LOGD(TAG, "Suppressing 0x%08lx (no alive subscribers)",
-                     static_cast<unsigned long>(can_id));
+            mark_discovery_mode(can_queue_index);
+            send_data(BROADCAST_MAC, *packet);
+            ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> broadcast discovery (no alive subscribers)",
+                     static_cast<unsigned long>(packet->can_id), packet->data_count,
+                     static_cast<unsigned long>(packet->data[0]),
+                     static_cast<unsigned long>(packet->data[packet->data_count - 1]),
+                     static_cast<unsigned long>(packet->tick_count));
             continue;
         }
 
-        for (size_t i = 0; i < fan_out; i++) {
-            add_peer(targets[i]);
-            send_data(targets[i], *packet);
+        if (get_delivery_mode(can_queue_index) == delivery_mode_t::BROADCAST_DISCOVERY) {
+            send_data(BROADCAST_MAC, *packet);
+            ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> broadcast discovery",
+                     static_cast<unsigned long>(packet->can_id), packet->data_count,
+                     static_cast<unsigned long>(packet->data[0]),
+                     static_cast<unsigned long>(packet->data[packet->data_count - 1]),
+                     static_cast<unsigned long>(packet->tick_count));
+            continue;
         }
 
-        ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> %u peers",
+        size_t success_count = 0;
+        for (size_t i = 0; i < fan_out; i++) {
+            add_peer(targets[i]);
+            if (send_data_and_wait(targets[i], *packet)) {
+                success_count++;
+            }
+        }
+
+        record_unicast_batch_result(can_queue_index, success_count > 0);
+
+        ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> %u/%u peers",
                  static_cast<unsigned long>(packet->can_id), packet->data_count,
                  static_cast<unsigned long>(packet->data[0]),
                  static_cast<unsigned long>(packet->data[packet->data_count - 1]),
                  static_cast<unsigned long>(packet->tick_count),
+                 static_cast<unsigned>(success_count),
                  static_cast<unsigned>(fan_out));
-        // packet destructor releases the payload + struct.
     }
 }
 
@@ -123,16 +239,37 @@ void send_processing_task(void *)
     ESP_LOGI(TAG, "Send processing task started");
 
     while (true) {
-        esp_now_packet_t *raw = nullptr;
+        tx_request_t *raw = nullptr;
         if (xQueueReceive(send_queue, &raw, portMAX_DELAY) != pdTRUE) {
             continue;
         }
-        std::unique_ptr<esp_now_packet_t> pkt(raw);
+        std::unique_ptr<tx_request_t> req(raw);
+        std::unique_ptr<esp_now_packet_t> &pkt = req->packet;
+
+        if (!pkt) {
+            ESP_LOGE(TAG, "TX request missing packet");
+            if (req->completion_success) {
+                *req->completion_success = false;
+            }
+            if (req->completion_sem != nullptr) {
+                xSemaphoreGive(req->completion_sem);
+            }
+            continue;
+        }
 
         if (xSemaphoreTake(espnow_tx_sem, pdMS_TO_TICKS(WCAN_TX_SEM_TIMEOUT_MS)) != pdTRUE) {
             ESP_LOGE(TAG, "TX semaphore timeout - driver may be stuck, dropping packet");
-            continue; // pkt destructor frees
+            if (req->completion_success) {
+                *req->completion_success = false;
+            }
+            if (req->completion_sem != nullptr) {
+                xSemaphoreGive(req->completion_sem);
+            }
+            continue;
         }
+
+        s_in_flight_completion_sem = req->completion_sem;
+        s_in_flight_completion_success = req->completion_success;
 
 #ifdef MEASURE_INSTR
         g_in_flight_send_us = esp_timer_get_time();
@@ -142,6 +279,14 @@ void send_processing_task(void *)
         const esp_err_t err = esp_now_send(pkt->mac_addr.data(), pkt->data.get(), pkt->data_len);
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "esp_now_send failed synchronously: %s - restoring TX slot", esp_err_to_name(err));
+            if (s_in_flight_completion_success != nullptr) {
+                *s_in_flight_completion_success = false;
+            }
+            if (s_in_flight_completion_sem != nullptr) {
+                xSemaphoreGive(s_in_flight_completion_sem);
+            }
+            s_in_flight_completion_sem = nullptr;
+            s_in_flight_completion_success = nullptr;
             xSemaphoreGive(espnow_tx_sem);
         }
 #ifdef MEASURE_INSTR
@@ -150,7 +295,6 @@ void send_processing_task(void *)
             g_packets_sent_total++;
         }
 #endif
-        // pkt destructor releases the payload + struct.
     }
 }
 
@@ -166,12 +310,102 @@ void send_data(const uint8_t *mac_addr, const data_packet_t &data_packet)
     }
     std::memcpy(pkt->mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN);
 
-    esp_now_packet_t *raw = pkt.release();
-    if (xQueueSend(send_queue, &raw, 0) != pdTRUE) {
-        ESP_LOGW(TAG, "Send queue full, dropping packet with CAN ID 0x%08lx",
+    auto req = std::make_unique<tx_request_t>();
+    req->packet = std::move(pkt);
+    req->completion_sem = nullptr;
+    req->completion_success = nullptr;
+
+    enqueue_tx_request(std::move(req), TAG, data_packet.can_id);
+}
+
+bool send_data_and_wait(const uint8_t *mac_addr, const data_packet_t &data_packet)
+{
+    static const char *TAG = "send_data_wait";
+
+    auto pkt = encode_data_packet(data_packet);
+    if (!pkt) {
+        ESP_LOGE(TAG, "encode_data_packet failed, dropping packet with CAN ID 0x%08lx",
                  static_cast<unsigned long>(data_packet.can_id));
-        delete raw;
+        return false;
     }
+    std::memcpy(pkt->mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN);
+
+    auto req = std::make_unique<tx_request_t>();
+    bool success = false;
+    SemaphoreHandle_t completion_sem = xSemaphoreCreateBinary();
+    if (completion_sem == nullptr) {
+        ESP_LOGE(TAG, "Failed to create completion semaphore");
+        return false;
+    }
+
+    req->packet = std::move(pkt);
+    req->completion_sem = completion_sem;
+    req->completion_success = &success;
+
+    const bool queued = enqueue_tx_request(std::move(req), TAG, data_packet.can_id);
+    if (!queued) {
+        vSemaphoreDelete(completion_sem);
+        return false;
+    }
+
+    const bool completed = (xSemaphoreTake(completion_sem, portMAX_DELAY) == pdTRUE);
+    vSemaphoreDelete(completion_sem);
+    return completed && success;
+}
+
+void sender_init_delivery_state(void)
+{
+    static const char *TAG = "SEND_STATE";
+
+    if (num_can_queues == 0 || s_delivery_modes != nullptr) {
+        return;
+    }
+
+    s_delivery_modes = static_cast<delivery_mode_t *>(calloc(num_can_queues, sizeof(delivery_mode_t)));
+    s_zero_success_unicast_batches = static_cast<uint8_t *>(calloc(num_can_queues, sizeof(uint8_t)));
+    s_delivery_state_mutex = xSemaphoreCreateMutex();
+
+    if (s_delivery_modes == nullptr || s_zero_success_unicast_batches == nullptr || s_delivery_state_mutex == nullptr) {
+        ESP_LOGE(TAG, "Failed to allocate delivery state");
+        return;
+    }
+
+    for (size_t i = 0; i < num_can_queues; i++) {
+        s_delivery_modes[i] = delivery_mode_t::BROADCAST_DISCOVERY;
+        s_zero_success_unicast_batches[i] = 0;
+    }
+}
+
+void sender_on_subscription_update(const uint32_t *ids, size_t n)
+{
+    if (s_delivery_modes == nullptr || s_zero_success_unicast_batches == nullptr ||
+        s_delivery_state_mutex == nullptr || num_can_queues == 0) {
+        return;
+    }
+
+    if (xSemaphoreTake(s_delivery_state_mutex, pdMS_TO_TICKS(50)) != pdTRUE) {
+        return;
+    }
+
+    if (n == 0 || ids == nullptr) {
+        for (size_t i = 0; i < num_can_queues; i++) {
+            s_delivery_modes[i] = delivery_mode_t::UNICAST_ACTIVE;
+            s_zero_success_unicast_batches[i] = 0;
+        }
+        xSemaphoreGive(s_delivery_state_mutex);
+        return;
+    }
+
+    for (size_t id_idx = 0; id_idx < n; id_idx++) {
+        const int queue_index = get_queue_index_for_can_id(ids[id_idx]);
+        if (queue_index < 0) {
+            continue;
+        }
+        s_delivery_modes[queue_index] = delivery_mode_t::UNICAST_ACTIVE;
+        s_zero_success_unicast_batches[queue_index] = 0;
+    }
+
+    xSemaphoreGive(s_delivery_state_mutex);
 }
 
 #ifdef MEASURE_INSTR

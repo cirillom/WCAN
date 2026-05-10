@@ -63,6 +63,15 @@ static void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status
     // Update per-peer TX health. No-op for non-subscriber MACs (e.g., broadcast).
     subscription_record_tx_status(mac_addr, success);
 
+    if (s_in_flight_completion_success != nullptr) {
+        *s_in_flight_completion_success = success;
+    }
+    if (s_in_flight_completion_sem != nullptr) {
+        xSemaphoreGive(s_in_flight_completion_sem);
+        s_in_flight_completion_sem = nullptr;
+        s_in_flight_completion_success = nullptr;
+    }
+
     if (espnow_tx_sem != nullptr) {
         xSemaphoreGive(espnow_tx_sem);
     } else {
@@ -88,6 +97,9 @@ static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *
         ESP_LOGE(TAG, "decode_data_packet failed");
         return;
     }
+    recv_data.received_via_broadcast =
+        (recv_info->des_addr != nullptr &&
+         std::memcmp(recv_info->des_addr, BROADCAST_MAC, ESP_NOW_ETH_ALEN) == 0);
 
     ESP_LOGD(TAG, "Received data with id: %08lx", static_cast<unsigned long>(recv_data.can_id));
     if (recv_data.can_id == CAN_HELLO) {
@@ -95,6 +107,7 @@ static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *
         // No-ops on nodes where subscription_init was not called (e.g., receiver-only).
         const uint32_t *ids = (recv_data.data_count > 0 && recv_data.data) ? recv_data.data.get() : nullptr;
         subscription_update(recv_data.mac_addr.data(), ids, recv_data.data_count);
+        sender_on_subscription_update(ids, recv_data.data_count);
     } else {
         auto heap_pkt = std::make_unique<data_packet_t>(std::move(recv_data));
         filter_data(std::move(heap_pkt));
@@ -261,6 +274,11 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
         return;
     }
 
+    if (tx_ids_size > 0) {
+        subscription_init();
+        sender_init_delivery_state();
+    }
+
     ESP_ERROR_CHECK(esp_now_register_send_cb(espnow_send_cb));
     ESP_LOGV(TAG, "ESP-NOW send callback registered");
     ESP_ERROR_CHECK(esp_now_register_recv_cb(espnow_recv_cb));
@@ -287,12 +305,12 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
     xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, 1, nullptr);
 
     // Sensor: maintain the subscription table populated by HELLO frames from receivers,
-    // and periodically log it as a Phase-2 sanity check. Receivers don't need a table;
-    // they only beacon.
+    // and periodically log it as a Phase-2 sanity check. Receivers keep beaconing and
+    // run a directed registration retry loop after hearing a broadcast data packet.
     if (tx_ids_size > 0) {
-        subscription_init();
         xTaskCreate(subscription_log_task, "subs_log", 2048, nullptr, 1, nullptr);
     } else {
+        registration_init();
         xTaskCreate(hello_beacon_task, "hello_beacon", 4096, nullptr, 4, nullptr);
     }
 
