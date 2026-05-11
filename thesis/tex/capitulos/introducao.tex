@@ -3,7 +3,7 @@
 
 \section{Equipes de Fórmula SAE}
 A Fórmula SAE é uma competição estudantil de âmbito mundial, organizada no Brasil
-pela SAE Brasil e realizada anualmente. As equipes são compostas por alunos
+pela SAE Brasil e realizada anualmente \cite{sae_brasil_formula_sae}. As equipes são compostas por alunos
 de engenharia de uma mesma universidade, que ao longo do ano projetam,
 constroem e testam um protótipo de veículo monoposto de competição. Em 2019,
 a competição brasileira contou com mais de 70 equipes, evidenciando o crescimento
@@ -12,7 +12,7 @@ em provas estáticas e dinâmicas. As provas estáticas avaliam o projeto de eng
 o plano de negócios e o detalhamento de custos e manufatura. As provas dinâmicas
 testam diretamente o desempenho do protótipo em situações como aceleração,
 skidpad, autocross e endurance — sendo esta última a de maior peso na pontuação,
-exigindo que o veículo percorra aproximadamente 22 km sem falhas. A equipe vencedora
+exigindo que o veículo percorra aproximadamente 22 km sem falhas \cite{fsaeonline_endurance_2026}. A equipe vencedora
 no Brasil garante ainda vaga para competir nos Estados Unidos no ano seguinte.
 Dado o calendário anual da competição, cada ciclo de desenvolvimento é único
 e irreversível: falhas durante as provas representam a perda de um ano
@@ -24,7 +24,7 @@ condição essencial para extrair seu máximo desempenho. Sensores distribuídos
 ao longo do protótipo fornecem informações que permitem validar e aprimorar projetos
 de engenharia, orientar ajustes de setup, monitorar a integridade dos sistemas
 críticos em tempo real e comparar objetivamente o desempenho entre diferentes
-pilotos. Sem instrumentação adequada, a equipe depende exclusivamente do feedback
+pilotos \cite{schultz2017_formula_sae_telemetry,ashford2020_formula_sae_data_analysis}. Sem instrumentação adequada, a equipe depende exclusivamente do feedback
 subjetivo dos pilotos — informação valiosa, mas limitada e sujeita a
 variações de percepção. A aquisição de dados transforma essa subjetividade em
 grandezas mensuráveis: pressão de freio, curso de suspensão, ângulo de
@@ -33,14 +33,17 @@ identificar com precisão em qual trecho da pista o carro perde tempo, de que
 forma cada piloto utiliza os recursos do veículo e se as modificações realizadas
 entre testes produziram o efeito esperado. Em suma, o sistema de aquisição de
 dados é o principal elo entre o trabalho de engenharia realizado no galpão e
-as decisões tomadas na pista.
+as decisões tomadas na pista. Sistemas de baixo custo para telemetria e aquisição
+em Fórmula SAE também aparecem em trabalhos acadêmicos com diferentes combinações
+de armazenamento local, comunicação sem fio e visualização em tempo real
+\cite{stoffman2004_low_cost_racing_daq,visconti2019_formula_sae_telemetry,zanetti2013_formula_sae_wireless,lauro2021_formula_sae_telemetria}.
 \section{O Sistema de Aquisição da Equipe}
 O sistema de aquisição de dados da equipe foi consolidado ao longo de vários
 anos de desenvolvimento e testes. Sua arquitetura é baseada em dois módulos de
 aquisição com microcontroladores STM32, interligados por um barramento CAN a
 1 Mbit/s. Esse barramento conecta ainda os demais módulos eletrônicos do veículo
 — controle, transmissor e distribuição de energia — compondo uma rede coesa
-de nós de comunicação. Cada módulo de aquisição lê os sinais provenientes dos
+de nós de comunicação \cite{silva2009_rede_can_formula_sae,blatt2020_aquisicao_formula_sae}. Cada módulo de aquisição lê os sinais provenientes dos
 sensores analógicos e digitais instalados no carro — acelerômetro,
 giroscópio, sensores de pressão de freio, potenciômetros de suspensão e
 esterço, entre outros — e os transmite periodicamente pela rede CAN. Os
@@ -53,4 +56,3 @@ informações objetivas e rastreáveis.
 % explain here what a formula sae team is
 % explain the importance of data validation
 % explain how data validation currently works for my team
-

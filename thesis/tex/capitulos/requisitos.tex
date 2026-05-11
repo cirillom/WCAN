@@ -12,7 +12,10 @@ técnicas de integração com o sistema existente.
 O sistema deve ser capaz de transmitir dados com latência compatível com as frequências
 de aquisição já praticadas pela equipe. Atrasos na entrega dos dados
 comprometem a sincronização temporal com os demais canais do sistema e podem
-tornar a informação inutilizável para análise.
+tornar a informação inutilizável para análise. Em sistemas de aquisição para
+Fórmula SAE, a utilidade dos dados depende tanto da taxa de amostragem quanto
+da capacidade de relacionar os sinais coletados a eventos do veículo e do piloto
+\cite{ashford2020_formula_sae_data_analysis,stoffman2004_low_cost_racing_daq}.
 
 \section{Conexão Instantânea}
 
@@ -39,7 +42,7 @@ possível na arquitetura existente. O sistema sem fio deve preservar os
 identificadores CAN originais de cada mensagem e manter as verificações de
 integridade nativas do protocolo — incluindo CRC e acknowledgment —
 garantindo que o restante da rede trate os dados recebidos sem fio de forma
-idêntica aos dados provenientes de nós cabeados.
+idêntica aos dados provenientes de nós cabeados \cite{iso11898_1_2024,silva2009_rede_can_formula_sae}.
 
 \section{Requisitos Físicos e de Custo}
 
@@ -47,7 +50,7 @@ Os nós sensores devem ser fisicamente compactos e leves, uma vez que serão
 instalados em regiões onde massa e volume são restrições relevantes — como
 rodas e componentes aerodinâmicos. O custo total do sistema deve ser compatível
 com o orçamento de uma equipe universitária, priorizando componentes
-acessíveis sem comprometer os requisitos funcionais.
+acessíveis sem comprometer os requisitos funcionais \cite{stoffman2004_low_cost_racing_daq,david2025_formula_sae_daq}.
 
 \section{Modularidade}
 
@@ -56,5 +59,6 @@ sensores sem alterações na infraestrutura existente. Cada novo ponto de mediç
 deve poder ser incorporado ao sistema de forma independente, com impacto
 mínimo nos demais nós e sem necessidade de reconfiguração do barramento CAN.
 Quando houver filtros de interesse no receptor, a descoberta deve respeitar
-esses filtros para evitar tráfego de controle e processamento desnecessários.
+esses filtros para evitar tráfego de controle e processamento desnecessários
+\cite{rahman2017_intravehicular_wsn}.
 % what are the requirements for a successful system
