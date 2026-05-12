@@ -23,17 +23,43 @@ else()
     message(FATAL_ERROR "ROLE not defined. Use -DROLE=SENSOR or -DROLE=RECEIVER or -DROLE=IDLE")
 endif()
 
-# Optional: sensor sample rate in Hz. Defaults to 200 if not specified.
-# Usage: idf.py -B build_dir -DROLE=SENSOR -DSENSOR_HZ=400 build
+# Optional sensor test knobs. Defaults keep a plain single-CAN-ID sensor.
+# Usage:
+#   idf.py -B build_dir -DROLE=SENSOR -DSENSOR_BASE_CAN_ID=0xc0 \
+#       -DSENSOR_CAN_ID_COUNT=4 -DSENSOR_HZ=750 -DWCAN_LINGER_MS=100 build
 if(NOT DEFINED SENSOR_HZ)
     set(SENSOR_HZ 200)
 endif()
+if(NOT DEFINED SENSOR_BASE_CAN_ID)
+    set(SENSOR_BASE_CAN_ID 0x100)
+endif()
+if(NOT DEFINED SENSOR_CAN_ID_COUNT)
+    set(SENSOR_CAN_ID_COUNT 1)
+endif()
+if(NOT DEFINED WCAN_LINGER_MS)
+    set(WCAN_LINGER_MS 100)
+endif()
+if(SENSOR_CAN_ID_COUNT LESS 1 OR SENSOR_CAN_ID_COUNT GREATER 16)
+    message(FATAL_ERROR "SENSOR_CAN_ID_COUNT must be between 1 and 16; got ${SENSOR_CAN_ID_COUNT}")
+endif()
 target_compile_definitions(${COMPONENT_LIB} PRIVATE SENSOR_HZ=${SENSOR_HZ})
+target_compile_definitions(${COMPONENT_LIB} PRIVATE SENSOR_BASE_CAN_ID=${SENSOR_BASE_CAN_ID})
+target_compile_definitions(${COMPONENT_LIB} PRIVATE SENSOR_CAN_ID_COUNT=${SENSOR_CAN_ID_COUNT})
+target_compile_definitions(${COMPONENT_LIB} PRIVATE WCAN_LINGER_MS=${WCAN_LINGER_MS})
+if(SENSOR_CAN_ID_COUNT GREATER 1)
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE SENSOR_MULTIPLE_CAN_IDS)
+endif()
 message(STATUS "Building with SENSOR_HZ=${SENSOR_HZ}")
+message(STATUS "Building with SENSOR_BASE_CAN_ID=${SENSOR_BASE_CAN_ID}")
+message(STATUS "Building with SENSOR_CAN_ID_COUNT=${SENSOR_CAN_ID_COUNT}")
+message(STATUS "Building with WCAN_LINGER_MS=${WCAN_LINGER_MS}")
 
 # Optional receiver active-filter allowlist. Omit RECEIVER_FILTER_COUNT for
 # legacy accept-all receivers. Set it to 0 for an intentionally empty allowlist.
 if(DEFINED RECEIVER_FILTER_COUNT)
+    if(RECEIVER_FILTER_COUNT GREATER 16)
+        message(FATAL_ERROR "RECEIVER_FILTER_COUNT supports at most 16 CAN IDs; got ${RECEIVER_FILTER_COUNT}")
+    endif()
     target_compile_definitions(${COMPONENT_LIB} PRIVATE RECEIVER_FILTER_COUNT=${RECEIVER_FILTER_COUNT})
     if(RECEIVER_FILTER_COUNT GREATER 0)
         math(EXPR RECEIVER_FILTER_LAST "${RECEIVER_FILTER_COUNT} - 1")

@@ -477,7 +477,7 @@ def find_test_folders(root: Path) -> list:
     if is_test_folder(root):
         return [root]
 
-    folders = sorted(p for p in root.iterdir() if p.is_dir() and is_test_folder(p))
+    folders = sorted(p for p in root.rglob("test_*") if p.is_dir() and is_test_folder(p))
     if not folders:
         print(f"No test folders found in {root}")
         sys.exit(1)
@@ -495,7 +495,19 @@ def sensor_summary(sensors, receivers, context: AnalysisContext = None):
         sent = sensor.counters[:-1] if sensor.counters else []
         for can_id in sensor.can_ids:
             union = set()
-            for receiver in _subscribed_receivers(context, receivers, can_id):
+            subscribed = _subscribed_receivers(context, receivers, can_id)
+            if context.active_filtering and not subscribed:
+                summaries.append(
+                    SensorSummary(
+                        sensor=sensor,
+                        can_id=can_id,
+                        sent=[],
+                        received_by_any=set(),
+                        total_misses=[],
+                    )
+                )
+                continue
+            for receiver in subscribed:
                 union |= receiver.received.get(can_id, set())
             total_misses = sorted(c for c in sent if c not in union)
 
@@ -529,8 +541,6 @@ def analyze_data_overall(sensors, receivers, test_name, context: AnalysisContext
     total_misses = sum(len(s.total_misses) for s in summaries)
 
     status = "PASS" if total_misses == 0 else "FAIL"
-    report_lines.append(f"=== {test_name} ===")
-    
     report_lines.append(f"DELIVERY ANALYSIS: {status} ({total_misses} misses after producer queue accept)")
 
     for receiver in receivers:
@@ -578,7 +588,6 @@ def analyze_data_pairs(sensors, receivers, test_name, context: AnalysisContext =
     report_lines = []
     
     total_misses = 0
-    report_lines.append(f"=== {test_name} PAIRS ===")
     for r in results:
         if not _receiver_accepts_can_id(context, r.receiver, r.can_id):
             report_lines.append(
@@ -596,23 +605,40 @@ def analyze_data_pairs(sensors, receivers, test_name, context: AnalysisContext =
             
     status = "PASS" if total_misses == 0 else "INFO"
     report_lines.insert(
-        1,
+        0,
         f"DATA PAIR ANALYSIS: {status} ({total_misses} total pair misses; informational only)",
     )
     return "\n".join(report_lines), True
 
-def analyze_transport_health(sensors):
+def _sensor_has_expected_receiver(sensor: SensorData, receivers, context: AnalysisContext) -> bool:
+    if not context.active_filtering:
+        return True
+    return any(_subscribed_receivers(context, receivers, can_id) for can_id in sensor.can_ids)
+
+
+def analyze_transport_health(sensors, receivers=None, context: AnalysisContext = None):
     """Report producer queue drops and WCAN retry exhaustion.
 
     DATA SENT ANALYSIS only compares counters that reached CAN_PROC. If the
     producer queue is full, those readings are dropped before CAN_PROC logs a
     batch, so they need a separate transport-health gate.
     """
+    context = context or AnalysisContext()
+    receivers = receivers or []
+    gated_sensors = [
+        sensor for sensor in sensors
+        if _sensor_has_expected_receiver(sensor, receivers, context)
+    ]
+    ignored_sensors = [
+        sensor for sensor in sensors
+        if sensor not in gated_sensors
+    ]
+
     report_lines = []
-    total_producer_drops = sum(s.queue_drop_count for s in sensors)
-    total_send_drops = sum(s.send_queue_drop_count for s in sensors)
+    total_producer_drops = sum(s.queue_drop_count for s in gated_sensors)
+    total_send_drops = sum(s.send_queue_drop_count for s in gated_sensors)
     total_drops = total_producer_drops + total_send_drops
-    total_max_retry_failures = sum(s.max_retry_fail_count for s in sensors)
+    total_max_retry_failures = sum(s.max_retry_fail_count for s in gated_sensors)
 
     passed = total_drops == 0 and total_max_retry_failures == 0
     status = "PASS" if passed else "FAIL"
@@ -621,8 +647,13 @@ def analyze_transport_health(sensors):
         f"({total_producer_drops} producer drops before send queue, {total_send_drops} WCAN send drops, "
         f"{total_max_retry_failures} max-retry failures)"
     )
+    if ignored_sensors:
+        report_lines.append(
+            "Ignored fully-filtered active-filter sensor(s): "
+            + ", ".join(sensor.board_id for sensor in ignored_sensors)
+        )
 
-    for sensor in sensors:
+    for sensor in gated_sensors:
         attempts = sensor.queue_push_count + sensor.queue_drop_count
         drop_rate = (100.0 * sensor.queue_drop_count / attempts) if attempts else 0.0
         retry_text = f"{sensor.retry_count} timeouts"
@@ -634,6 +665,11 @@ def analyze_transport_health(sensors):
             f"({drop_rate:.1f}% producer drop attempts, {len(sensor.queue_drop_counters)} unique counters), "
             f"{sensor.send_queue_drop_count} WCAN send drops, "
             f"{retry_text}, {sensor.max_retry_fail_count} max-retry failures"
+        )
+    for sensor in ignored_sensors:
+        report_lines.append(
+            f"Sensor {sensor.board_id} ({sensor.port}): fully filtered by receiver allowlist; "
+            "transport retries/drops are expected and not gated"
         )
 
     return "\n".join(report_lines), passed
@@ -813,23 +849,7 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
     if metadata.get("active_filtering"):
         allowlists = context.receiver_allowlists
         expected_receivers = context.expected_receivers
-        report_lines.append("Active filter configuration:")
-        for sensor in sensors:
-            configured = metadata.get("sensor_can_ids", {}).get(sensor.board_id)
-            configured_text = _format_can_id(configured) if configured else "unknown"
-            report_lines.append(
-                f"Sensor {sensor.board_id}: configured {configured_text}; sent {_format_can_ids(sensor.can_ids)}"
-            )
-        for receiver in receivers:
-            allowed = allowlists.get(receiver.board_id, set())
-            observed_ids = [
-                can_id for can_id, counters in receiver.received.items()
-                if counters
-            ]
-            report_lines.append(
-                f"Receiver {receiver.board_id}: accepts {_format_can_ids(allowed)}; "
-                f"received {_format_can_ids(observed_ids)}"
-            )
+        report_lines.append("Active filter delivery:")
 
         for receiver in receivers:
             allowed = allowlists.get(receiver.board_id, set())
@@ -842,6 +862,43 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
                 report_lines.append(
                     f"Receiver {receiver.board_id}: unexpected CAN IDs {_format_can_ids(unexpected_ids)}"
                 )
+
+        sensors_by_can_id = {
+            _normalize_can_id(can_id): sensor
+            for sensor in sensors
+            for can_id in sensor.can_ids
+        }
+        for receiver in receivers:
+            allowed = sorted(allowlists.get(receiver.board_id, set()))
+            if not allowed:
+                observed_total = sum(len(counters) for counters in receiver.received.values())
+                report_lines.append(
+                    f"RECEIVER {receiver.board_id} -> expected none -> received {observed_total} total"
+                )
+                continue
+            for can_id in allowed:
+                sensor = sensors_by_can_id.get(_normalize_can_id(can_id))
+                if sensor is None:
+                    failures += 1
+                    report_lines.append(
+                        f"RECEIVER {receiver.board_id} -> expected {_format_can_id(can_id)} -> no matching sensor log"
+                    )
+                    continue
+                sent = sensor.counters[:-1] if sensor.counters else []
+                received = receiver.received.get(_normalize_can_id(can_id), set())
+                trimmed_sent = _trim_tail(sent, received)
+                received_count = len(received & set(trimmed_sent))
+                missed = sorted(c for c in trimmed_sent if c not in received)
+                report_lines.append(
+                    f"RECEIVER {receiver.board_id} -> expected {_format_can_id(can_id)} -> "
+                    f"received {received_count} from {len(trimmed_sent)} sent from SENSOR {sensor.board_id}"
+                )
+                if missed:
+                    failures += len(missed)
+                    report_lines.append(
+                        f"RECEIVER {receiver.board_id} -> {_format_can_id(can_id)} missed "
+                        f"{_format_counter_list(missed)}"
+                    )
 
         for sensor in sensors:
             sent = sensor.counters[:-1] if sensor.counters else []
@@ -862,25 +919,20 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
                     if receiver.board_id not in subscriber_ids
                 ]
                 if not subscribers:
-                    failures += 1
-                    report_lines.append(f"Sensor {sensor.board_id} (0x{can_id}): no subscribed receivers")
-                    continue
-                subscribed_received = set()
-                for receiver in subscribers:
-                    subscribed_received |= receiver.received.get(can_id, set())
-                trimmed_sent = _trim_tail(sent, subscribed_received)
-                missed = sorted(c for c in trimmed_sent if c not in subscribed_received)
-                report_lines.append(
-                    f"Sensor {sensor.board_id} (0x{can_id}): expected receivers {', '.join(subscriber_ids)}; "
-                    f"filtered receivers {', '.join(filtered_ids) if filtered_ids else 'none'}; "
-                    f"delivered {len(subscribed_received & set(trimmed_sent))}/{len(trimmed_sent)}"
-                )
-                if missed:
-                    failures += len(missed)
                     report_lines.append(
-                        f"Sensor {sensor.board_id} (0x{can_id}): {len(missed)} subscribed-delivery misses "
-                        f"{_format_counter_list(missed)}"
+                        f"SENSOR {sensor.board_id} -> {_format_can_id(can_id)} filtered by all receivers -> expected no receive"
                     )
+                    continue
+                if filtered_ids:
+                    leaked_to = [
+                        receiver.board_id for receiver in receivers
+                        if receiver.board_id in filtered_ids and receiver.received.get(normalized_can_id, set())
+                    ]
+                    report_lines.append(
+                        f"SENSOR {sensor.board_id} -> {_format_can_id(can_id)} filtered by "
+                        f"{', '.join(filtered_ids)} -> {'unexpected receive by ' + ', '.join(leaked_to) if leaked_to else 'no receive'}"
+                    )
+                    failures += len(leaked_to)
         report_lines.append("Active filtering checks complete")
 
     if metadata.get("frequency_mixing"):
@@ -936,7 +988,7 @@ def analyze_all(test_dir: Path):
     
     r_data_o, p_data_o = analyze_data_overall(sensors, receivers, test_name, context)
     r_data_p, p_data_p = analyze_data_pairs(sensors, receivers, test_name, context)
-    r_transport, p_transport = analyze_transport_health(sensors)
+    r_transport, p_transport = analyze_transport_health(sensors, receivers, context)
     r_crash, p_crash = analyze_crashes(sensors, receivers)
     r_heap, p_heap = analyze_heap_integrity(sensors, receivers)
     r_scenario, p_scenario = analyze_scenario(test_dir, sensors, receivers, context)
@@ -959,15 +1011,27 @@ def analyze_all(test_dir: Path):
     out.append("")
     out.append(r_measure)
     
-    overall_passed = p_data_o and p_transport and p_crash and p_heap and p_scenario
-    criteria = (
-        f"criteria: data_any={'PASS' if p_data_o else 'FAIL'}, "
-        "data_pairs=INFO, "
-        f"transport={'PASS' if p_transport else 'FAIL'}, "
-        f"crash={'PASS' if p_crash else 'FAIL'}, heap={'PASS' if p_heap else 'FAIL'}, "
-        f"scenario={'PASS' if p_scenario else 'FAIL'}"
-    )
-    out.insert(0, f"OVERALL STATUS [{test_name}]: {'PASS' if overall_passed else 'FAIL'} ({criteria})\n")
+    checks = {
+        "delivery": p_data_o,
+        "transport": p_transport,
+        "crash": p_crash,
+        "heap": p_heap,
+        "scenario": p_scenario,
+    }
+    overall_passed = all(checks.values())
+    failed = [name for name, ok in checks.items() if not ok]
+    metadata = context.metadata
+    topology = metadata.get("topology", test_name.removeprefix("test_"))
+    repeat = metadata.get("repeat")
+    if repeat is not None and not str(topology).endswith(f"_rep{repeat}"):
+        topology = f"{topology}_rep{repeat}"
+    suite = metadata.get("suite", metadata.get("scenario", "unknown"))
+    transport = metadata.get("transport", "unknown")
+    status = "PASS" if overall_passed else "FAIL"
+    out.insert(0, f"failed: {', '.join(failed) if failed else 'none'}")
+    out.insert(0, f"{suite} | {transport} | {topology} | {status}")
+    out.append("")
+    out.append("======================")
     return "\n".join(out), overall_passed
 
 def main():
@@ -988,7 +1052,7 @@ def main():
         report, passed = analyze_all(folder)
         all_reports.append(report)
         print(report)
-        print("-" * 60)
+        print()
         if passed:
             n_passed += 1
 
@@ -997,8 +1061,7 @@ def main():
 
     if len(test_folders) > 1:
         summary_path = root / "analysis_summary.txt"
-        separator = "\n" + ("-" * 60) + "\n"
-        combined = separator.join(all_reports) + "\n" + result_line + "\n"
+        combined = "\n\n".join(all_reports) + "\n" + result_line + "\n"
         summary_path.write_text(combined, encoding="utf-8")
         print(f"Combined summary saved: {summary_path}")
 

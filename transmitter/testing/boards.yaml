@@ -1,48 +1,28 @@
-# boards.yaml — Board inventory and test configuration
-# Edit this file to match your physical setup.
+# boards.yaml - physical board inventory only.
+# Test suites, profiles, frequencies, repeats, and timing live in tests.yaml.
 
 boards:
-  - id: B0
+  - id: A
     chip: esp32
     port: /dev/ttyUSB0
-    can_id: 0x5d11
+    can_id: 0xa0
 
-  - id: B1
-    chip: esp32   
+  - id: B
+    chip: esp32
     port: /dev/ttyUSB1
-    can_id: 0xc979
+    can_id: 0xb0
 
-  - id: B2
+  - id: C
     chip: esp32
     port: /dev/ttyUSB2
-    can_id: 0xd6d1
+    can_id: 0xc0
 
-  - id: B3
+  - id: D
     chip: esp32c3
     port: /dev/ttyACM0
-    can_id: 0x0b8d
+    can_id: 0xd0
 
-  - id: B4
+  - id: E
     chip: esp32c3
     port: /dev/ttyACM1
-    can_id: 0xd5b9
-
-  # Add more boards as needed:
-  # - id: B4
-  #   chip: esp32
-  #   port: COM7
-
-test_config:
-  duration_seconds: 30     # How long to capture serial output per test
-  repeats: 3               # How many times each (S,R) combo runs
-  cooldown_seconds: 5      # Pause between tests for boards to settle
-  baud_rate: 921600        # Serial monitor baud rate
-  project_path: ".."       # ESP-IDF project root (one level up from testing/)
-  frequency_hz:
-    - 1
-    - 10
-    - 100
-    - 200
-    - 500
-    - 750
-    - 1000
+    can_id: 0xe0
