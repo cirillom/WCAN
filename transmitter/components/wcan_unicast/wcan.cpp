@@ -33,6 +33,36 @@ uint32_t *tx_can_ids = nullptr;
 uint8_t own_mac_addr[ESP_NOW_ETH_ALEN];
 size_t num_can_queues = 0;
 
+static std::unique_ptr<uint32_t[]> s_rx_can_ids_storage;
+static std::unique_ptr<uint32_t[]> s_tx_can_ids_storage;
+
+static bool copy_can_ids(const char *name, const uint32_t *ids, size_t ids_size, std::unique_ptr<uint32_t[]> &storage,
+                         uint32_t *&target)
+{
+    static const char *TAG = "WCAN";
+
+    storage.reset();
+    target = nullptr;
+
+    if (ids_size == 0) {
+        return true;
+    }
+    if (ids == nullptr) {
+        ESP_LOGE(TAG, "%s is NULL with size %u", name, static_cast<unsigned>(ids_size));
+        return false;
+    }
+
+    storage = std::make_unique<uint32_t[]>(ids_size);
+    if (!storage) {
+        ESP_LOGE(TAG, "Failed to allocate %s storage", name);
+        return false;
+    }
+
+    std::memcpy(storage.get(), ids, ids_size * sizeof(uint32_t));
+    target = storage.get();
+    return true;
+}
+
 static void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
     static const char *TAG = "SEND_CB";
@@ -240,12 +270,14 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
     std::memcpy(own_mac_addr, mac, ESP_NOW_ETH_ALEN);
 
     recv_filter = filter;
-    if (filter) {
-        rx_can_ids = rx_ids;
-        rx_can_ids_size = rx_ids_size;
-    } else {
-        rx_can_ids = nullptr;
-        rx_can_ids_size = 0;
+
+    if (tx_ids_size > 0 && tx_ids == nullptr) {
+        ESP_LOGE(TAG, "tx_can_ids is NULL with size %u", static_cast<unsigned>(tx_ids_size));
+        return;
+    }
+    if (filter && rx_ids_size > 0 && rx_ids == nullptr) {
+        ESP_LOGE(TAG, "rx_can_ids is NULL with size %u", static_cast<unsigned>(rx_ids_size));
+        return;
     }
 
     for (size_t i = 0; i < tx_ids_size; i++) {
@@ -265,7 +297,20 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
         }
     }
 
-    tx_can_ids = tx_ids;
+    if (!copy_can_ids("tx_can_ids", tx_ids, tx_ids_size, s_tx_can_ids_storage, tx_can_ids)) {
+        return;
+    }
+    if (filter) {
+        if (!copy_can_ids("rx_can_ids", rx_ids, rx_ids_size, s_rx_can_ids_storage, rx_can_ids)) {
+            return;
+        }
+        rx_can_ids_size = rx_ids_size;
+    } else {
+        s_rx_can_ids_storage.reset();
+        rx_can_ids = nullptr;
+        rx_can_ids_size = 0;
+    }
+
     linger_ms = linger;
     num_can_queues = tx_ids_size;
 

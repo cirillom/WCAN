@@ -12,6 +12,8 @@ from datetime import datetime
 class HeapStats:
     samples: list = field(default_factory=list)  # (ts, free, min_free, largest)
     slope_bytes_per_s: float = 0.0
+    early_free: int = 0
+    end_free: int = 0
     end_min_free: int = 0
     early_min_free: int = 0
     leak_status: str = "NO_DATA"
@@ -31,14 +33,21 @@ class SensorData:
     board_id: str
     port: str
     can_id: str
+    can_ids: list = field(default_factory=list)
     counters: list = field(default_factory=list)
     counter_times: dict = field(default_factory=dict)
     ack_delays: dict = field(default_factory=dict)
     packet_counters: dict = field(default_factory=dict)
     sent_times: dict = field(default_factory=dict)
+    sent_times_by_can_id: dict = field(default_factory=dict)
     crash_count: int = 0
     retry_count: int = 0
     max_retry_chain: int = 0
+    max_retry_fail_count: int = 0
+    queue_push_count: int = 0
+    queue_drop_count: int = 0
+    queue_drop_counters: set = field(default_factory=set)
+    send_queue_drop_count: int = 0
     heap: HeapStats = field(default_factory=HeapStats)
     measure: MeasureStats = field(default_factory=MeasureStats)
 
@@ -56,12 +65,14 @@ class ReceiverData:
 class DelayResult:
     sensor: SensorData
     receiver: ReceiverData
+    can_id: str
     delays: dict
 
 @dataclass
 class ComparisonResult:
     sensor: SensorData
     receiver: ReceiverData
+    can_id: str
     sent: list
     received: set
     missed: list
@@ -69,6 +80,7 @@ class ComparisonResult:
 @dataclass
 class SensorSummary:
     sensor: SensorData
+    can_id: str
     sent: list
     received_by_any: set
     total_misses: list
@@ -83,7 +95,13 @@ RE_SENSOR_ACK = re.compile(
     r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?ACK:\s*Received ACK for packet tick\s*(\d+)"
 )
 RE_SENSOR_COUNTER = re.compile(
-    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?read_data_task:\s*(\d+)"
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?read_data_task:\s*(?:\[0x[0-9a-fA-F]+\]\s*)?(\d+)"
+)
+RE_SENSOR_QUEUE_DROP = re.compile(
+    r"read_data_task:\s*(?:\[0x[0-9a-fA-F]+\]\s*)?Send queue full,\s*dropping counter=(\d+)"
+)
+RE_WCAN_SEND_QUEUE_DROP = re.compile(
+    r"send_data:\s*Send queue full,\s*dropping packet with CAN ID\s*0x[0-9a-fA-F]+"
 )
 RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
 RE_RECEIVER_BATCH = re.compile(
@@ -114,15 +132,22 @@ RE_TASK_STATS = re.compile(
 
 CRASH_MARKER = "WCAN initialized"
 RETRY_MARKER = "Timeout reached"
+MAX_RETRY_MARKER = "Max retry attempts reached"
 RE_RETRY_ATTEMPT = re.compile(r"Timeout reached.*?Attempt:\s*(\d+)\s*of\s*\d+")
 
 LEAK_SLOPE_FAIL = -64.0
 LEAK_SLOPE_SUSPECTED = -16.0
 LEAK_END_DROP_RATIO = 0.80
+LEAK_ABS_FAIL_BYTES = 2048
+LEAK_ABS_SUSPECTED_BYTES = 1024
 HEAP_INIT_TRANSIENT_SEC = 5.0
 
 def _parse_ts(ts_str: str) -> float:
     return datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S.%f").timestamp()
+
+def _normalize_can_id(can_id: str) -> str:
+    raw = can_id.lower().removeprefix("0x")
+    return f"{int(raw, 16):x}"
 
 def parse_heap_stats(text: str) -> HeapStats:
     samples = []
@@ -135,27 +160,38 @@ def parse_heap_stats(text: str) -> HeapStats:
         return stats
 
     t0 = samples[0][0]
-    post_init = [(t - t0, mf) for (t, _free, mf, _largest) in samples if (t - t0) >= HEAP_INIT_TRANSIENT_SEC]
-    if len(post_init) < 3:
-        post_init = [(t - t0, mf) for (t, _free, mf, _largest) in samples]
+    post_init = [
+        (t - t0, free, min_free)
+        for (t, free, min_free, _largest) in samples
+        if (t - t0) >= HEAP_INIT_TRANSIENT_SEC
+    ]
+    if len(post_init) < 2:
+        post_init = [(t - t0, free, min_free) for (t, free, min_free, _largest) in samples]
+    if len(post_init) < 2:
+        return stats
 
     n = len(post_init)
-    sum_t = sum(t for t, _ in post_init)
-    sum_y = sum(y for _, y in post_init)
-    sum_tt = sum(t * t for t, _ in post_init)
-    sum_ty = sum(t * y for t, y in post_init)
+    sum_t = sum(t for t, _, _ in post_init)
+    sum_y = sum(free for _, free, _ in post_init)
+    sum_tt = sum(t * t for t, _, _ in post_init)
+    sum_ty = sum(t * free for t, free, _ in post_init)
     denom = n * sum_tt - sum_t * sum_t
     slope = (n * sum_ty - sum_t * sum_y) / denom if denom != 0 else 0.0
 
-    early_min_free = post_init[0][1]
-    end_min_free = post_init[-1][1]
+    early_free = post_init[0][1]
+    end_free = post_init[-1][1]
+    early_min_free = post_init[0][2]
+    end_min_free = post_init[-1][2]
     stats.slope_bytes_per_s = slope
+    stats.early_free = early_free
+    stats.end_free = end_free
     stats.early_min_free = early_min_free
     stats.end_min_free = end_min_free
 
-    if slope <= LEAK_SLOPE_FAIL or end_min_free < early_min_free * LEAK_END_DROP_RATIO:
+    free_drop = early_free - end_free
+    if (slope <= LEAK_SLOPE_FAIL and free_drop >= LEAK_ABS_FAIL_BYTES) or end_free < early_free * LEAK_END_DROP_RATIO:
         stats.leak_status = "FAIL"
-    elif slope <= LEAK_SLOPE_SUSPECTED:
+    elif slope <= LEAK_SLOPE_SUSPECTED and free_drop >= LEAK_ABS_SUSPECTED_BYTES:
         stats.leak_status = "SUSPECTED"
     else:
         stats.leak_status = "OK"
@@ -215,23 +251,34 @@ def parse_sensor_log(path: Path) -> SensorData:
     can_match = RE_SENSOR_CAN_ID.search(text)
     if not can_match:
         raise ValueError(f"No CAN ID found in sensor log: {path.name}")
-    can_id = can_match.group(1).lower()
+    can_id = _normalize_can_id(can_match.group(1))
 
     counter_times = {}
+    queue_push_count = 0
     for m in RE_SENSOR_COUNTER.finditer(text):
+        queue_push_count += 1
         counter_times[int(m.group(2))] = _parse_ts(m.group(1))
     counters = sorted(counter_times.keys())
+    queue_drop_counters = {int(m.group(1)) for m in RE_SENSOR_QUEUE_DROP.finditer(text)}
 
     can_proc_times = {}
     packet_counters = {}
     sent_times = {}
+    sent_times_by_can_id = {}
+    can_ids_seen = []
     for m in RE_SENSOR_CAN_PROC.finditer(text):
         ts = _parse_ts(m.group(1))
+        proc_can_id = _normalize_can_id(m.group(2))
         first_counter = int(m.group(3))
         tick = int(m.group(4))
         can_proc_times[tick] = ts
         packet_counters[tick] = first_counter
         sent_times[first_counter] = ts
+        sent_times_by_can_id.setdefault(proc_can_id, {})[first_counter] = ts
+        if proc_can_id not in can_ids_seen:
+            can_ids_seen.append(proc_can_id)
+
+    can_ids = can_ids_seen or [can_id]
 
     ack_delays = {}
     for m in RE_SENSOR_ACK.finditer(text):
@@ -242,20 +289,28 @@ def parse_sensor_log(path: Path) -> SensorData:
 
     crash_count = max(0, text.count(CRASH_MARKER) - 1)
     retry_count = text.count(RETRY_MARKER)
+    max_retry_fail_count = text.count(MAX_RETRY_MARKER)
     max_retry_chain = max((int(m.group(1)) for m in RE_RETRY_ATTEMPT.finditer(text)), default=0)
 
     return SensorData(
         board_id=board_id,
         port=port,
         can_id=can_id,
+        can_ids=can_ids,
         counters=counters,
         counter_times=counter_times,
         ack_delays=ack_delays,
         packet_counters=packet_counters,
         sent_times=sent_times,
+        sent_times_by_can_id=sent_times_by_can_id,
         crash_count=crash_count,
         retry_count=retry_count,
         max_retry_chain=max_retry_chain,
+        max_retry_fail_count=max_retry_fail_count,
+        queue_push_count=queue_push_count,
+        queue_drop_count=len(RE_SENSOR_QUEUE_DROP.findall(text)),
+        queue_drop_counters=queue_drop_counters,
+        send_queue_drop_count=len(RE_WCAN_SEND_QUEUE_DROP.findall(text)),
         heap=parse_heap_stats(text),
         measure=parse_measure(text),
     )
@@ -271,7 +326,7 @@ def parse_receiver_log(path: Path) -> ReceiverData:
     received_times = {}
     for m in RE_RECEIVER_BATCH.finditer(text):
         ts = _parse_ts(m.group(1))
-        can_id = m.group(2).lower()
+        can_id = _normalize_can_id(m.group(2))
         first, last = int(m.group(4)), int(m.group(5))
         received.setdefault(can_id, set()).update(range(first, last + 1))
         received_times.setdefault(can_id, {})[first] = ts
@@ -292,41 +347,45 @@ def compare(sensors, receivers):
     results = []
     for sensor in sensors:
         sent = sensor.counters[:-1] if sensor.counters else []
-        for receiver in receivers:
-            recv_counters = receiver.received.get(sensor.can_id, set())
+        for can_id in sensor.can_ids:
+            for receiver in receivers:
+                recv_counters = receiver.received.get(can_id, set())
 
-            missed_set = set(sent) - recv_counters
-            n_tail = 0
-            for c in reversed(sent):
-                if c in missed_set:
-                    n_tail += 1
-                else:
-                    break
-            trimmed_sent = sent[:-n_tail] if n_tail else sent
+                missed_set = set(sent) - recv_counters
+                n_tail = 0
+                for c in reversed(sent):
+                    if c in missed_set:
+                        n_tail += 1
+                    else:
+                        break
+                trimmed_sent = sent[:-n_tail] if 0 < n_tail < len(sent) else sent
 
-            missed = sorted(c for c in trimmed_sent if c not in recv_counters)
-            results.append(
-                ComparisonResult(
-                    sensor=sensor,
-                    receiver=receiver,
-                    sent=trimmed_sent,
-                    received=recv_counters,
-                    missed=missed,
+                missed = sorted(c for c in trimmed_sent if c not in recv_counters)
+                results.append(
+                    ComparisonResult(
+                        sensor=sensor,
+                        receiver=receiver,
+                        can_id=can_id,
+                        sent=trimmed_sent,
+                        received=recv_counters & set(trimmed_sent),
+                        missed=missed,
+                    )
                 )
-            )
     return results
 
 def compute_delays(sensors, receivers):
     results = []
     for sensor in sensors:
-        for receiver in receivers:
-            recv_times = receiver.received_times.get(sensor.can_id, {})
-            delays = {}
-            for first_counter, recv_ts in recv_times.items():
-                send_ts = sensor.sent_times.get(first_counter)
-                if send_ts is not None:
-                    delays[first_counter] = (recv_ts - send_ts) * 1000
-            results.append(DelayResult(sensor=sensor, receiver=receiver, delays=delays))
+        for can_id in sensor.can_ids:
+            for receiver in receivers:
+                recv_times = receiver.received_times.get(can_id, {})
+                send_times = sensor.sent_times_by_can_id.get(can_id, sensor.sent_times)
+                delays = {}
+                for first_counter, recv_ts in recv_times.items():
+                    send_ts = send_times.get(first_counter)
+                    if send_ts is not None:
+                        delays[first_counter] = (recv_ts - send_ts) * 1000
+                results.append(DelayResult(sensor=sensor, receiver=receiver, can_id=can_id, delays=delays))
     return results
 
 def is_test_folder(path: Path) -> bool:
@@ -351,31 +410,33 @@ def sensor_summary(sensors, receivers):
     summaries = []
     for sensor in sensors:
         sent = sensor.counters[:-1] if sensor.counters else []
-        union = set()
-        for receiver in receivers:
-            union |= receiver.received.get(sensor.can_id, set())
-        total_misses = sorted(c for c in sent if c not in union)
+        for can_id in sensor.can_ids:
+            union = set()
+            for receiver in receivers:
+                union |= receiver.received.get(can_id, set())
+            total_misses = sorted(c for c in sent if c not in union)
 
-        missed_set = set(total_misses)
-        n_tail = 0
-        for c in reversed(sent):
-            if c in missed_set:
-                n_tail += 1
-            else:
-                break
-        if n_tail:
-            tail_set = set(sent[-n_tail:])
-            sent = sent[:-n_tail]
-            total_misses = [c for c in total_misses if c not in tail_set]
+            missed_set = set(total_misses)
+            n_tail = 0
+            for c in reversed(sent):
+                if c in missed_set:
+                    n_tail += 1
+                else:
+                    break
+            trimmed_sent = sent[:-n_tail] if 0 < n_tail < len(sent) else sent
+            if 0 < n_tail < len(sent):
+                tail_set = set(sent[-n_tail:])
+                total_misses = [c for c in total_misses if c not in tail_set]
 
-        summaries.append(
-            SensorSummary(
-                sensor=sensor,
-                sent=sent,
-                received_by_any=union & set(sent),
-                total_misses=total_misses,
+            summaries.append(
+                SensorSummary(
+                    sensor=sensor,
+                    can_id=can_id,
+                    sent=trimmed_sent,
+                    received_by_any=union & set(trimmed_sent),
+                    total_misses=total_misses,
+                )
             )
-        )
     return summaries
 
 def analyze_data_overall(sensors, receivers, test_name):
@@ -390,7 +451,7 @@ def analyze_data_overall(sensors, receivers, test_name):
 
     for receiver in receivers:
         total_expected = sum(len(s.sent) for s in summaries)
-        total_received = sum(len(receiver.received.get(s.sensor.can_id, set())) for s in summaries)
+        total_received = sum(len(receiver.received.get(s.can_id, set()) & set(s.sent)) for s in summaries)
         total_missed = total_expected - total_received
         report_lines.append(f"Receiver {receiver.board_id} ({receiver.port}): {total_received} received (expected {total_expected}, missed {total_missed})")
 
@@ -401,7 +462,7 @@ def analyze_data_overall(sensors, receivers, test_name):
         n_miss = len(s.total_misses)
         retries_str = f"{sensor.retry_count}({sensor.max_retry_chain})" if sensor.max_retry_chain > 1 else f"{sensor.retry_count}"
         
-        line = f"Sensor {sensor.board_id} (0x{sensor.can_id} | {sensor.port}): {n_sent} sent, {n_recv} received, {n_miss} misses, {retries_str} retries"
+        line = f"Sensor {sensor.board_id} (0x{s.can_id} | {sensor.port}): {n_sent} sent, {n_recv} received, {n_miss} misses, {retries_str} retries"
         report_lines.append(line)
         if s.total_misses:
             report_lines.append(f" - MISSED: {s.total_misses}")
@@ -418,12 +479,53 @@ def analyze_data_pairs(sensors, receivers, test_name):
         n_sent = len(r.sent)
         n_recv = len(r.received)
         total_misses += len(r.missed)
-        line = f"Sensor {r.sensor.board_id} → Receiver {r.receiver.board_id}: {n_sent} sent, {n_recv} received"
+        line = f"Sensor {r.sensor.board_id} (0x{r.can_id}) → Receiver {r.receiver.board_id}: {n_sent} sent, {n_recv} received"
         report_lines.append(line)
         if r.missed:
             report_lines.append(f" - MISSED: {r.missed}")
             
-    passed = total_misses == 0
+    status = "PASS" if total_misses == 0 else "INFO"
+    report_lines.insert(
+        1,
+        f"DATA PAIR ANALYSIS: {status} ({total_misses} total pair misses; informational only)",
+    )
+    return "\n".join(report_lines), True
+
+def analyze_transport_health(sensors):
+    """Report producer queue drops and WCAN retry exhaustion.
+
+    DATA SENT ANALYSIS only compares counters that reached CAN_PROC. If the
+    producer queue is full, those readings are dropped before CAN_PROC logs a
+    batch, so they need a separate transport-health gate.
+    """
+    report_lines = []
+    total_producer_drops = sum(s.queue_drop_count for s in sensors)
+    total_send_drops = sum(s.send_queue_drop_count for s in sensors)
+    total_drops = total_producer_drops + total_send_drops
+    total_max_retry_failures = sum(s.max_retry_fail_count for s in sensors)
+
+    passed = total_drops == 0 and total_max_retry_failures == 0
+    status = "PASS" if passed else "FAIL"
+    report_lines.append(
+        f"TRANSPORT HEALTH: {status} "
+        f"({total_producer_drops} producer drops, {total_send_drops} WCAN send drops, "
+        f"{total_max_retry_failures} max-retry failures)"
+    )
+
+    for sensor in sensors:
+        attempts = sensor.queue_push_count + sensor.queue_drop_count
+        drop_rate = (100.0 * sensor.queue_drop_count / attempts) if attempts else 0.0
+        retry_text = f"{sensor.retry_count} timeouts"
+        if sensor.max_retry_chain:
+            retry_text += f", max chain {sensor.max_retry_chain}"
+        report_lines.append(
+            f"Sensor {sensor.board_id} ({sensor.port}): "
+            f"{sensor.queue_push_count} producer pushes, {sensor.queue_drop_count} producer drops "
+            f"({drop_rate:.1f}% producer drop attempts, {len(sensor.queue_drop_counters)} unique counters), "
+            f"{sensor.send_queue_drop_count} WCAN send drops, "
+            f"{retry_text}, {sensor.max_retry_fail_count} max-retry failures"
+        )
+
     return "\n".join(report_lines), passed
 
 def analyze_crashes(sensors, receivers):
@@ -446,6 +548,7 @@ def _format_heap(stats) -> str:
         return "no_samples"
     return (
         f"{stats.leak_status} (slope={stats.slope_bytes_per_s:+.1f} B/s, "
+        f"free {stats.early_free}->{stats.end_free}, "
         f"min_free {stats.early_min_free}->{stats.end_min_free})"
     )
 
@@ -550,12 +653,12 @@ def analyze_delay(sensors, receivers):
     
     for d in delay_results:
         if not d.delays:
-             report_lines.append(f"{d.sensor.board_id} → {d.receiver.board_id}: No matching batches")
+             report_lines.append(f"{d.sensor.board_id} (0x{d.can_id}) → {d.receiver.board_id}: No matching batches")
              continue
         delays_ms = sorted(d.delays.values())
         median = delays_ms[len(delays_ms) // 2]
         max_d = delays_ms[-1]
-        report_lines.append(f"{d.sensor.board_id} → {d.receiver.board_id}: median {median:.1f}ms, max {max_d:.1f}ms")
+        report_lines.append(f"{d.sensor.board_id} (0x{d.can_id}) → {d.receiver.board_id}: median {median:.1f}ms, max {max_d:.1f}ms")
         
     report_lines.insert(0, f"DELAY ANALYSIS:")
     return "\n".join(report_lines), True
@@ -580,6 +683,7 @@ def analyze_all(test_dir: Path):
     
     r_data_o, p_data_o = analyze_data_overall(sensors, receivers, test_name)
     r_data_p, p_data_p = analyze_data_pairs(sensors, receivers, test_name)
+    r_transport, p_transport = analyze_transport_health(sensors)
     r_crash, p_crash = analyze_crashes(sensors, receivers)
     r_heap, p_heap = analyze_heap_integrity(sensors, receivers)
     r_delay, _ = analyze_delay(sensors, receivers)
@@ -589,6 +693,8 @@ def analyze_all(test_dir: Path):
     out.append("")
     out.append(r_data_p)
     out.append("")
+    out.append(r_transport)
+    out.append("")
     out.append(r_crash)
     out.append("")
     out.append(r_heap)
@@ -597,8 +703,14 @@ def analyze_all(test_dir: Path):
     out.append("")
     out.append(r_measure)
     
-    overall_passed = p_data_o and p_data_p and p_crash and p_heap
-    out.insert(0, f"OVERALL STATUS: {'PASS' if overall_passed else 'FAIL'}\n")
+    overall_passed = p_data_o and p_transport and p_crash and p_heap
+    criteria = (
+        f"criteria: data_any={'PASS' if p_data_o else 'FAIL'}, "
+        "data_pairs=INFO, "
+        f"transport={'PASS' if p_transport else 'FAIL'}, "
+        f"crash={'PASS' if p_crash else 'FAIL'}, heap={'PASS' if p_heap else 'FAIL'}"
+    )
+    out.insert(0, f"OVERALL STATUS: {'PASS' if overall_passed else 'FAIL'} ({criteria})\n")
     return "\n".join(out), overall_passed
 
 def main():
