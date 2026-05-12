@@ -21,8 +21,10 @@ Must be run from an ESP-IDF shell (idf.py must be on PATH).
 
 import argparse
 import csv
+import json
 import os
 import random
+import shutil
 import sys
 import threading
 import time
@@ -31,9 +33,12 @@ from pathlib import Path
 import yaml
 
 from idf_env import check_idf
-from build import build_needed, build_all, VALID_TRANSPORTS
+from build import build_needed, build_variant, VALID_TRANSPORTS
 from flash import flash_all
 from monitor import monitor_all_boards
+
+VALID_SCENARIOS = ("baseline", "active_filtering", "frequency_mixing", "advanced")
+FREQUENCY_TOLERANCE = 0.20
 
 
 # ─── Config Loading ──────────────────────────────────────────────────────────
@@ -65,6 +70,8 @@ def load_config(config_path: str) -> dict:
         "transport": "BROADCAST",
         "measure": False,
         "frequencies": tc.get("frequency_hz", [200]),
+        "active_filtering_frequency": tc.get("active_filtering_frequency_hz", 200),
+        "frequency_tolerance": tc.get("frequency_tolerance", FREQUENCY_TOLERANCE),
     }
     return config
 
@@ -105,6 +112,147 @@ def print_test_matrix(cases: list, n_boards: int, repeats: int, duration: int, c
     print()
 
 
+def normalize_can_id(can_id) -> int:
+    if isinstance(can_id, str):
+        return int(can_id.lower().removeprefix("0x"), 16)
+    return int(can_id)
+
+
+def board_can_id(board: dict) -> int:
+    if "can_id" not in board:
+        print(f"[ERROR] Board {board['id']} is missing can_id in boards.yaml; required for scenario tests.")
+        sys.exit(1)
+    return normalize_can_id(board["can_id"])
+
+
+def format_can_ids(can_ids: list[int]) -> list[str]:
+    return [f"0x{can_id:08x}" for can_id in can_ids]
+
+
+def assignment_options(board: dict, role: str, scenario_state: dict) -> dict:
+    board_id = board["id"]
+    options = {}
+    if role == "SENSOR":
+        freq = scenario_state.get("sensor_frequencies", {}).get(board_id)
+        if freq is not None:
+            options["sensor_freq"] = int(freq)
+    elif role == "RECEIVER" and "receiver_allowlists" in scenario_state:
+        options["receiver_filter_ids"] = scenario_state["receiver_allowlists"].get(board_id, [])
+    return options
+
+
+def make_active_filtering_state(sensor_boards: list, receiver_boards: list, rng: random.Random) -> dict:
+    sensor_ids = {b["id"]: board_can_id(b) for b in sensor_boards}
+    receiver_allowlists = {b["id"]: [] for b in receiver_boards}
+    expected_receivers = {f"0x{can_id:08x}": [] for can_id in sensor_ids.values()}
+
+    if len(receiver_boards) == 1:
+        receiver_id = receiver_boards[0]["id"]
+        ids = list(sensor_ids.values())
+        receiver_allowlists[receiver_id] = ids
+        for can_id in ids:
+            expected_receivers[f"0x{can_id:08x}"].append(receiver_id)
+    else:
+        shuffled_receivers = receiver_boards.copy()
+        rng.shuffle(shuffled_receivers)
+        for index, (_sensor_id, can_id) in enumerate(sensor_ids.items()):
+            receiver = shuffled_receivers[index % len(shuffled_receivers)]
+            receiver_allowlists[receiver["id"]].append(can_id)
+            expected_receivers[f"0x{can_id:08x}"].append(receiver["id"])
+
+    return {
+        "active_filtering": True,
+        "sensor_can_ids": {board_id: f"0x{can_id:08x}" for board_id, can_id in sensor_ids.items()},
+        "receiver_allowlists": {
+            board_id: format_can_ids(ids) for board_id, ids in receiver_allowlists.items()
+        },
+        "expected_receivers": expected_receivers,
+    }
+
+
+def make_frequency_mixing_state(sensor_boards: list, frequency_pool: list[int], rng: random.Random) -> dict:
+    if len(sensor_boards) > len(frequency_pool):
+        print(
+            f"[ERROR] frequency_mixing needs {len(sensor_boards)} unique frequencies, "
+            f"but boards.yaml only provides {len(frequency_pool)}."
+        )
+        sys.exit(1)
+    sampled = rng.sample([int(f) for f in frequency_pool], len(sensor_boards))
+    return {
+        "frequency_mixing": True,
+        "sensor_frequencies": {
+            board["id"]: sampled[index] for index, board in enumerate(sensor_boards)
+        },
+    }
+
+
+def build_scenario_state(sensor_boards: list, receiver_boards: list, config: dict, rng: random.Random) -> dict:
+    scenario = config.get("scenario", "baseline")
+    state = {
+        "scenario": scenario,
+        "seed": config.get("seed"),
+        "transport": config["transport"],
+        "frequency_tolerance": config.get("frequency_tolerance", FREQUENCY_TOLERANCE),
+    }
+    if scenario == "active_filtering":
+        state.update(make_active_filtering_state(sensor_boards, receiver_boards, rng))
+        if "current_freq" in config:
+            state["sensor_frequencies"] = {board["id"]: int(config["current_freq"]) for board in sensor_boards}
+    elif scenario == "frequency_mixing":
+        state.update(make_frequency_mixing_state(sensor_boards, config["frequencies"], rng))
+    return state
+
+
+def write_scenario_metadata(log_dir: str, sensor_boards: list, receiver_boards: list,
+                            idle_boards: list, scenario_state: dict):
+    os.makedirs(log_dir, exist_ok=True)
+    metadata = dict(scenario_state)
+    metadata.update({
+        "roles": {
+            "sensors": [b["id"] for b in sensor_boards],
+            "receivers": [b["id"] for b in receiver_boards],
+            "idle": [b["id"] for b in idle_boards],
+        },
+        "boards": {
+            b["id"]: {
+                "chip": b["chip"],
+                "port": b["port"],
+                "can_id": f"0x{board_can_id(b):08x}" if "can_id" in b else None,
+            }
+            for b in sensor_boards + receiver_boards + idle_boards
+        },
+    })
+    with open(os.path.join(log_dir, "scenario.json"), "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2, sort_keys=True)
+
+
+def ensure_assignment_builds(assignments: list, config: dict) -> bool:
+    seen = set()
+    for assignment in assignments:
+        if len(assignment) == 2:
+            board, role = assignment
+            options = {}
+        else:
+            board, role, options = assignment
+
+        sensor_freq = int(options.get("sensor_freq", config.get("current_freq", 200)))
+        receiver_filter_ids = options.get("receiver_filter_ids")
+        key = (
+            board["chip"], role, config["transport"], config["measure"],
+            sensor_freq if role == "SENSOR" else 200,
+            tuple(receiver_filter_ids) if receiver_filter_ids is not None else None,
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        if not build_variant(
+            board["chip"], role, config["transport"], config["measure"],
+            config["project_path"], sensor_freq, receiver_filter_ids,
+        ):
+            return False
+    return True
+
+
 # ─── Test Execution ──────────────────────────────────────────────────────────
 
 def run_single_test(
@@ -113,6 +261,7 @@ def run_single_test(
     idle_boards: list,
     config: dict,
     log_dir: str,
+    scenario_state: dict,
 ) -> str:
     """
     Run one test case: flash, monitor, save logs.
@@ -125,13 +274,34 @@ def run_single_test(
     # Active boards: sensors + receivers (these get monitored)
     active_boards = [(b, "SENSOR") for b in sensor_boards] + [(b, "RECEIVER") for b in receiver_boards]
     # All boards to flash: active + idle (idle get IDLE firmware — completely off the network)
-    all_to_flash = active_boards + [(b, "IDLE") for b in idle_boards]
+    all_to_flash = []
+    for b, role in active_boards:
+        options = assignment_options(b, role, scenario_state)
+        if role == "SENSOR" and "sensor_freq" not in options:
+            options["sensor_freq"] = int(config.get("current_freq", 200))
+        all_to_flash.append((b, role, options))
+    all_to_flash.extend((b, "IDLE", {}) for b in idle_boards)
 
     port_list = ", ".join(f"{b['id']}={b['port']}({role[0]})" for b, role in active_boards)
     idle_list = ", ".join(b["id"] for b in idle_boards)
     print(f"\n  [{s_count}S-{r_count}R] Active: {port_list}")
     if idle_boards:
         print(f"  Idle (silenced): {idle_list}")
+    if scenario_state.get("sensor_frequencies"):
+        freq_list = ", ".join(
+            f"{board_id}={freq}Hz" for board_id, freq in sorted(scenario_state["sensor_frequencies"].items())
+        )
+        print(f"  Sensor frequencies: {freq_list}")
+    if scenario_state.get("receiver_allowlists"):
+        for board_id, ids in sorted(scenario_state["receiver_allowlists"].items()):
+            print(f"  Receiver {board_id} allowlist: {', '.join(ids) if ids else '(empty)'}")
+
+    write_scenario_metadata(log_dir, sensor_boards, receiver_boards, idle_boards, scenario_state)
+
+    if config.get("scenario", "baseline") != "baseline" and not config.get("skip_build") and not config.get("dry_run"):
+        print("  Building scenario-specific firmware variants...")
+        if not ensure_assignment_builds(all_to_flash, config):
+            return "BUILD_FAIL"
 
     # Flash ALL boards (active + idle)
     print(f"  Flashing {len(all_to_flash)} boards ({len(active_boards)} active + {len(idle_boards)} idle)...")
@@ -152,6 +322,7 @@ def run_all_tests(config: dict, results_dir: str, global_run_state: dict, dry_ru
     boards = config["boards"]
     n = len(boards)
     cases = generate_test_matrix(n)
+    rng = config.get("rng", random)
 
     # Apply filter if specified
     if test_filter:
@@ -188,11 +359,12 @@ def run_all_tests(config: dict, results_dir: str, global_run_state: dict, dry_ru
         for rep in range(repeats):
             # Shuffle board order each repeat so different boards get different roles
             shuffled = boards.copy()
-            random.shuffle(shuffled)
+            rng.shuffle(shuffled)
 
             sensor_boards = shuffled[:s_count]
             receiver_boards = shuffled[s_count : s_count + r_count]
             idle_boards = shuffled[s_count + r_count :]
+            scenario_state = build_scenario_state(sensor_boards, receiver_boards, config, rng)
 
             run_number += 1
             global_run_state["current"] += 1
@@ -200,11 +372,16 @@ def run_all_tests(config: dict, results_dir: str, global_run_state: dict, dry_ru
             log_dir = os.path.join(results_dir, f"{test_name}_rep{rep}")
 
             print(f"\n{'─'*60}")
-            print(f"  RUN {global_run_state['current']}/{global_run_state['total']}: {test_name} rep={rep} | {config['transport'].lower()} | {config.get('current_freq', 200)}Hz")
+            freq_label = "mixed" if config.get("scenario") == "frequency_mixing" else f"{config.get('current_freq', 200)}Hz"
+            print(
+                f"  RUN {global_run_state['current']}/{global_run_state['total']}: "
+                f"{test_name} rep={rep} | {config['transport'].lower()} | "
+                f"scenario={config.get('scenario', 'baseline')} | {freq_label}"
+            )
             print(f"{'─'*60}")
 
             status = run_single_test(
-                sensor_boards, receiver_boards, idle_boards, config, log_dir
+                sensor_boards, receiver_boards, idle_boards, config, log_dir, scenario_state
             )
 
             print(f"  Status: {status}")
@@ -212,9 +389,17 @@ def run_all_tests(config: dict, results_dir: str, global_run_state: dict, dry_ru
 
             summary_rows.append({
                 "test_name": test_name,
+                "scenario": config.get("scenario", "baseline"),
                 "transport": config["transport"],
                 "measure": "1" if config["measure"] else "0",
                 "sensor_freq": config.get("current_freq", 200),
+                "sensor_freqs": ";".join(
+                    f"{bid}:{freq}" for bid, freq in sorted(scenario_state.get("sensor_frequencies", {}).items())
+                ),
+                "receiver_allowlists": ";".join(
+                    f"{bid}:{','.join(ids)}" for bid, ids in sorted(scenario_state.get("receiver_allowlists", {}).items())
+                ),
+                "seed": config.get("seed", ""),
                 "sensors": ";".join(b["id"] for b in sensor_boards),
                 "receivers": ";".join(b["id"] for b in receiver_boards),
                 "sensor_chips": ";".join(b["chip"] for b in sensor_boards),
@@ -242,7 +427,8 @@ def write_summary(rows: list, results_dir: str):
     """Write summary.csv with one row per test run."""
     summary_path = os.path.join(results_dir, "summary.csv")
     fieldnames = [
-        "test_name", "transport", "measure", "sensor_freq",
+        "test_name", "scenario", "transport", "measure", "sensor_freq", "sensor_freqs",
+        "receiver_allowlists", "seed",
         "sensors", "receivers",
         "sensor_chips", "receiver_chips",
         "sensor_ports", "receiver_ports",
@@ -317,21 +503,27 @@ def run_analysis(results_dir: str) -> tuple[int, int]:
 
 # ─── Pipeline (one transport) ────────────────────────────────────────────────
 
-def run_pipeline(args, base_config, transport, results_dir_name, test_filter, freq, global_run_state):
+def run_pipeline(args, base_config, transport, results_dir_name, test_filter, freq, scenario, global_run_state):
     """Run build + tests + optional analyze for a single transport.
     Returns (total_runs, results_dir or None, n_passed, n_total)."""
     config = dict(base_config)
     config["transport"] = transport
     config["measure"] = args.measure
     config["current_freq"] = freq
+    config["scenario"] = scenario
+    config["seed"] = args.seed
+    config["rng"] = args.rng
+    config["skip_build"] = args.skip_build
+    config["dry_run"] = args.dry_run
 
     print(f"\n{'='*60}")
-    print(f"  Pipeline: transport={transport}  measure={config['measure']}  freq={freq}Hz")
+    freq_text = "mixed" if scenario == "frequency_mixing" else f"{freq}Hz"
+    print(f"  Pipeline: scenario={scenario}  transport={transport}  measure={config['measure']}  freq={freq_text}")
     print(f"  Results:  results/{results_dir_name}")
     print(f"{'='*60}")
 
     # Build phase
-    if not args.skip_build and not args.dry_run:
+    if scenario == "baseline" and not args.skip_build and not args.dry_run:
         if not build_needed(set(b["chip"] for b in config["boards"]),
                             transport, config["measure"], config["project_path"], freq):
             print(f"\n[ABORT] Build failed for transport={transport}.")
@@ -341,8 +533,7 @@ def run_pipeline(args, base_config, transport, results_dir_name, test_filter, fr
     results_dir = os.path.join("results", results_dir_name)
     if not args.dry_run:
         os.makedirs(results_dir, exist_ok=True)
-        import shutil as _shutil
-        _shutil.copy2(args.config, os.path.join(results_dir, "boards.yaml"))
+        shutil.copy2(args.config, os.path.join(results_dir, "boards.yaml"))
 
     total_runs = run_all_tests(config, results_dir, global_run_state, dry_run=args.dry_run, test_filter=test_filter)
 
@@ -379,6 +570,11 @@ def main():
                         help="After both variants run, call aggregate_thesis_data into "
                              "results/<name>_comparison.csv. Implies --analyze and "
                              "requires --transport BOTH.")
+    parser.add_argument("--scenario", default="baseline", choices=VALID_SCENARIOS,
+                        help="Scenario layer to run. baseline preserves the existing matrix. "
+                             "advanced runs active_filtering and frequency_mixing separately.")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Seed for reproducible scenario board/frequency/filter assignments.")
     args = parser.parse_args()
 
     # --aggregate implies --analyze
@@ -406,6 +602,8 @@ def main():
     for b in boards:
         print(f"    {b['id']:>4}  {b['chip']:<10}  {b['port']}")
     print(f"  Transport: {args.transport}")
+    print(f"  Scenario:  {args.scenario}")
+    print(f"  Seed:      {args.seed if args.seed is not None else '(random)'}")
     print(f"  Measure:   {args.measure}")
     print(f"  Analyze:   {args.analyze}")
     print(f"  Aggregate: {args.aggregate}")
@@ -414,8 +612,10 @@ def main():
     print(f"  Cooldown:  {config['cooldown']}s")
     print()
 
-    # Check idf.py is available
-    check_idf()
+    # Dry-runs do not build or flash, so they should work outside an ESP-IDF shell.
+    if not args.dry_run:
+        check_idf()
+    args.rng = random.Random(args.seed)
 
     # Parse --test filters
     test_filter = None
@@ -437,11 +637,23 @@ def main():
     else:
         transports = [args.transport]
 
+    if args.scenario in ("active_filtering", "advanced"):
+        for b in boards:
+            board_can_id(b)
+
+    if args.scenario == "advanced":
+        scenarios = ["active_filtering", "frequency_mixing"]
+    else:
+        scenarios = [args.scenario]
+
     # Calculate global runs total
     cases = generate_test_matrix(len(boards))
     if test_filter:
         cases = [c for c in cases if c in test_filter]
-    global_total = len(transports) * len(config["frequencies"]) * len(cases) * config["repeats"]
+    global_total = 0
+    for scenario in scenarios:
+        freq_count = len(config["frequencies"]) if scenario == "baseline" else 1
+        global_total += len(transports) * freq_count * len(cases) * config["repeats"]
     global_run_state = {"current": 0, "total": global_total}
 
     # Run each transport's pipeline
@@ -449,21 +661,27 @@ def main():
     grand_passed = 0
     grand_total = 0
     results_dirs = []
-    for t in transports:
-        for freq in config["frequencies"]:
-            parts = [base_name]
-            if len(config["frequencies"]) > 1:
-                parts.append(f"{freq}Hz")
-            if args.transport == "BOTH":
-                parts.append(t.lower())
-            freq_dir_name = "_".join(parts)
-            
-            runs, rdir, passed, total = run_pipeline(args, config, t, freq_dir_name, test_filter, freq, global_run_state)
-            grand_runs += runs
-            grand_passed += passed
-            grand_total += total
-            if rdir is not None:
-                results_dirs.append(rdir)
+    for scenario in scenarios:
+        scenario_freqs = config["frequencies"] if scenario == "baseline" else [config["active_filtering_frequency"]]
+        for t in transports:
+            for freq in scenario_freqs:
+                parts = [base_name]
+                if args.scenario != "baseline":
+                    parts.append(scenario)
+                if scenario == "baseline" and len(config["frequencies"]) > 1:
+                    parts.append(f"{freq}Hz")
+                if args.transport == "BOTH":
+                    parts.append(t.lower())
+                freq_dir_name = "_".join(parts)
+
+                runs, rdir, passed, total = run_pipeline(
+                    args, config, t, freq_dir_name, test_filter, freq, scenario, global_run_state
+                )
+                grand_runs += runs
+                grand_passed += passed
+                grand_total += total
+                if rdir is not None:
+                    results_dirs.append(rdir)
 
     # Optional cross-variant aggregation
     if args.aggregate and not args.dry_run:

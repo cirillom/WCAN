@@ -21,6 +21,7 @@ Usage:
     python build.py esp32c3 receiver --transport BROADCAST --measure
 """
 import argparse
+import hashlib
 import subprocess
 import sys
 from idf_env import check_idf, get_idf_env
@@ -30,8 +31,32 @@ VALID_ROLES = ("SENSOR", "RECEIVER", "IDLE")
 VALID_TRANSPORTS = ("BROADCAST", "UNICAST")
 
 
+def _normalize_filter_ids(receiver_filter_ids):
+    if receiver_filter_ids is None:
+        return None
+    normalized = []
+    for can_id in receiver_filter_ids:
+        if isinstance(can_id, str):
+            normalized.append(int(can_id.lower().removeprefix("0x"), 16))
+        else:
+            normalized.append(int(can_id))
+    return normalized
+
+
+def _receiver_filter_tag(receiver_filter_ids) -> str:
+    ids = _normalize_filter_ids(receiver_filter_ids)
+    if ids is None:
+        return ""
+    if not ids:
+        return "_rxempty"
+    encoded = ",".join(f"{can_id:x}" for can_id in ids)
+    digest = hashlib.sha1(encoded.encode("ascii")).hexdigest()[:8]
+    return f"_rx{digest}"
+
+
 def get_build_dir(chip: str, role: str, transport: str = "BROADCAST",
-                  measure: bool = False) -> str:
+                  measure: bool = False, sensor_freq: int = 200,
+                  receiver_filter_ids=None) -> str:
     """Compute the per-variant build directory.
 
     IDLE binaries don't load WCAN, so transport (and measure) don't change them.
@@ -43,7 +68,13 @@ def get_build_dir(chip: str, role: str, transport: str = "BROADCAST",
         return "build" if chip == "esp32" else f"build_{chip}"
     transport_tag = "bcast" if transport.upper() == "BROADCAST" else "unicast"
     suffix = "_measure" if measure else ""
-    return f"build_{chip}_{role.lower()}_{transport_tag}{suffix}"
+    freq_suffix = ""
+    if role == "SENSOR" and int(sensor_freq) != 200:
+        freq_suffix = f"_f{int(sensor_freq)}hz"
+    filter_suffix = ""
+    if role == "RECEIVER":
+        filter_suffix = _receiver_filter_tag(receiver_filter_ids)
+    return f"build_{chip}_{role.lower()}_{transport_tag}{freq_suffix}{filter_suffix}{suffix}"
 
 
 def get_sdkconfig(chip: str, measure: bool = False) -> str:
@@ -57,18 +88,27 @@ def get_sdkconfig(chip: str, measure: bool = False) -> str:
 
 
 def build_variant(chip: str, role: str, transport: str = "BROADCAST",
-                  measure: bool = False, project_path: str = "..", sensor_freq: int = 200) -> bool:
+                  measure: bool = False, project_path: str = "..", sensor_freq: int = 200,
+                  receiver_filter_ids=None) -> bool:
     """Build a single firmware variant. Returns True on success."""
     chip = chip.lower()
     role = role.upper()
     transport = transport.upper()
 
-    build_dir = get_build_dir(chip, role, transport, measure)
+    receiver_filter_ids = _normalize_filter_ids(receiver_filter_ids)
+    if receiver_filter_ids is not None and len(receiver_filter_ids) > 16:
+        print("[FAIL] Receiver filter supports at most 16 CAN IDs")
+        return False
+    build_dir = get_build_dir(chip, role, transport, measure, sensor_freq, receiver_filter_ids)
     sdkconfig = get_sdkconfig(chip, measure)
 
     print()
     print("=" * 60)
-    print(f"  BUILDING: {chip} / {role} / transport={transport} / measure={measure} / sensor_freq={sensor_freq}Hz")
+    filter_text = "accept-all" if receiver_filter_ids is None else ",".join(f"0x{x:08x}" for x in receiver_filter_ids)
+    print(
+        f"  BUILDING: {chip} / {role} / transport={transport} / measure={measure} / "
+        f"sensor_freq={sensor_freq}Hz / receiver_filter={filter_text}"
+    )
     print(f"  Build dir: {build_dir}")
     print(f"  sdkconfig: {sdkconfig}")
     print("=" * 60)
@@ -81,6 +121,11 @@ def build_variant(chip: str, role: str, transport: str = "BROADCAST",
 
     if role == "SENSOR":
         cmd.append(f"-DSENSOR_HZ={sensor_freq}")
+
+    if role == "RECEIVER" and receiver_filter_ids is not None:
+        cmd.append(f"-DRECEIVER_FILTER_COUNT={len(receiver_filter_ids)}")
+        for i, can_id in enumerate(receiver_filter_ids):
+            cmd.append(f"-DRECEIVER_FILTER_ID_{i}=0x{can_id:08x}")
 
     if measure:
         # ESP-IDF SDKCONFIG_DEFAULTS list is semicolon-separated. subprocess
@@ -147,13 +192,19 @@ def main():
     parser.add_argument("--measure", action="store_true",
                         help="Enable measurement instrumentation (-DMEASURE=1 + sdkconfig.measure overlay)")
     parser.add_argument("--project-path", default="..", help="Path to ESP-IDF project root")
+    parser.add_argument("--sensor-freq", type=int, default=200,
+                        help="Sensor sample frequency in Hz for SENSOR builds.")
+    parser.add_argument("--receiver-filter-id", action="append", default=None,
+                        help="CAN ID allowed by RECEIVER firmware. Repeat for multiple IDs. "
+                             "When present with no values in scripts, filtering is enabled.")
 
     args = parser.parse_args()
     check_idf()
 
     if args.chip and args.role:
         success = build_variant(args.chip, args.role, args.transport,
-                                args.measure, args.project_path)
+                                args.measure, args.project_path, args.sensor_freq,
+                                args.receiver_filter_id)
         sys.exit(0 if success else 1)
     elif not args.chip and not args.role:
         success = build_all(args.transport, args.measure, args.project_path)

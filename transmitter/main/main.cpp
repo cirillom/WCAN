@@ -34,6 +34,60 @@
 static constexpr int FREQUENCY_HERTZ = SENSOR_HZ;
 #endif
 
+#ifdef ROLE_RECEIVER
+#ifndef RECEIVER_FILTER_COUNT
+#define RECEIVER_FILTER_COUNT -1
+#endif
+#ifndef RECEIVER_FILTER_ID_0
+#define RECEIVER_FILTER_ID_0 0
+#endif
+#ifndef RECEIVER_FILTER_ID_1
+#define RECEIVER_FILTER_ID_1 0
+#endif
+#ifndef RECEIVER_FILTER_ID_2
+#define RECEIVER_FILTER_ID_2 0
+#endif
+#ifndef RECEIVER_FILTER_ID_3
+#define RECEIVER_FILTER_ID_3 0
+#endif
+#ifndef RECEIVER_FILTER_ID_4
+#define RECEIVER_FILTER_ID_4 0
+#endif
+#ifndef RECEIVER_FILTER_ID_5
+#define RECEIVER_FILTER_ID_5 0
+#endif
+#ifndef RECEIVER_FILTER_ID_6
+#define RECEIVER_FILTER_ID_6 0
+#endif
+#ifndef RECEIVER_FILTER_ID_7
+#define RECEIVER_FILTER_ID_7 0
+#endif
+#ifndef RECEIVER_FILTER_ID_8
+#define RECEIVER_FILTER_ID_8 0
+#endif
+#ifndef RECEIVER_FILTER_ID_9
+#define RECEIVER_FILTER_ID_9 0
+#endif
+#ifndef RECEIVER_FILTER_ID_10
+#define RECEIVER_FILTER_ID_10 0
+#endif
+#ifndef RECEIVER_FILTER_ID_11
+#define RECEIVER_FILTER_ID_11 0
+#endif
+#ifndef RECEIVER_FILTER_ID_12
+#define RECEIVER_FILTER_ID_12 0
+#endif
+#ifndef RECEIVER_FILTER_ID_13
+#define RECEIVER_FILTER_ID_13 0
+#endif
+#ifndef RECEIVER_FILTER_ID_14
+#define RECEIVER_FILTER_ID_14 0
+#endif
+#ifndef RECEIVER_FILTER_ID_15
+#define RECEIVER_FILTER_ID_15 0
+#endif
+#endif
+
 static void wifi_init(void)
 {
     ESP_ERROR_CHECK(esp_netif_init());
@@ -137,16 +191,29 @@ extern "C" void app_main(void)
 
     // filter=true + empty rx allowlist drops all non-ACK data; ACKs are routed
     // directly through ack_recv and do not need recv_processing_task.
-    wcan_init(true, nullptr, 0, &can_id, 1, 100);
+    wcan_init(true, nullptr, 0, &can_id, 1, 0);
 
     xTaskCreate(read_data_task, "read_data_task", 4096, reinterpret_cast<void *>(static_cast<uintptr_t>(can_id)), 5,
                 nullptr);
 
 #elif defined(ROLE_RECEIVER)
-    ESP_LOGI(TAG, "RECEIVER mode - accepting all CAN IDs");
+    static uint32_t receiver_filter_ids[] = {
+        RECEIVER_FILTER_ID_0,  RECEIVER_FILTER_ID_1,  RECEIVER_FILTER_ID_2,  RECEIVER_FILTER_ID_3,
+        RECEIVER_FILTER_ID_4,  RECEIVER_FILTER_ID_5,  RECEIVER_FILTER_ID_6,  RECEIVER_FILTER_ID_7,
+        RECEIVER_FILTER_ID_8,  RECEIVER_FILTER_ID_9,  RECEIVER_FILTER_ID_10, RECEIVER_FILTER_ID_11,
+        RECEIVER_FILTER_ID_12, RECEIVER_FILTER_ID_13, RECEIVER_FILTER_ID_14, RECEIVER_FILTER_ID_15,
+    };
 
-    // filter=false means accept everything
-    wcan_init(false, nullptr, 0, nullptr, 0, 0);
+    if (RECEIVER_FILTER_COUNT >= 0) {
+        ESP_LOGI(TAG, "RECEIVER mode - active filter with %d CAN IDs", RECEIVER_FILTER_COUNT);
+        for (int i = 0; i < RECEIVER_FILTER_COUNT; ++i) {
+            ESP_LOGI(TAG, "RECEIVER filter[%d] = 0x%04lx", i, static_cast<unsigned long>(receiver_filter_ids[i]));
+        }
+        wcan_init(true, receiver_filter_ids, RECEIVER_FILTER_COUNT, nullptr, 0, 0);
+    } else {
+        ESP_LOGI(TAG, "RECEIVER mode - accepting all CAN IDs");
+        wcan_init(false, nullptr, 0, nullptr, 0, 0);
+    }
 
 #elif defined(ROLE_IDLE)
     ESP_LOGI(TAG, "IDLE mode - doing nothing");

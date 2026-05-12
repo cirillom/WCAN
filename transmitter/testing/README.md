@@ -71,7 +71,27 @@ uv run test_runner.py --transport UNICAST --name v_unicast
 
 # Enable measurement instrumentation (-DMEASURE=1 + sdkconfig.measure overlay)
 uv run test_runner.py --transport UNICAST --measure --name v_unicast_m
+
+# Run advanced scenario tests: active filtering plus random frequency mixing,
+# for both transport variants, with reproducible random assignments.
+uv run test_runner.py --scenario advanced --transport BOTH --measure --analyze \
+  --seed 20260511 --name advanced_filter_freqmix
 ```
+
+### Scenario tests
+
+`--scenario active_filtering` flashes receivers with generated CAN-ID allowlists
+from `boards.yaml` and writes each run's expected delivery map to
+`scenario.json`. The analyzer fails the run if a subscribed sensor is not
+received by at least one subscribed receiver, or if a receiver accepts an
+unsubscribed CAN ID.
+
+`--scenario frequency_mixing` assigns each sensor a random frequency sampled
+without replacement from `test_config.frequency_hz`, so no frequency repeats
+inside the same run. Use `--seed` to make those assignments reproducible.
+
+`--scenario advanced` runs active filtering and frequency mixing as separate
+scenario suites.
 
 ### What happens during a run
 

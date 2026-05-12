@@ -8,9 +8,10 @@ from idf_env import check_idf, get_idf_env
 from build import get_build_dir, get_sdkconfig, VALID_TRANSPORTS
 
 def flash_board(chip: str, role: str, port: str, transport: str = "BROADCAST",
-                measure: bool = False, project_path: str = "..") -> bool:
+                measure: bool = False, project_path: str = "..", sensor_freq: int = 200,
+                receiver_filter_ids=None) -> bool:
     """Flash a pre-built firmware to a board. Returns True on success."""
-    build_dir = get_build_dir(chip, role, transport, measure)
+    build_dir = get_build_dir(chip, role, transport, measure, sensor_freq, receiver_filter_ids)
     sdkconfig = get_sdkconfig(chip, measure)
 
     cmd = [
@@ -36,17 +37,25 @@ def flash_all(assignments: list, transport: str = "BROADCAST", measure: bool = F
               project_path: str = "..") -> bool:
     """
     Flash multiple boards in parallel.
-    assignments: list of (board_dict, role_str)
+    assignments: list of (board_dict, role_str) or (board_dict, role_str, options_dict)
     """
     results = {}
     threads = []
 
-    def _flash(board, role):
-        ok = flash_board(board["chip"], role, board["port"], transport, measure, project_path)
+    def _flash(board, role, options):
+        ok = flash_board(
+            board["chip"], role, board["port"], transport, measure, project_path,
+            options.get("sensor_freq", 200), options.get("receiver_filter_ids"),
+        )
         results[board["id"]] = ok
 
-    for board, role in assignments:
-        t = threading.Thread(target=_flash, args=(board, role))
+    for assignment in assignments:
+        if len(assignment) == 2:
+            board, role = assignment
+            options = {}
+        else:
+            board, role, options = assignment
+        t = threading.Thread(target=_flash, args=(board, role, options))
         threads.append(t)
         t.start()
 
@@ -67,12 +76,17 @@ def main():
     parser.add_argument("--measure", action="store_true",
                         help="Flash measurement-instrumented binary (must have been built with --measure).")
     parser.add_argument("--project-path", default="..", help="Path to ESP-IDF project root")
+    parser.add_argument("--sensor-freq", type=int, default=200,
+                        help="Sensor sample frequency in Hz for SENSOR builds.")
+    parser.add_argument("--receiver-filter-id", action="append", default=None,
+                        help="CAN ID allowed by RECEIVER firmware. Repeat for multiple IDs.")
 
     args = parser.parse_args()
     check_idf()
 
     if args.port and args.chip and args.role:
-        success = flash_board(args.chip, args.role, args.port, args.transport, args.measure, args.project_path)
+        success = flash_board(args.chip, args.role, args.port, args.transport, args.measure, args.project_path,
+                              args.sensor_freq, args.receiver_filter_id)
         sys.exit(0 if success else 1)
 
     if args.board or (not args.port and not args.chip and not args.role):
@@ -91,7 +105,8 @@ def main():
                 sys.exit(1)
 
             success = flash_board(board["chip"], args.role, board["port"],
-                                  args.transport, args.measure, args.project_path)
+                                  args.transport, args.measure, args.project_path,
+                                  args.sensor_freq, args.receiver_filter_id)
             sys.exit(0 if success else 1)
         else:
             print("[ERROR] Please provide --board and --role, or --port, --chip, and --role")

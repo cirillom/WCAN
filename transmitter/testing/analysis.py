@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import argparse
+import json
 from pathlib import Path
 import re
 from dataclasses import dataclass, field
@@ -85,6 +86,13 @@ class SensorSummary:
     received_by_any: set
     total_misses: list
 
+@dataclass
+class AnalysisContext:
+    metadata: dict = field(default_factory=dict)
+    active_filtering: bool = False
+    receiver_allowlists: dict = field(default_factory=dict)
+    expected_receivers: dict = field(default_factory=dict)
+
 # ── Parsing ──────────────────────────────────────────────────────────────────
 
 RE_SENSOR_CAN_ID = re.compile(r"SENSOR mode.*CAN ID:\s*0x([0-9a-fA-F]+)")
@@ -148,6 +156,64 @@ def _parse_ts(ts_str: str) -> float:
 def _normalize_can_id(can_id: str) -> str:
     raw = can_id.lower().removeprefix("0x")
     return f"{int(raw, 16):x}"
+
+def _format_can_id(can_id: str) -> str:
+    return f"0x{int(str(can_id).lower().removeprefix('0x'), 16):x}"
+
+def _format_can_ids(can_ids) -> str:
+    ids = sorted({_normalize_can_id(can_id) for can_id in can_ids})
+    return ", ".join(_format_can_id(can_id) for can_id in ids) if ids else "none"
+
+def _format_counter_list(values, limit: int = 24) -> str:
+    values = list(values)
+    if len(values) <= limit:
+        return str(values)
+    shown = ", ".join(str(v) for v in values[:limit])
+    return f"[{shown}, ...] ({len(values) - limit} more)"
+
+def load_analysis_context(test_dir: Path) -> AnalysisContext:
+    scenario_path = test_dir / "scenario.json"
+    if not scenario_path.exists():
+        return AnalysisContext()
+
+    metadata = json.loads(scenario_path.read_text(encoding="utf-8"))
+    receiver_allowlists = {
+        board_id: {_normalize_can_id(can_id) for can_id in ids}
+        for board_id, ids in metadata.get("receiver_allowlists", {}).items()
+    }
+    expected_receivers = {
+        _normalize_can_id(can_id): list(board_ids)
+        for can_id, board_ids in metadata.get("expected_receivers", {}).items()
+    }
+    return AnalysisContext(
+        metadata=metadata,
+        active_filtering=bool(metadata.get("active_filtering")),
+        receiver_allowlists=receiver_allowlists,
+        expected_receivers=expected_receivers,
+    )
+
+def _receiver_accepts_can_id(context: AnalysisContext, receiver: ReceiverData, can_id: str) -> bool:
+    if not context.active_filtering:
+        return True
+    return _normalize_can_id(can_id) in context.receiver_allowlists.get(receiver.board_id, set())
+
+def _subscribed_receivers(context: AnalysisContext, receivers, can_id: str):
+    if not context.active_filtering:
+        return list(receivers)
+    normalized = _normalize_can_id(can_id)
+    receiver_by_id = {r.board_id: r for r in receivers}
+    expected = [
+        receiver_by_id[board_id]
+        for board_id in context.expected_receivers.get(normalized, [])
+        if board_id in receiver_by_id
+    ]
+    if expected:
+        return expected
+    return [
+        receiver
+        for receiver in receivers
+        if normalized in context.receiver_allowlists.get(receiver.board_id, set())
+    ]
 
 def parse_heap_stats(text: str) -> HeapStats:
     samples = []
@@ -343,12 +409,25 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         measure=parse_measure(text),
     )
 
-def compare(sensors, receivers):
+def compare(sensors, receivers, context: AnalysisContext = None):
+    context = context or AnalysisContext()
     results = []
     for sensor in sensors:
         sent = sensor.counters[:-1] if sensor.counters else []
         for can_id in sensor.can_ids:
             for receiver in receivers:
+                if not _receiver_accepts_can_id(context, receiver, can_id):
+                    results.append(
+                        ComparisonResult(
+                            sensor=sensor,
+                            receiver=receiver,
+                            can_id=can_id,
+                            sent=[],
+                            received=set(),
+                            missed=[],
+                        )
+                    )
+                    continue
                 recv_counters = receiver.received.get(can_id, set())
 
                 missed_set = set(sent) - recv_counters
@@ -373,11 +452,14 @@ def compare(sensors, receivers):
                 )
     return results
 
-def compute_delays(sensors, receivers):
+def compute_delays(sensors, receivers, context: AnalysisContext = None):
+    context = context or AnalysisContext()
     results = []
     for sensor in sensors:
         for can_id in sensor.can_ids:
             for receiver in receivers:
+                if not _receiver_accepts_can_id(context, receiver, can_id):
+                    continue
                 recv_times = receiver.received_times.get(can_id, {})
                 send_times = sensor.sent_times_by_can_id.get(can_id, sensor.sent_times)
                 delays = {}
@@ -406,13 +488,14 @@ import sys
 import argparse
 from pathlib import Path
 
-def sensor_summary(sensors, receivers):
+def sensor_summary(sensors, receivers, context: AnalysisContext = None):
+    context = context or AnalysisContext()
     summaries = []
     for sensor in sensors:
         sent = sensor.counters[:-1] if sensor.counters else []
         for can_id in sensor.can_ids:
             union = set()
-            for receiver in receivers:
+            for receiver in _subscribed_receivers(context, receivers, can_id):
                 union |= receiver.received.get(can_id, set())
             total_misses = sorted(c for c in sent if c not in union)
 
@@ -439,21 +522,38 @@ def sensor_summary(sensors, receivers):
             )
     return summaries
 
-def analyze_data_overall(sensors, receivers, test_name):
-    summaries = sensor_summary(sensors, receivers)
+def analyze_data_overall(sensors, receivers, test_name, context: AnalysisContext = None):
+    context = context or AnalysisContext()
+    summaries = sensor_summary(sensors, receivers, context)
     report_lines = []
     total_misses = sum(len(s.total_misses) for s in summaries)
 
     status = "PASS" if total_misses == 0 else "FAIL"
     report_lines.append(f"=== {test_name} ===")
     
-    report_lines.append(f"DATA SENT ANALYSIS: {status} ({total_misses} total misses)")
+    report_lines.append(f"DELIVERY ANALYSIS: {status} ({total_misses} misses after producer queue accept)")
 
     for receiver in receivers:
-        total_expected = sum(len(s.sent) for s in summaries)
-        total_received = sum(len(receiver.received.get(s.can_id, set()) & set(s.sent)) for s in summaries)
+        expected_summaries = [
+            s for s in summaries
+            if _receiver_accepts_can_id(context, receiver, s.can_id)
+        ]
+        total_expected = sum(len(s.sent) for s in expected_summaries)
+        total_received = sum(
+            len(receiver.received.get(s.can_id, set()) & set(s.sent))
+            for s in expected_summaries
+        )
         total_missed = total_expected - total_received
-        report_lines.append(f"Receiver {receiver.board_id} ({receiver.port}): {total_received} received (expected {total_expected}, missed {total_missed})")
+        if context.active_filtering and not expected_summaries:
+            report_lines.append(
+                f"Receiver {receiver.board_id} ({receiver.port}): accepts none of these queued sensor CAN IDs; "
+                f"0 expected, {sum(len(counters) for counters in receiver.received.values())} received"
+            )
+        else:
+            report_lines.append(
+                f"Receiver {receiver.board_id} ({receiver.port}): "
+                f"{total_received} received (expected {total_expected}, missed {total_missed})"
+            )
 
     for s in summaries:
         sensor = s.sensor
@@ -462,27 +562,37 @@ def analyze_data_overall(sensors, receivers, test_name):
         n_miss = len(s.total_misses)
         retries_str = f"{sensor.retry_count}({sensor.max_retry_chain})" if sensor.max_retry_chain > 1 else f"{sensor.retry_count}"
         
-        line = f"Sensor {sensor.board_id} (0x{s.can_id} | {sensor.port}): {n_sent} sent, {n_recv} received, {n_miss} misses, {retries_str} retries"
+        line = (
+            f"Sensor {sensor.board_id} (0x{s.can_id} | {sensor.port}): "
+            f"{n_sent} queued for send, {n_recv} received, {n_miss} misses, {retries_str} retries"
+        )
         report_lines.append(line)
         if s.total_misses:
-            report_lines.append(f" - MISSED: {s.total_misses}")
+            report_lines.append(f" - MISSED: {_format_counter_list(s.total_misses)}")
 
     return "\n".join(report_lines), total_misses == 0
 
-def analyze_data_pairs(sensors, receivers, test_name):
-    results = compare(sensors, receivers)
+def analyze_data_pairs(sensors, receivers, test_name, context: AnalysisContext = None):
+    context = context or AnalysisContext()
+    results = compare(sensors, receivers, context)
     report_lines = []
     
     total_misses = 0
     report_lines.append(f"=== {test_name} PAIRS ===")
     for r in results:
+        if not _receiver_accepts_can_id(context, r.receiver, r.can_id):
+            report_lines.append(
+                f"Sensor {r.sensor.board_id} (0x{r.can_id}) → Receiver {r.receiver.board_id}: "
+                "filtered by receiver allowlist (expected no receive)"
+            )
+            continue
         n_sent = len(r.sent)
         n_recv = len(r.received)
         total_misses += len(r.missed)
         line = f"Sensor {r.sensor.board_id} (0x{r.can_id}) → Receiver {r.receiver.board_id}: {n_sent} sent, {n_recv} received"
         report_lines.append(line)
         if r.missed:
-            report_lines.append(f" - MISSED: {r.missed}")
+            report_lines.append(f" - MISSED: {_format_counter_list(r.missed)}")
             
     status = "PASS" if total_misses == 0 else "INFO"
     report_lines.insert(
@@ -508,7 +618,7 @@ def analyze_transport_health(sensors):
     status = "PASS" if passed else "FAIL"
     report_lines.append(
         f"TRANSPORT HEALTH: {status} "
-        f"({total_producer_drops} producer drops, {total_send_drops} WCAN send drops, "
+        f"({total_producer_drops} producer drops before send queue, {total_send_drops} WCAN send drops, "
         f"{total_max_retry_failures} max-retry failures)"
     )
 
@@ -646,9 +756,10 @@ def analyze_measure(sensors, receivers):
 
     return "\n".join(report_lines), True
 
-def analyze_delay(sensors, receivers):
+def analyze_delay(sensors, receivers, context: AnalysisContext = None):
     """Analyze package delay between sensor and receivers."""
-    delay_results = compute_delays(sensors, receivers)
+    context = context or AnalysisContext()
+    delay_results = compute_delays(sensors, receivers, context)
     report_lines = []
     
     for d in delay_results:
@@ -663,9 +774,151 @@ def analyze_delay(sensors, receivers):
     report_lines.insert(0, f"DELAY ANALYSIS:")
     return "\n".join(report_lines), True
 
+def _trim_tail(sent: list, received: set) -> list:
+    missed_set = set(sent) - received
+    n_tail = 0
+    for c in reversed(sent):
+        if c in missed_set:
+            n_tail += 1
+        else:
+            break
+    return sent[:-n_tail] if 0 < n_tail < len(sent) else sent
+
+def _sensor_observed_rate_hz(sensor: SensorData):
+    counters = sensor.counters
+    if len(counters) < 2:
+        return None
+    first_counter = counters[0]
+    last_counter = counters[-1]
+    first_ts = sensor.counter_times.get(first_counter)
+    last_ts = sensor.counter_times.get(last_counter)
+    if first_ts is None or last_ts is None or last_ts <= first_ts:
+        return None
+    return (last_counter - first_counter) / (last_ts - first_ts)
+
+def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContext = None):
+    context = context or AnalysisContext()
+    if not context.metadata:
+        return "SCENARIO ANALYSIS: none", True
+
+    metadata = context.metadata
+    scenario = metadata.get("scenario", "baseline")
+    if scenario == "baseline":
+        return "SCENARIO ANALYSIS: none", True
+
+    report_lines = []
+    failures = 0
+    receiver_by_id = {r.board_id: r for r in receivers}
+
+    if metadata.get("active_filtering"):
+        allowlists = context.receiver_allowlists
+        expected_receivers = context.expected_receivers
+        report_lines.append("Active filter configuration:")
+        for sensor in sensors:
+            configured = metadata.get("sensor_can_ids", {}).get(sensor.board_id)
+            configured_text = _format_can_id(configured) if configured else "unknown"
+            report_lines.append(
+                f"Sensor {sensor.board_id}: configured {configured_text}; sent {_format_can_ids(sensor.can_ids)}"
+            )
+        for receiver in receivers:
+            allowed = allowlists.get(receiver.board_id, set())
+            observed_ids = [
+                can_id for can_id, counters in receiver.received.items()
+                if counters
+            ]
+            report_lines.append(
+                f"Receiver {receiver.board_id}: accepts {_format_can_ids(allowed)}; "
+                f"received {_format_can_ids(observed_ids)}"
+            )
+
+        for receiver in receivers:
+            allowed = allowlists.get(receiver.board_id, set())
+            unexpected_ids = sorted(
+                can_id for can_id, counters in receiver.received.items()
+                if counters and can_id not in allowed
+            )
+            if unexpected_ids:
+                failures += len(unexpected_ids)
+                report_lines.append(
+                    f"Receiver {receiver.board_id}: unexpected CAN IDs {_format_can_ids(unexpected_ids)}"
+                )
+
+        for sensor in sensors:
+            sent = sensor.counters[:-1] if sensor.counters else []
+            for can_id in sensor.can_ids:
+                normalized_can_id = _normalize_can_id(can_id)
+                subscriber_ids = [
+                    board_id for board_id in expected_receivers.get(normalized_can_id, [])
+                    if board_id in receiver_by_id
+                ]
+                if not subscriber_ids:
+                    subscriber_ids = [
+                        board_id for board_id, allowed in allowlists.items()
+                        if normalized_can_id in allowed and board_id in receiver_by_id
+                    ]
+                subscribers = [receiver_by_id[board_id] for board_id in subscriber_ids]
+                filtered_ids = [
+                    receiver.board_id for receiver in receivers
+                    if receiver.board_id not in subscriber_ids
+                ]
+                if not subscribers:
+                    failures += 1
+                    report_lines.append(f"Sensor {sensor.board_id} (0x{can_id}): no subscribed receivers")
+                    continue
+                subscribed_received = set()
+                for receiver in subscribers:
+                    subscribed_received |= receiver.received.get(can_id, set())
+                trimmed_sent = _trim_tail(sent, subscribed_received)
+                missed = sorted(c for c in trimmed_sent if c not in subscribed_received)
+                report_lines.append(
+                    f"Sensor {sensor.board_id} (0x{can_id}): expected receivers {', '.join(subscriber_ids)}; "
+                    f"filtered receivers {', '.join(filtered_ids) if filtered_ids else 'none'}; "
+                    f"delivered {len(subscribed_received & set(trimmed_sent))}/{len(trimmed_sent)}"
+                )
+                if missed:
+                    failures += len(missed)
+                    report_lines.append(
+                        f"Sensor {sensor.board_id} (0x{can_id}): {len(missed)} subscribed-delivery misses "
+                        f"{_format_counter_list(missed)}"
+                    )
+        report_lines.append("Active filtering checks complete")
+
+    if metadata.get("frequency_mixing"):
+        tolerance = float(metadata.get("frequency_tolerance", 0.20))
+        expected_freqs = {
+            board_id: float(freq)
+            for board_id, freq in metadata.get("sensor_frequencies", {}).items()
+        }
+        for sensor in sensors:
+            expected = expected_freqs.get(sensor.board_id)
+            if expected is None:
+                failures += 1
+                report_lines.append(f"Sensor {sensor.board_id}: missing expected frequency")
+                continue
+            observed = _sensor_observed_rate_hz(sensor)
+            if observed is None:
+                failures += 1
+                report_lines.append(f"Sensor {sensor.board_id}: insufficient counter timestamps for rate check")
+                continue
+            low = expected * (1.0 - tolerance)
+            high = expected * (1.0 + tolerance)
+            ok = low <= observed <= high
+            if not ok:
+                failures += 1
+            report_lines.append(
+                f"Sensor {sensor.board_id}: expected {expected:.1f}Hz, observed {observed:.1f}Hz "
+                f"({'OK' if ok else 'FAIL'}, tolerance ±{tolerance * 100:.0f}%)"
+            )
+
+    passed = failures == 0
+    status = "PASS" if passed else "FAIL"
+    report_lines.insert(0, f"SCENARIO ANALYSIS: {status} ({scenario}, failures={failures})")
+    return "\n".join(report_lines), passed
+
 def analyze_all(test_dir: Path):
     """Run all analysis functions on a test directory."""
     test_name = test_dir.name
+    context = load_analysis_context(test_dir)
 
     sensors = sorted(
         (parse_sensor_log(p) for p in test_dir.glob("sensor_*.log")),
@@ -681,12 +934,13 @@ def analyze_all(test_dir: Path):
 
     out = []
     
-    r_data_o, p_data_o = analyze_data_overall(sensors, receivers, test_name)
-    r_data_p, p_data_p = analyze_data_pairs(sensors, receivers, test_name)
+    r_data_o, p_data_o = analyze_data_overall(sensors, receivers, test_name, context)
+    r_data_p, p_data_p = analyze_data_pairs(sensors, receivers, test_name, context)
     r_transport, p_transport = analyze_transport_health(sensors)
     r_crash, p_crash = analyze_crashes(sensors, receivers)
     r_heap, p_heap = analyze_heap_integrity(sensors, receivers)
-    r_delay, _ = analyze_delay(sensors, receivers)
+    r_scenario, p_scenario = analyze_scenario(test_dir, sensors, receivers, context)
+    r_delay, _ = analyze_delay(sensors, receivers, context)
     r_measure, _ = analyze_measure(sensors, receivers)
 
     out.append(r_data_o)
@@ -699,18 +953,21 @@ def analyze_all(test_dir: Path):
     out.append("")
     out.append(r_heap)
     out.append("")
+    out.append(r_scenario)
+    out.append("")
     out.append(r_delay)
     out.append("")
     out.append(r_measure)
     
-    overall_passed = p_data_o and p_transport and p_crash and p_heap
+    overall_passed = p_data_o and p_transport and p_crash and p_heap and p_scenario
     criteria = (
         f"criteria: data_any={'PASS' if p_data_o else 'FAIL'}, "
         "data_pairs=INFO, "
         f"transport={'PASS' if p_transport else 'FAIL'}, "
-        f"crash={'PASS' if p_crash else 'FAIL'}, heap={'PASS' if p_heap else 'FAIL'}"
+        f"crash={'PASS' if p_crash else 'FAIL'}, heap={'PASS' if p_heap else 'FAIL'}, "
+        f"scenario={'PASS' if p_scenario else 'FAIL'}"
     )
-    out.insert(0, f"OVERALL STATUS: {'PASS' if overall_passed else 'FAIL'} ({criteria})\n")
+    out.insert(0, f"OVERALL STATUS [{test_name}]: {'PASS' if overall_passed else 'FAIL'} ({criteria})\n")
     return "\n".join(out), overall_passed
 
 def main():
@@ -740,7 +997,8 @@ def main():
 
     if len(test_folders) > 1:
         summary_path = root / "analysis_summary.txt"
-        combined = "\n".join(all_reports) + "\n" + result_line + "\n"
+        separator = "\n" + ("-" * 60) + "\n"
+        combined = separator.join(all_reports) + "\n" + result_line + "\n"
         summary_path.write_text(combined, encoding="utf-8")
         print(f"Combined summary saved: {summary_path}")
 
