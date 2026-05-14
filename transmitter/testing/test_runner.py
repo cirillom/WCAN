@@ -968,7 +968,7 @@ def main():
     parser.add_argument("--name", type=str, default=None,
                         help="Override the results folder name (always inside results/). "
                              "Defaults to the current timestamp. With --transport BOTH, "
-                             "becomes the prefix: <name>_broadcast/ and <name>_unicast/.")
+                             "becomes the prefix: <name>_broadcast/ and <name>_multicast/.")
     parser.add_argument("--transport", default="BROADCAST",
                         choices=VALID_TRANSPORTS + ("BOTH",),
                         help="Transport variant. BOTH runs the full matrix once per variant "
@@ -1043,7 +1043,7 @@ def main():
     base_name = args.name if args.name else datetime.now().strftime("%Y-%m-%d_%H%M%S")
 
     if args.transport == "BOTH":
-        transports = ["BROADCAST", "UNICAST"]
+        transports = ["BROADCAST", "MULTICAST"]
     else:
         transports = [args.transport]
 

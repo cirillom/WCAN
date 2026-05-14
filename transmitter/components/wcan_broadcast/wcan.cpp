@@ -77,11 +77,7 @@ static void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status
         ESP_LOGI(TAG, "Successfully sent packet to %02x%02x", mac_addr[4], mac_addr[5]);
     }
 
-    if (espnow_tx_sem != nullptr) {
-        xSemaphoreGive(espnow_tx_sem);
-    } else {
-        ESP_LOGE(TAG, "espnow_tx_sem is NULL in send callback - init order error");
-    }
+    sender_on_send_status(status);
 }
 
 static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len)
@@ -176,7 +172,13 @@ static bool create_handles(void)
     }
     xSemaphoreGive(espnow_tx_sem);
 
-    send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(esp_now_packet_t *));
+    espnow_tx_status_sem = xSemaphoreCreateBinary();
+    if (espnow_tx_status_sem == nullptr) {
+        ESP_LOGE(TAG, "Failed to create espnow_tx_status_sem");
+        return false;
+    }
+
+    send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(void *));
     if (send_queue == nullptr) {
         ESP_LOGE(TAG, "Failed to create send queue");
         return false;

@@ -30,6 +30,8 @@ static void init_nvs()
 
 static void init_wifi()
 {
+    static const char *TAG = "WIFI";
+
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
@@ -40,6 +42,21 @@ static void init_wifi()
     ESP_ERROR_CHECK(esp_wifi_set_mode(ESPNOW_WIFI_MODE));
     ESP_ERROR_CHECK(esp_wifi_start());
     ESP_ERROR_CHECK(esp_wifi_set_channel(ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE));
+
+    uint8_t primary_channel = 0;
+    wifi_second_chan_t second_channel = WIFI_SECOND_CHAN_NONE;
+    ESP_ERROR_CHECK(esp_wifi_get_channel(&primary_channel, &second_channel));
+    if (primary_channel != ESPNOW_CHANNEL || second_channel != WIFI_SECOND_CHAN_NONE) {
+        ESP_LOGW(TAG, "Wi-Fi channel mismatch: expected primary=%u second=%d, got primary=%u second=%d",
+                 static_cast<unsigned>(ESPNOW_CHANNEL),
+                 static_cast<int>(WIFI_SECOND_CHAN_NONE),
+                 static_cast<unsigned>(primary_channel),
+                 static_cast<int>(second_channel));
+    } else {
+        ESP_LOGI(TAG, "Wi-Fi channel locked: primary=%u second=%d",
+                 static_cast<unsigned>(primary_channel),
+                 static_cast<int>(second_channel));
+    }
 }
 
 static void log_mac()

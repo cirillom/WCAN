@@ -97,23 +97,7 @@ static void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status
     }
 #endif
 
-    // Update per-peer TX health. No-op for non-subscriber MACs (e.g., broadcast).
-    subscription_record_tx_status(mac_addr, success);
-
-    if (s_in_flight_completion_success != nullptr) {
-        *s_in_flight_completion_success = success;
-    }
-    if (s_in_flight_completion_sem != nullptr) {
-        xSemaphoreGive(s_in_flight_completion_sem);
-        s_in_flight_completion_sem = nullptr;
-        s_in_flight_completion_success = nullptr;
-    }
-
-    if (espnow_tx_sem != nullptr) {
-        xSemaphoreGive(espnow_tx_sem);
-    } else {
-        ESP_LOGE(TAG, "espnow_tx_sem is NULL in send callback - init order error");
-    }
+    sender_on_send_status(mac_addr, status);
 }
 
 static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len)
@@ -239,7 +223,13 @@ static bool create_handles(void)
     }
     xSemaphoreGive(espnow_tx_sem);
 
-    send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(esp_now_packet_t *));
+    espnow_tx_status_sem = xSemaphoreCreateBinary();
+    if (espnow_tx_status_sem == nullptr) {
+        ESP_LOGE(TAG, "Failed to create espnow_tx_status_sem");
+        return false;
+    }
+
+    send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(void *));
     if (send_queue == nullptr) {
         ESP_LOGE(TAG, "Failed to create send queue");
         return false;

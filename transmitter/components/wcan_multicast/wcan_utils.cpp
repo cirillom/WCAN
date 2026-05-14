@@ -21,15 +21,31 @@ struct peer_cache_entry_t {
 
 static peer_cache_entry_t s_peer_cache[PEER_CACHE_SIZE] = {};
 
-void add_peer(const uint8_t *mac_addr)
+static bool mac_equal(const uint8_t *a, const uint8_t *b)
+{
+    return std::memcmp(a, b, ESP_NOW_ETH_ALEN) == 0;
+}
+
+static bool target_contains(const uint8_t targets[][ESP_NOW_ETH_ALEN], size_t target_count,
+                            const uint8_t *mac_addr)
+{
+    for (size_t i = 0; i < target_count; i++) {
+        if (mac_equal(targets[i], mac_addr)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool add_peer(const uint8_t *mac_addr)
 {
     static const char *TAG = "PEER";
 
     // Already tracked - refresh LRU timestamp and return.
     for (size_t i = 0; i < PEER_CACHE_SIZE; i++) {
-        if (s_peer_cache[i].in_use && std::memcmp(s_peer_cache[i].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN) == 0) {
+        if (s_peer_cache[i].in_use && mac_equal(s_peer_cache[i].mac_addr.data(), mac_addr)) {
             s_peer_cache[i].last_used = xTaskGetTickCount();
-            return;
+            return true;
         }
     }
 
@@ -63,9 +79,9 @@ void add_peer(const uint8_t *mac_addr)
     peer.encrypt = false;
     std::memcpy(peer.peer_addr, mac_addr, ESP_NOW_ETH_ALEN);
     esp_err_t ret = esp_now_add_peer(&peer);
-    if (ret != ESP_OK) {
+    if (ret != ESP_OK && ret != ESP_ERR_ESPNOW_EXIST) {
         ESP_LOGE(TAG, "Add peer failed: %s", esp_err_to_name(ret));
-        return;
+        return false;
     }
 
     std::memcpy(s_peer_cache[slot].mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN);
@@ -73,6 +89,7 @@ void add_peer(const uint8_t *mac_addr)
     s_peer_cache[slot].in_use = true;
     ESP_LOGV(TAG, "Peer added: %02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3],
              mac_addr[4], mac_addr[5]);
+    return true;
 }
 
 void remove_peer(const uint8_t *mac_addr)
@@ -90,6 +107,23 @@ void remove_peer(const uint8_t *mac_addr)
         }
     }
     ESP_LOGV(TAG, "Peer removed");
+}
+
+void sync_multicast_peers(const uint8_t targets[][ESP_NOW_ETH_ALEN], size_t target_count)
+{
+    for (size_t i = 0; i < PEER_CACHE_SIZE; i++) {
+        if (!s_peer_cache[i].in_use) {
+            continue;
+        }
+        if (target_contains(targets, target_count, s_peer_cache[i].mac_addr.data())) {
+            continue;
+        }
+        remove_peer(s_peer_cache[i].mac_addr.data());
+    }
+
+    for (size_t i = 0; i < target_count; i++) {
+        add_peer(targets[i]);
+    }
 }
 
 std::unique_ptr<esp_now_packet_t> encode_data_packet(const data_packet_t &data_packet)

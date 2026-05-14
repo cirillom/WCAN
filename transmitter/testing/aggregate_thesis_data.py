@@ -4,7 +4,7 @@ Aggregate WCAN measurement results across transport variants for the thesis
 comparison table.
 
 Usage:
-    python aggregate_thesis_data.py results/v_bcast results/v_unicast \
+    python aggregate_thesis_data.py results/v_bcast results/v_multicast \
         --output thesis_comparison.csv
 
 Each input directory is expected to contain test folders matching
@@ -72,12 +72,12 @@ def gather_metrics(test_folder: Path) -> dict:
 
     lat_sorted = sorted(all_lat_us)
 
-    # Airtime utilisation (per-mille over the periodic windows), averaged
+    # Channel time percentage over the periodic measurement windows, averaged.
     util_samples = []
     for s in sensors:
         for (_, util, _, _) in s.measure.airtime_samples:
             util_samples.append(util)
-    airtime_util_avg = sum(util_samples) / len(util_samples) if util_samples else None
+    channel_time_pct_avg = (sum(util_samples) / len(util_samples) / 10.0) if util_samples else None
 
     # Cold-start: smallest receiver-side gap between BOOT_TS and FIRST_RX_TS
     cold_start_ms_per_recv = []
@@ -111,7 +111,7 @@ def gather_metrics(test_folder: Path) -> dict:
         "latency_99th_percentile_microseconds": fmt_or_blank(_percentile(lat_sorted, 0.99)) if lat_sorted else "",
         "latency_maximum_microseconds": lat_sorted[-1] if lat_sorted else "",
         "latency_failure_count": lat_fail,
-        "airtime_utilization_per_mille_average": fmt_or_blank(airtime_util_avg, ".1f") if airtime_util_avg is not None else "",
+        "channel_time_percent_average": fmt_or_blank(channel_time_pct_avg, ".2f") if channel_time_pct_avg is not None else "",
         "cold_start_minimum_milliseconds": fmt_or_blank(cold_start_ms, ".1f") if cold_start_ms is not None else "",
         "minimum_stack_high_water_mark_bytes": min_hwm if min_hwm is not None else "",
     }

@@ -19,4 +19,4 @@ void recv_processing_task(void *pv_parameter);
 void filter_data(std::unique_ptr<data_packet_t> data);
 void registration_init(void);
 void registration_on_broadcast(const data_packet_t &data_packet);
-void registration_on_unicast(const data_packet_t &data_packet);
+void registration_on_multicast(const data_packet_t &data_packet);

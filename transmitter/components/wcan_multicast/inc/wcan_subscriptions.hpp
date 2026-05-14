@@ -33,7 +33,7 @@ void subscription_log_state(void);
 size_t subscription_snapshot_targets(uint32_t can_id,
                                      uint8_t out_macs[WCAN_MAX_SUBSCRIBERS][ESP_NOW_ETH_ALEN]);
 
-// Update per-peer TX health from the espnow_send_cb. Successful unicast
+// Update per-peer TX health from the espnow_send_cb. Successful multicast
 // delivery also refreshes liveness; after K consecutive failures the entry is
 // marked dead (in_use=false) and freed for HELLO re-discovery. No-op for MACs
 // not in the table (e.g., broadcast).

@@ -3,19 +3,19 @@
 Build helper for the WCAN project. Produces runtime-configurable firmware variants across:
 
     chip       in {esp32, esp32c3}
-    transport  in {BROADCAST, UNICAST}
+    transport  in {BROADCAST, MULTICAST}
     measure    bool                         (-DMEASURE=1 + sdkconfig.measure overlay)
 
 Build directory layout:
-    build_<chip>_<bcast|unicast>_runtime[_measure]
+    build_<chip>_<bcast|multicast>_runtime[_measure]
 
 Usage:
     # All chips for one transport
     python build.py --transport BROADCAST
-    python build.py --transport UNICAST --measure
+    python build.py --transport MULTICAST --measure
 
     # Single variant
-    python build.py esp32 --transport UNICAST
+    python build.py esp32 --transport MULTICAST
     python build.py esp32c3 --transport BROADCAST --measure
 """
 import argparse
@@ -25,7 +25,7 @@ from idf_env import check_idf, get_idf_env
 
 VALID_CHIPS = ("esp32", "esp32c3")
 VALID_ROLES = ("RUNTIME",)
-VALID_TRANSPORTS = ("BROADCAST", "UNICAST")
+VALID_TRANSPORTS = ("BROADCAST", "MULTICAST")
 
 
 def get_build_dir(chip: str, role: str, transport: str = "BROADCAST",
@@ -34,7 +34,7 @@ def get_build_dir(chip: str, role: str, transport: str = "BROADCAST",
                   sensor_can_id_count: int = 1, linger_ms: int = 100) -> str:
     """Compute the runtime firmware build directory."""
     chip = chip.lower()
-    transport_tag = "bcast" if transport.upper() == "BROADCAST" else "unicast"
+    transport_tag = "bcast" if transport.upper() == "BROADCAST" else "multicast"
     suffix = "_measure" if measure else ""
     return f"build_{chip}_{transport_tag}_runtime{suffix}"
 

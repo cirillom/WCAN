@@ -5,6 +5,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_now.h"
+#include "esp_random.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -105,9 +106,30 @@ static void ack_send(const data_packet_t &recv_packet)
     ack_data.data_count = 1;
 
     add_peer(ack_data.mac_addr.data());
-    send_data(ack_data.mac_addr.data(), ack_data);
-    ESP_LOGD(TAG, "ACK sent for CAN ID 0x%08lx with tick_count %lu", static_cast<unsigned long>(recv_packet.can_id),
-             static_cast<unsigned long>(recv_packet.tick_count));
+    for (uint8_t attempt = 1; attempt <= WCAN_ACK_SEND_MAX_ATTEMPTS; attempt++) {
+        if (send_data_and_wait(ack_data.mac_addr.data(), ack_data)) {
+            ESP_LOGD(TAG, "ACK sent for CAN ID 0x%08lx with tick_count %lu on attempt %u",
+                     static_cast<unsigned long>(recv_packet.can_id),
+                     static_cast<unsigned long>(recv_packet.tick_count),
+                     static_cast<unsigned>(attempt));
+            return;
+        }
+        if (attempt < WCAN_ACK_SEND_MAX_ATTEMPTS) {
+            const uint32_t delay = WCAN_ACK_RETRY_DELAY_MIN_MS +
+                (esp_random() % (WCAN_ACK_RETRY_DELAY_MAX_MS - WCAN_ACK_RETRY_DELAY_MIN_MS + 1));
+            ESP_LOGW(TAG, "ACK send failed for CAN ID 0x%08lx tick %lu, retrying in %lu ms (%u/%u)",
+                     static_cast<unsigned long>(recv_packet.can_id),
+                     static_cast<unsigned long>(recv_packet.tick_count),
+                     static_cast<unsigned long>(delay),
+                     static_cast<unsigned>(attempt),
+                     static_cast<unsigned>(WCAN_ACK_SEND_MAX_ATTEMPTS));
+            vTaskDelay(pdMS_TO_TICKS(delay));
+        }
+    }
+    ESP_LOGW(TAG, "ACK send failed for CAN ID 0x%08lx with tick_count %lu after %u attempts",
+             static_cast<unsigned long>(recv_packet.can_id),
+             static_cast<unsigned long>(recv_packet.tick_count),
+             static_cast<unsigned>(WCAN_ACK_SEND_MAX_ATTEMPTS));
 }
 
 void filter_data(std::unique_ptr<data_packet_t> data)

@@ -129,7 +129,7 @@ def resolve_transports(cli_transport: str | None, defaults: dict, profile: dict)
     if cli_transport in VALID_TRANSPORTS:
         return [cli_transport]
 
-    transports = profile.get("transports", defaults.get("transports", ["BROADCAST", "UNICAST"]))
+    transports = profile.get("transports", defaults.get("transports", ["BROADCAST", "MULTICAST"]))
     transports = [str(transport).upper() for transport in transports]
     bad = [transport for transport in transports if transport not in VALID_TRANSPORTS]
     if bad:

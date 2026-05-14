@@ -23,9 +23,32 @@ data_packet_t **can_tx_packets = nullptr;
 volatile TickType_t *can_tx_tick_counts = nullptr;
 
 SemaphoreHandle_t espnow_tx_sem = nullptr;
+SemaphoreHandle_t espnow_tx_status_sem = nullptr;
+
+struct tx_request_t {
+    std::unique_ptr<esp_now_packet_t> packet;
+    SemaphoreHandle_t completion_sem;
+    bool *completion_success;
+};
+
+static SemaphoreHandle_t s_in_flight_completion_sem = nullptr;
+static bool *s_in_flight_completion_success = nullptr;
+static volatile bool s_in_flight_active = false;
+static volatile bool s_in_flight_success = false;
+
+static void log_send_error(const char *tag, esp_err_t err)
+{
+    if (err == ESP_ERR_ESPNOW_CHAN) {
+        ESP_LOGE(tag, "esp_now_send failed: ESP_ERR_ESPNOW_CHAN (Wi-Fi channel mismatch)");
+    } else if (err == ESP_ERR_ESPNOW_IF) {
+        ESP_LOGE(tag, "esp_now_send failed: ESP_ERR_ESPNOW_IF (Wi-Fi interface mismatch)");
+    } else {
+        ESP_LOGE(tag, "esp_now_send failed synchronously: %s", esp_err_to_name(err));
+    }
+}
 
 #ifdef MEASURE_INSTR
-// Mirrors the airtime accounting in wcan_unicast for fair cross-variant
+// Mirrors the airtime accounting in wcan_multicast for fair cross-variant
 // comparison. Same constant + formula so the bias is identical.
 #define WCAN_PHY_RATE_MBPS 6
 volatile uint64_t g_airtime_total_us = 0;
@@ -128,28 +151,79 @@ void send_processing_task(void *)
     ESP_LOGI(TAG, "Send processing task started");
 
     while (true) {
-        esp_now_packet_t *raw = nullptr;
+        tx_request_t *raw = nullptr;
         if (xQueueReceive(send_queue, &raw, portMAX_DELAY) != pdTRUE) {
             continue;
         }
-        std::unique_ptr<esp_now_packet_t> pkt(raw);
+        std::unique_ptr<tx_request_t> req(raw);
+        std::unique_ptr<esp_now_packet_t> &pkt = req->packet;
+
+        if (!pkt) {
+            ESP_LOGE(TAG, "TX request missing packet");
+            if (req->completion_success != nullptr) {
+                *req->completion_success = false;
+            }
+            if (req->completion_sem != nullptr) {
+                xSemaphoreGive(req->completion_sem);
+            }
+            continue;
+        }
 
         if (xSemaphoreTake(espnow_tx_sem, pdMS_TO_TICKS(WCAN_TX_SEM_TIMEOUT_MS)) != pdTRUE) {
             ESP_LOGE(TAG, "TX semaphore timeout - driver may be stuck, dropping packet");
+            if (req->completion_success != nullptr) {
+                *req->completion_success = false;
+            }
+            if (req->completion_sem != nullptr) {
+                xSemaphoreGive(req->completion_sem);
+            }
             continue; // pkt destructor frees
+        }
+
+        s_in_flight_completion_sem = req->completion_sem;
+        s_in_flight_completion_success = req->completion_success;
+        s_in_flight_success = false;
+        s_in_flight_active = true;
+        while (xSemaphoreTake(espnow_tx_status_sem, 0) == pdTRUE) {
         }
 
         const esp_err_t err = esp_now_send(pkt->mac_addr.data(), pkt->data.get(), pkt->data_len);
         if (err != ESP_OK) {
-            ESP_LOGE(TAG, "esp_now_send failed synchronously: %s - restoring TX slot", esp_err_to_name(err));
+            log_send_error(TAG, err);
+            if (s_in_flight_completion_success != nullptr) {
+                *s_in_flight_completion_success = false;
+            }
+            if (s_in_flight_completion_sem != nullptr) {
+                xSemaphoreGive(s_in_flight_completion_sem);
+            }
+            s_in_flight_completion_sem = nullptr;
+            s_in_flight_completion_success = nullptr;
+            s_in_flight_active = false;
+            s_in_flight_success = false;
             xSemaphoreGive(espnow_tx_sem);
+            continue;
         }
 #ifdef MEASURE_INSTR
         else {
             g_airtime_total_us += (static_cast<uint64_t>(pkt->data_len) * 8) / WCAN_PHY_RATE_MBPS;
-            g_packets_sent_total++;
+            g_packets_sent_total = g_packets_sent_total + 1;
         }
 #endif
+
+        const bool got_status =
+            (xSemaphoreTake(espnow_tx_status_sem, pdMS_TO_TICKS(WCAN_TX_SEM_TIMEOUT_MS)) == pdTRUE);
+        const bool success = got_status && s_in_flight_success;
+        if (s_in_flight_completion_success != nullptr) {
+            *s_in_flight_completion_success = success;
+        }
+        if (s_in_flight_completion_sem != nullptr) {
+            xSemaphoreGive(s_in_flight_completion_sem);
+        }
+        s_in_flight_completion_sem = nullptr;
+        s_in_flight_completion_success = nullptr;
+        s_in_flight_active = false;
+        s_in_flight_success = false;
+        xSemaphoreGive(espnow_tx_sem);
         // pkt destructor releases the payload + struct.
     }
 }
@@ -166,11 +240,65 @@ void send_data(const uint8_t *mac_addr, const data_packet_t &data_packet)
     }
     std::memcpy(pkt->mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN);
 
-    esp_now_packet_t *raw = pkt.release();
+    auto req = std::make_unique<tx_request_t>();
+    req->packet = std::move(pkt);
+    req->completion_sem = nullptr;
+    req->completion_success = nullptr;
+
+    tx_request_t *raw = req.release();
     if (xQueueSend(send_queue, &raw, 0) != pdTRUE) {
         ESP_LOGW(TAG, "Send queue full, dropping packet with CAN ID 0x%08lx",
                  static_cast<unsigned long>(data_packet.can_id));
         delete raw;
+    }
+}
+
+bool send_data_and_wait(const uint8_t *mac_addr, const data_packet_t &data_packet)
+{
+    static const char *TAG = "send_data_wait";
+
+    auto pkt = encode_data_packet(data_packet);
+    if (!pkt) {
+        ESP_LOGE(TAG, "encode_data_packet failed, dropping packet with CAN ID 0x%08lx",
+                 static_cast<unsigned long>(data_packet.can_id));
+        return false;
+    }
+    std::memcpy(pkt->mac_addr.data(), mac_addr, ESP_NOW_ETH_ALEN);
+
+    auto req = std::make_unique<tx_request_t>();
+    bool success = false;
+    SemaphoreHandle_t completion_sem = xSemaphoreCreateBinary();
+    if (completion_sem == nullptr) {
+        ESP_LOGE(TAG, "Failed to create completion semaphore");
+        return false;
+    }
+
+    req->packet = std::move(pkt);
+    req->completion_sem = completion_sem;
+    req->completion_success = &success;
+
+    tx_request_t *raw = req.release();
+    if (xQueueSend(send_queue, &raw, 0) != pdTRUE) {
+        ESP_LOGW(TAG, "Send queue full, dropping packet with CAN ID 0x%08lx",
+                 static_cast<unsigned long>(data_packet.can_id));
+        delete raw;
+        vSemaphoreDelete(completion_sem);
+        return false;
+    }
+
+    const bool completed = (xSemaphoreTake(completion_sem, portMAX_DELAY) == pdTRUE);
+    vSemaphoreDelete(completion_sem);
+    return completed && success;
+}
+
+void sender_on_send_status(esp_now_send_status_t status)
+{
+    if (!s_in_flight_active) {
+        return;
+    }
+    s_in_flight_success = (status == ESP_NOW_SEND_SUCCESS);
+    if (espnow_tx_status_sem != nullptr) {
+        xSemaphoreGive(espnow_tx_status_sem);
     }
 }
 

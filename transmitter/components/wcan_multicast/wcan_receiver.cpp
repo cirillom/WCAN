@@ -204,7 +204,7 @@ void filter_data(std::unique_ptr<data_packet_t> data)
     if (data->received_via_broadcast) {
         registration_on_broadcast(*data);
     } else {
-        registration_on_unicast(*data);
+        registration_on_multicast(*data);
     }
 
     data_packet_t *raw = data.release();
@@ -258,9 +258,9 @@ void registration_on_broadcast(const data_packet_t &data_packet)
     xSemaphoreGive(s_registration_mutex);
 }
 
-void registration_on_unicast(const data_packet_t &data_packet)
+void registration_on_multicast(const data_packet_t &data_packet)
 {
-    static const char *TAG = "REG_UCAST";
+    static const char *TAG = "REG_MCAST";
 
     if (s_registration_mutex == nullptr) {
         return;

@@ -65,12 +65,16 @@ uv run test_runner.py --dry-run
 # Use a custom config file
 uv run test_runner.py --config my_boards.yaml
 
-# Pick a transport variant (default BROADCAST; UNICAST builds the wcan_unicast
+# Pick a transport variant (default BROADCAST; MULTICAST builds the wcan_multicast
 # component instead of wcan_broadcast)
-uv run test_runner.py --transport UNICAST --name v_unicast
+uv run test_runner.py --transport MULTICAST --name v_multicast
 
 # Enable measurement instrumentation (-DMEASURE=1 + sdkconfig.measure overlay)
-uv run test_runner.py --transport UNICAST --measure --name v_unicast_m
+uv run test_runner.py --transport MULTICAST --measure --name v_multicast_m
+
+# Focus only on the multicast path in the multiple-CAN-ID suite
+uv run test_runner.py --suite multiple --profile multicast_multiple \
+  --name multicast_multiple --analyze
 
 # Run advanced scenario tests: active filtering plus random frequency mixing,
 # for both transport variants, with reproducible random assignments.
@@ -95,17 +99,15 @@ scenario suites.
 
 ### What happens during a run
 
-**1. Build phase** — For each chip type present in the board list, three firmware variants are compiled: `SENSOR`, `RECEIVER`, and `IDLE`. The transport (`BROADCAST` / `UNICAST`) is selected via `--transport` and is part of the build directory name. `IDLE` is transport-agnostic.
+**1. Build phase** — For each chip type present in the board list, three firmware variants are compiled: `SENSOR`, `RECEIVER`, and `IDLE`. The transport (`BROADCAST` / `MULTICAST`) is selected via `--transport` and is part of the build directory name. `IDLE` is transport-agnostic.
 
-| Chip      | Role     | Transport          | Build dir                              | sdkconfig                       |
-|-----------|----------|--------------------|----------------------------------------|---------------------------------|
-| esp32     | SENSOR   | BROADCAST          | `build_esp32_sensor_bcast`             | `sdkconfig_esp32`               |
-| esp32     | SENSOR   | UNICAST            | `build_esp32_sensor_unicast`           | `sdkconfig_esp32`               |
-| esp32     | SENSOR   | UNICAST + measure  | `build_esp32_sensor_unicast_measure`   | `sdkconfig.gen_esp32_measure`   |
-| esp32     | RECEIVER | BROADCAST          | `build_esp32_receiver_bcast`           | `sdkconfig_esp32`               |
-| esp32     | IDLE     | (n/a)              | `build_esp32_idle`                     | `sdkconfig_esp32`               |
-| esp32c3   | SENSOR   | UNICAST            | `build_esp32c3_sensor_unicast`         | `sdkconfig_esp32c3`             |
-| …         | …        | …                  | …                                      | …                               |
+| Chip      | Transport           | Build dir                                | sdkconfig                       |
+|-----------|---------------------|------------------------------------------|---------------------------------|
+| esp32     | BROADCAST           | `build_esp32_bcast_runtime`              | `sdkconfig_esp32`               |
+| esp32     | MULTICAST           | `build_esp32_multicast_runtime`          | `sdkconfig_esp32`               |
+| esp32     | MULTICAST + measure | `build_esp32_multicast_runtime_measure`  | `sdkconfig.gen_esp32_measure`   |
+| esp32c3   | BROADCAST           | `build_esp32c3_bcast_runtime`            | `sdkconfig_esp32c3`             |
+| esp32c3   | MULTICAST           | `build_esp32c3_multicast_runtime`        | `sdkconfig_esp32c3`             |
 
 `--measure` enables `-DMEASURE=1` in the firmware and overlays `sdkconfig.measure` on top of the chip's base sdkconfig (via `SDKCONFIG_DEFAULTS`). The merged result lives in `sdkconfig.gen_<chip>_measure` and is regenerated on first build.
 
@@ -195,13 +197,13 @@ And at the run root (multi-test only):
 For the thesis comparison study, run both transports back-to-back and let the runner aggregate the results in one shot:
 
 ```bash
-# Run BROADCAST then UNICAST, analyze each, and emit the comparison CSV.
+# Run BROADCAST then MULTICAST, analyze each, and emit the comparison CSV.
 uv run test_runner.py --transport BOTH --measure --aggregate --name v_thesis
 ```
 
 This produces:
 - `results/v_thesis_broadcast/` — the BROADCAST variant's full test matrix + `analysis_summary.txt`
-- `results/v_thesis_unicast/`  — the UNICAST variant's full test matrix + `analysis_summary.txt`
+- `results/v_thesis_multicast/`  — the MULTICAST variant's full test matrix + `analysis_summary.txt`
 - `results/v_thesis_comparison.csv` — one row per `(variant, S, R, repeat)` with all measurement metrics for thesis tables / plots
 
 `--aggregate` implies `--analyze`. `--name` becomes the prefix for both variant folders and the CSV. Without `--name`, the runner uses `<timestamp>_<variant>/` and `<timestamp>_comparison.csv`.
@@ -218,12 +220,12 @@ If you'd rather drive each transport separately (e.g. on different days, differe
 
 ```bash
 uv run test_runner.py --transport BROADCAST --measure --name v_bcast --analyze
-uv run test_runner.py --transport UNICAST  --measure --name v_unicast --analyze
-uv run aggregate_thesis_data.py results/v_bcast results/v_unicast \
+uv run test_runner.py --transport MULTICAST  --measure --name v_multicast --analyze
+uv run aggregate_thesis_data.py results/v_bcast results/v_multicast \
     --output results/thesis_comparison.csv
 ```
 
-The aggregation script emits one CSV row per `(variant, S, R, repeat)` with columns for delivery rate, latency median/p99 (HW-ACK µs for unicast, app-ACK ms for broadcast — different layers, see methodology note below), airtime utilisation, cold-start, and minimum stack HWM. The `variant` column comes from each input directory's basename, so naming runs `v_bcast` / `v_unicast` keeps the table readable.
+The aggregation script emits one CSV row per `(variant, S, R, repeat)` with columns for delivery rate, latency median/p99 (HW-ACK µs for multicast, app-ACK ms for broadcast — different layers, see methodology note below), airtime utilisation, cold-start, and minimum stack HWM. The `variant` column comes from each input directory's basename, so naming runs `v_bcast` / `v_multicast` keeps the table readable.
 
 ### Methodology notes (latency)
 
@@ -232,6 +234,6 @@ The two transports measure latency at different layers and the resulting numbers
 | Variant   | Mechanism                                                           | Units    | Field           |
 |-----------|---------------------------------------------------------------------|----------|-----------------|
 | BROADCAST | Application-level ACK round-trip (`tick_at_send → ack_recv tick`)   | ms       | `lat_rtt_*`     |
-| UNICAST   | ESP-NOW link-layer HW-ACK turnaround (`esp_timer_get_time → cb`)    | µs       | `lat_cb_*`      |
+| MULTICAST   | ESP-NOW link-layer HW-ACK turnaround (`esp_timer_get_time → cb`)    | µs       | `lat_cb_*`      |
 
 This is captured intentionally — the comparison shows the latency cost broadcast pays for application-layer reliability, not a measurement artifact. The thesis must disclose the methodology of each variant.

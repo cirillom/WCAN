@@ -1,0 +1,15 @@
+Este apêndice registra os artefatos usados para sustentar a análise quantitativa do Capítulo~\ref{chapter:resultados-testes}. A campanha \texttt{full\_run} está arquivada no repositório em \path{transmitter/testing/results/full_run}. Ela corresponde à última rodada completa de testes executada com a versão do firmware analisada nesta monografia.
+
+Os principais arquivos da campanha são:
+
+\begin{itemize}
+    \item \texttt{tests.yaml}: configuração nominal das suítes, frequências, duração, número de repetições, cooldown, \texttt{linger\_ms} e instrumentação.
+    \item \texttt{boards.yaml}: inventário das cinco placas usadas nos testes, incluindo identificadores lógicos, chips e portas seriais.
+    \item \texttt{run\_plan.json}: plano completo gerado pelo runner antes da execução, com a atribuição de sensores, receptores e nós ociosos em cada repetição.
+    \item \texttt{summary.csv}: resumo tabular produzido pelo runner com o estado de cada execução e o caminho da pasta de logs correspondente.
+    \item \texttt{analysis\_summary.txt}: relatório consolidado produzido por \texttt{analysis.py}, contendo a análise de entrega, transporte, cenário, heap, crashes, métricas de firmware e resumo por topologia.
+\end{itemize}
+
+Cada execução individual possui uma pasta própria, por exemplo \path{baseline/broadcast/1000Hz/test_1S-1R_rep0}. Dentro dessa pasta ficam o \texttt{scenario.json}, que descreve a configuração da repetição, e os logs seriais de cada placa, separados por papel e porta, como \path{sensor_B__dev_ttyUSB1.log} e \path{receiver_D__dev_ttyACM0.log}. Essa organização permite reconstruir a análise a partir dos logs brutos e também inspecionar manualmente os casos reprovados.
+
+Na matriz nominal, a campanha possuía 1116 execuções. O analisador consolidou 1115 pastas com logs suficientes e classificou 847 execuções como aprovadas pelos critérios automáticos. Como os critérios incluem aspectos diferentes, uma reprovação pode significar perda de entrega, problema de transporte, falha no cenário esperado, indício de heap, crash, frequência observada fora da tolerância ou combinação desses fatores. Por isso, o Capítulo~\ref{chapter:resultados-testes} interpreta os erros por classe de falha, e não apenas pela taxa bruta de aprovação.

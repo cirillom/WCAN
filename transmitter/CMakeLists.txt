@@ -8,19 +8,19 @@ cmake_minimum_required(VERSION 3.5)
 # methodologies; only one is compiled and linked per build. The unselected
 # component is excluded so its source files never enter the build.
 # Usage: idf.py -B build_dir -DTRANSPORT=BROADCAST build
-#    or: idf.py -B build_dir -DTRANSPORT=UNICAST build
+#    or: idf.py -B build_dir -DTRANSPORT=MULTICAST build
 if(NOT DEFINED TRANSPORT)
     set(TRANSPORT "BROADCAST")
 endif()
 
 if(TRANSPORT STREQUAL "BROADCAST")
     set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE STRING "Selected WCAN component")
-    list(APPEND EXCLUDE_COMPONENTS wcan_unicast)
-elseif(TRANSPORT STREQUAL "UNICAST")
-    set(WCAN_COMPONENT_NAME "wcan_unicast" CACHE STRING "Selected WCAN component")
+    list(APPEND EXCLUDE_COMPONENTS wcan_multicast)
+elseif(TRANSPORT STREQUAL "MULTICAST")
+    set(WCAN_COMPONENT_NAME "wcan_multicast" CACHE STRING "Selected WCAN component")
     list(APPEND EXCLUDE_COMPONENTS wcan_broadcast)
 else()
-    message(FATAL_ERROR "TRANSPORT must be BROADCAST or UNICAST; got: ${TRANSPORT}")
+    message(FATAL_ERROR "TRANSPORT must be BROADCAST or MULTICAST; got: ${TRANSPORT}")
 endif()
 
 message(STATUS "Building with TRANSPORT=${TRANSPORT}, component=${WCAN_COMPONENT_NAME}")

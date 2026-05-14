@@ -24,7 +24,7 @@ class MeasureStats:
     boot_ts_us: int = -1                # sensor or receiver
     first_rx_ts_us: int = -1            # receiver only
     airtime_samples: list = field(default_factory=list)   # (ts, util_per_mille, d_airtime_us, d_packets)
-    lat_cb_us: list = field(default_factory=list)         # unicast: HW-ACK turnaround microseconds
+    lat_cb_us: list = field(default_factory=list)         # ESP-NOW send callback turnaround microseconds
     lat_cb_fail_count: int = 0
     lat_rtt_ms: list = field(default_factory=list)        # broadcast: app-ACK RTT milliseconds
     task_hwm_min: dict = field(default_factory=dict)      # name -> minimum hwm_bytes seen across samples
@@ -62,13 +62,6 @@ class ReceiverData:
     crash_count: int = 0
     heap: HeapStats = field(default_factory=HeapStats)
     measure: MeasureStats = field(default_factory=MeasureStats)
-
-@dataclass
-class DelayResult:
-    sensor: SensorData
-    receiver: ReceiverData
-    can_id: str
-    delays: dict
 
 @dataclass
 class ComparisonResult:
@@ -615,24 +608,6 @@ def compare(sensors, receivers, context: AnalysisContext = None):
                 )
     return results
 
-def compute_delays(sensors, receivers, context: AnalysisContext = None):
-    context = context or AnalysisContext()
-    results = []
-    for sensor in sensors:
-        for can_id in sensor.can_ids:
-            for receiver in receivers:
-                if not _receiver_accepts_can_id(context, receiver, can_id):
-                    continue
-                recv_times = receiver.received_times.get(can_id, {})
-                send_times = sensor.sent_times_by_can_id.get(can_id, sensor.sent_times)
-                delays = {}
-                for first_counter, recv_ts in recv_times.items():
-                    send_ts = send_times.get(first_counter)
-                    if send_ts is not None:
-                        delays[first_counter] = (recv_ts - send_ts) * 1000
-                results.append(DelayResult(sensor=sensor, receiver=receiver, can_id=can_id, delays=delays))
-    return results
-
 def is_test_folder(path: Path) -> bool:
     return any(path.glob("sensor_*.log")) and any(path.glob("receiver_*.log"))
 
@@ -939,7 +914,7 @@ def analyze_measure(sensors, receivers):
         if m.lat_cb_us:
             xs = sorted(m.lat_cb_us)
             report_lines.append(
-                f"  Sensor {s.board_id} HW-ACK latency (unicast): "
+                f"  Sensor {s.board_id} HW-ACK latency: "
                 f"n={len(xs)} median={_percentile(xs, 0.5)}us p99={_percentile(xs, 0.99)}us "
                 f"max={xs[-1]}us fails={m.lat_cb_fail_count}"
             )
@@ -952,11 +927,11 @@ def analyze_measure(sensors, receivers):
             )
         if m.airtime_samples:
             utils = [u for (_, u, _, _) in m.airtime_samples]
-            avg_util = sum(utils) / len(utils)
+            channel_time_pct = (sum(utils) / len(utils)) / 10.0
             d_packets_total = sum(p for (_, _, _, p) in m.airtime_samples)
             d_airtime_total = sum(a for (_, _, a, _) in m.airtime_samples)
             report_lines.append(
-                f"  Sensor {s.board_id} airtime: avg_util={avg_util:.1f}/1000 "
+                f"  Sensor {s.board_id} channel time: avg={channel_time_pct:.2f}% "
                 f"d_packets_sum={d_packets_total} d_airtime_sum={d_airtime_total}us"
             )
 
@@ -981,24 +956,6 @@ def analyze_measure(sensors, receivers):
         for name in sorted(all_task_hwm):
             report_lines.append(f"    {name}: {all_task_hwm[name]} bytes free")
 
-    return "\n".join(report_lines), True
-
-def analyze_delay(sensors, receivers, context: AnalysisContext = None):
-    """Analyze package delay between sensor and receivers."""
-    context = context or AnalysisContext()
-    delay_results = compute_delays(sensors, receivers, context)
-    report_lines = []
-    
-    for d in delay_results:
-        if not d.delays:
-             report_lines.append(f"{d.sensor.board_id} (0x{d.can_id}) → {d.receiver.board_id}: No matching batches")
-             continue
-        delays_ms = sorted(d.delays.values())
-        median = delays_ms[len(delays_ms) // 2]
-        max_d = delays_ms[-1]
-        report_lines.append(f"{d.sensor.board_id} (0x{d.can_id}) → {d.receiver.board_id}: median {median:.1f}ms, max {max_d:.1f}ms")
-        
-    report_lines.insert(0, f"DELAY ANALYSIS:")
     return "\n".join(report_lines), True
 
 def _trim_tail(sent: list, received: set) -> list:
@@ -1191,7 +1148,6 @@ def analyze_all(test_dir: Path):
     r_crash, p_crash = analyze_crashes(sensors, receivers)
     r_heap, p_heap = analyze_heap_integrity(sensors, receivers)
     r_scenario, p_scenario = analyze_scenario(test_dir, sensors, receivers, context)
-    r_delay, _ = analyze_delay(sensors, receivers, context)
     r_measure, _ = analyze_measure(sensors, receivers)
 
     out.append(r_data_o)
@@ -1205,8 +1161,6 @@ def analyze_all(test_dir: Path):
     out.append(r_heap)
     out.append("")
     out.append(r_scenario)
-    out.append("")
-    out.append(r_delay)
     out.append("")
     out.append(r_measure)
     
