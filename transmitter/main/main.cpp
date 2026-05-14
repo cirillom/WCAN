@@ -9,20 +9,13 @@
 #include "esp_netif.h"
 #include "esp_wifi.h"
 
+#include "receiver_app.hpp"
+#include "runtime_config.hpp"
+#include "sensor_app.hpp"
 #include "wcan.hpp"
 
 #ifdef MEASURE_INSTR
 #include "esp_timer.h"
-#endif
-
-#if defined(ROLE_SENSOR)
-#include "sensor_app.hpp"
-#elif defined(ROLE_RECEIVER)
-#include "receiver_app.hpp"
-#endif
-
-#if !defined(ROLE_SENSOR) && !defined(ROLE_RECEIVER) && !defined(ROLE_IDLE)
-#error "Build must define ROLE=SENSOR, ROLE=RECEIVER, or ROLE=IDLE"
 #endif
 
 static void init_nvs()
@@ -59,25 +52,25 @@ static void log_mac()
 
 extern "C" void app_main(void)
 {
-#ifdef ROLE_IDLE
-    return;
-#endif
-
 #ifdef MEASURE_INSTR
     ESP_LOGI("BOOT_TS", "us=%lld", esp_timer_get_time());
 #endif
+
+    const runtime_config::RuntimeConfig config = runtime_config::WaitForBootConfig();
+    if (config.role == runtime_config::Role::kIdle) {
+        ESP_LOGI("MAIN", "IDLE mode - stopping before NVS/Wi-Fi initialization");
+        return;
+    }
 
     init_nvs();
     init_wifi();
     log_mac();
 
-#ifdef ROLE_SENSOR
-#ifdef SENSOR_MULTIPLE_CAN_IDS
-    sensor_app::SetupMultipleCanIdSensor();
-#else
-    sensor_app::SetupSingleCanIdSensor();
-#endif
-#elif defined(ROLE_RECEIVER)
-    receiver_app::SetupReceiver();
-#endif
+    if (config.role == runtime_config::Role::kSensor) {
+        sensor_app::SetupSensor(config.sensor_base_can_id, config.sensor_can_id_count, config.sensor_hz,
+                                config.linger_ms);
+    } else if (config.role == runtime_config::Role::kReceiver) {
+        receiver_app::SetupReceiver(config.receiver_filter_enabled, config.receiver_filter_ids.data(),
+                                    config.receiver_filter_count);
+    }
 }

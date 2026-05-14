@@ -7,8 +7,8 @@ cmake_minimum_required(VERSION 3.5)
 # Select WCAN transport variant. Two parallel components implement different
 # methodologies; only one is compiled and linked per build. The unselected
 # component is excluded so its source files never enter the build.
-# Usage: idf.py -B build_dir -DTRANSPORT=BROADCAST -DROLE=SENSOR build
-#    or: idf.py -B build_dir -DTRANSPORT=UNICAST   -DROLE=SENSOR build
+# Usage: idf.py -B build_dir -DTRANSPORT=BROADCAST build
+#    or: idf.py -B build_dir -DTRANSPORT=UNICAST build
 if(NOT DEFINED TRANSPORT)
     set(TRANSPORT "BROADCAST")
 endif()

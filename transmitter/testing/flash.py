@@ -13,7 +13,7 @@ def flash_board(chip: str, role: str, port: str, transport: str = "BROADCAST",
                 sensor_can_id_count: int = 1, linger_ms: int = 100) -> bool:
     """Flash a pre-built firmware to a board. Returns True on success."""
     role = role.upper()
-    effective_measure = measure and role != "IDLE"
+    effective_measure = measure
     build_dir = get_build_dir(
         chip, role, transport, effective_measure, sensor_freq, receiver_filter_ids,
         sensor_base_can_id, sensor_can_id_count, linger_ms,
@@ -33,15 +33,15 @@ def flash_board(chip: str, role: str, port: str, transport: str = "BROADCAST",
 
     if result.returncode != 0:
         print(
-            f"  [FAIL] Flash failed on {port} ({chip}/{role}/{transport}{'+measure' if effective_measure else ''}, "
-            f"freq={sensor_freq}Hz, id=0x{int(sensor_base_can_id):x}, n={sensor_can_id_count}, linger={linger_ms}ms)"
+            f"  [FAIL] Flash failed on {port} ({chip}/runtime/{transport}{'+measure' if effective_measure else ''}, "
+            f"boot-role={role})"
         )
         print(f"         stderr: {result.stderr[-200:]}")
         return False
 
     print(
-        f"  [OK] Flashed {port} ({chip}/{role}/{transport}{'+measure' if effective_measure else ''}, "
-        f"freq={sensor_freq}Hz, id=0x{int(sensor_base_can_id):x}, n={sensor_can_id_count}, linger={linger_ms}ms)"
+        f"  [OK] Flashed {port} ({chip}/runtime/{transport}{'+measure' if effective_measure else ''}, "
+        f"boot-role={role})"
     )
     return True
 

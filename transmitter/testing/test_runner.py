@@ -35,7 +35,7 @@ import yaml
 from idf_env import check_idf
 from build import build_needed, build_variant, VALID_TRANSPORTS
 from flash import flash_all
-from monitor import monitor_all_boards
+from monitor import boot_config_line, monitor_all_boards
 from wcan_test_config import board_can_ids, format_can_id, load_boards, load_tests
 from wcan_test_plan import (
     build_run_plan,
@@ -114,9 +114,7 @@ def _print_plan(plan, root: Path, dry_run: bool):
         print("\nUnique firmware builds:")
         for spec in plan.build_specs:
             print(
-                f"  {spec.chip:<7} {spec.role:<8} {spec.transport:<9} measure={spec.measure} "
-                f"freq={spec.sensor_freq} id={format_can_id(spec.sensor_base_can_id)} "
-                f"n={spec.sensor_can_id_count} linger={spec.linger_ms} filter={_format_filter(spec.receiver_filter_ids)}"
+                f"  {spec.chip:<7} runtime  {spec.transport:<9} measure={spec.measure}"
             )
 
 
@@ -155,15 +153,10 @@ def _build_plan_variants(plan, skip_build: bool, dry_run: bool) -> bool:
     for spec in tqdm(plan.build_specs, desc="  Builds", unit="build"):
         ok = build_variant(
             spec.chip,
-            spec.role,
+            "RUNTIME",
             spec.transport,
             spec.measure,
             plan.settings.project_path,
-            spec.sensor_freq,
-            list(spec.receiver_filter_ids) if spec.receiver_filter_ids is not None else None,
-            spec.sensor_base_can_id,
-            spec.sensor_can_id_count,
-            spec.linger_ms,
             quiet=True,
         )
         if not ok:
@@ -186,6 +179,14 @@ def _assignment_options(run, board: dict, role: str) -> dict:
 
 def _write_scenario_metadata(log_dir: Path, run):
     all_boards = run.sensor_boards + run.receiver_boards + run.idle_boards
+    runtime_assignments = []
+    runtime_assignments.extend(
+        (board, "SENSOR", _assignment_options(run, board, "SENSOR")) for board in run.sensor_boards
+    )
+    runtime_assignments.extend(
+        (board, "RECEIVER", _assignment_options(run, board, "RECEIVER")) for board in run.receiver_boards
+    )
+    runtime_assignments.extend((board, "IDLE", {}) for board in run.idle_boards)
     metadata = {
         "suite": run.suite,
         "scenario": run.suite,
@@ -211,6 +212,10 @@ def _write_scenario_metadata(log_dir: Path, run):
                 "can_ids": [format_can_id(can_id) for can_id in board_can_ids(board, run.can_ids_per_sensor)],
             }
             for board in all_boards
+        },
+        "uart_boot_config": {
+            board["id"]: boot_config_line(role, options, run.transport)
+            for board, role, options in runtime_assignments
         },
     }
     if run.suite == "active_filter":
@@ -261,10 +266,7 @@ def _run_one_plan_test(root: Path, plan, run, measure: bool) -> dict:
     active = [(board, "SENSOR") for board in run.sensor_boards] + [
         (board, "RECEIVER") for board in run.receiver_boards
     ]
-    assignments = [
-        (board, role, _assignment_options(run, board, role))
-        for board, role in active
-    ]
+    assignments = [(board, role, _assignment_options(run, board, role)) for board, role in active]
     assignments.extend((board, "IDLE", {}) for board in run.idle_boards)
 
     print(f"\n{'-' * 72}")
@@ -289,8 +291,8 @@ def _run_one_plan_test(root: Path, plan, run, measure: bool) -> dict:
         status = "FLASH_FAIL"
     else:
         time.sleep(1)
-        print(f"  [MONITOR] Capturing {plan.settings.duration}s at {plan.settings.baud} baud...")
-        status = "OK" if monitor_all_boards(active, plan.settings.baud, plan.settings.duration, str(log_dir)) else "MONITOR_ERROR"
+        print(f"  [MONITOR] Sending UART config and capturing {plan.settings.duration}s at {plan.settings.baud} baud...")
+        status = "OK" if monitor_all_boards(assignments, plan.settings.baud, plan.settings.duration, str(log_dir), run.transport) else "MONITOR_ERROR"
 
     print(f"  [RESULT] {status}")
     return _summary_row(root, log_dir, run, status)
@@ -463,7 +465,7 @@ def load_config(config_path: str) -> dict:
         "duration": tc.get("duration_seconds", 30),
         "repeats": tc.get("repeats", 3),
         "cooldown": tc.get("cooldown_seconds", 5),
-        "baud": tc.get("baud_rate", 115200),
+        "baud": tc.get("baud_rate", 921600),
         "project_path": tc.get("project_path", "."),
         # transport + measure are populated from CLI args in main(); defaults match
         # the legacy behaviour so existing scripts keep working.
@@ -607,6 +609,17 @@ def write_scenario_metadata(log_dir: str, sensor_boards: list, receiver_boards: 
                             idle_boards: list, scenario_state: dict):
     os.makedirs(log_dir, exist_ok=True)
     metadata = dict(scenario_state)
+    transport = scenario_state.get("transport", "BROADCAST")
+    runtime_assignments = []
+    for board in sensor_boards:
+        options = assignment_options(board, "SENSOR", scenario_state)
+        options.setdefault("sensor_base_can_id", board_can_id(board))
+        runtime_assignments.append((board, "SENSOR", options))
+    runtime_assignments.extend(
+        (board, "RECEIVER", assignment_options(board, "RECEIVER", scenario_state))
+        for board in receiver_boards
+    )
+    runtime_assignments.extend((board, "IDLE", {}) for board in idle_boards)
     metadata.update({
         "roles": {
             "sensors": [b["id"] for b in sensor_boards],
@@ -620,6 +633,10 @@ def write_scenario_metadata(log_dir: str, sensor_boards: list, receiver_boards: 
                 "can_id": f"0x{board_can_id(b):08x}" if "can_id" in b else None,
             }
             for b in sensor_boards + receiver_boards + idle_boards
+        },
+        "uart_boot_config": {
+            board["id"]: boot_config_line(role, options, transport)
+            for board, role, options in runtime_assignments
         },
     })
     with open(os.path.join(log_dir, "scenario.json"), "w", encoding="utf-8") as f:
@@ -635,19 +652,13 @@ def ensure_assignment_builds(assignments: list, config: dict) -> bool:
         else:
             board, role, options = assignment
 
-        sensor_freq = int(options.get("sensor_freq", config.get("current_freq", 200)))
-        receiver_filter_ids = options.get("receiver_filter_ids")
-        key = (
-            board["chip"], role, config["transport"], config["measure"],
-            sensor_freq if role == "SENSOR" else 200,
-            tuple(receiver_filter_ids) if receiver_filter_ids is not None else None,
-        )
+        key = (board["chip"], config["transport"], config["measure"])
         if key in seen:
             continue
         seen.add(key)
         if not build_variant(
-            board["chip"], role, config["transport"], config["measure"],
-            config["project_path"], sensor_freq, receiver_filter_ids,
+            board["chip"], "RUNTIME", config["transport"], config["measure"],
+            config["project_path"],
         ):
             return False
     return True
@@ -698,8 +709,8 @@ def run_single_test(
 
     write_scenario_metadata(log_dir, sensor_boards, receiver_boards, idle_boards, scenario_state)
 
-    if config.get("scenario", "baseline") != "baseline" and not config.get("skip_build") and not config.get("dry_run"):
-        print("  Building scenario-specific firmware variants...")
+    if not config.get("skip_build") and not config.get("dry_run"):
+        print("  Building runtime firmware variants...")
         if not ensure_assignment_builds(all_to_flash, config):
             return "BUILD_FAIL"
 
@@ -711,8 +722,7 @@ def run_single_test(
     # Brief pause after flashing before starting monitors
     time.sleep(1)
 
-    # Monitor only active boards (not idle)
-    ok = monitor_all_boards(active_boards, config["baud"], config["duration"], log_dir)
+    ok = monitor_all_boards(all_to_flash, config["baud"], config["duration"], log_dir, config["transport"])
 
     return "OK" if ok else "MONITOR_ERROR"
 

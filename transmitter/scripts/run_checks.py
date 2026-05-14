@@ -26,7 +26,7 @@ def main():
         run_cmd(['clang-format', '-i'] + files_to_format)
 
     # 2. Run build to get compile_commands.json and check build
-    run_cmd(['idf.py', '--define-cache-entry', 'SDKCONFIG=sdkconfig_esp32', '-DROLE=RECEIVER', 'build'])
+    run_cmd(['idf.py', '--define-cache-entry', 'SDKCONFIG=sdkconfig_esp32', '-DTRANSPORT=BROADCAST', 'build'])
 
     # 3. Clean compile_commands.json for clang-tidy
     cc_path = 'build/compile_commands.json'

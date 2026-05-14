@@ -31,6 +31,11 @@ size_t num_can_queues = 0;
 static std::unique_ptr<uint32_t[]> s_rx_can_ids_storage;
 static std::unique_ptr<uint32_t[]> s_tx_can_ids_storage;
 
+static constexpr UBaseType_t kSendProcessingTaskPriority = 6;
+static constexpr UBaseType_t kRecvProcessingTaskPriority = 6;
+static constexpr UBaseType_t kCanProcessingTaskPriority = 5;
+static constexpr UBaseType_t kHeapMonitorTaskPriority = 1;
+
 static bool copy_can_ids(const char *name, const uint32_t *ids, size_t ids_size, std::unique_ptr<uint32_t[]> &storage,
                          uint32_t *&target)
 {
@@ -264,7 +269,7 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
     ESP_ERROR_CHECK(esp_now_register_recv_cb(espnow_recv_cb));
     ESP_LOGV(TAG, "ESP-NOW receive callback registered");
 
-    xTaskCreate(send_processing_task, "send_processing_task", 4096, nullptr, 5, nullptr);
+    xTaskCreate(send_processing_task, "send_processing_task", 4096, nullptr, kSendProcessingTaskPriority, nullptr);
     // Skip recv_processing_task when filter=true with an empty allowlist: ACKs are
     // routed directly through ack_recv and nothing else will ever reach the queue.
     if (!(filter && rx_ids_size == 0)) {
@@ -273,16 +278,17 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
                           "Define wcan_recv_callback or use filter=true with an empty allowlist.");
             return;
         }
-        xTaskCreate(recv_processing_task, "recv_processing_task", 4096, nullptr, 5, nullptr);
+        xTaskCreate(recv_processing_task, "recv_processing_task", 4096, nullptr, kRecvProcessingTaskPriority, nullptr);
     }
 
     for (size_t i = 0; i < num_can_queues; i++) {
         char task_name[20];
         std::snprintf(task_name, sizeof(task_name), "can_proc_%u", static_cast<unsigned>(i));
-        xTaskCreate(can_processing_task, task_name, 4096, reinterpret_cast<void *>(i), 4, &can_tx_tasks[i]);
+        xTaskCreate(can_processing_task, task_name, 4096, reinterpret_cast<void *>(i), kCanProcessingTaskPriority,
+                    &can_tx_tasks[i]);
     }
 
-    xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, 1, nullptr);
+    xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, kHeapMonitorTaskPriority, nullptr);
 
 #ifdef MEASURE_INSTR
     measure_start();

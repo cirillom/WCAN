@@ -58,6 +58,7 @@ class ReceiverData:
     port: str
     received: dict = field(default_factory=dict)
     received_times: dict = field(default_factory=dict)
+    rx_stats: dict = field(default_factory=dict)
     crash_count: int = 0
     heap: HeapStats = field(default_factory=HeapStats)
     measure: MeasureStats = field(default_factory=MeasureStats)
@@ -93,11 +94,21 @@ class AnalysisContext:
     receiver_allowlists: dict = field(default_factory=dict)
     expected_receivers: dict = field(default_factory=dict)
 
+@dataclass
+class AnalysisRunResult:
+    folder: Path
+    passed: bool
+    suite: str
+    transport: str
+    frequency: str
+    topology: str
+    repeat: int | None
+
 # ── Parsing ──────────────────────────────────────────────────────────────────
 
 RE_SENSOR_CAN_ID = re.compile(r"SENSOR mode.*CAN ID:\s*0x([0-9a-fA-F]+)")
 RE_SENSOR_CAN_PROC = re.compile(
-    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?CAN_PROC_\d+:\s*(0x[0-9a-fA-F]+)\s*batch\s*\d+\s*\[(\d+)\.\.\d+\]\s*at\s*\((\d+)\)"
+    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?CAN_PROC_\d+:\s*(0x[0-9a-fA-F]+)\s*batch\s*\d+\s*\[(\d+)\.\.(\d+)\]\s*at\s*\((\d+)\)"
 )
 RE_SENSOR_ACK = re.compile(
     r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?ACK:\s*Received ACK for packet tick\s*(\d+)"
@@ -114,6 +125,9 @@ RE_WCAN_SEND_QUEUE_DROP = re.compile(
 RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
 RE_RECEIVER_BATCH = re.compile(
     r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?wcan_recv_callback:\s*\[([0-9a-fA-F]+)\]\s*tick=(\d+)\s*\[(\d+)\.\.(\d+)\]\s*(\d+)\s*items"
+)
+RE_RECEIVER_RX_STATS = re.compile(
+    r"RX_STATS:\s*id=0x([0-9a-fA-F]+)\s*packets=(\d+)\s*samples=(\d+)\s*gaps=(\d+)\s*last=\[(\d+)\.\.(\d+)\]"
 )
 RE_FILENAME = re.compile(r"(sensor|receiver)_([A-Za-z0-9]+)_(.+)\.log")
 RE_HEAP = re.compile(
@@ -165,11 +179,75 @@ def _format_can_ids(can_ids) -> str:
     return ", ".join(_format_can_id(can_id) for can_id in ids) if ids else "none"
 
 def _format_counter_list(values, limit: int = 24) -> str:
-    values = list(values)
-    if len(values) <= limit:
-        return str(values)
-    shown = ", ".join(str(v) for v in values[:limit])
-    return f"[{shown}, ...] ({len(values) - limit} more)"
+    values = sorted(values)
+    if not values:
+        return "[]"
+
+    ranges = []
+    start = prev = values[0]
+    for value in values[1:]:
+        if value == prev + 1:
+            prev = value
+            continue
+        ranges.append((start, prev))
+        start = prev = value
+    ranges.append((start, prev))
+
+    rendered = []
+    for start, end in ranges[:limit]:
+        rendered.append(f"[{start}..{end}]" if start != end else f"[{start}]")
+
+    text = "[" + ", ".join(rendered) + "]"
+    if len(ranges) > limit:
+        text += f" ({len(ranges) - limit} more ranges)"
+    return text
+
+def _receiver_received_for_sent(receiver: ReceiverData, can_id: str, sent) -> set:
+    """Return counters considered delivered for a specific sent-counter set.
+
+    Per-packet receiver callback logs can be dropped by UART/host capture under
+    load. When RX_STATS reports a gap-free stream, use it as the authoritative
+    delivery signal and clamp it to the counters that actually reached CAN_PROC.
+    """
+    normalized_can_id = _normalize_can_id(can_id)
+    sent_set = set(sent)
+    stats = receiver.rx_stats.get(normalized_can_id)
+    if stats and stats.get("gaps", 0) == 0:
+        last = stats.get("last_last", -1)
+        return {counter for counter in sent_set if counter <= last}
+    return receiver.received.get(normalized_can_id, set()) & sent_set
+
+def _receiver_observed_total(receiver: ReceiverData, allowed_can_ids=None) -> int:
+    allowed = None
+    if allowed_can_ids is not None:
+        allowed = {_normalize_can_id(can_id) for can_id in allowed_can_ids}
+
+    if receiver.rx_stats:
+        total = 0
+        for can_id, stats in receiver.rx_stats.items():
+            if allowed is None or _normalize_can_id(can_id) in allowed:
+                total += stats.get("samples", 0)
+        return total
+
+    total = 0
+    for can_id, counters in receiver.received.items():
+        if allowed is None or _normalize_can_id(can_id) in allowed:
+            total += len(counters)
+    return total
+
+def _frequency_label(metadata: dict) -> str:
+    sensor_frequencies = metadata.get("sensor_frequencies") or {}
+    if sensor_frequencies:
+        return ",".join(
+            f"{board_id}={int(freq)}Hz"
+            for board_id, freq in sorted(sensor_frequencies.items())
+        )
+
+    frequency_hz = metadata.get("frequency_hz")
+    if frequency_hz is not None:
+        return f"{int(frequency_hz)}Hz"
+
+    return "freq=unknown"
 
 def load_analysis_context(test_dir: Path) -> AnalysisContext:
     scenario_path = test_dir / "scenario.json"
@@ -191,6 +269,71 @@ def load_analysis_context(test_dir: Path) -> AnalysisContext:
         receiver_allowlists=receiver_allowlists,
         expected_receivers=expected_receivers,
     )
+
+def _topology_and_repeat(test_dir: Path, metadata: dict) -> tuple[str, int | None]:
+    topology = str(metadata.get("topology", test_dir.name.removeprefix("test_")))
+    repeat = metadata.get("repeat")
+
+    if repeat is None:
+        m = re.match(r"(.+)_rep(\d+)$", topology)
+        if m:
+            return m.group(1), int(m.group(2))
+        return topology, None
+
+    return re.sub(rf"_rep{re.escape(str(repeat))}$", "", topology), int(repeat)
+
+def analysis_run_result(test_dir: Path, passed: bool) -> AnalysisRunResult:
+    metadata = load_analysis_context(test_dir).metadata
+    topology, repeat = _topology_and_repeat(test_dir, metadata)
+    return AnalysisRunResult(
+        folder=test_dir,
+        passed=passed,
+        suite=metadata.get("suite", metadata.get("scenario", "unknown")),
+        transport=metadata.get("transport", "unknown"),
+        frequency=_frequency_label(metadata),
+        topology=topology,
+        repeat=repeat,
+    )
+
+def format_topology_summary(results: list[AnalysisRunResult], min_successful_reps: int = 1) -> str:
+    groups = {}
+    for result in results:
+        key = (result.suite, result.transport, result.frequency, result.topology)
+        groups.setdefault(key, []).append(result)
+
+    passed_topologies = 0
+    lines = []
+    for key in sorted(groups):
+        suite, transport, frequency, topology = key
+        runs = sorted(groups[key], key=lambda r: (-1 if r.repeat is None else r.repeat, str(r.folder)))
+        passed_runs = [run for run in runs if run.passed]
+        if len(passed_runs) >= min_successful_reps:
+            passed_topologies += 1
+            status = "PASS"
+        else:
+            status = "FAIL"
+
+        passed_reps = [
+            f"rep{run.repeat}" if run.repeat is not None else run.folder.name
+            for run in passed_runs
+        ]
+        failed_reps = [
+            f"rep{run.repeat}" if run.repeat is not None else run.folder.name
+            for run in runs
+            if not run.passed
+        ]
+        detail = f"{len(passed_runs)}/{len(runs)} reps passed"
+        if passed_reps:
+            detail += f"; pass={','.join(passed_reps)}"
+        if failed_reps:
+            detail += f"; fail={','.join(failed_reps)}"
+        lines.append(f"{suite} | {transport} | {frequency} | {topology} | {status} ({detail})")
+
+    threshold = f">={min_successful_reps}"
+    header = f"TOPOLOGY RESULT: {passed_topologies}/{len(groups)} topologies passed ({threshold} successful reps)"
+    if not lines:
+        return header
+    return header + "\n" + "\n".join(lines)
 
 def _receiver_accepts_can_id(context: AnalysisContext, receiver: ReceiverData, can_id: str) -> bool:
     if not context.active_filtering:
@@ -320,30 +463,38 @@ def parse_sensor_log(path: Path) -> SensorData:
     can_id = _normalize_can_id(can_match.group(1))
 
     counter_times = {}
-    queue_push_count = 0
+    raw_queue_push_count = 0
     for m in RE_SENSOR_COUNTER.finditer(text):
-        queue_push_count += 1
+        raw_queue_push_count += 1
         counter_times[int(m.group(2))] = _parse_ts(m.group(1))
-    counters = sorted(counter_times.keys())
     queue_drop_counters = {int(m.group(1)) for m in RE_SENSOR_QUEUE_DROP.finditer(text)}
 
     can_proc_times = {}
     packet_counters = {}
     sent_times = {}
     sent_times_by_can_id = {}
+    sent_counter_set = set()
+    can_proc_sample_count = 0
     can_ids_seen = []
     for m in RE_SENSOR_CAN_PROC.finditer(text):
         ts = _parse_ts(m.group(1))
         proc_can_id = _normalize_can_id(m.group(2))
         first_counter = int(m.group(3))
-        tick = int(m.group(4))
+        last_counter = int(m.group(4))
+        tick = int(m.group(5))
+        can_proc_sample_count += max(0, last_counter - first_counter + 1)
         can_proc_times[tick] = ts
         packet_counters[tick] = first_counter
-        sent_times[first_counter] = ts
-        sent_times_by_can_id.setdefault(proc_can_id, {})[first_counter] = ts
+        for counter in range(first_counter, last_counter + 1):
+            sent_counter_set.add(counter)
+            sent_times[counter] = ts
+            sent_times_by_can_id.setdefault(proc_can_id, {})[counter] = ts
+            counter_times.setdefault(counter, ts)
         if proc_can_id not in can_ids_seen:
             can_ids_seen.append(proc_can_id)
 
+    counters = sorted(sent_counter_set) if sent_counter_set else sorted(counter_times.keys())
+    queue_push_count = can_proc_sample_count if can_proc_sample_count else raw_queue_push_count
     can_ids = can_ids_seen or [can_id]
 
     ack_delays = {}
@@ -397,6 +548,17 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         received.setdefault(can_id, set()).update(range(first, last + 1))
         received_times.setdefault(can_id, {})[first] = ts
 
+    rx_stats = {}
+    for m in RE_RECEIVER_RX_STATS.finditer(text):
+        can_id = _normalize_can_id(m.group(1))
+        rx_stats[can_id] = {
+            "packets": int(m.group(2)),
+            "samples": int(m.group(3)),
+            "gaps": int(m.group(4)),
+            "last_first": int(m.group(5)),
+            "last_last": int(m.group(6)),
+        }
+
     crash_count = max(0, text.count(CRASH_MARKER) - 1)
 
     return ReceiverData(
@@ -404,6 +566,7 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         port=port,
         received=received,
         received_times=received_times,
+        rx_stats=rx_stats,
         crash_count=crash_count,
         heap=parse_heap_stats(text),
         measure=parse_measure(text),
@@ -428,7 +591,7 @@ def compare(sensors, receivers, context: AnalysisContext = None):
                         )
                     )
                     continue
-                recv_counters = receiver.received.get(can_id, set())
+                recv_counters = _receiver_received_for_sent(receiver, can_id, sent)
 
                 missed_set = set(sent) - recv_counters
                 n_tail = 0
@@ -508,7 +671,7 @@ def sensor_summary(sensors, receivers, context: AnalysisContext = None):
                 )
                 continue
             for receiver in subscribed:
-                union |= receiver.received.get(can_id, set())
+                union |= _receiver_received_for_sent(receiver, can_id, sent)
             total_misses = sorted(c for c in sent if c not in union)
 
             missed_set = set(total_misses)
@@ -550,14 +713,14 @@ def analyze_data_overall(sensors, receivers, test_name, context: AnalysisContext
         ]
         total_expected = sum(len(s.sent) for s in expected_summaries)
         total_received = sum(
-            len(receiver.received.get(s.can_id, set()) & set(s.sent))
+            len(_receiver_received_for_sent(receiver, s.can_id, s.sent))
             for s in expected_summaries
         )
         total_missed = total_expected - total_received
         if context.active_filtering and not expected_summaries:
             report_lines.append(
                 f"Receiver {receiver.board_id} ({receiver.port}): accepts none of these queued sensor CAN IDs; "
-                f"0 expected, {sum(len(counters) for counters in receiver.received.values())} received"
+                f"0 expected, {_receiver_observed_total(receiver)} received"
             )
         else:
             report_lines.append(
@@ -639,13 +802,25 @@ def analyze_transport_health(sensors, receivers=None, context: AnalysisContext =
     total_send_drops = sum(s.send_queue_drop_count for s in gated_sensors)
     total_drops = total_producer_drops + total_send_drops
     total_max_retry_failures = sum(s.max_retry_fail_count for s in gated_sensors)
+    # A transport failure should mean the data was lost everywhere, not just
+    # missed by one receiver while another still received it.
+    network_misses = sum(
+        len(summary.total_misses)
+        for summary in sensor_summary(gated_sensors, receivers, context)
+    )
+    total_rx_stats_gaps = sum(
+        stats.get("gaps", 0)
+        for receiver in receivers
+        for stats in receiver.rx_stats.values()
+    )
 
-    passed = total_drops == 0 and total_max_retry_failures == 0
+    passed = total_drops == 0 and total_max_retry_failures == 0 and network_misses == 0
     status = "PASS" if passed else "FAIL"
     report_lines.append(
         f"TRANSPORT HEALTH: {status} "
         f"({total_producer_drops} producer drops before send queue, {total_send_drops} WCAN send drops, "
-        f"{total_max_retry_failures} max-retry failures)"
+        f"{total_max_retry_failures} max-retry failures, {network_misses} network delivery misses, "
+        f"{total_rx_stats_gaps} receiver RX_STATS gaps)"
     )
     if ignored_sensors:
         report_lines.append(
@@ -661,10 +836,26 @@ def analyze_transport_health(sensors, receivers=None, context: AnalysisContext =
             retry_text += f", max chain {sensor.max_retry_chain}"
         report_lines.append(
             f"Sensor {sensor.board_id} ({sensor.port}): "
-            f"{sensor.queue_push_count} producer pushes, {sensor.queue_drop_count} producer drops "
+            f"{sensor.queue_push_count} samples reached CAN_PROC, {sensor.queue_drop_count} producer drops "
             f"({drop_rate:.1f}% producer drop attempts, {len(sensor.queue_drop_counters)} unique counters), "
             f"{sensor.send_queue_drop_count} WCAN send drops, "
             f"{retry_text}, {sensor.max_retry_fail_count} max-retry failures"
+        )
+        if sensor.queue_drop_counters:
+            report_lines.append(
+                f" - Producer dropped counters: {_format_counter_list(sensor.queue_drop_counters)}"
+            )
+    for receiver in receivers:
+        if not receiver.rx_stats:
+            continue
+        parts = []
+        for can_id, stats in sorted(receiver.rx_stats.items()):
+            parts.append(
+                f"{_format_can_id(can_id)} packets={stats['packets']} samples={stats['samples']} "
+                f"gaps={stats['gaps']} last=[{stats['last_first']}..{stats['last_last']}]"
+            )
+        report_lines.append(
+            f"Receiver {receiver.board_id} ({receiver.port}) RX_STATS: " + "; ".join(parts)
         )
     for sensor in ignored_sensors:
         report_lines.append(
@@ -871,7 +1062,7 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
         for receiver in receivers:
             allowed = sorted(allowlists.get(receiver.board_id, set()))
             if not allowed:
-                observed_total = sum(len(counters) for counters in receiver.received.values())
+                observed_total = _receiver_observed_total(receiver)
                 report_lines.append(
                     f"RECEIVER {receiver.board_id} -> expected none -> received {observed_total} total"
                 )
@@ -885,7 +1076,7 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
                     )
                     continue
                 sent = sensor.counters[:-1] if sensor.counters else []
-                received = receiver.received.get(_normalize_can_id(can_id), set())
+                received = _receiver_received_for_sent(receiver, can_id, sent)
                 trimmed_sent = _trim_tail(sent, received)
                 received_count = len(received & set(trimmed_sent))
                 missed = sorted(c for c in trimmed_sent if c not in received)
@@ -926,7 +1117,8 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
                 if filtered_ids:
                     leaked_to = [
                         receiver.board_id for receiver in receivers
-                        if receiver.board_id in filtered_ids and receiver.received.get(normalized_can_id, set())
+                        if receiver.board_id in filtered_ids
+                        and _receiver_observed_total(receiver, [normalized_can_id]) > 0
                     ]
                     report_lines.append(
                         f"SENSOR {sensor.board_id} -> {_format_can_id(can_id)} filtered by "
@@ -972,14 +1164,21 @@ def analyze_all(test_dir: Path):
     test_name = test_dir.name
     context = load_analysis_context(test_dir)
 
-    sensors = sorted(
-        (parse_sensor_log(p) for p in test_dir.glob("sensor_*.log")),
-        key=lambda s: s.board_id,
-    )
-    receivers = sorted(
-        (parse_receiver_log(p) for p in test_dir.glob("receiver_*.log")),
-        key=lambda r: r.board_id,
-    )
+    sensors = []
+    for path in test_dir.glob("sensor_*.log"):
+        try:
+            sensors.append(parse_sensor_log(path))
+        except ValueError as exc:
+            print(f"[WARN] Skipping {path.name}: {exc}")
+    sensors.sort(key=lambda s: s.board_id)
+
+    receivers = []
+    for path in test_dir.glob("receiver_*.log"):
+        try:
+            receivers.append(parse_receiver_log(path))
+        except ValueError as exc:
+            print(f"[WARN] Skipping {path.name}: {exc}")
+    receivers.sort(key=lambda r: r.board_id)
 
     if not sensors or not receivers:
          return f"No logs found in {test_dir}\n", False
@@ -1027,9 +1226,10 @@ def analyze_all(test_dir: Path):
         topology = f"{topology}_rep{repeat}"
     suite = metadata.get("suite", metadata.get("scenario", "unknown"))
     transport = metadata.get("transport", "unknown")
+    frequency = _frequency_label(metadata)
     status = "PASS" if overall_passed else "FAIL"
     out.insert(0, f"failed: {', '.join(failed) if failed else 'none'}")
-    out.insert(0, f"{suite} | {transport} | {topology} | {status}")
+    out.insert(0, f"{suite} | {transport} | {frequency} | {topology} | {status}")
     out.append("")
     out.append("======================")
     return "\n".join(out), overall_passed
@@ -1037,7 +1237,16 @@ def analyze_all(test_dir: Path):
 def main():
     parser = argparse.ArgumentParser(description="WCAN Log Analyzer")
     parser.add_argument("results_path", help="Path to results directory")
+    parser.add_argument(
+        "--min-successful-reps",
+        type=int,
+        default=1,
+        help="Minimum passing repetitions required for a topology-level PASS.",
+    )
     args = parser.parse_args()
+    if args.min_successful_reps < 1:
+        print("--min-successful-reps must be at least 1")
+        sys.exit(1)
 
     root = Path(args.results_path)
     if not root.exists():
@@ -1047,21 +1256,25 @@ def main():
     test_folders = find_test_folders(root)
     n_passed = 0
     all_reports = []
+    run_results = []
 
     for folder in test_folders:
         report, passed = analyze_all(folder)
         all_reports.append(report)
+        run_results.append(analysis_run_result(folder, passed))
         print(report)
         print()
         if passed:
             n_passed += 1
 
     result_line = f"RESULT: {n_passed}/{len(test_folders)} tests passed"
+    topology_summary = format_topology_summary(run_results, args.min_successful_reps)
     print(result_line)
+    print(topology_summary)
 
     if len(test_folders) > 1:
         summary_path = root / "analysis_summary.txt"
-        combined = "\n\n".join(all_reports) + "\n" + result_line + "\n"
+        combined = "\n\n".join(all_reports) + "\n" + result_line + "\n" + topology_summary + "\n"
         summary_path.write_text(combined, encoding="utf-8")
         print(f"Combined summary saved: {summary_path}")
 

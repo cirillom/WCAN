@@ -217,37 +217,11 @@ def choose_boards(boards: list[dict], sensors: int, receivers: int, rng: random.
 
 
 def build_specs_for_run(run: RunSpec, measure: bool) -> list[BuildSpec]:
-    specs: list[BuildSpec] = []
-    for board in run.sensor_boards:
-        sensor_freq = run.sensor_frequencies.get(board["id"], run.frequency_hz or 200)
-        specs.append(
-            BuildSpec(
-                chip=board["chip"],
-                role="SENSOR",
-                transport=run.transport,
-                measure=measure,
-                sensor_freq=int(sensor_freq),
-                sensor_base_can_id=normalize_can_id(board["can_id"]),
-                sensor_can_id_count=run.can_ids_per_sensor,
-                linger_ms=run.linger_ms,
-            )
-        )
-
-    for board in run.receiver_boards:
-        receiver_filter_ids = run.receiver_allowlists.get(board["id"])
-        specs.append(
-            BuildSpec(
-                chip=board["chip"],
-                role="RECEIVER",
-                transport=run.transport,
-                measure=measure,
-                receiver_filter_ids=tuple(receiver_filter_ids) if receiver_filter_ids is not None else None,
-            )
-        )
-
-    for board in run.idle_boards:
-        specs.append(BuildSpec(chip=board["chip"], role="IDLE", transport="BROADCAST", measure=False))
-    return specs
+    boards = run.sensor_boards + run.receiver_boards + run.idle_boards
+    return [
+        BuildSpec(chip=board["chip"], role="RUNTIME", transport=run.transport, measure=measure)
+        for board in boards
+    ]
 
 
 def build_run_plan(
@@ -273,7 +247,7 @@ def build_run_plan(
         duration=int(profile_cfg.get("duration_seconds", defaults.get("duration_seconds", 30))),
         repeats=int(profile_cfg.get("repeats", defaults.get("repeats", 3))),
         cooldown=int(profile_cfg.get("cooldown_seconds", defaults.get("cooldown_seconds", 5))),
-        baud=int(profile_cfg.get("baud_rate", defaults.get("baud_rate", 115200))),
+        baud=int(profile_cfg.get("baud_rate", defaults.get("baud_rate", 921600))),
         project_path=str(profile_cfg.get("project_path", defaults.get("project_path", "."))),
         transports=transports,
         measure=effective_measure,
@@ -342,11 +316,6 @@ def build_run_plan(
             spec.role,
             spec.transport,
             spec.measure,
-            spec.sensor_freq,
-            spec.sensor_base_can_id,
-            spec.sensor_can_id_count,
-            spec.linger_ms,
-            spec.receiver_filter_ids or (),
         ),
     )
     return RunPlan(boards=boards, settings=settings, runs=runs, build_specs=unique_builds)
@@ -378,16 +347,7 @@ def compact_run_dict(run: RunSpec) -> dict:
 def compact_build_dict(spec: BuildSpec) -> dict:
     return {
         "chip": spec.chip,
-        "role": spec.role,
+        "role": "RUNTIME",
         "transport": spec.transport,
         "measure": spec.measure,
-        "sensor_freq": spec.sensor_freq,
-        "sensor_base_can_id": format_can_id(spec.sensor_base_can_id),
-        "sensor_can_id_count": spec.sensor_can_id_count,
-        "linger_ms": spec.linger_ms,
-        "receiver_filter_ids": (
-            [format_can_id(can_id) for can_id in spec.receiver_filter_ids]
-            if spec.receiver_filter_ids is not None
-            else None
-        ),
     }
