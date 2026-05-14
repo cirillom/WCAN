@@ -9,13 +9,39 @@ instalação como motivações recorrentes, embora a confiabilidade do enlace pa
 a ser uma restrição central de projeto
 \cite{tavares2008_wsn_automobiles,rahman2017_intravehicular_wsn,hashemi2014_intracar_multihop_wsn}.
 
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{p{0.22\linewidth}|p{0.34\linewidth}|p{0.34\linewidth}}
+\hline
+Solução & Vantagens & Desvantagens \\
+\hline
+Cabeamento dedicado &
+Mantém a arquitetura atual, preserva a confiabilidade física do barramento e exige pouca mudança no sistema embarcado. &
+Aumenta massa, custo e complexidade de montagem; exige soluções mecânicas específicas para partes móveis; não resolve sensores externos ao veículo. \\
+\hline
+Aquisição independente &
+Elimina chicotes até o ponto de medição e permite instalar módulos em regiões de difícil acesso. &
+Exige sincronização temporal entre sistemas, dificulta análise durante a sessão e cria um fluxo operacional separado para recuperar e combinar os dados. \\
+\hline
+Ponte sem fio &
+Remove restrições físicas de cabeamento, mantém integração com o CAN existente e permite dados disponíveis durante o teste. &
+Exige desenvolvimento de protocolo, tratamento de perdas, controle de latência, descoberta de nós e validação de confiabilidade do enlace. \\
+\hline
+\end{tabular}
+\caption{Comparação das soluções consideradas para expandir a instrumentação do veículo.}
+\label{tab:solucoes-consideradas}
+\end{table}
+
 \section{Cabeamento Dedicado}
 
 A primeira opção consiste em aceitar os custos inerentes à arquitetura
 cabeada e investir na infraestrutura necessária para cada ponto de medição: acopladores
 rotativos para as rodas, chicotes dedicados para a asa traseira e extensões
 do chicote principal para outros pontos de difícil acesso. Essa abordagem preserva
-a arquitetura existente sem exigir nenhum desenvolvimento de software ou hardware
+a arquitetura existente sem exigir nenhum desenvolvimento de \emph{software} ou \emph{hardware}
 adicional. No entanto, além dos custos de material já discutidos,
 ela não endereça o terceiro cenário levantado, sensores externos ao veículo, e continua impondo 
 restrições físicas fundamentais, as quais não são possíveis de serem resolvidas com cabeamento.
@@ -53,5 +79,3 @@ aerodinâmicas sensíveis e sensores externos ao veículo. A principal restriç�
 a ser endereçada no desenvolvimento é a garantia de confiabilidade na entrega
 dos dados, uma vez que protocolos de comunicação sem fio, por natureza, não
 oferecem as mesmas garantias de integridade que uma conexão física.
-% the possible solutions we arrived
-% introduce the ideia of a wireless solution
