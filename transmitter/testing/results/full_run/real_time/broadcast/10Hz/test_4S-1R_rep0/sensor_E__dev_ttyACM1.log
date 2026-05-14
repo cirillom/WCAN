@@ -1,0 +1,1362 @@
+# Monitor started: 2026-05-13T10:26:02.059865
+# Port: /dev/ttyACM1, Baud: 921600, Duration: 30s
+
+# UART boot config: wcan v=1 role=sensor transport=BROADCAST base=0xe0 count=1 hz=10 linger=0
+[2026-05-13 10:26:02.063] ESP-ROM:esp32c3-api1-20210207
+[2026-05-13 10:26:02.073] Build:Feb  7 2021
+[2026-05-13 10:26:02.093] rst:0x15 (USB_UART_CHIP_RESET),boot:0xd (SPI_FAST_FLASH_BOOT)
+[2026-05-13 10:26:02.098] Saved PC:0x40384eae
+[2026-05-13 10:26:02.100] SPIWP:0xee
+[2026-05-13 10:26:02.104] mode:DIO, clock div:1
+[2026-05-13 10:26:02.110] load:0x3fcd5820,len:0x1574
+[2026-05-13 10:26:02.121] load:0x403cc710,len:0xc30
+[2026-05-13 10:26:02.121] load:0x403ce710,len:0x2fa0
+[2026-05-13 10:26:02.122] entry 0x403cc71a
+[2026-05-13 10:26:02.123] I (24) boot: ESP-IDF v5.4.1 2nd stage bootloader
+[2026-05-13 10:26:02.125] I (24) boot: compile time May 12 2026 19:48:29
+[2026-05-13 10:26:02.126] I (25) boot: chip revision: v0.4
+[2026-05-13 10:26:02.130] I (25) boot: efuse block revision: v1.3
+[2026-05-13 10:26:02.133] I (25) boot.esp32c3: SPI Speed      : 80MHz
+[2026-05-13 10:26:02.135] I (25) boot.esp32c3: SPI Mode       : DIO
+[2026-05-13 10:26:02.138] I (26) boot.esp32c3: SPI Flash Size : 2MB
+[2026-05-13 10:26:02.144] I (26) boot: Enabling RNG early entropy source...
+[2026-05-13 10:26:02.148] I (27) boot: Partition Table:
+[2026-05-13 10:26:02.152] I (27) boot: ## Label            Usage          Type ST Offset   Length
+[2026-05-13 10:26:02.158] I (28) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+[2026-05-13 10:26:02.160] I (29) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+[2026-05-13 10:26:02.162] I (29) boot:  2 factory          factory app      00 00 00010000 00100000
+[2026-05-13 10:26:02.165] I (30) boot: End of partition table
+[2026-05-13 10:26:02.167] I (31) esp_image: segment 0: paddr=00010020 vaddr=3c0a0020 size=19ea0h (106144) map
+[2026-05-13 10:26:02.171] I (49) esp_image: segment 1: paddr=00029ec8 vaddr=3fc95800 size=02db0h ( 11696) load
+[2026-05-13 10:26:02.177] I (51) esp_image: segment 2: paddr=0002cc80 vaddr=40380000 size=03398h ( 13208) load
+[2026-05-13 10:26:02.180] I (54) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=93210h (602640) map
+[2026-05-13 10:26:02.186] I (150) esp_image: segment 4: paddr=000c3238 vaddr=40383398 size=12310h ( 74512) load
+[2026-05-13 10:26:02.191] I (164) esp_image: segment 5: paddr=000d5550 vaddr=50000200 size=0001ch (    28) load
+[2026-05-13 10:26:02.193] I (171) boot: Loaded app from partition at offset 0x10000
+[2026-05-13 10:26:02.196] I (171) boot: Disabling RNG early entropy source...
+[2026-05-13 10:26:02.199] I (173) cpu_start: Unicore app
+[2026-05-13 10:26:02.200] I (181) cpu_start: Pro cpu start user code
+[2026-05-13 10:26:02.204] I (181) cpu_start: cpu freq: 160000000 Hz
+[2026-05-13 10:26:02.208] I (182) app_init: Application information:
+[2026-05-13 10:26:02.209] I (182) app_init: Project name:     sensor_acquirer
+[2026-05-13 10:26:02.214] I (182) app_init: App version:      v1.0-60-gb67991a-dirty
+[2026-05-13 10:26:02.216] I (183) app_init: Compile time:     May 12 2026 19:48:20
+[2026-05-13 10:26:02.218] I (183) app_init: ELF file SHA256:  fd27e32a6...
+[2026-05-13 10:26:02.220] I (184) app_init: ESP-IDF:          v5.4.1
+[2026-05-13 10:26:02.221] I (184) efuse_init: Min chip rev:     v0.3
+[2026-05-13 10:26:02.222] I (185) efuse_init: Max chip rev:     v1.99
+[2026-05-13 10:26:02.223] I (185) efuse_init: Chip rev:         v0.4
+[2026-05-13 10:26:02.224] I (186) heap_init: Initializing. RAM available for dynamic allocation:
+[2026-05-13 10:26:02.224] I (187) heap_init: At 3FC9D210 len 00022DF0 (139 KiB): RAM
+[2026-05-13 10:26:02.225] I (187) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM
+[2026-05-13 10:26:02.225] I (188) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM
+[2026-05-13 10:26:02.226] I (189) heap_init: At 5000021C len 00001DCC (7 KiB): RTCRAM
+[2026-05-13 10:26:02.226] I (190) spi_flash: detected chip: generic
+[2026-05-13 10:26:02.226] I (190) spi_flash: flash io: dio
+[2026-05-13 10:26:02.227] W (190) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+[2026-05-13 10:26:02.227] I (192) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[2026-05-13 10:26:02.228] I (193) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[2026-05-13 10:26:02.228] I (194) main_task: Started on CPU0
+[2026-05-13 10:26:02.228] I (194) main_task: Calling app_main()
+[2026-05-13 10:26:02.228] I (194) BOOT_TS: us=5200
+[2026-05-13 10:26:02.229] I (195) BOOT_CONFIG: waiting for UART config
+[2026-05-13 10:26:02.229] WCAN_CFG_WAIT v=1
+# UART boot config sent: wcan v=1 role=sensor transport=BROADCAST base=0xe0 count=1 hz=10 linger=0
+[2026-05-13 10:26:02.229] WCAN_CFG_WAIT v=1
+[2026-05-13 10:26:03.697] I (1836) BOOT_CONFIG: accepted role=sensor transport=BROADCAST
+[2026-05-13 10:26:03.698] I (1836) BOOT_CONFIG: sensor base=0xe0 count=1 hz=10 linger=0
+[2026-05-13 10:26:03.699] WCAN_CFG_ACK
+# Waiting for coordinated capture start
+[2026-05-13 10:26:03.711] WCAN_CFG_ACK
+[2026-05-13 10:26:03.722] I (1840) pp: pp rom version: 9387209
+[2026-05-13 10:26:03.742] I (1841) net80211: net80211 rom version: 9387209
+[2026-05-13 10:26:03.754] I (1843) wifi:wifi driver task: 3fca73c8, prio:23, stack:6656, core=0
+[2026-05-13 10:26:03.764] I (1847) wifi:wifi firmware version: 79fa3f41ba
+[2026-05-13 10:26:03.769] I (1847) wifi:wifi certification version: v7.0
+[2026-05-13 10:26:03.776] I (1847) wifi:config NVS flash: enabled
+[2026-05-13 10:26:03.780] I (1847) wifi:config nano formatting: disabled
+[2026-05-13 10:26:03.786] I (1848) wifi:Init data frame dynamic rx buffer num: 32
+[2026-05-13 10:26:03.790] I (1848) wifi:Init static rx mgmt buffer num: 5
+[2026-05-13 10:26:03.792] I (1849) wifi:Init management short buffer num: 32
+[2026-05-13 10:26:03.794] I (1849) wifi:Init dynamic tx buffer num: 32
+[2026-05-13 10:26:03.797] I (1850) wifi:Init static tx FG buffer num: 2
+[2026-05-13 10:26:03.803] I (1851) wifi:Init static rx buffer size: 1600
+[2026-05-13 10:26:03.810] I (1851) wifi:Init static rx buffer num: 10
+[2026-05-13 10:26:03.815] I (1851) wifi:Init dynamic rx buffer num: 32
+[2026-05-13 10:26:03.818] I (1853) wifi_init: rx ba win: 6
+[2026-05-13 10:26:03.823] I (1853) wifi_init: accept mbox: 6
+[2026-05-13 10:26:03.826] I (1853) wifi_init: tcpip mbox: 32
+[2026-05-13 10:26:03.828] I (1853) wifi_init: udp mbox: 6
+[2026-05-13 10:26:03.829] I (1853) wifi_init: tcp mbox: 6
+[2026-05-13 10:26:03.830] I (1854) wifi_init: tcp tx win: 5760
+[2026-05-13 10:26:03.830] I (1854) wifi_init: tcp rx win: 5760
+[2026-05-13 10:26:03.834] I (1855) wifi_init: tcp mss: 1440
+[2026-05-13 10:26:03.836] I (1855) wifi_init: WiFi IRAM OP enabled
+[2026-05-13 10:26:03.840] I (1855) wifi_init: WiFi RX IRAM OP enabled
+[2026-05-13 10:26:03.841] I (1856) phy_init: phy_version 1200,2b7123f9,Feb 18 2025,15:22:21
+[2026-05-13 10:26:03.842] I (1891) wifi:mode : sta (74:4d:bd:e1:d5:b8)
+[2026-05-13 10:26:03.843] I (1892) wifi:enable tsf
+[2026-05-13 10:26:03.844] I (1893) MAIN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 10:26:03.846] I (1894) SENSOR_APP: SENSOR mode - CAN ID: 0xe0 (count=1, linger=0 ms, hz=10)
+[2026-05-13 10:26:03.848] I (1894) SENSOR_APP: Sensor CAN ID[0] = 0xe0
+[2026-05-13 10:26:03.849] I (1894) SENSOR_APP: Startup jitter: 95 ms
+[2026-05-13 10:26:03.851] I (1990) ESPNOW: espnow [version: 2.0] init
+[2026-05-13 10:26:03.852] I (1990) WCAN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 10:26:03.853] I (1991) SEND: Send processing task started
+[2026-05-13 10:26:03.857] I (1991) CAN_PROC_0: CAN processing task 0 started
+[2026-05-13 10:26:03.858] I (1991) HEAP: free=182056 min_free=182056 largest=114688
+[2026-05-13 10:26:03.859] I (1992) WCAN: WCAN initialized
+[2026-05-13 10:26:03.861] I (1992) read_data_task: read_data_task started with 1 CAN ID(s) at 10 Hz
+[2026-05-13 10:26:03.864] I (1993) CAN_PROC_0: 0x000000e0 batch 1 [0..0] at (1799)
+[2026-05-13 10:26:03.865] I (1994) read_data_task: [0xe0] 0
+[2026-05-13 10:26:03.866] I (1994) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:03.869] I (1994) main_task: Returned from app_main()
+[2026-05-13 10:26:03.870] I (1996) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:03.956] I (2095) CAN_PROC_0: 0x000000e0 batch 1 [1..1] at (1900)
+[2026-05-13 10:26:03.963] I (2095) read_data_task: [0xe0] 1
+[2026-05-13 10:26:03.965] I (2095) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:03.967] I (2097) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.056] I (2196) CAN_PROC_0: 0x000000e0 batch 1 [2..2] at (2002)
+[2026-05-13 10:26:04.057] I (2197) read_data_task: [0xe0] 2
+[2026-05-13 10:26:04.058] I (2197) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.060] I (2199) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.159] I (2298) CAN_PROC_0: 0x000000e0 batch 1 [3..3] at (2103)
+[2026-05-13 10:26:04.161] I (2298) read_data_task: [0xe0] 3
+[2026-05-13 10:26:04.165] I (2298) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.167] I (2300) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.262] I (2399) CAN_PROC_0: 0x000000e0 batch 1 [4..4] at (2205)
+[2026-05-13 10:26:04.264] I (2400) read_data_task: [0xe0] 4
+[2026-05-13 10:26:04.267] I (2400) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.269] I (2402) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.361] I (2501) CAN_PROC_0: 0x000000e0 batch 1 [5..5] at (2306)
+[2026-05-13 10:26:04.362] I (2501) read_data_task: [0xe0] 5
+[2026-05-13 10:26:04.364] I (2501) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.367] I (2503) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.464] I (2602) CAN_PROC_0: 0x000000e0 batch 1 [6..6] at (2408)
+[2026-05-13 10:26:04.467] I (2603) read_data_task: [0xe0] 6
+[2026-05-13 10:26:04.470] I (2603) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.471] I (2605) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.565] I (2704) CAN_PROC_0: 0x000000e0 batch 1 [7..7] at (2509)
+[2026-05-13 10:26:04.567] I (2704) read_data_task: [0xe0] 7
+[2026-05-13 10:26:04.570] I (2705) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.573] I (2706) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.667] I (2805) CAN_PROC_0: 0x000000e0 batch 1 [8..8] at (2611)
+[2026-05-13 10:26:04.669] I (2806) read_data_task: [0xe0] 8
+[2026-05-13 10:26:04.672] I (2806) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.674] I (2808) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.768] I (2907) CAN_PROC_0: 0x000000e0 batch 1 [9..9] at (2712)
+[2026-05-13 10:26:04.771] I (2907) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.774] I (2907) read_data_task: [0xe0] 9
+[2026-05-13 10:26:04.776] I (2909) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.870] I (3008) CAN_PROC_0: 0x000000e0 batch 1 [10..10] at (2814)
+[2026-05-13 10:26:04.872] I (3009) read_data_task: [0xe0] 10
+[2026-05-13 10:26:04.875] I (3009) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.877] I (3011) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:04.973] I (3110) CAN_PROC_0: 0x000000e0 batch 1 [11..11] at (2915)
+[2026-05-13 10:26:04.977] I (3110) read_data_task: [0xe0] 11
+[2026-05-13 10:26:04.982] I (3110) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:04.985] I (3112) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.072] I (3211) CAN_PROC_0: 0x000000e0 batch 1 [12..12] at (3017)
+[2026-05-13 10:26:05.072] I (3212) read_data_task: [0xe0] 12
+[2026-05-13 10:26:05.072] I (3212) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.074] I (3214) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.173] I (3313) CAN_PROC_0: 0x000000e0 batch 1 [13..13] at (3118)
+[2026-05-13 10:26:05.173] I (3313) read_data_task: [0xe0] 13
+[2026-05-13 10:26:05.174] I (3314) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.176] I (3315) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.275] I (3414) CAN_PROC_0: 0x000000e0 batch 1 [14..14] at (3220)
+[2026-05-13 10:26:05.275] I (3415) read_data_task: [0xe0] 14
+[2026-05-13 10:26:05.275] I (3415) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.278] I (3417) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.376] I (3516) CAN_PROC_0: 0x000000e0 batch 1 [15..15] at (3322)
+[2026-05-13 10:26:05.377] I (3517) read_data_task: [0xe0] 15
+[2026-05-13 10:26:05.378] I (3517) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.381] I (3520) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.478] I (3618) CAN_PROC_0: 0x000000e0 batch 1 [16..16] at (3423)
+[2026-05-13 10:26:05.478] I (3618) read_data_task: [0xe0] 16
+[2026-05-13 10:26:05.478] I (3618) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.482] I (3621) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.580] I (3719) CAN_PROC_0: 0x000000e0 batch 1 [17..17] at (3525)
+[2026-05-13 10:26:05.580] I (3720) read_data_task: [0xe0] 17
+[2026-05-13 10:26:05.583] I (3720) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.585] I (3722) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.683] I (3821) CAN_PROC_0: 0x000000e0 batch 1 [18..18] at (3626)
+[2026-05-13 10:26:05.687] I (3821) read_data_task: [0xe0] 18
+[2026-05-13 10:26:05.692] I (3821) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.706] I (3823) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.785] I (3922) CAN_PROC_0: 0x000000e0 batch 1 [19..19] at (3728)
+[2026-05-13 10:26:05.787] I (3923) read_data_task: [0xe0] 19
+[2026-05-13 10:26:05.790] I (3923) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.792] I (3925) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.885] I (4024) CAN_PROC_0: 0x000000e0 batch 1 [20..20] at (3829)
+[2026-05-13 10:26:05.886] I (4025) read_data_task: [0xe0] 20
+[2026-05-13 10:26:05.889] I (4026) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.893] I (4027) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:05.987] I (4125) CAN_PROC_0: 0x000000e0 batch 1 [21..21] at (3931)
+[2026-05-13 10:26:05.990] I (4126) read_data_task: [0xe0] 21
+[2026-05-13 10:26:05.993] I (4126) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:05.995] I (4128) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.089] I (4226) CAN_PROC_0: 0x000000e0 batch 1 [22..22] at (4032)
+[2026-05-13 10:26:06.092] I (4227) read_data_task: [0xe0] 22
+[2026-05-13 10:26:06.094] I (4227) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.096] I (4229) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.189] I (4328) CAN_PROC_0: 0x000000e0 batch 1 [23..23] at (4134)
+[2026-05-13 10:26:06.191] I (4329) read_data_task: [0xe0] 23
+[2026-05-13 10:26:06.195] I (4329) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.198] I (4331) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.290] I (4429) CAN_PROC_0: 0x000000e0 batch 1 [24..24] at (4235)
+[2026-05-13 10:26:06.293] I (4430) read_data_task: [0xe0] 24
+[2026-05-13 10:26:06.296] I (4431) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.298] I (4432) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.392] I (4530) CAN_PROC_0: 0x000000e0 batch 1 [25..25] at (4336)
+[2026-05-13 10:26:06.394] I (4531) read_data_task: [0xe0] 25
+[2026-05-13 10:26:06.398] I (4531) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.403] I (4533) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.493] I (4632) CAN_PROC_0: 0x000000e0 batch 1 [26..26] at (4437)
+[2026-05-13 10:26:06.494] I (4632) read_data_task: [0xe0] 26
+[2026-05-13 10:26:06.496] I (4633) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.500] I (4635) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.595] I (4733) CAN_PROC_0: 0x000000e0 batch 1 [27..27] at (4539)
+[2026-05-13 10:26:06.597] I (4734) read_data_task: [0xe0] 27
+[2026-05-13 10:26:06.600] I (4734) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.603] I (4735) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.696] I (4835) CAN_PROC_0: 0x000000e0 batch 1 [28..28] at (4640)
+[2026-05-13 10:26:06.698] I (4835) read_data_task: [0xe0] 28
+[2026-05-13 10:26:06.701] I (4836) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.720] I (4837) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.797] I (4936) CAN_PROC_0: 0x000000e0 batch 1 [29..29] at (4741)
+[2026-05-13 10:26:06.800] I (4936) read_data_task: [0xe0] 29
+[2026-05-13 10:26:06.804] I (4937) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.812] I (4939) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:06.898] I (5037) CAN_PROC_0: 0x000000e0 batch 1 [30..30] at (4843)
+[2026-05-13 10:26:06.899] I (5038) read_data_task: [0xe0] 30
+[2026-05-13 10:26:06.903] I (5038) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:06.911] I (5040) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.000] I (5138) CAN_PROC_0: 0x000000e0 batch 1 [31..31] at (4944)
+[2026-05-13 10:26:07.000] I (5139) read_data_task: [0xe0] 31
+[2026-05-13 10:26:07.004] I (5141) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.017] I (5143) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.101] I (5240) CAN_PROC_0: 0x000000e0 batch 1 [32..32] at (5045)
+[2026-05-13 10:26:07.102] I (5240) read_data_task: [0xe0] 32
+[2026-05-13 10:26:07.104] I (5241) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.112] I (5243) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.202] I (5341) CAN_PROC_0: 0x000000e0 batch 1 [33..33] at (5146)
+[2026-05-13 10:26:07.205] I (5341) read_data_task: [0xe0] 33
+[2026-05-13 10:26:07.209] I (5342) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.215] I (5344) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.303] I (5442) CAN_PROC_0: 0x000000e0 batch 1 [34..34] at (5248)
+[2026-05-13 10:26:07.305] I (5443) read_data_task: [0xe0] 34
+[2026-05-13 10:26:07.309] I (5443) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.327] I (5445) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.404] I (5543) CAN_PROC_0: 0x000000e0 batch 1 [35..35] at (5349)
+[2026-05-13 10:26:07.406] I (5544) read_data_task: [0xe0] 35
+[2026-05-13 10:26:07.409] I (5544) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.426] I (5546) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.506] I (5644) CAN_PROC_0: 0x000000e0 batch 1 [36..36] at (5450)
+[2026-05-13 10:26:07.506] I (5645) read_data_task: [0xe0] 36
+[2026-05-13 10:26:07.509] I (5647) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.530] I (5648) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.607] I (5746) CAN_PROC_0: 0x000000e0 batch 1 [37..37] at (5551)
+[2026-05-13 10:26:07.610] I (5746) read_data_task: [0xe0] 37
+[2026-05-13 10:26:07.621] I (5746) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.632] I (5748) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.709] I (5847) CAN_PROC_0: 0x000000e0 batch 1 [38..38] at (5653)
+[2026-05-13 10:26:07.712] I (5848) read_data_task: [0xe0] 38
+[2026-05-13 10:26:07.717] I (5848) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.736] I (5850) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.809] I (5949) CAN_PROC_0: 0x000000e0 batch 1 [39..39] at (5754)
+[2026-05-13 10:26:07.809] I (5950) read_data_task: [0xe0] 39
+[2026-05-13 10:26:07.810] I (5950) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.813] I (5952) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:07.913] I (6051) CAN_PROC_0: 0x000000e0 batch 1 [40..40] at (5856)
+[2026-05-13 10:26:07.922] I (6051) read_data_task: [0xe0] 40
+[2026-05-13 10:26:07.928] I (6051) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:07.937] I (6053) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.025] I (6152) CAN_PROC_0: 0x000000e0 batch 1 [41..41] at (5958)
+[2026-05-13 10:26:08.043] I (6153) read_data_task: [0xe0] 41
+[2026-05-13 10:26:08.054] I (6153) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.059] I (6155) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.114] I (6254) CAN_PROC_0: 0x000000e0 batch 1 [42..42] at (6059)
+[2026-05-13 10:26:08.115] I (6254) read_data_task: [0xe0] 42
+[2026-05-13 10:26:08.116] I (6254) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.118] I (6256) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.217] I (6355) CAN_PROC_0: 0x000000e0 batch 1 [43..43] at (6161)
+[2026-05-13 10:26:08.224] I (6356) read_data_task: [0xe0] 43
+[2026-05-13 10:26:08.233] I (6356) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.238] I (6358) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.319] I (6457) CAN_PROC_0: 0x000000e0 batch 1 [44..44] at (6262)
+[2026-05-13 10:26:08.323] I (6457) read_data_task: [0xe0] 44
+[2026-05-13 10:26:08.332] I (6458) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.349] I (6459) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.419] I (6558) CAN_PROC_0: 0x000000e0 batch 1 [45..45] at (6364)
+[2026-05-13 10:26:08.419] I (6559) read_data_task: [0xe0] 45
+[2026-05-13 10:26:08.420] I (6559) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.422] I (6561) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.522] I (6660) CAN_PROC_0: 0x000000e0 batch 1 [46..46] at (6466)
+[2026-05-13 10:26:08.528] I (6661) read_data_task: [0xe0] 46
+[2026-05-13 10:26:08.535] I (6661) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.543] I (6663) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.639] I (6761) CAN_PROC_0: 0x000000e0 batch 1 [47..47] at (6567)
+[2026-05-13 10:26:08.648] I (6762) read_data_task: [0xe0] 47
+[2026-05-13 10:26:08.649] I (6762) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.650] I (6764) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.731] I (6863) CAN_PROC_0: 0x000000e0 batch 1 [48..48] at (6668)
+[2026-05-13 10:26:08.740] I (6864) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.746] I (6864) read_data_task: [0xe0] 48
+[2026-05-13 10:26:08.754] I (6865) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.832] I (6964) CAN_PROC_0: 0x000000e0 batch 1 [49..49] at (6770)
+[2026-05-13 10:26:08.836] I (6965) read_data_task: [0xe0] 49
+[2026-05-13 10:26:08.839] I (6965) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.846] I (6970) LAT_RTT: id=0x000000e0 rtt_ms=6 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:08.859] I (6992) HEAP: free=178740 min_free=173888 largest=114688
+[2026-05-13 10:26:08.863] I (6992) MEASURE: airtime_us_total=850 packets_total=50 d_airtime_us=850 d_packets=50 util_per_mille=0
+[2026-05-13 10:26:08.865] I (6994) TASK: name=measure prio=1 state=0 hwm_bytes=1312 runtime=10 total_runtime=6804336
+[2026-05-13 10:26:08.866] I (6994) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=6529432 total_runtime=6804336
+[2026-05-13 10:26:08.867] I (6995) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=1826 total_runtime=6804336
+[2026-05-13 10:26:08.867] I (6995) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=764 total_runtime=6804336
+[2026-05-13 10:26:08.868] I (6996) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=83555 total_runtime=6804336
+[2026-05-13 10:26:08.869] I (6998) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=6804336
+[2026-05-13 10:26:08.869] I (6999) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=10791 total_runtime=6804336
+[2026-05-13 10:26:08.870] I (7000) TASK: name=wifi prio=23 state=2 hwm_bytes=4300 runtime=115728 total_runtime=6804336
+[2026-05-13 10:26:08.871] I (7001) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2332 runtime=35066 total_runtime=6804336
+[2026-05-13 10:26:08.871] I (7002) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=8951 total_runtime=6804336
+[2026-05-13 10:26:08.872] I (7003) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=6804336
+[2026-05-13 10:26:08.934] I (7066) CAN_PROC_0: 0x000000e0 batch 1 [50..50] at (6872)
+[2026-05-13 10:26:08.938] I (7067) read_data_task: [0xe0] 50
+[2026-05-13 10:26:08.940] I (7067) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:08.955] I (7070) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.037] I (7168) CAN_PROC_0: 0x000000e0 batch 1 [51..51] at (6973)
+[2026-05-13 10:26:09.042] I (7168) read_data_task: [0xe0] 51
+[2026-05-13 10:26:09.049] I (7169) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.053] I (7171) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.146] I (7269) CAN_PROC_0: 0x000000e0 batch 1 [52..52] at (7075)
+[2026-05-13 10:26:09.149] I (7270) read_data_task: [0xe0] 52
+[2026-05-13 10:26:09.153] I (7270) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.157] I (7272) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.234] I (7370) CAN_PROC_0: 0x000000e0 batch 1 [53..53] at (7176)
+[2026-05-13 10:26:09.236] I (7371) read_data_task: [0xe0] 53
+[2026-05-13 10:26:09.244] I (7372) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.252] I (7373) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.351] I (7471) CAN_PROC_0: 0x000000e0 batch 1 [54..54] at (7277)
+[2026-05-13 10:26:09.353] I (7472) read_data_task: [0xe0] 54
+[2026-05-13 10:26:09.354] I (7473) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.354] I (7475) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.443] I (7573) CAN_PROC_0: 0x000000e0 batch 1 [55..55] at (7378)
+[2026-05-13 10:26:09.446] I (7573) read_data_task: [0xe0] 55
+[2026-05-13 10:26:09.449] I (7574) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.453] I (7576) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.537] I (7674) CAN_PROC_0: 0x000000e0 batch 1 [56..56] at (7479)
+[2026-05-13 10:26:09.539] I (7674) read_data_task: [0xe0] 56
+[2026-05-13 10:26:09.550] I (7675) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.554] I (7677) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.642] I (7775) CAN_PROC_0: 0x000000e0 batch 1 [57..57] at (7581)
+[2026-05-13 10:26:09.647] I (7776) read_data_task: [0xe0] 57
+[2026-05-13 10:26:09.651] I (7776) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.655] I (7780) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.741] I (7877) CAN_PROC_0: 0x000000e0 batch 1 [58..58] at (7683)
+[2026-05-13 10:26:09.746] I (7878) read_data_task: [0xe0] 58
+[2026-05-13 10:26:09.761] I (7878) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.762] I (7880) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.865] I (7979) CAN_PROC_0: 0x000000e0 batch 1 [59..59] at (7784)
+[2026-05-13 10:26:09.867] I (7979) read_data_task: [0xe0] 59
+[2026-05-13 10:26:09.868] I (7979) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.869] I (7981) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:09.953] I (8080) CAN_PROC_0: 0x000000e0 batch 1 [60..60] at (7886)
+[2026-05-13 10:26:09.956] I (8081) read_data_task: [0xe0] 60
+[2026-05-13 10:26:09.959] I (8081) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:09.961] I (8083) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.045] I (8182) CAN_PROC_0: 0x000000e0 batch 1 [61..61] at (7987)
+[2026-05-13 10:26:10.049] I (8182) read_data_task: [0xe0] 61
+[2026-05-13 10:26:10.054] I (8184) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.058] I (8185) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.148] I (8283) CAN_PROC_0: 0x000000e0 batch 1 [62..62] at (8089)
+[2026-05-13 10:26:10.154] I (8284) read_data_task: [0xe0] 62
+[2026-05-13 10:26:10.158] I (8285) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.162] I (8286) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.250] I (8384) CAN_PROC_0: 0x000000e0 batch 1 [63..63] at (8190)
+[2026-05-13 10:26:10.256] I (8385) read_data_task: [0xe0] 63
+[2026-05-13 10:26:10.259] I (8386) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.262] I (8388) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.353] I (8486) CAN_PROC_0: 0x000000e0 batch 1 [64..64] at (8291)
+[2026-05-13 10:26:10.355] I (8486) read_data_task: [0xe0] 64
+[2026-05-13 10:26:10.358] I (8487) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.361] I (8489) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.450] I (8587) CAN_PROC_0: 0x000000e0 batch 1 [65..65] at (8392)
+[2026-05-13 10:26:10.452] I (8587) read_data_task: [0xe0] 65
+[2026-05-13 10:26:10.455] I (8589) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.462] I (8590) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.555] I (8688) CAN_PROC_0: 0x000000e0 batch 1 [66..66] at (8494)
+[2026-05-13 10:26:10.557] I (8689) read_data_task: [0xe0] 66
+[2026-05-13 10:26:10.560] I (8689) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.562] I (8690) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.658] I (8790) CAN_PROC_0: 0x000000e0 batch 1 [67..67] at (8595)
+[2026-05-13 10:26:10.660] I (8790) read_data_task: [0xe0] 67
+[2026-05-13 10:26:10.666] I (8791) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.670] I (8792) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.756] I (8891) CAN_PROC_0: 0x000000e0 batch 1 [68..68] at (8696)
+[2026-05-13 10:26:10.764] I (8891) read_data_task: [0xe0] 68
+[2026-05-13 10:26:10.766] I (8892) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.768] I (8894) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.862] I (8992) CAN_PROC_0: 0x000000e0 batch 1 [69..69] at (8798)
+[2026-05-13 10:26:10.864] I (8993) read_data_task: [0xe0] 69
+[2026-05-13 10:26:10.867] I (8994) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.872] I (8995) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:10.960] I (9093) CAN_PROC_0: 0x000000e0 batch 1 [70..70] at (8899)
+[2026-05-13 10:26:10.964] I (9094) read_data_task: [0xe0] 70
+[2026-05-13 10:26:10.966] I (9095) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:10.967] I (9096) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.059] I (9195) CAN_PROC_0: 0x000000e0 batch 1 [71..71] at (9000)
+[2026-05-13 10:26:11.061] I (9195) read_data_task: [0xe0] 71
+[2026-05-13 10:26:11.064] I (9195) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.066] I (9197) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.162] I (9296) CAN_PROC_0: 0x000000e0 batch 1 [72..72] at (9101)
+[2026-05-13 10:26:11.164] I (9296) read_data_task: [0xe0] 72
+[2026-05-13 10:26:11.167] I (9297) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.169] I (9298) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.261] I (9397) CAN_PROC_0: 0x000000e0 batch 1 [73..73] at (9203)
+[2026-05-13 10:26:11.263] I (9398) read_data_task: [0xe0] 73
+[2026-05-13 10:26:11.267] I (9399) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.268] I (9400) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.365] I (9498) CAN_PROC_0: 0x000000e0 batch 1 [74..74] at (9304)
+[2026-05-13 10:26:11.367] I (9499) read_data_task: [0xe0] 74
+[2026-05-13 10:26:11.370] I (9499) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.371] I (9501) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.461] I (9600) CAN_PROC_0: 0x000000e0 batch 1 [75..75] at (9405)
+[2026-05-13 10:26:11.463] I (9600) read_data_task: [0xe0] 75
+[2026-05-13 10:26:11.466] I (9601) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.468] I (9603) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.562] I (9701) CAN_PROC_0: 0x000000e0 batch 1 [76..76] at (9506)
+[2026-05-13 10:26:11.564] I (9701) read_data_task: [0xe0] 76
+[2026-05-13 10:26:11.567] I (9701) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.570] I (9703) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.663] I (9802) CAN_PROC_0: 0x000000e0 batch 1 [77..77] at (9608)
+[2026-05-13 10:26:11.666] I (9803) read_data_task: [0xe0] 77
+[2026-05-13 10:26:11.670] I (9804) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.673] I (9805) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.776] I (9904) CAN_PROC_0: 0x000000e0 batch 1 [78..78] at (9709)
+[2026-05-13 10:26:11.778] I (9904) read_data_task: [0xe0] 78
+[2026-05-13 10:26:11.779] I (9905) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.780] I (9907) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.868] I (10005) CAN_PROC_0: 0x000000e0 batch 1 [79..79] at (9810)
+[2026-05-13 10:26:11.869] I (10005) read_data_task: [0xe0] 79
+[2026-05-13 10:26:11.871] I (10006) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.872] I (10007) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:11.974] I (10106) CAN_PROC_0: 0x000000e0 batch 1 [80..80] at (9912)
+[2026-05-13 10:26:11.977] I (10107) read_data_task: [0xe0] 80
+[2026-05-13 10:26:11.979] I (10108) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:11.980] I (10109) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.075] I (10208) CAN_PROC_0: 0x000000e0 batch 1 [81..81] at (10013)
+[2026-05-13 10:26:12.078] I (10208) read_data_task: [0xe0] 81
+[2026-05-13 10:26:12.081] I (10209) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.082] I (10210) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.184] I (10309) CAN_PROC_0: 0x000000e0 batch 1 [82..82] at (10114)
+[2026-05-13 10:26:12.185] I (10310) read_data_task: [0xe0] 82
+[2026-05-13 10:26:12.187] I (10310) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.188] I (10311) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.272] I (10411) CAN_PROC_0: 0x000000e0 batch 1 [83..83] at (10216)
+[2026-05-13 10:26:12.273] I (10411) read_data_task: [0xe0] 83
+[2026-05-13 10:26:12.276] I (10411) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.280] I (10413) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.382] I (10512) CAN_PROC_0: 0x000000e0 batch 1 [84..84] at (10317)
+[2026-05-13 10:26:12.384] I (10512) read_data_task: [0xe0] 84
+[2026-05-13 10:26:12.385] I (10513) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.387] I (10515) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.475] I (10613) CAN_PROC_0: 0x000000e0 batch 1 [85..85] at (10419)
+[2026-05-13 10:26:12.476] I (10614) read_data_task: [0xe0] 85
+[2026-05-13 10:26:12.479] I (10614) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.483] I (10615) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.576] I (10715) CAN_PROC_0: 0x000000e0 batch 1 [86..86] at (10520)
+[2026-05-13 10:26:12.577] I (10715) read_data_task: [0xe0] 86
+[2026-05-13 10:26:12.580] I (10716) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.584] I (10718) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.677] I (10816) CAN_PROC_0: 0x000000e0 batch 1 [87..87] at (10621)
+[2026-05-13 10:26:12.678] I (10816) read_data_task: [0xe0] 87
+[2026-05-13 10:26:12.681] I (10817) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.685] I (10818) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.785] I (10917) CAN_PROC_0: 0x000000e0 batch 1 [88..88] at (10723)
+[2026-05-13 10:26:12.800] I (10918) read_data_task: [0xe0] 88
+[2026-05-13 10:26:12.802] I (10918) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.806] I (10920) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.880] I (11019) CAN_PROC_0: 0x000000e0 batch 1 [89..89] at (10825)
+[2026-05-13 10:26:12.880] I (11020) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.880] I (11020) read_data_task: [0xe0] 89
+[2026-05-13 10:26:12.882] I (11022) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:12.982] I (11121) CAN_PROC_0: 0x000000e0 batch 1 [90..90] at (10926)
+[2026-05-13 10:26:12.983] I (11121) read_data_task: [0xe0] 90
+[2026-05-13 10:26:12.989] I (11121) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:12.995] I (11123) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.083] I (11222) CAN_PROC_0: 0x000000e0 batch 1 [91..91] at (11028)
+[2026-05-13 10:26:13.083] I (11223) read_data_task: [0xe0] 91
+[2026-05-13 10:26:13.083] I (11223) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.087] I (11225) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.185] I (11324) CAN_PROC_0: 0x000000e0 batch 1 [92..92] at (11129)
+[2026-05-13 10:26:13.186] I (11324) read_data_task: [0xe0] 92
+[2026-05-13 10:26:13.189] I (11324) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.194] I (11326) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.286] I (11425) CAN_PROC_0: 0x000000e0 batch 1 [93..93] at (11231)
+[2026-05-13 10:26:13.287] I (11426) read_data_task: [0xe0] 93
+[2026-05-13 10:26:13.289] I (11426) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.293] I (11428) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.387] I (11527) CAN_PROC_0: 0x000000e0 batch 1 [94..94] at (11332)
+[2026-05-13 10:26:13.387] I (11527) read_data_task: [0xe0] 94
+[2026-05-13 10:26:13.388] I (11528) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.392] I (11531) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.489] I (11628) CAN_PROC_0: 0x000000e0 batch 1 [95..95] at (11434)
+[2026-05-13 10:26:13.490] I (11629) read_data_task: [0xe0] 95
+[2026-05-13 10:26:13.491] I (11629) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.493] I (11631) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.591] I (11730) CAN_PROC_0: 0x000000e0 batch 1 [96..96] at (11536)
+[2026-05-13 10:26:13.592] I (11731) read_data_task: [0xe0] 96
+[2026-05-13 10:26:13.593] I (11731) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.596] I (11733) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.693] I (11832) CAN_PROC_0: 0x000000e0 batch 1 [97..97] at (11637)
+[2026-05-13 10:26:13.694] I (11832) read_data_task: [0xe0] 97
+[2026-05-13 10:26:13.697] I (11832) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.701] I (11834) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.794] I (11933) CAN_PROC_0: 0x000000e0 batch 1 [98..98] at (11739)
+[2026-05-13 10:26:13.795] I (11934) read_data_task: [0xe0] 98
+[2026-05-13 10:26:13.797] I (11934) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.801] I (11937) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.853] I (11992) HEAP: free=178752 min_free=173888 largest=114688
+[2026-05-13 10:26:13.865] I (12004) MEASURE: airtime_us_total=1683 packets_total=99 d_airtime_us=833 d_packets=49 util_per_mille=0
+[2026-05-13 10:26:13.868] I (12005) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=11978 total_runtime=11815834
+[2026-05-13 10:26:13.870] I (12005) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=11328380 total_runtime=11815834
+[2026-05-13 10:26:13.871] I (12006) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=3252 total_runtime=11815834
+[2026-05-13 10:26:13.873] I (12007) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1188 total_runtime=11815834
+[2026-05-13 10:26:13.883] I (12008) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=165361 total_runtime=11815834
+[2026-05-13 10:26:13.898] I (12009) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=21231 total_runtime=11815834
+[2026-05-13 10:26:13.903] I (12010) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2332 runtime=69553 total_runtime=11815834
+[2026-05-13 10:26:13.906] I (12012) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=183321 total_runtime=11815834
+[2026-05-13 10:26:13.909] I (12013) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=13451 total_runtime=11815834
+[2026-05-13 10:26:13.911] I (12014) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=11815834
+[2026-05-13 10:26:13.913] I (12015) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=11815834
+[2026-05-13 10:26:13.913] I (12035) CAN_PROC_0: 0x000000e0 batch 1 [99..99] at (11840)
+[2026-05-13 10:26:13.913] I (12035) read_data_task: [0xe0] 99
+[2026-05-13 10:26:13.914] I (12036) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:13.914] I (12038) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:13.999] I (12136) CAN_PROC_0: 0x000000e0 batch 1 [100..100] at (11942)
+[2026-05-13 10:26:14.002] I (12137) read_data_task: [0xe0] 100
+[2026-05-13 10:26:14.005] I (12137) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.007] I (12139) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.100] I (12238) CAN_PROC_0: 0x000000e0 batch 1 [101..101] at (12044)
+[2026-05-13 10:26:14.101] I (12239) read_data_task: [0xe0] 101
+[2026-05-13 10:26:14.105] I (12240) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.108] I (12242) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.201] I (12339) CAN_PROC_0: 0x000000e0 batch 1 [102..102] at (12145)
+[2026-05-13 10:26:14.204] I (12340) read_data_task: [0xe0] 102
+[2026-05-13 10:26:14.207] I (12341) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.210] I (12343) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.303] I (12441) CAN_PROC_0: 0x000000e0 batch 1 [103..103] at (12246)
+[2026-05-13 10:26:14.305] I (12441) read_data_task: [0xe0] 103
+[2026-05-13 10:26:14.309] I (12441) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.311] I (12443) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.404] I (12542) CAN_PROC_0: 0x000000e0 batch 1 [104..104] at (12348)
+[2026-05-13 10:26:14.404] I (12543) read_data_task: [0xe0] 104
+[2026-05-13 10:26:14.408] I (12546) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.413] I (12548) LAT_RTT: id=0x000000e0 rtt_ms=6 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.506] I (12643) CAN_PROC_0: 0x000000e0 batch 1 [105..105] at (12449)
+[2026-05-13 10:26:14.509] I (12644) read_data_task: [0xe0] 105
+[2026-05-13 10:26:14.513] I (12644) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.514] I (12646) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.608] I (12745) CAN_PROC_0: 0x000000e0 batch 1 [106..106] at (12550)
+[2026-05-13 10:26:14.611] I (12745) read_data_task: [0xe0] 106
+[2026-05-13 10:26:14.614] I (12746) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.615] I (12748) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.710] I (12846) CAN_PROC_0: 0x000000e0 batch 1 [107..107] at (12652)
+[2026-05-13 10:26:14.713] I (12847) read_data_task: [0xe0] 107
+[2026-05-13 10:26:14.717] I (12847) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.718] I (12849) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.810] I (12947) CAN_PROC_0: 0x000000e0 batch 1 [108..108] at (12753)
+[2026-05-13 10:26:14.813] I (12948) read_data_task: [0xe0] 108
+[2026-05-13 10:26:14.816] I (12948) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.817] I (12950) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:14.911] I (13049) CAN_PROC_0: 0x000000e0 batch 1 [109..109] at (12855)
+[2026-05-13 10:26:14.913] I (13050) read_data_task: [0xe0] 109
+[2026-05-13 10:26:14.917] I (13051) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:14.919] I (13052) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.012] I (13150) CAN_PROC_0: 0x000000e0 batch 1 [110..110] at (12956)
+[2026-05-13 10:26:15.014] I (13151) read_data_task: [0xe0] 110
+[2026-05-13 10:26:15.018] I (13151) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.021] I (13153) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.114] I (13252) CAN_PROC_0: 0x000000e0 batch 1 [111..111] at (13057)
+[2026-05-13 10:26:15.116] I (13252) read_data_task: [0xe0] 111
+[2026-05-13 10:26:15.120] I (13253) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.122] I (13255) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.215] I (13353) CAN_PROC_0: 0x000000e0 batch 1 [112..112] at (13158)
+[2026-05-13 10:26:15.219] I (13353) read_data_task: [0xe0] 112
+[2026-05-13 10:26:15.223] I (13354) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.224] I (13356) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.319] I (13454) CAN_PROC_0: 0x000000e0 batch 1 [113..113] at (13260)
+[2026-05-13 10:26:15.322] I (13455) read_data_task: [0xe0] 113
+[2026-05-13 10:26:15.323] I (13455) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.324] I (13456) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.417] I (13556) CAN_PROC_0: 0x000000e0 batch 1 [114..114] at (13361)
+[2026-05-13 10:26:15.420] I (13556) read_data_task: [0xe0] 114
+[2026-05-13 10:26:15.424] I (13556) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.426] I (13558) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.521] I (13657) CAN_PROC_0: 0x000000e0 batch 1 [115..115] at (13462)
+[2026-05-13 10:26:15.524] I (13657) read_data_task: [0xe0] 115
+[2026-05-13 10:26:15.527] I (13658) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.528] I (13659) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.622] I (13758) CAN_PROC_0: 0x000000e0 batch 1 [116..116] at (13564)
+[2026-05-13 10:26:15.625] I (13759) read_data_task: [0xe0] 116
+[2026-05-13 10:26:15.628] I (13759) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.629] I (13761) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.722] I (13860) CAN_PROC_0: 0x000000e0 batch 1 [117..117] at (13666)
+[2026-05-13 10:26:15.724] I (13861) read_data_task: [0xe0] 117
+[2026-05-13 10:26:15.727] I (13862) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.730] I (13863) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.823] I (13961) CAN_PROC_0: 0x000000e0 batch 1 [118..118] at (13767)
+[2026-05-13 10:26:15.826] I (13962) read_data_task: [0xe0] 118
+[2026-05-13 10:26:15.829] I (13962) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.831] I (13964) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:15.926] I (14063) CAN_PROC_0: 0x000000e0 batch 1 [119..119] at (13868)
+[2026-05-13 10:26:15.930] I (14063) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:15.932] I (14064) read_data_task: [0xe0] 119
+[2026-05-13 10:26:15.933] I (14065) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.028] I (14164) CAN_PROC_0: 0x000000e0 batch 1 [120..120] at (13970)
+[2026-05-13 10:26:16.031] I (14165) read_data_task: [0xe0] 120
+[2026-05-13 10:26:16.033] I (14165) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.035] I (14167) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.130] I (14266) CAN_PROC_0: 0x000000e0 batch 1 [121..121] at (14071)
+[2026-05-13 10:26:16.133] I (14266) read_data_task: [0xe0] 121
+[2026-05-13 10:26:16.135] I (14267) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.136] I (14268) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.230] I (14367) CAN_PROC_0: 0x000000e0 batch 1 [122..122] at (14173)
+[2026-05-13 10:26:16.233] I (14368) read_data_task: [0xe0] 122
+[2026-05-13 10:26:16.237] I (14368) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.238] I (14370) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.331] I (14469) CAN_PROC_0: 0x000000e0 batch 1 [123..123] at (14275)
+[2026-05-13 10:26:16.334] I (14470) read_data_task: [0xe0] 123
+[2026-05-13 10:26:16.338] I (14471) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.340] I (14472) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.435] I (14570) CAN_PROC_0: 0x000000e0 batch 1 [124..124] at (14376)
+[2026-05-13 10:26:16.438] I (14571) read_data_task: [0xe0] 124
+[2026-05-13 10:26:16.440] I (14571) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.441] I (14573) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.533] I (14672) CAN_PROC_0: 0x000000e0 batch 1 [125..125] at (14477)
+[2026-05-13 10:26:16.534] I (14672) read_data_task: [0xe0] 125
+[2026-05-13 10:26:16.537] I (14674) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.541] I (14677) LAT_RTT: id=0x000000e0 rtt_ms=6 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.635] I (14773) CAN_PROC_0: 0x000000e0 batch 1 [126..126] at (14579)
+[2026-05-13 10:26:16.637] I (14774) read_data_task: [0xe0] 126
+[2026-05-13 10:26:16.641] I (14775) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.644] I (14777) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.738] I (14874) CAN_PROC_0: 0x000000e0 batch 1 [127..127] at (14680)
+[2026-05-13 10:26:16.741] I (14875) read_data_task: [0xe0] 127
+[2026-05-13 10:26:16.743] I (14875) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.745] I (14877) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.841] I (14976) CAN_PROC_0: 0x000000e0 batch 1 [128..128] at (14782)
+[2026-05-13 10:26:16.844] I (14977) read_data_task: [0xe0] 128
+[2026-05-13 10:26:16.845] I (14977) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.846] I (14979) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:16.939] I (15078) CAN_PROC_0: 0x000000e0 batch 1 [129..129] at (14883)
+[2026-05-13 10:26:16.939] I (15078) read_data_task: [0xe0] 129
+[2026-05-13 10:26:16.939] I (15079) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:16.944] I (15082) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.043] I (15179) CAN_PROC_0: 0x000000e0 batch 1 [130..130] at (14984)
+[2026-05-13 10:26:17.046] I (15180) read_data_task: [0xe0] 130
+[2026-05-13 10:26:17.048] I (15180) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.049] I (15182) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.143] I (15280) CAN_PROC_0: 0x000000e0 batch 1 [131..131] at (15086)
+[2026-05-13 10:26:17.146] I (15281) read_data_task: [0xe0] 131
+[2026-05-13 10:26:17.150] I (15281) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.151] I (15283) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.247] I (15382) CAN_PROC_0: 0x000000e0 batch 1 [132..132] at (15188)
+[2026-05-13 10:26:17.250] I (15383) read_data_task: [0xe0] 132
+[2026-05-13 10:26:17.251] I (15383) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.252] I (15386) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.347] I (15484) CAN_PROC_0: 0x000000e0 batch 1 [133..133] at (15289)
+[2026-05-13 10:26:17.350] I (15484) read_data_task: [0xe0] 133
+[2026-05-13 10:26:17.353] I (15484) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.354] I (15487) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.450] I (15585) CAN_PROC_0: 0x000000e0 batch 1 [134..134] at (15391)
+[2026-05-13 10:26:17.452] I (15586) read_data_task: [0xe0] 134
+[2026-05-13 10:26:17.454] I (15586) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.455] I (15588) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.551] I (15687) CAN_PROC_0: 0x000000e0 batch 1 [135..135] at (15492)
+[2026-05-13 10:26:17.554] I (15687) read_data_task: [0xe0] 135
+[2026-05-13 10:26:17.556] I (15688) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.557] I (15690) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.652] I (15788) CAN_PROC_0: 0x000000e0 batch 1 [136..136] at (15594)
+[2026-05-13 10:26:17.655] I (15789) read_data_task: [0xe0] 136
+[2026-05-13 10:26:17.657] I (15789) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.659] I (15791) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.754] I (15890) CAN_PROC_0: 0x000000e0 batch 1 [137..137] at (15696)
+[2026-05-13 10:26:17.758] I (15891) read_data_task: [0xe0] 137
+[2026-05-13 10:26:17.763] I (15891) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.781] I (15893) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.853] I (15992) CAN_PROC_0: 0x000000e0 batch 1 [138..138] at (15797)
+[2026-05-13 10:26:17.854] I (15992) read_data_task: [0xe0] 138
+[2026-05-13 10:26:17.854] I (15993) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.855] I (15994) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:17.955] I (16093) CAN_PROC_0: 0x000000e0 batch 1 [139..139] at (15899)
+[2026-05-13 10:26:17.958] I (16094) read_data_task: [0xe0] 139
+[2026-05-13 10:26:17.962] I (16094) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:17.964] I (16096) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.063] I (16195) CAN_PROC_0: 0x000000e0 batch 1 [140..140] at (16000)
+[2026-05-13 10:26:18.067] I (16195) read_data_task: [0xe0] 140
+[2026-05-13 10:26:18.074] I (16196) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.085] I (16197) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.157] I (16296) CAN_PROC_0: 0x000000e0 batch 1 [141..141] at (16101)
+[2026-05-13 10:26:18.158] I (16296) read_data_task: [0xe0] 141
+[2026-05-13 10:26:18.161] I (16297) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.162] I (16299) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.259] I (16397) CAN_PROC_0: 0x000000e0 batch 1 [142..142] at (16203)
+[2026-05-13 10:26:18.262] I (16398) read_data_task: [0xe0] 142
+[2026-05-13 10:26:18.268] I (16398) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.272] I (16400) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.371] I (16498) CAN_PROC_0: 0x000000e0 batch 1 [143..143] at (16304)
+[2026-05-13 10:26:18.381] I (16499) read_data_task: [0xe0] 143
+[2026-05-13 10:26:18.391] I (16499) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.402] I (16501) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.461] I (16600) CAN_PROC_0: 0x000000e0 batch 1 [144..144] at (16405)
+[2026-05-13 10:26:18.464] I (16600) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.466] I (16600) read_data_task: [0xe0] 144
+[2026-05-13 10:26:18.467] I (16602) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.566] I (16701) CAN_PROC_0: 0x000000e0 batch 1 [145..145] at (16507)
+[2026-05-13 10:26:18.569] I (16702) read_data_task: [0xe0] 145
+[2026-05-13 10:26:18.577] I (16702) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.597] I (16704) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.667] I (16803) CAN_PROC_0: 0x000000e0 batch 1 [146..146] at (16608)
+[2026-05-13 10:26:18.670] I (16803) read_data_task: [0xe0] 146
+[2026-05-13 10:26:18.678] I (16803) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.700] I (16805) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.768] I (16904) CAN_PROC_0: 0x000000e0 batch 1 [147..147] at (16710)
+[2026-05-13 10:26:18.774] I (16905) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.779] I (16905) read_data_task: [0xe0] 147
+[2026-05-13 10:26:18.797] I (16907) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.853] I (16992) HEAP: free=178752 min_free=173888 largest=114688
+[2026-05-13 10:26:18.870] I (17006) CAN_PROC_0: 0x000000e0 batch 1 [148..148] at (16812)
+[2026-05-13 10:26:18.875] I (17007) read_data_task: [0xe0] 148
+[2026-05-13 10:26:18.883] I (17007) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.896] I (17009) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:18.919] I (17016) MEASURE: airtime_us_total=2533 packets_total=149 d_airtime_us=850 d_packets=50 util_per_mille=0
+[2026-05-13 10:26:18.931] I (17017) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=24193 total_runtime=16827877
+[2026-05-13 10:26:18.936] I (17017) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=16124465 total_runtime=16827877
+[2026-05-13 10:26:18.939] I (17018) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=4304 total_runtime=16827877
+[2026-05-13 10:26:18.943] I (17019) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1617 total_runtime=16827877
+[2026-05-13 10:26:18.946] I (17020) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=247803 total_runtime=16827877
+[2026-05-13 10:26:18.948] I (17021) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=31815 total_runtime=16827877
+[2026-05-13 10:26:18.949] I (17022) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=18084 total_runtime=16827877
+[2026-05-13 10:26:18.950] I (17024) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2332 runtime=105059 total_runtime=16827877
+[2026-05-13 10:26:18.951] I (17025) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=252375 total_runtime=16827877
+[2026-05-13 10:26:18.951] I (17026) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=16827877
+[2026-05-13 10:26:18.951] I (17027) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=16827877
+[2026-05-13 10:26:18.969] I (17108) CAN_PROC_0: 0x000000e0 batch 1 [149..149] at (16913)
+[2026-05-13 10:26:18.969] I (17108) read_data_task: [0xe0] 149
+[2026-05-13 10:26:18.970] I (17108) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:18.971] I (17110) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.074] I (17209) CAN_PROC_0: 0x000000e0 batch 1 [150..150] at (17015)
+[2026-05-13 10:26:19.086] I (17210) read_data_task: [0xe0] 150
+[2026-05-13 10:26:19.099] I (17210) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.109] I (17212) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.175] I (17311) CAN_PROC_0: 0x000000e0 batch 1 [151..151] at (17116)
+[2026-05-13 10:26:19.180] I (17311) read_data_task: [0xe0] 151
+[2026-05-13 10:26:19.192] I (17312) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.212] I (17313) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.276] I (17412) CAN_PROC_0: 0x000000e0 batch 1 [152..152] at (17218)
+[2026-05-13 10:26:19.281] I (17413) read_data_task: [0xe0] 152
+[2026-05-13 10:26:19.290] I (17413) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.305] I (17415) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.379] I (17514) CAN_PROC_0: 0x000000e0 batch 1 [153..153] at (17319)
+[2026-05-13 10:26:19.388] I (17515) read_data_task: [0xe0] 153
+[2026-05-13 10:26:19.400] I (17515) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.420] I (17516) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.479] I (17616) CAN_PROC_0: 0x000000e0 batch 1 [154..154] at (17421)
+[2026-05-13 10:26:19.484] I (17616) read_data_task: [0xe0] 154
+[2026-05-13 10:26:19.496] I (17616) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.509] I (17618) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.585] I (17717) CAN_PROC_0: 0x000000e0 batch 1 [155..155] at (17523)
+[2026-05-13 10:26:19.595] I (17718) read_data_task: [0xe0] 155
+[2026-05-13 10:26:19.605] I (17718) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.621] I (17720) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.680] I (17819) CAN_PROC_0: 0x000000e0 batch 1 [156..156] at (17624)
+[2026-05-13 10:26:19.685] I (17819) read_data_task: [0xe0] 156
+[2026-05-13 10:26:19.696] I (17823) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.707] I (17825) LAT_RTT: id=0x000000e0 rtt_ms=7 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.788] I (17920) CAN_PROC_0: 0x000000e0 batch 1 [157..157] at (17725)
+[2026-05-13 10:26:19.805] I (17921) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.812] I (17921) read_data_task: [0xe0] 157
+[2026-05-13 10:26:19.819] I (17923) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.889] I (18022) CAN_PROC_0: 0x000000e0 batch 1 [158..158] at (17827)
+[2026-05-13 10:26:19.897] I (18022) read_data_task: [0xe0] 158
+[2026-05-13 10:26:19.910] I (18022) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:19.929] I (18024) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:19.989] I (18123) CAN_PROC_0: 0x000000e0 batch 1 [159..159] at (17929)
+[2026-05-13 10:26:19.992] I (18124) read_data_task: [0xe0] 159
+[2026-05-13 10:26:20.002] I (18124) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.005] I (18126) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.098] I (18225) CAN_PROC_0: 0x000000e0 batch 1 [160..160] at (18030)
+[2026-05-13 10:26:20.109] I (18225) read_data_task: [0xe0] 160
+[2026-05-13 10:26:20.120] I (18226) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.126] I (18229) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.198] I (18326) CAN_PROC_0: 0x000000e0 batch 1 [161..161] at (18132)
+[2026-05-13 10:26:20.209] I (18327) read_data_task: [0xe0] 161
+[2026-05-13 10:26:20.219] I (18327) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.232] I (18330) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.306] I (18428) CAN_PROC_0: 0x000000e0 batch 1 [162..162] at (18233)
+[2026-05-13 10:26:20.318] I (18428) read_data_task: [0xe0] 162
+[2026-05-13 10:26:20.328] I (18430) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.331] I (18432) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.398] I (18529) CAN_PROC_0: 0x000000e0 batch 1 [163..163] at (18335)
+[2026-05-13 10:26:20.405] I (18530) read_data_task: [0xe0] 163
+[2026-05-13 10:26:20.420] I (18530) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.430] I (18532) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.505] I (18631) CAN_PROC_0: 0x000000e0 batch 1 [164..164] at (18436)
+[2026-05-13 10:26:20.515] I (18631) read_data_task: [0xe0] 164
+[2026-05-13 10:26:20.524] I (18632) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.533] I (18635) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.609] I (18732) CAN_PROC_0: 0x000000e0 batch 1 [165..165] at (18537)
+[2026-05-13 10:26:20.617] I (18732) read_data_task: [0xe0] 165
+[2026-05-13 10:26:20.627] I (18735) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.638] I (18736) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.709] I (18833) CAN_PROC_0: 0x000000e0 batch 1 [166..166] at (18639)
+[2026-05-13 10:26:20.720] I (18834) read_data_task: [0xe0] 166
+[2026-05-13 10:26:20.729] I (18835) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.734] I (18837) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.809] I (18934) CAN_PROC_0: 0x000000e0 batch 1 [167..167] at (18740)
+[2026-05-13 10:26:20.821] I (18935) read_data_task: [0xe0] 167
+[2026-05-13 10:26:20.827] I (18936) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.831] I (18938) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:20.917] I (19036) CAN_PROC_0: 0x000000e0 batch 1 [168..168] at (18841)
+[2026-05-13 10:26:20.923] I (19036) read_data_task: [0xe0] 168
+[2026-05-13 10:26:20.930] I (19037) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:20.936] I (19039) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.019] I (19137) CAN_PROC_0: 0x000000e0 batch 1 [169..169] at (18942)
+[2026-05-13 10:26:21.025] I (19138) read_data_task: [0xe0] 169
+[2026-05-13 10:26:21.031] I (19138) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.037] I (19139) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.119] I (19239) CAN_PROC_0: 0x000000e0 batch 1 [170..170] at (19044)
+[2026-05-13 10:26:21.128] I (19239) read_data_task: [0xe0] 170
+[2026-05-13 10:26:21.137] I (19239) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.140] I (19241) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.223] I (19340) CAN_PROC_0: 0x000000e0 batch 1 [171..171] at (19146)
+[2026-05-13 10:26:21.228] I (19341) read_data_task: [0xe0] 171
+[2026-05-13 10:26:21.236] I (19341) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.245] I (19343) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.314] I (19441) CAN_PROC_0: 0x000000e0 batch 1 [172..172] at (19247)
+[2026-05-13 10:26:21.329] I (19442) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.336] I (19442) read_data_task: [0xe0] 172
+[2026-05-13 10:26:21.340] I (19444) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.419] I (19543) CAN_PROC_0: 0x000000e0 batch 1 [173..173] at (19348)
+[2026-05-13 10:26:21.427] I (19543) read_data_task: [0xe0] 173
+[2026-05-13 10:26:21.434] I (19544) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.442] I (19545) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.527] I (19645) CAN_PROC_0: 0x000000e0 batch 1 [174..174] at (19450)
+[2026-05-13 10:26:21.533] I (19645) read_data_task: [0xe0] 174
+[2026-05-13 10:26:21.539] I (19647) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.547] I (19649) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.615] I (19746) CAN_PROC_0: 0x000000e0 batch 1 [175..175] at (19551)
+[2026-05-13 10:26:21.628] I (19746) read_data_task: [0xe0] 175
+[2026-05-13 10:26:21.638] I (19747) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.645] I (19749) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.723] I (19847) CAN_PROC_0: 0x000000e0 batch 1 [176..176] at (19653)
+[2026-05-13 10:26:21.732] I (19848) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.735] I (19848) read_data_task: [0xe0] 176
+[2026-05-13 10:26:21.744] I (19849) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.829] I (19949) CAN_PROC_0: 0x000000e0 batch 1 [177..177] at (19754)
+[2026-05-13 10:26:21.836] I (19949) read_data_task: [0xe0] 177
+[2026-05-13 10:26:21.841] I (19951) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.848] I (19953) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:21.913] I (20050) CAN_PROC_0: 0x000000e0 batch 1 [178..178] at (19855)
+[2026-05-13 10:26:21.914] I (20050) read_data_task: [0xe0] 178
+[2026-05-13 10:26:21.917] I (20051) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:21.920] I (20052) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.027] I (20151) CAN_PROC_0: 0x000000e0 batch 1 [179..179] at (19957)
+[2026-05-13 10:26:22.033] I (20152) read_data_task: [0xe0] 179
+[2026-05-13 10:26:22.041] I (20154) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.048] I (20156) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.127] I (20253) CAN_PROC_0: 0x000000e0 batch 1 [180..180] at (20058)
+[2026-05-13 10:26:22.134] I (20253) read_data_task: [0xe0] 180
+[2026-05-13 10:26:22.144] I (20254) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.147] I (20256) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.233] I (20354) CAN_PROC_0: 0x000000e0 batch 1 [181..181] at (20159)
+[2026-05-13 10:26:22.242] I (20354) read_data_task: [0xe0] 181
+[2026-05-13 10:26:22.244] I (20355) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.247] I (20356) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.327] I (20455) CAN_PROC_0: 0x000000e0 batch 1 [182..182] at (20261)
+[2026-05-13 10:26:22.336] I (20456) read_data_task: [0xe0] 182
+[2026-05-13 10:26:22.343] I (20459) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.347] I (20463) LAT_RTT: id=0x000000e0 rtt_ms=8 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.421] I (20557) CAN_PROC_0: 0x000000e0 batch 1 [183..183] at (20362)
+[2026-05-13 10:26:22.426] I (20557) read_data_task: [0xe0] 183
+[2026-05-13 10:26:22.433] I (20557) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.438] I (20559) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.533] I (20658) CAN_PROC_0: 0x000000e0 batch 1 [184..184] at (20464)
+[2026-05-13 10:26:22.538] I (20659) read_data_task: [0xe0] 184
+[2026-05-13 10:26:22.542] I (20659) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.549] I (20661) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.627] I (20760) CAN_PROC_0: 0x000000e0 batch 1 [185..185] at (20565)
+[2026-05-13 10:26:22.629] I (20760) read_data_task: [0xe0] 185
+[2026-05-13 10:26:22.633] I (20761) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.642] I (20762) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.733] I (20862) CAN_PROC_0: 0x000000e0 batch 1 [186..186] at (20667)
+[2026-05-13 10:26:22.736] I (20862) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.738] I (20863) read_data_task: [0xe0] 186
+[2026-05-13 10:26:22.742] I (20865) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.844] I (20963) CAN_PROC_0: 0x000000e0 batch 1 [187..187] at (20769)
+[2026-05-13 10:26:22.862] I (20964) read_data_task: [0xe0] 187
+[2026-05-13 10:26:22.876] I (20965) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.885] I (20967) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:22.926] I (21064) CAN_PROC_0: 0x000000e0 batch 1 [188..188] at (20870)
+[2026-05-13 10:26:22.928] I (21065) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:22.928] I (21065) read_data_task: [0xe0] 188
+[2026-05-13 10:26:22.930] I (21067) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.039] I (21166) CAN_PROC_0: 0x000000e0 batch 1 [189..189] at (20972)
+[2026-05-13 10:26:23.050] I (21167) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.052] I (21167) read_data_task: [0xe0] 189
+[2026-05-13 10:26:23.056] I (21169) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.131] I (21268) CAN_PROC_0: 0x000000e0 batch 1 [190..190] at (21073)
+[2026-05-13 10:26:23.132] I (21268) read_data_task: [0xe0] 190
+[2026-05-13 10:26:23.133] I (21268) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.134] I (21270) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.239] I (21369) CAN_PROC_0: 0x000000e0 batch 1 [191..191] at (21175)
+[2026-05-13 10:26:23.246] I (21370) read_data_task: [0xe0] 191
+[2026-05-13 10:26:23.253] I (21370) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.257] I (21372) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.342] I (21471) CAN_PROC_0: 0x000000e0 batch 1 [192..192] at (21276)
+[2026-05-13 10:26:23.347] I (21471) read_data_task: [0xe0] 192
+[2026-05-13 10:26:23.356] I (21472) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.363] I (21473) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.435] I (21572) CAN_PROC_0: 0x000000e0 batch 1 [193..193] at (21378)
+[2026-05-13 10:26:23.437] I (21573) read_data_task: [0xe0] 193
+[2026-05-13 10:26:23.439] I (21573) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.441] I (21575) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.536] I (21674) CAN_PROC_0: 0x000000e0 batch 1 [194..194] at (21480)
+[2026-05-13 10:26:23.538] I (21675) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.539] I (21675) read_data_task: [0xe0] 194
+[2026-05-13 10:26:23.540] I (21676) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.646] I (21776) CAN_PROC_0: 0x000000e0 batch 1 [195..195] at (21581)
+[2026-05-13 10:26:23.652] I (21776) read_data_task: [0xe0] 195
+[2026-05-13 10:26:23.658] I (21776) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.660] I (21778) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.751] I (21877) CAN_PROC_0: 0x000000e0 batch 1 [196..196] at (21683)
+[2026-05-13 10:26:23.758] I (21878) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.764] I (21878) read_data_task: [0xe0] 196
+[2026-05-13 10:26:23.766] I (21880) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.850] I (21979) CAN_PROC_0: 0x000000e0 batch 1 [197..197] at (21784)
+[2026-05-13 10:26:23.854] I (21979) read_data_task: [0xe0] 197
+[2026-05-13 10:26:23.862] I (21980) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.864] I (21981) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:23.865] I (21992) HEAP: free=178752 min_free=173888 largest=114688
+[2026-05-13 10:26:23.889] I (22028) MEASURE: airtime_us_total=3366 packets_total=198 d_airtime_us=833 d_packets=49 util_per_mille=0
+[2026-05-13 10:26:23.890] I (22029) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=36352 total_runtime=21839895
+[2026-05-13 10:26:23.891] I (22029) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=20919758 total_runtime=21839895
+[2026-05-13 10:26:23.892] I (22030) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=5356 total_runtime=21839895
+[2026-05-13 10:26:23.893] I (22031) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2047 total_runtime=21839895
+[2026-05-13 10:26:23.894] I (22032) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=332426 total_runtime=21839895
+[2026-05-13 10:26:23.895] I (22033) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=42135 total_runtime=21839895
+[2026-05-13 10:26:23.896] I (22035) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2332 runtime=139347 total_runtime=21839895
+[2026-05-13 10:26:23.897] I (22036) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=22626 total_runtime=21839895
+[2026-05-13 10:26:23.898] I (22037) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=321668 total_runtime=21839895
+[2026-05-13 10:26:23.899] I (22038) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=21839895
+[2026-05-13 10:26:23.900] I (22039) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=21839895
+[2026-05-13 10:26:23.950] I (22080) CAN_PROC_0: 0x000000e0 batch 1 [198..198] at (21886)
+[2026-05-13 10:26:23.951] I (22081) read_data_task: [0xe0] 198
+[2026-05-13 10:26:23.952] I (22082) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:23.953] I (22084) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.045] I (22182) CAN_PROC_0: 0x000000e0 batch 1 [199..199] at (21987)
+[2026-05-13 10:26:24.048] I (22182) read_data_task: [0xe0] 199
+[2026-05-13 10:26:24.050] I (22183) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.052] I (22184) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.146] I (22283) CAN_PROC_0: 0x000000e0 batch 1 [200..200] at (22088)
+[2026-05-13 10:26:24.147] I (22283) read_data_task: [0xe0] 200
+[2026-05-13 10:26:24.151] I (22284) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.153] I (22286) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.246] I (22384) CAN_PROC_0: 0x000000e0 batch 1 [201..201] at (22190)
+[2026-05-13 10:26:24.248] I (22385) read_data_task: [0xe0] 201
+[2026-05-13 10:26:24.251] I (22385) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.254] I (22387) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.346] I (22485) CAN_PROC_0: 0x000000e0 batch 1 [202..202] at (22291)
+[2026-05-13 10:26:24.347] I (22486) read_data_task: [0xe0] 202
+[2026-05-13 10:26:24.347] I (22487) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.350] I (22489) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.467] I (22587) CAN_PROC_0: 0x000000e0 batch 1 [203..203] at (22392)
+[2026-05-13 10:26:24.476] I (22587) read_data_task: [0xe0] 203
+[2026-05-13 10:26:24.488] I (22588) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.494] I (22590) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.549] I (22688) CAN_PROC_0: 0x000000e0 batch 1 [204..204] at (22493)
+[2026-05-13 10:26:24.551] I (22688) read_data_task: [0xe0] 204
+[2026-05-13 10:26:24.556] I (22689) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.562] I (22691) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.659] I (22789) CAN_PROC_0: 0x000000e0 batch 1 [205..205] at (22595)
+[2026-05-13 10:26:24.664] I (22790) read_data_task: [0xe0] 205
+[2026-05-13 10:26:24.668] I (22790) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.673] I (22792) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.754] I (22890) CAN_PROC_0: 0x000000e0 batch 1 [206..206] at (22696)
+[2026-05-13 10:26:24.763] I (22891) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.766] I (22891) read_data_task: [0xe0] 206
+[2026-05-13 10:26:24.770] I (22893) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.862] I (22992) CAN_PROC_0: 0x000000e0 batch 1 [207..207] at (22797)
+[2026-05-13 10:26:24.867] I (22993) read_data_task: [0xe0] 207
+[2026-05-13 10:26:24.871] I (22996) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.873] I (22998) LAT_RTT: id=0x000000e0 rtt_ms=7 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:24.954] I (23093) CAN_PROC_0: 0x000000e0 batch 1 [208..208] at (22899)
+[2026-05-13 10:26:24.955] I (23094) read_data_task: [0xe0] 208
+[2026-05-13 10:26:24.955] I (23094) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:24.956] I (23096) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.059] I (23195) CAN_PROC_0: 0x000000e0 batch 1 [209..209] at (23000)
+[2026-05-13 10:26:25.062] I (23195) read_data_task: [0xe0] 209
+[2026-05-13 10:26:25.064] I (23196) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.065] I (23197) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.162] I (23296) CAN_PROC_0: 0x000000e0 batch 1 [210..210] at (23102)
+[2026-05-13 10:26:25.165] I (23297) read_data_task: [0xe0] 210
+[2026-05-13 10:26:25.168] I (23297) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.169] I (23299) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.264] I (23398) CAN_PROC_0: 0x000000e0 batch 1 [211..211] at (23203)
+[2026-05-13 10:26:25.271] I (23398) read_data_task: [0xe0] 211
+[2026-05-13 10:26:25.274] I (23399) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.275] I (23400) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.363] I (23499) CAN_PROC_0: 0x000000e0 batch 1 [212..212] at (23304)
+[2026-05-13 10:26:25.366] I (23500) read_data_task: [0xe0] 212
+[2026-05-13 10:26:25.368] I (23500) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.369] I (23501) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.467] I (23601) CAN_PROC_0: 0x000000e0 batch 1 [213..213] at (23406)
+[2026-05-13 10:26:25.470] I (23601) read_data_task: [0xe0] 213
+[2026-05-13 10:26:25.474] I (23601) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.475] I (23603) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.566] I (23702) CAN_PROC_0: 0x000000e0 batch 1 [214..214] at (23508)
+[2026-05-13 10:26:25.568] I (23703) read_data_task: [0xe0] 214
+[2026-05-13 10:26:25.572] I (23703) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.573] I (23706) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.669] I (23804) CAN_PROC_0: 0x000000e0 batch 1 [215..215] at (23609)
+[2026-05-13 10:26:25.673] I (23804) read_data_task: [0xe0] 215
+[2026-05-13 10:26:25.676] I (23806) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.678] I (23808) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.766] I (23905) CAN_PROC_0: 0x000000e0 batch 1 [216..216] at (23711)
+[2026-05-13 10:26:25.766] I (23906) read_data_task: [0xe0] 216
+[2026-05-13 10:26:25.767] I (23907) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.770] I (23909) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.867] I (24006) CAN_PROC_0: 0x000000e0 batch 1 [217..217] at (23812)
+[2026-05-13 10:26:25.868] I (24007) read_data_task: [0xe0] 217
+[2026-05-13 10:26:25.870] I (24007) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.871] I (24009) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:25.971] I (24108) CAN_PROC_0: 0x000000e0 batch 1 [218..218] at (23913)
+[2026-05-13 10:26:25.973] I (24109) read_data_task: [0xe0] 218
+[2026-05-13 10:26:25.976] I (24109) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:25.977] I (24111) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.072] I (24210) CAN_PROC_0: 0x000000e0 batch 1 [219..219] at (24015)
+[2026-05-13 10:26:26.075] I (24210) read_data_task: [0xe0] 219
+[2026-05-13 10:26:26.078] I (24210) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.080] I (24212) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.175] I (24311) CAN_PROC_0: 0x000000e0 batch 1 [220..220] at (24117)
+[2026-05-13 10:26:26.177] I (24312) read_data_task: [0xe0] 220
+[2026-05-13 10:26:26.180] I (24312) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.181] I (24314) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.275] I (24413) CAN_PROC_0: 0x000000e0 batch 1 [221..221] at (24218)
+[2026-05-13 10:26:26.278] I (24413) read_data_task: [0xe0] 221
+[2026-05-13 10:26:26.282] I (24413) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.283] I (24415) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.382] I (24514) CAN_PROC_0: 0x000000e0 batch 1 [222..222] at (24320)
+[2026-05-13 10:26:26.384] I (24515) read_data_task: [0xe0] 222
+[2026-05-13 10:26:26.386] I (24516) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.387] I (24518) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.477] I (24616) CAN_PROC_0: 0x000000e0 batch 1 [223..223] at (24421)
+[2026-05-13 10:26:26.480] I (24616) read_data_task: [0xe0] 223
+[2026-05-13 10:26:26.483] I (24616) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.486] I (24618) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.580] I (24717) CAN_PROC_0: 0x000000e0 batch 1 [224..224] at (24522)
+[2026-05-13 10:26:26.583] I (24717) read_data_task: [0xe0] 224
+[2026-05-13 10:26:26.585] I (24718) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.587] I (24719) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.681] I (24818) CAN_PROC_0: 0x000000e0 batch 1 [225..225] at (24624)
+[2026-05-13 10:26:26.685] I (24819) read_data_task: [0xe0] 225
+[2026-05-13 10:26:26.687] I (24819) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.689] I (24821) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.783] I (24920) CAN_PROC_0: 0x000000e0 batch 1 [226..226] at (24726)
+[2026-05-13 10:26:26.786] I (24921) read_data_task: [0xe0] 226
+[2026-05-13 10:26:26.789] I (24921) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.790] I (24923) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.887] I (25021) CAN_PROC_0: 0x000000e0 batch 1 [227..227] at (24827)
+[2026-05-13 10:26:26.889] I (25022) read_data_task: [0xe0] 227
+[2026-05-13 10:26:26.891] I (25022) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.893] I (25024) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:26.987] I (25123) CAN_PROC_0: 0x000000e0 batch 1 [228..228] at (24928)
+[2026-05-13 10:26:26.990] I (25124) read_data_task: [0xe0] 228
+[2026-05-13 10:26:26.993] I (25124) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:26.994] I (25125) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.088] I (25225) CAN_PROC_0: 0x000000e0 batch 1 [229..229] at (25030)
+[2026-05-13 10:26:27.092] I (25225) read_data_task: [0xe0] 229
+[2026-05-13 10:26:27.094] I (25225) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.095] I (25227) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.190] I (25326) CAN_PROC_0: 0x000000e0 batch 1 [230..230] at (25132)
+[2026-05-13 10:26:27.194] I (25327) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.195] I (25327) read_data_task: [0xe0] 230
+[2026-05-13 10:26:27.196] I (25329) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.291] I (25428) CAN_PROC_0: 0x000000e0 batch 1 [231..231] at (25233)
+[2026-05-13 10:26:27.293] I (25428) read_data_task: [0xe0] 231
+[2026-05-13 10:26:27.297] I (25428) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.299] I (25430) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.390] I (25529) CAN_PROC_0: 0x000000e0 batch 1 [232..232] at (25335)
+[2026-05-13 10:26:27.390] I (25530) read_data_task: [0xe0] 232
+[2026-05-13 10:26:27.391] I (25531) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.394] I (25533) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.493] I (25631) CAN_PROC_0: 0x000000e0 batch 1 [233..233] at (25436)
+[2026-05-13 10:26:27.496] I (25631) read_data_task: [0xe0] 233
+[2026-05-13 10:26:27.500] I (25631) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.501] I (25633) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.596] I (25732) CAN_PROC_0: 0x000000e0 batch 1 [234..234] at (25538)
+[2026-05-13 10:26:27.600] I (25733) read_data_task: [0xe0] 234
+[2026-05-13 10:26:27.601] I (25733) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.603] I (25735) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.698] I (25834) CAN_PROC_0: 0x000000e0 batch 1 [235..235] at (25639)
+[2026-05-13 10:26:27.701] I (25834) read_data_task: [0xe0] 235
+[2026-05-13 10:26:27.703] I (25835) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.705] I (25836) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.797] I (25935) CAN_PROC_0: 0x000000e0 batch 1 [236..236] at (25741)
+[2026-05-13 10:26:27.800] I (25936) read_data_task: [0xe0] 236
+[2026-05-13 10:26:27.803] I (25936) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.806] I (25938) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:27.898] I (26037) CAN_PROC_0: 0x000000e0 batch 1 [237..237] at (25842)
+[2026-05-13 10:26:27.898] I (26037) read_data_task: [0xe0] 237
+[2026-05-13 10:26:27.900] I (26038) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:27.902] I (26040) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.002] I (26138) CAN_PROC_0: 0x000000e0 batch 1 [238..238] at (25943)
+[2026-05-13 10:26:28.005] I (26139) read_data_task: [0xe0] 238
+[2026-05-13 10:26:28.007] I (26139) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.009] I (26141) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.103] I (26240) CAN_PROC_0: 0x000000e0 batch 1 [239..239] at (26045)
+[2026-05-13 10:26:28.105] I (26240) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.106] I (26240) read_data_task: [0xe0] 239
+[2026-05-13 10:26:28.106] I (26242) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.205] I (26341) CAN_PROC_0: 0x000000e0 batch 1 [240..240] at (26147)
+[2026-05-13 10:26:28.207] I (26342) read_data_task: [0xe0] 240
+[2026-05-13 10:26:28.210] I (26342) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.212] I (26345) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.305] I (26442) CAN_PROC_0: 0x000000e0 batch 1 [241..241] at (26248)
+[2026-05-13 10:26:28.307] I (26443) read_data_task: [0xe0] 241
+[2026-05-13 10:26:28.311] I (26443) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.312] I (26445) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.413] I (26544) CAN_PROC_0: 0x000000e0 batch 1 [242..242] at (26349)
+[2026-05-13 10:26:28.417] I (26544) read_data_task: [0xe0] 242
+[2026-05-13 10:26:28.433] I (26545) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.451] I (26548) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.507] I (26645) CAN_PROC_0: 0x000000e0 batch 1 [243..243] at (26450)
+[2026-05-13 10:26:28.509] I (26645) read_data_task: [0xe0] 243
+[2026-05-13 10:26:28.511] I (26646) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.512] I (26647) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.608] I (26746) CAN_PROC_0: 0x000000e0 batch 1 [244..244] at (26552)
+[2026-05-13 10:26:28.610] I (26747) read_data_task: [0xe0] 244
+[2026-05-13 10:26:28.613] I (26748) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.617] I (26751) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.711] I (26848) CAN_PROC_0: 0x000000e0 batch 1 [245..245] at (26653)
+[2026-05-13 10:26:28.714] I (26848) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.716] I (26849) read_data_task: [0xe0] 245
+[2026-05-13 10:26:28.718] I (26850) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.812] I (26949) CAN_PROC_0: 0x000000e0 batch 1 [246..246] at (26755)
+[2026-05-13 10:26:28.814] I (26950) read_data_task: [0xe0] 246
+[2026-05-13 10:26:28.818] I (26951) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.820] I (26953) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:28.853] I (26992) HEAP: free=178752 min_free=173888 largest=114688
+[2026-05-13 10:26:28.901] I (27040) MEASURE: airtime_us_total=4199 packets_total=247 d_airtime_us=833 d_packets=49 util_per_mille=0
+[2026-05-13 10:26:28.903] I (27041) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=48615 total_runtime=26851894
+[2026-05-13 10:26:28.905] I (27041) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=25716139 total_runtime=26851894
+[2026-05-13 10:26:28.907] I (27042) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=6408 total_runtime=26851894
+[2026-05-13 10:26:28.908] I (27043) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2479 total_runtime=26851894
+[2026-05-13 10:26:28.910] I (27044) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=416675 total_runtime=26851894
+[2026-05-13 10:26:28.912] I (27045) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=52462 total_runtime=26851894
+[2026-05-13 10:26:28.918] I (27047) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2332 runtime=174255 total_runtime=26851894
+[2026-05-13 10:26:28.921] I (27048) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=27192 total_runtime=26851894
+[2026-05-13 10:26:28.922] I (27051) CAN_PROC_0: 0x000000e0 batch 1 [247..247] at (26856)
+[2026-05-13 10:26:28.924] I (27051) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:28.930] I (27051) read_data_task: [0xe0] 247
+[2026-05-13 10:26:28.941] I (27052) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=389490 total_runtime=26851894
+[2026-05-13 10:26:28.946] I (27053) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=26851894
+[2026-05-13 10:26:28.947] I (27054) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=26851894
+[2026-05-13 10:26:28.948] I (27054) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.015] I (27152) CAN_PROC_0: 0x000000e0 batch 1 [248..248] at (26958)
+[2026-05-13 10:26:29.019] I (27153) read_data_task: [0xe0] 248
+[2026-05-13 10:26:29.022] I (27153) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.023] I (27155) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.117] I (27254) CAN_PROC_0: 0x000000e0 batch 1 [249..249] at (27059)
+[2026-05-13 10:26:29.121] I (27254) read_data_task: [0xe0] 249
+[2026-05-13 10:26:29.123] I (27254) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.124] I (27257) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.219] I (27355) CAN_PROC_0: 0x000000e0 batch 1 [250..250] at (27161)
+[2026-05-13 10:26:29.222] I (27356) read_data_task: [0xe0] 250
+[2026-05-13 10:26:29.224] I (27356) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.225] I (27358) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.321] I (27457) CAN_PROC_0: 0x000000e0 batch 1 [251..251] at (27262)
+[2026-05-13 10:26:29.323] I (27457) read_data_task: [0xe0] 251
+[2026-05-13 10:26:29.325] I (27457) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.327] I (27460) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.420] I (27558) CAN_PROC_0: 0x000000e0 batch 1 [252..252] at (27364)
+[2026-05-13 10:26:29.422] I (27559) read_data_task: [0xe0] 252
+[2026-05-13 10:26:29.425] I (27560) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.435] I (27562) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.521] I (27660) CAN_PROC_0: 0x000000e0 batch 1 [253..253] at (27465)
+[2026-05-13 10:26:29.522] I (27660) read_data_task: [0xe0] 253
+[2026-05-13 10:26:29.525] I (27661) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.529] I (27663) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.622] I (27761) CAN_PROC_0: 0x000000e0 batch 1 [254..254] at (27566)
+[2026-05-13 10:26:29.624] I (27761) read_data_task: [0xe0] 254
+[2026-05-13 10:26:29.627] I (27763) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.634] I (27764) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.724] I (27862) CAN_PROC_0: 0x000000e0 batch 1 [255..255] at (27668)
+[2026-05-13 10:26:29.725] I (27863) read_data_task: [0xe0] 255
+[2026-05-13 10:26:29.729] I (27864) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.735] I (27866) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.825] I (27963) CAN_PROC_0: 0x000000e0 batch 1 [256..256] at (27769)
+[2026-05-13 10:26:29.828] I (27964) read_data_task: [0xe0] 256
+[2026-05-13 10:26:29.834] I (27965) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.839] I (27967) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:29.926] I (28065) CAN_PROC_0: 0x000000e0 batch 1 [257..257] at (27870)
+[2026-05-13 10:26:29.929] I (28065) read_data_task: [0xe0] 257
+[2026-05-13 10:26:29.938] I (28066) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:29.947] I (28068) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.028] I (28166) CAN_PROC_0: 0x000000e0 batch 1 [258..258] at (27971)
+[2026-05-13 10:26:30.030] I (28166) read_data_task: [0xe0] 258
+[2026-05-13 10:26:30.033] I (28168) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.047] I (28169) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.129] I (28267) CAN_PROC_0: 0x000000e0 batch 1 [259..259] at (28073)
+[2026-05-13 10:26:30.132] I (28268) read_data_task: [0xe0] 259
+[2026-05-13 10:26:30.138] I (28269) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.147] I (28271) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.230] I (28368) CAN_PROC_0: 0x000000e0 batch 1 [260..260] at (28174)
+[2026-05-13 10:26:30.231] I (28369) read_data_task: [0xe0] 260
+[2026-05-13 10:26:30.235] I (28370) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.244] I (28372) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.331] I (28470) CAN_PROC_0: 0x000000e0 batch 1 [261..261] at (28275)
+[2026-05-13 10:26:30.332] I (28470) read_data_task: [0xe0] 261
+[2026-05-13 10:26:30.336] I (28471) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.345] I (28473) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.433] I (28571) CAN_PROC_0: 0x000000e0 batch 1 [262..262] at (28376)
+[2026-05-13 10:26:30.435] I (28571) read_data_task: [0xe0] 262
+[2026-05-13 10:26:30.439] I (28573) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.446] I (28574) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.534] I (28672) CAN_PROC_0: 0x000000e0 batch 1 [263..263] at (28478)
+[2026-05-13 10:26:30.537] I (28673) read_data_task: [0xe0] 263
+[2026-05-13 10:26:30.542] I (28674) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.550] I (28676) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.635] I (28773) CAN_PROC_0: 0x000000e0 batch 1 [264..264] at (28579)
+[2026-05-13 10:26:30.636] I (28774) read_data_task: [0xe0] 264
+[2026-05-13 10:26:30.640] I (28775) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.650] I (28777) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.736] I (28875) CAN_PROC_0: 0x000000e0 batch 1 [265..265] at (28680)
+[2026-05-13 10:26:30.738] I (28875) read_data_task: [0xe0] 265
+[2026-05-13 10:26:30.742] I (28876) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.747] I (28878) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.838] I (28976) CAN_PROC_0: 0x000000e0 batch 1 [266..266] at (28781)
+[2026-05-13 10:26:30.840] I (28976) read_data_task: [0xe0] 266
+[2026-05-13 10:26:30.847] I (28978) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.857] I (28979) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:30.939] I (29077) CAN_PROC_0: 0x000000e0 batch 1 [267..267] at (28883)
+[2026-05-13 10:26:30.941] I (29078) read_data_task: [0xe0] 267
+[2026-05-13 10:26:30.947] I (29079) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:30.957] I (29081) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.040] I (29178) CAN_PROC_0: 0x000000e0 batch 1 [268..268] at (28984)
+[2026-05-13 10:26:31.043] I (29179) read_data_task: [0xe0] 268
+[2026-05-13 10:26:31.051] I (29180) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.060] I (29182) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.142] I (29280) CAN_PROC_0: 0x000000e0 batch 1 [269..269] at (29085)
+[2026-05-13 10:26:31.144] I (29280) read_data_task: [0xe0] 269
+[2026-05-13 10:26:31.152] I (29281) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.161] I (29283) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.243] I (29381) CAN_PROC_0: 0x000000e0 batch 1 [270..270] at (29186)
+[2026-05-13 10:26:31.245] I (29381) read_data_task: [0xe0] 270
+[2026-05-13 10:26:31.250] I (29383) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.255] I (29384) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.344] I (29482) CAN_PROC_0: 0x000000e0 batch 1 [271..271] at (29288)
+[2026-05-13 10:26:31.347] I (29483) read_data_task: [0xe0] 271
+[2026-05-13 10:26:31.357] I (29484) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.367] I (29486) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.445] I (29583) CAN_PROC_0: 0x000000e0 batch 1 [272..272] at (29389)
+[2026-05-13 10:26:31.446] I (29584) read_data_task: [0xe0] 272
+[2026-05-13 10:26:31.452] I (29585) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.462] I (29587) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.546] I (29685) CAN_PROC_0: 0x000000e0 batch 1 [273..273] at (29490)
+[2026-05-13 10:26:31.547] I (29685) read_data_task: [0xe0] 273
+[2026-05-13 10:26:31.553] I (29687) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.561] I (29689) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.647] I (29786) CAN_PROC_0: 0x000000e0 batch 1 [274..274] at (29591)
+[2026-05-13 10:26:31.649] I (29786) read_data_task: [0xe0] 274
+[2026-05-13 10:26:31.654] I (29788) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.661] I (29789) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.749] I (29887) CAN_PROC_0: 0x000000e0 batch 1 [275..275] at (29693)
+[2026-05-13 10:26:31.753] I (29888) read_data_task: [0xe0] 275
+[2026-05-13 10:26:31.760] I (29889) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.771] I (29891) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.850] I (29988) CAN_PROC_0: 0x000000e0 batch 1 [276..276] at (29794)
+[2026-05-13 10:26:31.857] I (29989) read_data_task: [0xe0] 276
+[2026-05-13 10:26:31.880] I (29990) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.905] I (29992) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:31.950] I (30090) CAN_PROC_0: 0x000000e0 batch 1 [277..277] at (29895)
+[2026-05-13 10:26:31.951] I (30090) read_data_task: [0xe0] 277
+[2026-05-13 10:26:31.951] I (30091) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:31.956] I (30093) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.053] I (30191) CAN_PROC_0: 0x000000e0 batch 1 [278..278] at (29996)
+[2026-05-13 10:26:32.059] I (30191) read_data_task: [0xe0] 278
+[2026-05-13 10:26:32.067] I (30193) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.074] I (30195) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.154] I (30292) CAN_PROC_0: 0x000000e0 batch 1 [279..279] at (30098)
+[2026-05-13 10:26:32.159] I (30293) read_data_task: [0xe0] 279
+[2026-05-13 10:26:32.166] I (30294) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.176] I (30296) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.256] I (30393) CAN_PROC_0: 0x000000e0 batch 1 [280..280] at (30199)
+[2026-05-13 10:26:32.262] I (30394) read_data_task: [0xe0] 280
+[2026-05-13 10:26:32.269] I (30396) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.285] I (30397) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.357] I (30494) CAN_PROC_0: 0x000000e0 batch 1 [281..281] at (30300)
+[2026-05-13 10:26:32.375] I (30495) read_data_task: [0xe0] 281
+[2026-05-13 10:26:32.384] I (30496) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.385] I (30498) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.458] I (30596) CAN_PROC_0: 0x000000e0 batch 1 [282..282] at (30401)
+[2026-05-13 10:26:32.479] I (30596) read_data_task: [0xe0] 282
+[2026-05-13 10:26:32.482] I (30598) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.485] I (30599) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.567] I (30697) CAN_PROC_0: 0x000000e0 batch 1 [283..283] at (30502)
+[2026-05-13 10:26:32.583] I (30697) read_data_task: [0xe0] 283
+[2026-05-13 10:26:32.586] I (30699) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.589] I (30701) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.665] I (30798) CAN_PROC_0: 0x000000e0 batch 1 [284..284] at (30604)
+[2026-05-13 10:26:32.671] I (30799) read_data_task: [0xe0] 284
+[2026-05-13 10:26:32.677] I (30801) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.683] I (30804) LAT_RTT: id=0x000000e0 rtt_ms=6 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.766] I (30899) CAN_PROC_0: 0x000000e0 batch 1 [285..285] at (30705)
+[2026-05-13 10:26:32.772] I (30900) read_data_task: [0xe0] 285
+[2026-05-13 10:26:32.778] I (30902) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.785] I (30905) LAT_RTT: id=0x000000e0 rtt_ms=6 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.867] I (31001) CAN_PROC_0: 0x000000e0 batch 1 [286..286] at (30806)
+[2026-05-13 10:26:32.872] I (31001) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.874] I (31001) read_data_task: [0xe0] 286
+[2026-05-13 10:26:32.876] I (31003) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:32.977] I (31102) CAN_PROC_0: 0x000000e0 batch 1 [287..287] at (30908)
+[2026-05-13 10:26:32.980] I (31103) read_data_task: [0xe0] 287
+[2026-05-13 10:26:32.982] I (31104) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:32.983] I (31106) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:33.064] I (31203) CAN_PROC_0: 0x000000e0 batch 1 [288..288] at (31009)
+[2026-05-13 10:26:33.065] I (31204) read_data_task: [0xe0] 288
+[2026-05-13 10:26:33.065] I (31205) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.068] I (31207) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:33.174] I (31305) CAN_PROC_0: 0x000000e0 batch 1 [289..289] at (31110)
+[2026-05-13 10:26:33.179] I (31305) read_data_task: [0xe0] 289
+[2026-05-13 10:26:33.187] I (31306) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.193] I (31309) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:33.273] I (31406) CAN_PROC_0: 0x000000e0 batch 1 [290..290] at (31211)
+[2026-05-13 10:26:33.279] I (31407) read_data_task: [0xe0] 290
+[2026-05-13 10:26:33.282] I (31408) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.285] I (31410) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:33.377] I (31507) CAN_PROC_0: 0x000000e0 batch 1 [291..291] at (31313)
+[2026-05-13 10:26:33.382] I (31508) read_data_task: [0xe0] 291
+[2026-05-13 10:26:33.386] I (31509) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.451] W (31586) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 10:26:33.455] I (31587) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.457] I (31590) LAT_RTT: id=0x000000e0 rtt_ms=83 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:33.470] I (31609) CAN_PROC_0: 0x000000e0 batch 1 [292..292] at (31414)
+[2026-05-13 10:26:33.470] I (31609) read_data_task: [0xe0] 292
+[2026-05-13 10:26:33.470] I (31610) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.474] I (31612) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:33.579] I (31710) CAN_PROC_0: 0x000000e0 batch 1 [293..293] at (31515)
+[2026-05-13 10:26:33.581] I (31710) read_data_task: [0xe0] 293
+[2026-05-13 10:26:33.587] I (31711) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.603] W (31742) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 10:26:33.608] I (31743) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.612] I (31745) LAT_RTT: id=0x000000e0 rtt_ms=36 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:33.681] I (31811) CAN_PROC_0: 0x000000e0 batch 1 [294..294] at (31616)
+[2026-05-13 10:26:33.689] I (31811) read_data_task: [0xe0] 294
+[2026-05-13 10:26:33.695] I (31813) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 10:26:33.697] I (31815) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 10:26:33.775] I (31912) CAN_PROC_0: 0x000000e0 batch 1 [295..295] at (31718)
+
+# Monitor stopped: 2026-05-13T10:26:33.775275

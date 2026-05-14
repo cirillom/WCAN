@@ -1,0 +1,1522 @@
+# Monitor started: 2026-05-13T14:53:19.852266
+# Port: /dev/ttyACM1, Baud: 921600, Duration: 30s
+
+# UART boot config: wcan v=1 role=sensor transport=BROADCAST base=0xe0 count=1 hz=10 linger=100
+[2026-05-13 14:53:19.862] ESP-ROM:esp32c3-api1-20210207
+[2026-05-13 14:53:19.867] Build:Feb  7 2021
+[2026-05-13 14:53:19.884] rst:0x15 (USB_UART_CHIP_RESET),boot:0xd (SPI_FAST_FLASH_BOOT)
+[2026-05-13 14:53:19.886] Saved PC:0x40384eae
+[2026-05-13 14:53:19.892] SPIWP:0xee
+[2026-05-13 14:53:19.897] mode:DIO, clock div:1
+[2026-05-13 14:53:19.900] load:0x3fcd5820,len:0x1574
+[2026-05-13 14:53:19.908] load:0x403cc710,len:0xc30
+[2026-05-13 14:53:19.915] load:0x403ce710,len:0x2fa0
+[2026-05-13 14:53:19.920] entry 0x403cc71a
+[2026-05-13 14:53:19.933] I (24) boot: ESP-IDF v5.4.1 2nd stage bootloader
+[2026-05-13 14:53:19.941] I (24) boot: compile time May 12 2026 19:48:29
+[2026-05-13 14:53:19.945] I (25) boot: chip revision: v0.4
+[2026-05-13 14:53:19.947] I (25) boot: efuse block revision: v1.3
+[2026-05-13 14:53:19.948] I (25) boot.esp32c3: SPI Speed      : 80MHz
+[2026-05-13 14:53:19.953] I (25) boot.esp32c3: SPI Mode       : DIO
+[2026-05-13 14:53:19.958] I (26) boot.esp32c3: SPI Flash Size : 2MB
+[2026-05-13 14:53:19.963] I (26) boot: Enabling RNG early entropy source...
+[2026-05-13 14:53:19.964] I (27) boot: Partition Table:
+[2026-05-13 14:53:19.971] I (27) boot: ## Label            Usage          Type ST Offset   Length
+[2026-05-13 14:53:19.975] I (28) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+[2026-05-13 14:53:19.979] I (29) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+[2026-05-13 14:53:19.981] I (29) boot:  2 factory          factory app      00 00 00010000 00100000
+[2026-05-13 14:53:19.982] I (30) boot: End of partition table
+[2026-05-13 14:53:19.989] I (31) esp_image: segment 0: paddr=00010020 vaddr=3c0a0020 size=19ea0h (106144) map
+[2026-05-13 14:53:19.994] I (49) esp_image: segment 1: paddr=00029ec8 vaddr=3fc95800 size=02db0h ( 11696) load
+[2026-05-13 14:53:19.996] I (51) esp_image: segment 2: paddr=0002cc80 vaddr=40380000 size=03398h ( 13208) load
+[2026-05-13 14:53:20.002] I (54) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=93210h (602640) map
+[2026-05-13 14:53:20.006] I (150) esp_image: segment 4: paddr=000c3238 vaddr=40383398 size=12310h ( 74512) load
+[2026-05-13 14:53:20.008] I (164) esp_image: segment 5: paddr=000d5550 vaddr=50000200 size=0001ch (    28) load
+[2026-05-13 14:53:20.009] I (171) boot: Loaded app from partition at offset 0x10000
+[2026-05-13 14:53:20.010] I (172) boot: Disabling RNG early entropy source...
+[2026-05-13 14:53:20.011] I (173) cpu_start: Unicore app
+[2026-05-13 14:53:20.012] I (182) cpu_start: Pro cpu start user code
+[2026-05-13 14:53:20.014] I (182) cpu_start: cpu freq: 160000000 Hz
+[2026-05-13 14:53:20.015] I (182) app_init: Application information:
+[2026-05-13 14:53:20.018] I (182) app_init: Project name:     sensor_acquirer
+[2026-05-13 14:53:20.020] I (182) app_init: App version:      v1.0-60-gb67991a-dirty
+[2026-05-13 14:53:20.024] I (183) app_init: Compile time:     May 12 2026 19:48:20
+[2026-05-13 14:53:20.029] I (183) app_init: ELF file SHA256:  fd27e32a6...
+[2026-05-13 14:53:20.035] I (184) app_init: ESP-IDF:          v5.4.1
+[2026-05-13 14:53:20.038] I (184) efuse_init: Min chip rev:     v0.3
+[2026-05-13 14:53:20.040] I (185) efuse_init: Max chip rev:     v1.99
+[2026-05-13 14:53:20.043] I (185) efuse_init: Chip rev:         v0.4
+[2026-05-13 14:53:20.046] I (186) heap_init: Initializing. RAM available for dynamic allocation:
+[2026-05-13 14:53:20.047] I (187) heap_init: At 3FC9D210 len 00022DF0 (139 KiB): RAM
+[2026-05-13 14:53:20.053] I (187) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM
+[2026-05-13 14:53:20.059] I (188) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM
+[2026-05-13 14:53:20.060] I (189) heap_init: At 5000021C len 00001DCC (7 KiB): RTCRAM
+[2026-05-13 14:53:20.061] I (190) spi_flash: detected chip: generic
+[2026-05-13 14:53:20.062] I (191) spi_flash: flash io: dio
+[2026-05-13 14:53:20.065] W (191) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+[2026-05-13 14:53:20.067] I (192) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[2026-05-13 14:53:20.068] I (193) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[2026-05-13 14:53:20.068] I (194) main_task: Started on CPU0
+[2026-05-13 14:53:20.069] I (194) main_task: Calling app_main()
+[2026-05-13 14:53:20.069] I (194) BOOT_TS: us=5200
+[2026-05-13 14:53:20.070] I (195) BOOT_CONFIG: waiting for UART config
+[2026-05-13 14:53:20.071] WCAN_CFG_WAIT v=1
+# UART boot config sent: wcan v=1 role=sensor transport=BROADCAST base=0xe0 count=1 hz=10 linger=100
+[2026-05-13 14:53:20.071] WCAN_CFG_WAIT v=1
+[2026-05-13 14:53:21.575] I (1919) BOOT_CONFIG: accepted role=sensor transport=BROADCAST
+[2026-05-13 14:53:21.578] I (1919) BOOT_CONFIG: sensor base=0xe0 count=1 hz=10 linger=100
+[2026-05-13 14:53:21.578] WCAN_CFG_ACK
+# Waiting for coordinated capture start
+[2026-05-13 14:53:21.581] WCAN_CFG_ACK
+[2026-05-13 14:53:21.587] I (1924) pp: pp rom version: 9387209
+[2026-05-13 14:53:21.596] I (1924) net80211: net80211 rom version: 9387209
+[2026-05-13 14:53:21.611] I (1926) wifi:wifi driver task: 3fca73c8, prio:23, stack:6656, core=0
+[2026-05-13 14:53:21.618] I (1930) wifi:wifi firmware version: 79fa3f41ba
+[2026-05-13 14:53:21.620] I (1930) wifi:wifi certification version: v7.0
+[2026-05-13 14:53:21.622] I (1930) wifi:config NVS flash: enabled
+[2026-05-13 14:53:21.623] I (1930) wifi:config nano formatting: disabled
+[2026-05-13 14:53:21.625] I (1931) wifi:Init data frame dynamic rx buffer num: 32
+[2026-05-13 14:53:21.627] I (1931) wifi:Init static rx mgmt buffer num: 5
+[2026-05-13 14:53:21.628] I (1932) wifi:Init management short buffer num: 32
+[2026-05-13 14:53:21.629] I (1932) wifi:Init dynamic tx buffer num: 32
+[2026-05-13 14:53:21.631] I (1933) wifi:Init static tx FG buffer num: 2
+[2026-05-13 14:53:21.633] I (1933) wifi:Init static rx buffer size: 1600
+[2026-05-13 14:53:21.634] I (1934) wifi:Init static rx buffer num: 10
+[2026-05-13 14:53:21.637] I (1934) wifi:Init dynamic rx buffer num: 32
+[2026-05-13 14:53:21.644] I (1935) wifi_init: rx ba win: 6
+[2026-05-13 14:53:21.645] I (1936) wifi_init: accept mbox: 6
+[2026-05-13 14:53:21.647] I (1936) wifi_init: tcpip mbox: 32
+[2026-05-13 14:53:21.648] I (1936) wifi_init: udp mbox: 6
+[2026-05-13 14:53:21.651] I (1936) wifi_init: tcp mbox: 6
+[2026-05-13 14:53:21.653] I (1937) wifi_init: tcp tx win: 5760
+[2026-05-13 14:53:21.654] I (1937) wifi_init: tcp rx win: 5760
+[2026-05-13 14:53:21.656] I (1938) wifi_init: tcp mss: 1440
+[2026-05-13 14:53:21.661] I (1938) wifi_init: WiFi IRAM OP enabled
+[2026-05-13 14:53:21.664] I (1938) wifi_init: WiFi RX IRAM OP enabled
+[2026-05-13 14:53:21.670] I (1939) phy_init: phy_version 1200,2b7123f9,Feb 18 2025,15:22:21
+[2026-05-13 14:53:21.674] I (1979) wifi:mode : sta (74:4d:bd:e1:d5:b8)
+[2026-05-13 14:53:21.676] I (1979) wifi:enable tsf
+[2026-05-13 14:53:21.677] I (1981) MAIN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 14:53:21.681] I (1981) SENSOR_APP: SENSOR mode - CAN ID: 0xe0 (count=1, linger=100 ms, hz=10)
+[2026-05-13 14:53:21.682] I (1982) SENSOR_APP: Sensor CAN ID[0] = 0xe0
+[2026-05-13 14:53:21.683] I (1982) SENSOR_APP: Startup jitter: 190 ms
+[2026-05-13 14:53:21.825] I (2172) ESPNOW: espnow [version: 2.0] init
+[2026-05-13 14:53:21.826] I (2172) WCAN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 14:53:21.827] I (2173) SEND: Send processing task started
+[2026-05-13 14:53:21.828] I (2173) CAN_PROC_0: CAN processing task 0 started
+[2026-05-13 14:53:21.829] I (2173) HEAP: free=182056 min_free=182056 largest=114688
+[2026-05-13 14:53:21.829] I (2174) WCAN: WCAN initialized
+[2026-05-13 14:53:21.831] I (2174) read_data_task: read_data_task started with 1 CAN ID(s) at 10 Hz
+[2026-05-13 14:53:21.831] I (2175) read_data_task: [0xe0] 0
+[2026-05-13 14:53:21.832] I (2175) main_task: Returned from app_main()
+[2026-05-13 14:53:21.929] I (2275) CAN_PROC_0: 0x000000e0 batch 1 [0..0] at (2081)
+[2026-05-13 14:53:21.929] I (2276) read_data_task: [0xe0] 1
+[2026-05-13 14:53:21.930] I (2276) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:21.974] W (2318) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:21.975] I (2319) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.018] W (2365) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:22.019] I (2366) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.032] I (2376) read_data_task: [0xe0] 2
+[2026-05-13 14:53:22.062] W (2409) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:22.063] I (2410) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.119] W (2466) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:22.120] I (2467) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.133] I (2476) read_data_task: [0xe0] 3
+[2026-05-13 14:53:22.192] W (2539) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:22.193] I (2540) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.229] W (2576) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:22.230] I (2577) read_data_task: [0xe0] 4
+[2026-05-13 14:53:22.231] I (2577) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.304] W (2651) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:22.305] I (2652) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.335] I (2677) read_data_task: [0xe0] 5
+[2026-05-13 14:53:22.349] W (2696) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:22.350] I (2697) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.394] W (2737) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:22.399] I (2738) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.423] W (2769) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:22.435] E (2769) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:22.442] I (2770) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.444] I (2777) read_data_task: [0xe0] 6
+[2026-05-13 14:53:22.524] I (2869) CAN_PROC_0: 0x000000e0 batch 6 [1..6] at (2675)
+[2026-05-13 14:53:22.528] I (2870) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.530] I (2877) read_data_task: [0xe0] 7
+[2026-05-13 14:53:22.575] W (2922) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:22.577] I (2923) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.631] W (2974) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:22.636] I (2975) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.638] I (2977) read_data_task: [0xe0] 8
+[2026-05-13 14:53:22.700] W (3042) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:22.704] I (3043) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.732] I (3077) read_data_task: [0xe0] 9
+[2026-05-13 14:53:22.772] W (3119) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:22.773] I (3120) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.819] W (3166) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:22.822] I (3169) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.831] I (3178) read_data_task: [0xe0] 10
+[2026-05-13 14:53:22.879] W (3218) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:22.881] I (3219) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.914] W (3261) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:22.916] I (3262) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:22.934] I (3278) read_data_task: [0xe0] 11
+[2026-05-13 14:53:23.003] W (3341) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:23.004] I (3342) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.035] I (3378) read_data_task: [0xe0] 12
+[2026-05-13 14:53:23.074] W (3421) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:23.075] I (3422) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.131] I (3478) read_data_task: [0xe0] 13
+[2026-05-13 14:53:23.141] W (3488) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:23.143] E (3488) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:23.143] I (3489) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.236] I (3578) read_data_task: [0xe0] 14
+[2026-05-13 14:53:23.241] I (3588) CAN_PROC_0: 0x000000e0 batch 8 [7..14] at (3394)
+[2026-05-13 14:53:23.245] I (3592) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.307] W (3643) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:23.308] I (3644) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.337] I (3679) read_data_task: [0xe0] 15
+[2026-05-13 14:53:23.374] W (3719) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:23.375] I (3720) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.432] I (3779) read_data_task: [0xe0] 16
+[2026-05-13 14:53:23.445] W (3792) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:23.446] I (3793) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.520] W (3866) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:23.521] I (3867) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.537] I (3879) read_data_task: [0xe0] 17
+[2026-05-13 14:53:23.563] W (3909) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:23.565] I (3910) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.604] W (3940) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:23.607] I (3945) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.636] I (3979) read_data_task: [0xe0] 18
+[2026-05-13 14:53:23.646] W (3983) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:23.648] I (3984) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.685] W (4032) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:23.687] I (4033) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.719] W (4065) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:23.720] I (4066) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.732] I (4079) read_data_task: [0xe0] 19
+[2026-05-13 14:53:23.757] W (4103) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:23.758] E (4103) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:23.759] I (4104) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.834] I (4179) read_data_task: [0xe0] 20
+[2026-05-13 14:53:23.857] I (4203) CAN_PROC_0: 0x000000e0 batch 6 [15..20] at (4009)
+[2026-05-13 14:53:23.858] I (4204) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.903] W (4249) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:23.904] I (4250) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:23.938] I (4280) read_data_task: [0xe0] 21
+[2026-05-13 14:53:23.981] W (4328) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:23.982] I (4329) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.033] I (4380) read_data_task: [0xe0] 22
+[2026-05-13 14:53:24.034] W (4381) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:24.035] I (4382) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.104] W (4450) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:24.105] I (4451) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.146] I (4480) read_data_task: [0xe0] 23
+[2026-05-13 14:53:24.174] W (4521) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:24.176] I (4522) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.236] W (4577) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:24.243] I (4578) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.245] I (4580) read_data_task: [0xe0] 24
+[2026-05-13 14:53:24.263] W (4610) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:24.264] I (4611) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.297] W (4644) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:24.298] I (4645) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.334] I (4680) read_data_task: [0xe0] 25
+[2026-05-13 14:53:24.355] W (4702) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:24.357] I (4703) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.421] W (4768) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:24.423] E (4768) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:24.424] I (4769) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.438] I (4781) read_data_task: [0xe0] 26
+[2026-05-13 14:53:24.523] I (4869) CAN_PROC_0: 0x000000e0 batch 6 [21..26] at (4675)
+[2026-05-13 14:53:24.524] I (4870) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.541] I (4881) read_data_task: [0xe0] 27
+[2026-05-13 14:53:24.573] W (4914) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:24.581] I (4915) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.634] I (4981) read_data_task: [0xe0] 28
+[2026-05-13 14:53:24.642] W (4989) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:24.644] I (4990) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.686] W (5025) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:24.689] I (5027) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.734] W (5081) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:24.735] I (5081) read_data_task: [0xe0] 29
+[2026-05-13 14:53:24.735] I (5082) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.785] W (5132) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:24.787] I (5133) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.830] W (5177) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:24.834] I (5178) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.839] I (5182) read_data_task: [0xe0] 30
+[2026-05-13 14:53:24.864] W (5211) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:24.865] I (5212) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:24.936] W (5282) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:24.936] I (5282) read_data_task: [0xe0] 31
+[2026-05-13 14:53:24.937] I (5283) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.009] W (5350) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:25.011] I (5351) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.040] I (5383) read_data_task: [0xe0] 32
+[2026-05-13 14:53:25.077] W (5424) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:25.079] E (5424) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:25.079] I (5426) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.142] I (5483) read_data_task: [0xe0] 33
+[2026-05-13 14:53:25.180] I (5525) CAN_PROC_0: 0x000000e0 batch 7 [27..33] at (5331)
+[2026-05-13 14:53:25.181] I (5526) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.218] W (5564) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:25.220] I (5566) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.236] I (5583) read_data_task: [0xe0] 34
+[2026-05-13 14:53:25.283] W (5624) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:25.289] I (5625) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.326] W (5674) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:25.328] I (5675) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.336] I (5683) read_data_task: [0xe0] 35
+[2026-05-13 14:53:25.370] W (5718) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:25.372] I (5719) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.426] W (5773) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:25.427] I (5774) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.436] I (5783) read_data_task: [0xe0] 36
+[2026-05-13 14:53:25.483] W (5826) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:25.485] I (5827) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.514] W (5861) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:25.516] I (5862) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.536] I (5884) read_data_task: [0xe0] 37
+[2026-05-13 14:53:25.586] W (5930) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:25.586] I (5931) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.631] W (5978) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:25.632] I (5979) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.642] I (5984) read_data_task: [0xe0] 38
+[2026-05-13 14:53:25.682] W (6019) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:25.688] E (6019) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:25.694] I (6024) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.741] I (6084) read_data_task: [0xe0] 39
+[2026-05-13 14:53:25.788] I (6120) CAN_PROC_0: 0x000000e0 batch 6 [34..39] at (5926)
+[2026-05-13 14:53:25.791] I (6121) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.833] W (6180) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:25.838] I (6181) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.839] I (6184) read_data_task: [0xe0] 40
+[2026-05-13 14:53:25.882] W (6224) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:25.888] I (6225) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.920] W (6267) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:25.921] I (6268) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:25.943] I (6284) read_data_task: [0xe0] 41
+[2026-05-13 14:53:25.956] W (6303) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:25.957] I (6304) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.019] W (6354) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:26.024] I (6355) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.042] I (6384) read_data_task: [0xe0] 42
+[2026-05-13 14:53:26.068] W (6415) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:26.069] I (6416) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.138] I (6485) read_data_task: [0xe0] 43
+[2026-05-13 14:53:26.144] W (6491) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:26.147] I (6493) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.224] W (6571) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:26.225] I (6572) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.241] I (6585) read_data_task: [0xe0] 44
+[2026-05-13 14:53:26.271] W (6618) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:26.272] I (6619) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.304] W (6649) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:26.317] E (6649) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:26.321] I (6650) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.339] I (6685) read_data_task: [0xe0] 45
+[2026-05-13 14:53:26.403] I (6749) CAN_PROC_0: 0x000000e0 batch 6 [40..45] at (6555)
+[2026-05-13 14:53:26.406] I (6750) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.438] I (6785) read_data_task: [0xe0] 46
+[2026-05-13 14:53:26.461] W (6808) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:26.463] I (6810) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.535] W (6882) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:26.544] I (6883) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.548] I (6885) read_data_task: [0xe0] 47
+[2026-05-13 14:53:26.594] W (6941) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:26.596] I (6942) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.639] I (6986) read_data_task: [0xe0] 48
+[2026-05-13 14:53:26.673] W (7020) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:26.674] I (7021) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.724] W (7071) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:26.726] I (7072) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.739] I (7086) read_data_task: [0xe0] 49
+[2026-05-13 14:53:26.773] W (7120) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:26.774] I (7121) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.827] I (7174) HEAP: free=178672 min_free=174168 largest=114688
+[2026-05-13 14:53:26.829] I (7174) MEASURE: airtime_us_total=3564 packets_total=84 d_airtime_us=3564 d_packets=84 util_per_mille=0
+[2026-05-13 14:53:26.831] I (7176) TASK: name=measure prio=1 state=0 hwm_bytes=1312 runtime=10 total_runtime=6986469
+[2026-05-13 14:53:26.832] I (7176) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=6702605 total_runtime=6986469
+[2026-05-13 14:53:26.834] I (7177) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2304 runtime=37218 total_runtime=6986469
+[2026-05-13 14:53:26.835] I (7178) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=1844 total_runtime=6986469
+[2026-05-13 14:53:26.837] I (7179) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=833 total_runtime=6986469
+[2026-05-13 14:53:26.846] I (7180) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2340 runtime=78850 total_runtime=6986469
+[2026-05-13 14:53:26.857] I (7181) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=6986469
+[2026-05-13 14:53:26.861] I (7182) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=15900 total_runtime=6986469
+[2026-05-13 14:53:26.863] I (7183) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=119925 total_runtime=6986469
+[2026-05-13 14:53:26.864] I (7184) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=10711 total_runtime=6986469
+[2026-05-13 14:53:26.865] I (7186) read_data_task: [0xe0] 50
+[2026-05-13 14:53:26.867] I (7186) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=6986469
+[2026-05-13 14:53:26.868] W (7196) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:26.869] I (7197) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.925] W (7257) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:26.934] I (7258) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:26.944] I (7286) read_data_task: [0xe0] 51
+[2026-05-13 14:53:26.958] W (7304) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:26.959] I (7305) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.020] W (7368) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:27.021] E (7368) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:27.022] I (7369) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.040] I (7387) read_data_task: [0xe0] 52
+[2026-05-13 14:53:27.122] I (7469) CAN_PROC_0: 0x000000e0 batch 7 [46..52] at (7275)
+[2026-05-13 14:53:27.123] I (7470) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.144] I (7487) read_data_task: [0xe0] 53
+[2026-05-13 14:53:27.189] W (7536) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:27.191] I (7537) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.242] I (7587) read_data_task: [0xe0] 54
+[2026-05-13 14:53:27.259] W (7595) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:27.260] I (7596) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.309] W (7656) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:27.311] I (7657) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.342] I (7687) read_data_task: [0xe0] 55
+[2026-05-13 14:53:27.349] W (7696) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:27.350] I (7697) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.397] W (7744) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:27.398] I (7745) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.443] I (7788) read_data_task: [0xe0] 56
+[2026-05-13 14:53:27.460] W (7807) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:27.463] I (7809) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.501] W (7847) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:27.502] I (7848) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.543] I (7888) read_data_task: [0xe0] 57
+[2026-05-13 14:53:27.578] W (7925) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:27.585] I (7928) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.634] W (7981) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:27.636] I (7983) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.642] I (7988) read_data_task: [0xe0] 58
+[2026-05-13 14:53:27.697] W (8034) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:27.703] E (8034) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:27.705] I (8035) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.743] I (8088) read_data_task: [0xe0] 59
+[2026-05-13 14:53:27.789] I (8135) CAN_PROC_0: 0x000000e0 batch 7 [53..59] at (7941)
+[2026-05-13 14:53:27.790] I (8136) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.842] I (8188) read_data_task: [0xe0] 60
+[2026-05-13 14:53:27.868] W (8214) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:27.871] I (8215) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.916] W (8264) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:27.918] I (8265) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:27.941] I (8289) read_data_task: [0xe0] 61
+[2026-05-13 14:53:27.960] W (8307) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:27.961] I (8308) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.018] W (8356) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:28.025] I (8358) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.044] I (8389) read_data_task: [0xe0] 62
+[2026-05-13 14:53:28.060] W (8407) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:28.061] I (8408) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.127] W (8462) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:28.128] I (8463) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.142] I (8489) read_data_task: [0xe0] 63
+[2026-05-13 14:53:28.158] W (8504) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:28.159] I (8505) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.189] W (8534) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:28.191] I (8536) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.242] I (8589) read_data_task: [0xe0] 64
+[2026-05-13 14:53:28.263] W (8611) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:28.265] I (8612) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.306] W (8653) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:28.307] E (8653) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:28.308] I (8654) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.343] I (8689) read_data_task: [0xe0] 65
+[2026-05-13 14:53:28.408] I (8754) CAN_PROC_0: 0x000000e0 batch 6 [60..65] at (8560)
+[2026-05-13 14:53:28.409] I (8755) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.438] W (8785) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:28.439] I (8786) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.443] I (8790) read_data_task: [0xe0] 66
+[2026-05-13 14:53:28.502] W (8839) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:28.505] I (8840) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.543] I (8890) read_data_task: [0xe0] 67
+[2026-05-13 14:53:28.557] W (8903) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:28.558] I (8904) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.603] W (8947) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:28.604] I (8948) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.640] W (8987) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:28.641] I (8988) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.643] I (8990) read_data_task: [0xe0] 68
+[2026-05-13 14:53:28.692] W (9039) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:28.693] I (9040) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.743] I (9090) read_data_task: [0xe0] 69
+[2026-05-13 14:53:28.757] W (9104) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:28.758] I (9105) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.805] W (9152) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:28.806] I (9153) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.842] W (9189) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:28.843] I (9190) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.844] I (9191) read_data_task: [0xe0] 70
+[2026-05-13 14:53:28.889] W (9235) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:28.893] E (9235) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:28.901] I (9236) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:28.944] I (9291) read_data_task: [0xe0] 71
+[2026-05-13 14:53:28.990] I (9336) CAN_PROC_0: 0x000000e0 batch 6 [66..71] at (9142)
+[2026-05-13 14:53:28.992] I (9337) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.038] W (9385) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:29.039] I (9386) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.044] I (9391) read_data_task: [0xe0] 72
+[2026-05-13 14:53:29.103] W (9446) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:29.105] I (9447) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.144] I (9491) read_data_task: [0xe0] 73
+[2026-05-13 14:53:29.151] W (9494) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:29.152] I (9495) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.206] W (9553) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:29.208] I (9554) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.244] I (9591) read_data_task: [0xe0] 74
+[2026-05-13 14:53:29.259] W (9601) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:29.260] I (9602) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.288] W (9635) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:29.289] I (9636) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.344] I (9691) read_data_task: [0xe0] 75
+[2026-05-13 14:53:29.363] W (9700) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:29.364] I (9701) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.422] W (9769) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:29.424] I (9770) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.445] I (9792) read_data_task: [0xe0] 76
+[2026-05-13 14:53:29.456] W (9803) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:29.458] I (9804) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.492] W (9838) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:29.496] E (9838) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:29.504] I (9839) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.545] I (9892) read_data_task: [0xe0] 77
+[2026-05-13 14:53:29.592] I (9938) CAN_PROC_0: 0x000000e0 batch 6 [72..77] at (9744)
+[2026-05-13 14:53:29.596] I (9939) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.645] I (9992) read_data_task: [0xe0] 78
+[2026-05-13 14:53:29.661] W (10008) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:29.663] I (10009) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.729] W (10077) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:29.731] I (10078) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.745] I (10092) read_data_task: [0xe0] 79
+[2026-05-13 14:53:29.775] W (10122) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:29.777] I (10123) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.831] W (10176) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:29.832] I (10177) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.845] I (10192) read_data_task: [0xe0] 80
+[2026-05-13 14:53:29.863] W (10210) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:29.865] I (10211) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.940] W (10287) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:29.941] I (10288) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:29.945] I (10293) read_data_task: [0xe0] 81
+[2026-05-13 14:53:29.985] W (10333) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:29.987] I (10334) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.045] I (10393) read_data_task: [0xe0] 82
+[2026-05-13 14:53:30.048] W (10396) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:30.050] I (10397) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.118] W (10465) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:30.126] I (10466) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.146] I (10493) read_data_task: [0xe0] 83
+[2026-05-13 14:53:30.163] W (10510) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:30.164] E (10510) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:30.165] I (10511) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.246] I (10593) read_data_task: [0xe0] 84
+[2026-05-13 14:53:30.265] I (10611) CAN_PROC_0: 0x000000e0 batch 7 [78..84] at (10417)
+[2026-05-13 14:53:30.266] I (10612) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.319] W (10666) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:30.322] I (10667) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.346] I (10693) read_data_task: [0xe0] 85
+[2026-05-13 14:53:30.369] W (10716) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:30.370] I (10717) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.408] W (10752) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:30.415] I (10753) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.447] I (10793) read_data_task: [0xe0] 86
+[2026-05-13 14:53:30.472] W (10819) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:30.473] I (10820) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.515] W (10862) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:30.517] I (10863) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.547] I (10894) read_data_task: [0xe0] 87
+[2026-05-13 14:53:30.572] W (10914) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:30.578] I (10915) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.647] W (10994) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:30.648] I (10995) read_data_task: [0xe0] 88
+[2026-05-13 14:53:30.648] I (10995) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.690] W (11032) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:30.695] I (11033) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.747] I (11095) read_data_task: [0xe0] 89
+[2026-05-13 14:53:30.762] W (11110) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:30.764] I (11111) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.843] W (11190) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:30.843] E (11190) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:30.846] I (11191) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.848] I (11195) read_data_task: [0xe0] 90
+[2026-05-13 14:53:30.944] I (11291) CAN_PROC_0: 0x000000e0 batch 6 [85..90] at (11097)
+[2026-05-13 14:53:30.945] I (11293) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:30.948] I (11295) read_data_task: [0xe0] 91
+[2026-05-13 14:53:30.973] W (11321) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:30.975] I (11322) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.023] W (11370) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:31.036] I (11374) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.048] I (11395) read_data_task: [0xe0] 92
+[2026-05-13 14:53:31.080] W (11427) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:31.082] I (11428) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.148] I (11496) read_data_task: [0xe0] 93
+[2026-05-13 14:53:31.159] W (11502) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:31.169] I (11504) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.233] W (11580) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:31.235] I (11581) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.249] I (11596) read_data_task: [0xe0] 94
+[2026-05-13 14:53:31.268] W (11615) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:31.270] I (11616) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.344] W (11686) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:31.345] I (11687) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.349] I (11696) read_data_task: [0xe0] 95
+[2026-05-13 14:53:31.419] W (11766) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:31.421] I (11767) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.449] I (11796) read_data_task: [0xe0] 96
+[2026-05-13 14:53:31.453] W (11800) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:31.457] I (11801) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.485] W (11832) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:31.487] E (11832) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:31.488] I (11833) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.550] I (11896) read_data_task: [0xe0] 97
+[2026-05-13 14:53:31.587] I (11933) CAN_PROC_0: 0x000000e0 batch 7 [91..97] at (11739)
+[2026-05-13 14:53:31.589] I (11934) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.643] W (11990) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:31.645] I (11991) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.650] I (11996) read_data_task: [0xe0] 98
+[2026-05-13 14:53:31.676] W (12023) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:31.678] I (12024) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.724] W (12071) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:31.726] I (12072) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.749] I (12097) read_data_task: [0xe0] 99
+[2026-05-13 14:53:31.789] W (12136) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:31.791] I (12137) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.827] I (12174) HEAP: free=178688 min_free=174168 largest=114688
+[2026-05-13 14:53:31.841] I (12187) MEASURE: airtime_us_total=7538 packets_total=170 d_airtime_us=3974 d_packets=86 util_per_mille=0
+[2026-05-13 14:53:31.843] I (12188) TASK: name=measure prio=1 state=0 hwm_bytes=1196 runtime=11142 total_runtime=11998877
+[2026-05-13 14:53:31.845] I (12188) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=11488687 total_runtime=11998877
+[2026-05-13 14:53:31.847] I (12189) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2236 runtime=76257 total_runtime=11998877
+[2026-05-13 14:53:31.849] I (12190) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=3275 total_runtime=11998877
+[2026-05-13 14:53:31.851] I (12191) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1234 total_runtime=11998877
+[2026-05-13 14:53:31.853] I (12192) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2340 runtime=161010 total_runtime=11998877
+[2026-05-13 14:53:31.856] I (12193) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=31940 total_runtime=11998877
+[2026-05-13 14:53:31.859] I (12195) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=189725 total_runtime=11998877
+[2026-05-13 14:53:31.860] I (12197) read_data_task: [0xe0] 100
+[2026-05-13 14:53:31.862] I (12197) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=17148 total_runtime=11998877
+[2026-05-13 14:53:31.864] I (12197) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=11998877
+[2026-05-13 14:53:31.865] I (12198) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=11998877
+[2026-05-13 14:53:31.867] W (12208) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:31.868] I (12209) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.924] W (12270) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:31.925] I (12271) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:31.952] I (12297) read_data_task: [0xe0] 101
+[2026-05-13 14:53:31.985] W (12333) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:31.987] I (12334) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.050] I (12397) read_data_task: [0xe0] 102
+[2026-05-13 14:53:32.054] W (12401) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:32.056] I (12402) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.119] W (12463) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:32.120] I (12464) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.151] I (12497) read_data_task: [0xe0] 103
+[2026-05-13 14:53:32.173] W (12520) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:32.175] E (12520) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:32.176] I (12521) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.251] I (12598) read_data_task: [0xe0] 104
+[2026-05-13 14:53:32.274] I (12620) CAN_PROC_0: 0x000000e0 batch 7 [98..104] at (12426)
+[2026-05-13 14:53:32.275] I (12621) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.326] W (12672) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:32.327] I (12673) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.351] I (12698) read_data_task: [0xe0] 105
+[2026-05-13 14:53:32.400] W (12747) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:32.402] I (12749) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.434] W (12779) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:32.435] I (12780) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.451] I (12798) read_data_task: [0xe0] 106
+[2026-05-13 14:53:32.491] W (12838) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:32.493] I (12839) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.546] W (12885) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:32.549] I (12886) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.551] I (12898) read_data_task: [0xe0] 107
+[2026-05-13 14:53:32.575] W (12918) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:32.576] I (12919) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.614] W (12961) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:32.616] I (12962) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.652] I (12998) read_data_task: [0xe0] 108
+[2026-05-13 14:53:32.654] W (13001) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:32.655] I (13002) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.726] W (13060) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:32.728] I (13061) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.752] I (13099) read_data_task: [0xe0] 109
+[2026-05-13 14:53:32.785] W (13132) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:32.787] E (13132) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:32.788] I (13133) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.852] I (13199) read_data_task: [0xe0] 110
+[2026-05-13 14:53:32.888] I (13233) CAN_PROC_0: 0x000000e0 batch 6 [105..110] at (13039)
+[2026-05-13 14:53:32.888] I (13234) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.952] I (13299) read_data_task: [0xe0] 111
+[2026-05-13 14:53:32.952] W (13300) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:32.954] I (13301) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:32.992] W (13339) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:32.993] I (13340) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.023] W (13370) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:33.025] I (13371) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.052] I (13399) read_data_task: [0xe0] 112
+[2026-05-13 14:53:33.082] W (13429) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:33.084] I (13430) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.145] W (13492) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:33.146] I (13493) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.152] I (13499) read_data_task: [0xe0] 113
+[2026-05-13 14:53:33.224] W (13571) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:33.232] I (13578) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.252] I (13600) read_data_task: [0xe0] 114
+[2026-05-13 14:53:33.282] W (13629) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:33.284] I (13630) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.347] W (13694) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:33.351] I (13698) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.353] I (13700) read_data_task: [0xe0] 115
+[2026-05-13 14:53:33.399] W (13745) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:33.400] I (13746) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.449] W (13786) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:33.453] E (13786) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:33.456] I (13787) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.457] I (13800) read_data_task: [0xe0] 116
+[2026-05-13 14:53:33.551] I (13887) CAN_PROC_0: 0x000000e0 batch 6 [111..116] at (13693)
+[2026-05-13 14:53:33.556] I (13889) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.558] I (13900) read_data_task: [0xe0] 117
+[2026-05-13 14:53:33.576] W (13919) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:33.577] I (13920) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.644] W (13991) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:33.646] I (13992) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.654] I (14000) read_data_task: [0xe0] 118
+[2026-05-13 14:53:33.698] W (14045) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:33.700] I (14046) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.754] I (14101) read_data_task: [0xe0] 119
+[2026-05-13 14:53:33.777] W (14123) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:33.778] I (14124) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.831] W (14177) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:33.832] I (14178) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.854] I (14201) read_data_task: [0xe0] 120
+[2026-05-13 14:53:33.904] W (14250) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:33.905] I (14251) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:33.954] I (14301) read_data_task: [0xe0] 121
+[2026-05-13 14:53:33.976] W (14323) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:33.978] I (14324) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.048] W (14387) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:34.050] I (14389) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.054] I (14401) read_data_task: [0xe0] 122
+[2026-05-13 14:53:34.115] W (14463) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:34.117] I (14464) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.157] I (14501) read_data_task: [0xe0] 123
+[2026-05-13 14:53:34.181] W (14528) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:34.183] E (14528) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:34.184] I (14529) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.255] I (14602) read_data_task: [0xe0] 124
+[2026-05-13 14:53:34.283] I (14629) CAN_PROC_0: 0x000000e0 batch 8 [117..124] at (14435)
+[2026-05-13 14:53:34.284] I (14630) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.333] W (14676) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:34.336] I (14677) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.356] I (14702) read_data_task: [0xe0] 125
+[2026-05-13 14:53:34.360] W (14706) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:34.363] I (14707) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.412] W (14760) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:34.414] I (14761) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.455] I (14802) read_data_task: [0xe0] 126
+[2026-05-13 14:53:34.457] W (14804) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:34.458] I (14805) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.538] W (14876) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:34.542] I (14877) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.555] I (14902) read_data_task: [0xe0] 127
+[2026-05-13 14:53:34.592] W (14939) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:34.594] I (14940) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.656] I (15002) read_data_task: [0xe0] 128
+[2026-05-13 14:53:34.670] W (15013) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:34.673] I (15015) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.699] W (15046) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:34.700] I (15047) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.755] I (15103) read_data_task: [0xe0] 129
+[2026-05-13 14:53:34.758] W (15105) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:34.760] I (15106) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.803] W (15150) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:34.805] E (15150) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:34.806] I (15151) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.856] I (15203) read_data_task: [0xe0] 130
+[2026-05-13 14:53:34.905] I (15251) CAN_PROC_0: 0x000000e0 batch 6 [125..130] at (15057)
+[2026-05-13 14:53:34.907] I (15252) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.948] W (15288) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:34.952] I (15289) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:34.963] I (15303) read_data_task: [0xe0] 131
+[2026-05-13 14:53:35.003] W (15350) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:35.008] I (15354) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.044] W (15390) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:35.050] I (15391) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.060] I (15403) read_data_task: [0xe0] 132
+[2026-05-13 14:53:35.105] W (15451) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:35.106] I (15452) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.157] I (15503) read_data_task: [0xe0] 133
+[2026-05-13 14:53:35.159] W (15505) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:35.160] I (15506) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.221] W (15568) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:35.222] I (15569) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.256] I (15604) read_data_task: [0xe0] 134
+[2026-05-13 14:53:35.258] W (15606) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:35.260] I (15607) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.305] W (15652) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:35.306] I (15653) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.363] I (15704) read_data_task: [0xe0] 135
+[2026-05-13 14:53:35.368] W (15715) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:35.375] I (15719) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.430] W (15778) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:35.431] E (15778) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:35.432] I (15779) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.456] I (15804) read_data_task: [0xe0] 136
+[2026-05-13 14:53:35.536] I (15879) CAN_PROC_0: 0x000000e0 batch 6 [131..136] at (15685)
+[2026-05-13 14:53:35.537] I (15880) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.557] I (15904) read_data_task: [0xe0] 137
+[2026-05-13 14:53:35.601] W (15944) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:35.604] I (15945) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.658] I (16004) read_data_task: [0xe0] 138
+[2026-05-13 14:53:35.683] W (16024) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:35.687] I (16026) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.740] W (16088) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:35.742] I (16089) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.757] I (16105) read_data_task: [0xe0] 139
+[2026-05-13 14:53:35.787] W (16134) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:35.788] I (16135) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.834] W (16177) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:35.845] I (16178) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.858] I (16205) read_data_task: [0xe0] 140
+[2026-05-13 14:53:35.887] W (16234) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:35.889] I (16235) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.934] W (16281) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:35.936] I (16282) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:35.958] I (16305) read_data_task: [0xe0] 141
+[2026-05-13 14:53:35.987] W (16333) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:35.988] I (16334) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.039] W (16386) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:36.041] I (16387) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.058] I (16405) read_data_task: [0xe0] 142
+[2026-05-13 14:53:36.088] W (16435) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:36.090] E (16435) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:36.091] I (16436) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.159] I (16505) read_data_task: [0xe0] 143
+[2026-05-13 14:53:36.191] I (16536) CAN_PROC_0: 0x000000e0 batch 7 [137..143] at (16342)
+[2026-05-13 14:53:36.192] I (16538) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.261] W (16597) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:36.264] I (16598) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.267] I (16606) read_data_task: [0xe0] 144
+[2026-05-13 14:53:36.286] W (16633) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:36.288] I (16634) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.352] W (16699) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:36.354] I (16700) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.359] I (16706) read_data_task: [0xe0] 145
+[2026-05-13 14:53:36.388] W (16735) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:36.390] I (16736) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.426] W (16771) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:36.434] I (16772) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.460] I (16806) read_data_task: [0xe0] 146
+[2026-05-13 14:53:36.489] W (16836) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:36.491] I (16837) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.519] W (16866) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:36.520] I (16867) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.561] W (16898) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:36.564] I (16899) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.569] I (16906) read_data_task: [0xe0] 147
+[2026-05-13 14:53:36.592] W (16939) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:36.594] I (16941) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.659] I (17006) read_data_task: [0xe0] 148
+[2026-05-13 14:53:36.670] W (17017) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:36.674] E (17017) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:36.675] I (17018) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.760] I (17107) read_data_task: [0xe0] 149
+[2026-05-13 14:53:36.783] I (17118) CAN_PROC_0: 0x000000e0 batch 6 [144..149] at (16924)
+[2026-05-13 14:53:36.787] I (17119) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.831] I (17174) HEAP: free=178692 min_free=174168 largest=114688
+[2026-05-13 14:53:36.833] W (17177) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:36.834] I (17178) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.865] I (17199) MEASURE: airtime_us_total=11528 packets_total=255 d_airtime_us=3990 d_packets=85 util_per_mille=0
+[2026-05-13 14:53:36.873] I (17200) TASK: name=measure prio=1 state=0 hwm_bytes=1196 runtime=22457 total_runtime=17010926
+[2026-05-13 14:53:36.884] I (17200) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=16273531 total_runtime=17010926
+[2026-05-13 14:53:36.892] I (17201) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2236 runtime=114602 total_runtime=17010926
+[2026-05-13 14:53:36.893] I (17202) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=4325 total_runtime=17010926
+[2026-05-13 14:53:36.895] I (17203) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1706 total_runtime=17010926
+[2026-05-13 14:53:36.896] I (17204) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2308 runtime=244714 total_runtime=17010926
+[2026-05-13 14:53:36.897] I (17205) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=47821 total_runtime=17010926
+[2026-05-13 14:53:36.897] I (17207) read_data_task: [0xe0] 150
+[2026-05-13 14:53:36.898] I (17207) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=23555 total_runtime=17010926
+[2026-05-13 14:53:36.899] I (17208) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=259707 total_runtime=17010926
+[2026-05-13 14:53:36.899] W (17209) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:36.900] I (17211) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=17010926
+[2026-05-13 14:53:36.901] I (17211) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=17010926
+[2026-05-13 14:53:36.901] I (17211) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.910] W (17257) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:36.911] I (17258) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:36.960] I (17307) read_data_task: [0xe0] 151
+[2026-05-13 14:53:36.988] W (17336) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:36.990] I (17337) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.019] W (17366) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:37.020] I (17367) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.060] I (17407) read_data_task: [0xe0] 152
+[2026-05-13 14:53:37.069] W (17415) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:37.070] I (17416) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.139] W (17486) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:37.140] I (17487) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.161] I (17508) read_data_task: [0xe0] 153
+[2026-05-13 14:53:37.216] W (17563) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:37.217] I (17564) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.261] W (17608) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:37.262] I (17608) read_data_task: [0xe0] 154
+[2026-05-13 14:53:37.263] I (17610) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.312] W (17658) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:37.313] E (17658) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:37.314] I (17659) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.362] I (17709) read_data_task: [0xe0] 155
+[2026-05-13 14:53:37.414] I (17759) CAN_PROC_0: 0x000000e0 batch 6 [150..155] at (17565)
+[2026-05-13 14:53:37.415] I (17760) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.465] I (17809) read_data_task: [0xe0] 156
+[2026-05-13 14:53:37.489] W (17831) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:37.491] I (17832) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.519] W (17865) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:37.521] I (17866) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.562] I (17909) read_data_task: [0xe0] 157
+[2026-05-13 14:53:37.597] W (17944) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:37.599] I (17945) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.646] W (17988) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:37.657] I (17989) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.666] I (18009) read_data_task: [0xe0] 158
+[2026-05-13 14:53:37.685] W (18023) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:37.693] I (18025) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.754] W (18098) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:37.769] I (18099) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.772] I (18109) read_data_task: [0xe0] 159
+[2026-05-13 14:53:37.798] W (18145) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:37.799] I (18146) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.845] W (18191) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:37.846] I (18192) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.863] I (18210) read_data_task: [0xe0] 160
+[2026-05-13 14:53:37.922] W (18269) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:37.924] I (18270) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:37.963] I (18310) read_data_task: [0xe0] 161
+[2026-05-13 14:53:38.001] W (18348) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:38.003] E (18348) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:38.004] I (18349) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.063] I (18410) read_data_task: [0xe0] 162
+[2026-05-13 14:53:38.103] I (18449) CAN_PROC_0: 0x000000e0 batch 7 [156..162] at (18255)
+[2026-05-13 14:53:38.105] I (18450) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.154] W (18499) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:38.155] I (18501) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.163] I (18510) read_data_task: [0xe0] 163
+[2026-05-13 14:53:38.207] W (18554) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:38.208] I (18555) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.262] W (18600) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:38.268] I (18601) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.270] I (18610) read_data_task: [0xe0] 164
+[2026-05-13 14:53:38.331] W (18678) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:38.333] I (18679) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.365] I (18711) read_data_task: [0xe0] 165
+[2026-05-13 14:53:38.396] W (18743) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:38.399] I (18746) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.434] W (18780) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:38.443] I (18781) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.464] I (18811) read_data_task: [0xe0] 166
+[2026-05-13 14:53:38.486] W (18832) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:38.487] I (18833) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.528] W (18874) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:38.529] I (18875) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.564] I (18911) read_data_task: [0xe0] 167
+[2026-05-13 14:53:38.594] W (18941) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:38.596] I (18942) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.671] W (19005) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:38.675] E (19005) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:38.676] I (19006) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.677] I (19011) read_data_task: [0xe0] 168
+[2026-05-13 14:53:38.760] I (19106) CAN_PROC_0: 0x000000e0 batch 6 [163..168] at (18912)
+[2026-05-13 14:53:38.761] I (19107) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.764] I (19111) read_data_task: [0xe0] 169
+[2026-05-13 14:53:38.824] W (19170) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:38.826] I (19171) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.864] I (19211) read_data_task: [0xe0] 170
+[2026-05-13 14:53:38.890] W (19236) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:38.891] I (19237) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.950] W (19296) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:38.951] I (19297) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:38.970] I (19312) read_data_task: [0xe0] 171
+[2026-05-13 14:53:39.001] W (19348) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:39.003] I (19349) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.058] W (19392) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:39.059] I (19393) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.065] I (19412) read_data_task: [0xe0] 172
+[2026-05-13 14:53:39.090] W (19437) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:39.092] I (19438) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.134] W (19480) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:39.135] I (19481) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.167] I (19512) read_data_task: [0xe0] 173
+[2026-05-13 14:53:39.191] W (19538) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:39.192] I (19539) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.229] W (19576) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:39.230] I (19577) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.267] I (19612) read_data_task: [0xe0] 174
+[2026-05-13 14:53:39.291] W (19635) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:39.297] E (19635) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:39.301] I (19636) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.366] I (19712) read_data_task: [0xe0] 175
+[2026-05-13 14:53:39.390] I (19736) CAN_PROC_0: 0x000000e0 batch 7 [169..175] at (19542)
+[2026-05-13 14:53:39.391] I (19737) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.426] W (19772) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:39.427] I (19773) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.468] I (19813) read_data_task: [0xe0] 176
+[2026-05-13 14:53:39.473] W (19817) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:39.474] I (19818) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.508] W (19854) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:39.509] I (19855) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.572] I (19913) read_data_task: [0xe0] 177
+[2026-05-13 14:53:39.597] W (19931) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:39.599] I (19932) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.620] W (19967) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:39.621] I (19968) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.653] W (20000) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:39.655] I (20001) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.666] I (20013) read_data_task: [0xe0] 178
+[2026-05-13 14:53:39.727] W (20070) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:39.731] I (20071) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.765] W (20113) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:39.766] I (20113) read_data_task: [0xe0] 179
+[2026-05-13 14:53:39.767] I (20114) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.819] W (20166) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:39.820] I (20167) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.874] I (20214) read_data_task: [0xe0] 180
+[2026-05-13 14:53:39.880] W (20218) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:39.881] E (20218) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:39.884] I (20219) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:39.967] I (20314) read_data_task: [0xe0] 181
+[2026-05-13 14:53:39.973] I (20319) CAN_PROC_0: 0x000000e0 batch 6 [176..181] at (20125)
+[2026-05-13 14:53:39.975] I (20320) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.054] W (20389) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:40.061] I (20390) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.072] I (20414) read_data_task: [0xe0] 182
+[2026-05-13 14:53:40.118] W (20465) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:40.120] I (20466) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.158] W (20505) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:40.160] I (20506) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.169] I (20514) read_data_task: [0xe0] 183
+[2026-05-13 14:53:40.220] W (20567) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:40.222] I (20568) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.268] I (20614) read_data_task: [0xe0] 184
+[2026-05-13 14:53:40.280] W (20627) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:40.281] I (20628) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.352] W (20690) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:40.360] I (20691) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.374] I (20715) read_data_task: [0xe0] 185
+[2026-05-13 14:53:40.413] W (20760) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:40.415] I (20762) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.448] W (20794) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:40.449] I (20795) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.473] I (20815) read_data_task: [0xe0] 186
+[2026-05-13 14:53:40.511] W (20858) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:40.513] I (20859) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.566] W (20913) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:40.568] E (20913) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:40.568] I (20914) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.569] I (20915) read_data_task: [0xe0] 187
+[2026-05-13 14:53:40.670] I (21014) CAN_PROC_0: 0x000000e0 batch 6 [182..187] at (20820)
+[2026-05-13 14:53:40.672] I (21015) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.675] I (21015) read_data_task: [0xe0] 188
+[2026-05-13 14:53:40.711] W (21058) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:40.713] I (21059) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.743] W (21089) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:40.744] I (21090) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.770] I (21115) read_data_task: [0xe0] 189
+[2026-05-13 14:53:40.787] W (21134) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:40.795] I (21136) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.856] W (21194) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:40.859] I (21195) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.869] I (21216) read_data_task: [0xe0] 190
+[2026-05-13 14:53:40.882] W (21229) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:40.884] I (21230) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.942] W (21289) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:40.948] I (21290) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:40.975] I (21316) read_data_task: [0xe0] 191
+[2026-05-13 14:53:41.012] W (21359) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:41.013] I (21360) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.055] W (21402) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:41.057] I (21403) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.076] I (21416) read_data_task: [0xe0] 192
+[2026-05-13 14:53:41.104] W (21440) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:41.106] I (21441) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.157] W (21493) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:41.161] E (21493) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:41.164] I (21494) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.169] I (21516) read_data_task: [0xe0] 193
+[2026-05-13 14:53:41.248] I (21594) CAN_PROC_0: 0x000000e0 batch 6 [188..193] at (21400)
+[2026-05-13 14:53:41.250] I (21595) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.275] I (21616) read_data_task: [0xe0] 194
+[2026-05-13 14:53:41.317] W (21664) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:41.318] I (21665) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.353] W (21700) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:41.354] I (21701) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.374] I (21717) read_data_task: [0xe0] 195
+[2026-05-13 14:53:41.412] W (21758) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:41.414] I (21760) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.470] I (21817) read_data_task: [0xe0] 196
+[2026-05-13 14:53:41.491] W (21835) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:41.492] I (21836) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.532] W (21878) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:41.533] I (21879) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.574] I (21917) read_data_task: [0xe0] 197
+[2026-05-13 14:53:41.585] W (21931) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:41.586] I (21932) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.661] W (22007) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:41.662] I (22008) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.670] I (22017) read_data_task: [0xe0] 198
+[2026-05-13 14:53:41.724] W (22071) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:41.726] I (22072) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.770] I (22117) read_data_task: [0xe0] 199
+[2026-05-13 14:53:41.779] W (22126) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:41.780] I (22127) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.827] I (22174) HEAP: free=178692 min_free=174168 largest=114688
+[2026-05-13 14:53:41.866] W (22203) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:41.879] E (22203) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:41.884] I (22204) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.894] I (22213) MEASURE: airtime_us_total=15422 packets_total=341 d_airtime_us=3894 d_packets=86 util_per_mille=0
+[2026-05-13 14:53:41.898] I (22214) TASK: name=measure prio=1 state=0 hwm_bytes=1196 runtime=33426 total_runtime=22024947
+[2026-05-13 14:53:41.903] I (22215) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=21064801 total_runtime=22024947
+[2026-05-13 14:53:41.905] I (22215) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2236 runtime=153893 total_runtime=22024947
+[2026-05-13 14:53:41.905] I (22218) read_data_task: [0xe0] 200
+[2026-05-13 14:53:41.906] I (22218) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=5375 total_runtime=22024947
+[2026-05-13 14:53:41.906] I (22218) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2078 total_runtime=22024947
+[2026-05-13 14:53:41.907] I (22219) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2308 runtime=325548 total_runtime=22024947
+[2026-05-13 14:53:41.908] I (22221) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=63679 total_runtime=22024947
+[2026-05-13 14:53:41.908] I (22222) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=327716 total_runtime=22024947
+[2026-05-13 14:53:41.909] I (22223) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=29902 total_runtime=22024947
+[2026-05-13 14:53:41.909] I (22224) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=22024947
+[2026-05-13 14:53:41.910] I (22225) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=22024947
+[2026-05-13 14:53:41.960] I (22304) CAN_PROC_0: 0x000000e0 batch 7 [194..200] at (22110)
+[2026-05-13 14:53:41.963] I (22305) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:41.978] I (22318) read_data_task: [0xe0] 201
+[2026-05-13 14:53:42.033] W (22380) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:42.035] I (22381) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.068] W (22410) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:42.072] I (22411) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.073] I (22418) read_data_task: [0xe0] 202
+[2026-05-13 14:53:42.099] W (22446) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:42.100] I (22447) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.173] I (22518) read_data_task: [0xe0] 203
+[2026-05-13 14:53:42.180] W (22519) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:42.183] I (22520) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.248] W (22595) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:42.250] I (22596) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.279] I (22619) read_data_task: [0xe0] 204
+[2026-05-13 14:53:42.304] W (22651) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:42.306] I (22652) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.369] W (22710) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:42.373] I (22711) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.374] I (22720) read_data_task: [0xe0] 205
+[2026-05-13 14:53:42.424] W (22770) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:42.425] I (22771) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.490] W (22819) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:42.493] I (22820) read_data_task: [0xe0] 206
+[2026-05-13 14:53:42.498] I (22820) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.512] W (22859) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:42.512] E (22859) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:42.513] I (22860) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.574] I (22921) read_data_task: [0xe0] 207
+[2026-05-13 14:53:42.615] I (22960) CAN_PROC_0: 0x000000e0 batch 7 [201..207] at (22766)
+[2026-05-13 14:53:42.616] I (22961) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.677] W (23010) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:42.678] I (23011) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.678] I (23021) read_data_task: [0xe0] 208
+[2026-05-13 14:53:42.706] W (23053) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:42.707] I (23054) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.787] I (23121) read_data_task: [0xe0] 209
+[2026-05-13 14:53:42.798] W (23127) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:42.804] I (23128) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.857] W (23203) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:42.858] I (23204) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.874] I (23221) read_data_task: [0xe0] 210
+[2026-05-13 14:53:42.912] W (23259) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:42.914] I (23260) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.970] W (23312) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:42.971] I (23313) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:42.974] I (23321) read_data_task: [0xe0] 211
+[2026-05-13 14:53:42.995] W (23342) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:42.997] I (23343) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.048] W (23395) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:43.052] I (23398) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.081] I (23422) read_data_task: [0xe0] 212
+[2026-05-13 14:53:43.116] W (23463) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:43.118] I (23464) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.160] W (23506) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:43.161] E (23506) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:43.162] I (23507) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.180] I (23522) read_data_task: [0xe0] 213
+[2026-05-13 14:53:43.281] I (23606) CAN_PROC_0: 0x000000e0 batch 6 [208..213] at (23412)
+[2026-05-13 14:53:43.282] I (23607) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.283] I (23622) read_data_task: [0xe0] 214
+[2026-05-13 14:53:43.329] W (23675) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:43.330] I (23676) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.384] W (23718) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:43.402] I (23719) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.411] I (23722) read_data_task: [0xe0] 215
+[2026-05-13 14:53:43.442] W (23789) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:43.443] I (23790) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.477] I (23822) read_data_task: [0xe0] 216
+[2026-05-13 14:53:43.509] W (23855) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:43.510] I (23856) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.578] I (23922) read_data_task: [0xe0] 217
+[2026-05-13 14:53:43.584] W (23931) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:43.586] I (23932) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.630] W (23976) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:43.631] I (23977) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.679] I (24023) read_data_task: [0xe0] 218
+[2026-05-13 14:53:43.694] W (24040) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:43.697] I (24041) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.756] W (24103) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:43.758] I (24104) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.776] I (24123) read_data_task: [0xe0] 219
+[2026-05-13 14:53:43.824] W (24171) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:43.827] I (24174) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.877] I (24223) read_data_task: [0xe0] 220
+[2026-05-13 14:53:43.893] W (24240) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:43.895] E (24240) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:43.898] I (24241) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:43.977] I (24323) read_data_task: [0xe0] 221
+[2026-05-13 14:53:44.003] I (24341) CAN_PROC_0: 0x000000e0 batch 8 [214..221] at (24147)
+[2026-05-13 14:53:44.006] I (24342) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.075] W (24421) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:44.076] I (24422) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.077] I (24424) read_data_task: [0xe0] 222
+[2026-05-13 14:53:44.154] W (24501) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:44.156] I (24502) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.177] I (24524) read_data_task: [0xe0] 223
+[2026-05-13 14:53:44.223] W (24569) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:44.224] I (24570) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.262] W (24608) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:44.263] I (24609) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.281] I (24624) read_data_task: [0xe0] 224
+[2026-05-13 14:53:44.300] W (24644) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:44.303] I (24645) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.330] W (24677) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:44.331] I (24678) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.377] I (24724) read_data_task: [0xe0] 225
+[2026-05-13 14:53:44.409] W (24753) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:44.412] I (24754) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.445] W (24791) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:44.446] I (24792) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.489] W (24823) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:44.490] I (24824) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.490] I (24825) read_data_task: [0xe0] 226
+[2026-05-13 14:53:44.540] W (24886) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:44.541] E (24886) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:44.542] I (24887) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.587] I (24925) read_data_task: [0xe0] 227
+[2026-05-13 14:53:44.642] I (24987) CAN_PROC_0: 0x000000e0 batch 6 [222..227] at (24793)
+[2026-05-13 14:53:44.643] I (24988) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.678] I (25025) read_data_task: [0xe0] 228
+[2026-05-13 14:53:44.682] W (25028) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:44.686] I (25029) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.722] W (25068) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:44.723] I (25069) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.778] I (25125) read_data_task: [0xe0] 229
+[2026-05-13 14:53:44.783] W (25129) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:44.784] I (25130) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.846] W (25192) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:44.847] I (25193) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.885] I (25225) read_data_task: [0xe0] 230
+[2026-05-13 14:53:44.911] W (25246) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:44.917] I (25247) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.962] W (25309) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:44.963] I (25310) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:44.979] I (25326) read_data_task: [0xe0] 231
+[2026-05-13 14:53:45.042] W (25389) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:45.044] I (25390) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.080] I (25426) read_data_task: [0xe0] 232
+[2026-05-13 14:53:45.089] W (25436) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:45.090] I (25437) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.131] W (25477) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:45.132] I (25478) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.197] W (25524) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:45.212] E (25524) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:45.225] I (25525) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.233] I (25526) read_data_task: [0xe0] 233
+[2026-05-13 14:53:45.280] I (25625) CAN_PROC_0: 0x000000e0 batch 6 [228..233] at (25431)
+[2026-05-13 14:53:45.281] I (25626) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.281] I (25626) read_data_task: [0xe0] 234
+[2026-05-13 14:53:45.314] W (25661) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:45.316] I (25662) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.348] W (25694) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:45.349] I (25695) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.379] I (25726) read_data_task: [0xe0] 235
+[2026-05-13 14:53:45.419] W (25765) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:45.420] I (25766) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.463] W (25809) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:45.464] I (25810) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.481] I (25827) read_data_task: [0xe0] 236
+[2026-05-13 14:53:45.537] W (25885) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:45.539] I (25886) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.580] I (25927) read_data_task: [0xe0] 237
+[2026-05-13 14:53:45.603] W (25949) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:45.606] I (25950) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.656] W (26003) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:45.657] I (26004) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.680] I (26027) read_data_task: [0xe0] 238
+[2026-05-13 14:53:45.720] W (26067) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:45.722] I (26068) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.784] I (26127) read_data_task: [0xe0] 239
+[2026-05-13 14:53:45.788] W (26128) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:45.804] I (26129) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.824] W (26168) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:45.826] E (26168) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:45.826] I (26169) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.880] I (26227) read_data_task: [0xe0] 240
+[2026-05-13 14:53:45.929] I (26269) CAN_PROC_0: 0x000000e0 batch 7 [234..240] at (26075)
+[2026-05-13 14:53:45.933] I (26270) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.988] W (26324) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:45.993] I (26325) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:45.994] I (26328) read_data_task: [0xe0] 241
+[2026-05-13 14:53:46.044] W (26391) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:46.045] I (26392) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.086] I (26428) read_data_task: [0xe0] 242
+[2026-05-13 14:53:46.119] W (26466) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:46.120] I (26467) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.176] W (26520) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:46.177] I (26521) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.181] I (26528) read_data_task: [0xe0] 243
+[2026-05-13 14:53:46.218] W (26565) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:46.219] I (26566) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.257] W (26604) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:46.258] I (26605) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.284] I (26628) read_data_task: [0xe0] 244
+[2026-05-13 14:53:46.296] W (26643) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:46.298] I (26644) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.373] W (26719) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:46.375] I (26720) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.388] I (26728) read_data_task: [0xe0] 245
+[2026-05-13 14:53:46.447] W (26794) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:46.449] I (26795) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.482] I (26829) read_data_task: [0xe0] 246
+[2026-05-13 14:53:46.524] W (26852) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:46.530] E (26852) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:46.533] I (26853) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.585] I (26929) read_data_task: [0xe0] 247
+[2026-05-13 14:53:46.608] I (26953) CAN_PROC_0: 0x000000e0 batch 7 [241..247] at (26759)
+[2026-05-13 14:53:46.609] I (26954) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.664] W (27010) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:46.665] I (27011) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.686] I (27029) read_data_task: [0xe0] 248
+[2026-05-13 14:53:46.723] W (27070) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:46.724] I (27071) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.763] W (27110) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:46.764] I (27111) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.782] I (27129) read_data_task: [0xe0] 249
+[2026-05-13 14:53:46.812] W (27146) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:46.819] I (27147) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.834] I (27174) HEAP: free=178688 min_free=174168 largest=114688
+[2026-05-13 14:53:46.872] W (27218) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:46.873] I (27219) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.892] I (27226) MEASURE: airtime_us_total=19379 packets_total=424 d_airtime_us=3957 d_packets=83 util_per_mille=0
+[2026-05-13 14:53:46.906] I (27227) TASK: name=measure prio=1 state=0 hwm_bytes=1196 runtime=44411 total_runtime=27037941
+[2026-05-13 14:53:46.908] I (27229) read_data_task: [0xe0] 250
+[2026-05-13 14:53:46.910] I (27230) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=25860829 total_runtime=27037941
+[2026-05-13 14:53:46.911] I (27230) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2236 runtime=191486 total_runtime=27037941
+[2026-05-13 14:53:46.913] I (27231) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=6425 total_runtime=27037941
+[2026-05-13 14:53:46.914] I (27232) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2504 total_runtime=27037941
+[2026-05-13 14:53:46.915] I (27233) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2308 runtime=405245 total_runtime=27037941
+[2026-05-13 14:53:46.917] I (27234) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=78938 total_runtime=27037941
+[2026-05-13 14:53:46.918] I (27235) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=36020 total_runtime=27037941
+[2026-05-13 14:53:46.919] I (27236) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=393560 total_runtime=27037941
+[2026-05-13 14:53:46.921] I (27237) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=27037941
+[2026-05-13 14:53:46.922] I (27238) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=27037941
+[2026-05-13 14:53:46.923] W (27267) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:46.923] I (27268) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.964] W (27311) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:46.965] I (27312) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:46.989] I (27330) read_data_task: [0xe0] 251
+[2026-05-13 14:53:47.031] W (27375) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:47.033] I (27376) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.083] I (27430) read_data_task: [0xe0] 252
+[2026-05-13 14:53:47.085] W (27432) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:47.089] I (27436) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.127] W (27474) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:47.129] E (27474) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:47.129] I (27475) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.188] I (27530) read_data_task: [0xe0] 253
+[2026-05-13 14:53:47.230] I (27575) CAN_PROC_0: 0x000000e0 batch 6 [248..253] at (27381)
+[2026-05-13 14:53:47.231] I (27576) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.277] W (27623) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:47.278] I (27624) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.289] I (27630) read_data_task: [0xe0] 254
+[2026-05-13 14:53:47.351] W (27698) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:47.353] I (27699) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.383] I (27730) read_data_task: [0xe0] 255
+[2026-05-13 14:53:47.429] W (27776) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:47.430] I (27777) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.490] I (27831) read_data_task: [0xe0] 256
+[2026-05-13 14:53:47.499] W (27834) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:47.502] I (27835) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.568] W (27914) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:47.569] I (27915) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.592] I (27931) read_data_task: [0xe0] 257
+[2026-05-13 14:53:47.629] W (27957) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:47.633] I (27958) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.674] W (28021) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:47.675] I (28022) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.685] I (28031) read_data_task: [0xe0] 258
+[2026-05-13 14:53:47.753] W (28100) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:47.755] I (28101) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.787] I (28131) read_data_task: [0xe0] 259
+[2026-05-13 14:53:47.810] W (28155) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:47.811] I (28156) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.865] W (28211) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:47.866] E (28211) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:47.867] I (28212) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.887] I (28231) read_data_task: [0xe0] 260
+[2026-05-13 14:53:47.967] I (28312) CAN_PROC_0: 0x000000e0 batch 7 [254..260] at (28118)
+[2026-05-13 14:53:47.968] I (28314) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:47.985] I (28332) read_data_task: [0xe0] 261
+[2026-05-13 14:53:48.043] W (28389) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:48.044] I (28390) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.089] I (28432) read_data_task: [0xe0] 262
+[2026-05-13 14:53:48.104] W (28451) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:48.106] I (28452) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.169] W (28515) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:48.172] I (28518) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.185] I (28532) read_data_task: [0xe0] 263
+[2026-05-13 14:53:48.238] W (28570) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:48.242] I (28571) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.279] W (28626) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:48.280] I (28627) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.285] I (28632) read_data_task: [0xe0] 264
+[2026-05-13 14:53:48.331] W (28677) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:48.332] I (28678) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.390] I (28732) read_data_task: [0xe0] 265
+[2026-05-13 14:53:48.402] W (28733) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:48.412] I (28734) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.433] W (28780) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:48.435] I (28781) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.486] I (28832) read_data_task: [0xe0] 266
+[2026-05-13 14:53:48.506] W (28839) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:48.517] I (28841) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.566] W (28913) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:48.566] E (28913) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:48.567] I (28914) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.586] I (28933) read_data_task: [0xe0] 267
+[2026-05-13 14:53:48.669] I (29014) CAN_PROC_0: 0x000000e0 batch 7 [261..267] at (28820)
+[2026-05-13 14:53:48.670] I (29015) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.691] I (29033) read_data_task: [0xe0] 268
+[2026-05-13 14:53:48.702] W (29049) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:48.704] I (29050) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.750] W (29096) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:48.751] I (29097) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.792] W (29133) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:48.812] I (29133) read_data_task: [0xe0] 269
+[2026-05-13 14:53:48.823] I (29134) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.842] W (29186) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:48.848] I (29187) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.887] I (29233) read_data_task: [0xe0] 270
+[2026-05-13 14:53:48.926] W (29257) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:48.944] I (29258) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.967] W (29313) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:48.968] I (29314) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:48.992] I (29334) read_data_task: [0xe0] 271
+[2026-05-13 14:53:49.007] W (29347) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:49.011] I (29348) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.038] W (29385) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:49.039] I (29386) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.091] I (29434) read_data_task: [0xe0] 272
+[2026-05-13 14:53:49.135] W (29461) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:49.141] I (29463) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.153] W (29500) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:49.153] E (29500) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:49.154] I (29501) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.190] I (29534) read_data_task: [0xe0] 273
+[2026-05-13 14:53:49.254] I (29600) CAN_PROC_0: 0x000000e0 batch 6 [268..273] at (29406)
+[2026-05-13 14:53:49.255] I (29601) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.291] I (29634) read_data_task: [0xe0] 274
+[2026-05-13 14:53:49.319] W (29666) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:49.321] I (29667) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.391] I (29735) read_data_task: [0xe0] 275
+[2026-05-13 14:53:49.398] W (29741) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:49.404] I (29742) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.439] W (29781) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:49.441] I (29782) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.470] W (29818) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:49.472] I (29819) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.488] I (29835) read_data_task: [0xe0] 276
+[2026-05-13 14:53:49.536] W (29863) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:49.544] I (29865) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.571] W (29918) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:49.572] I (29919) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.592] I (29935) read_data_task: [0xe0] 277
+[2026-05-13 14:53:49.652] W (29998) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:49.653] I (29999) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.692] I (30035) read_data_task: [0xe0] 278
+[2026-05-13 14:53:49.715] W (30057) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:49.724] I (30058) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.746] W (30091) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:49.750] I (30094) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.788] I (30136) read_data_task: [0xe0] 279
+[2026-05-13 14:53:49.813] W (30159) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:49.821] E (30159) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:49.831] I (30160) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.896] I (30236) read_data_task: [0xe0] 280
+[2026-05-13 14:53:49.914] I (30259) CAN_PROC_0: 0x000000e0 batch 7 [274..280] at (30065)
+[2026-05-13 14:53:49.916] I (30260) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.965] W (30311) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:49.966] I (30312) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:49.991] I (30336) read_data_task: [0xe0] 281
+[2026-05-13 14:53:50.027] W (30362) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:50.038] I (30364) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.069] W (30416) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:50.071] I (30417) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.089] I (30436) read_data_task: [0xe0] 282
+[2026-05-13 14:53:50.155] W (30483) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:50.160] I (30484) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.180] W (30527) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:50.181] I (30528) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.189] I (30536) read_data_task: [0xe0] 283
+[2026-05-13 14:53:50.211] W (30558) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:50.212] I (30559) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.290] I (30637) read_data_task: [0xe0] 284
+[2026-05-13 14:53:50.297] W (30638) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:50.306] I (30639) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.362] W (30709) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:50.363] I (30710) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.390] I (30737) read_data_task: [0xe0] 285
+[2026-05-13 14:53:50.450] W (30789) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:50.452] I (30790) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.477] W (30823) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:50.478] E (30823) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:50.479] I (30824) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.490] I (30837) read_data_task: [0xe0] 286
+[2026-05-13 14:53:50.578] I (30923) CAN_PROC_0: 0x000000e0 batch 6 [281..286] at (30729)
+[2026-05-13 14:53:50.579] I (30924) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.590] I (30937) read_data_task: [0xe0] 287
+[2026-05-13 14:53:50.627] W (30974) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:50.629] I (30976) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.679] W (31027) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:50.681] I (31028) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.690] I (31037) read_data_task: [0xe0] 288
+[2026-05-13 14:53:50.730] W (31078) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:50.732] I (31079) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.790] I (31137) read_data_task: [0xe0] 289
+[2026-05-13 14:53:50.795] W (31143) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:50.797] I (31144) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.838] W (31185) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:50.840] I (31187) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.890] I (31238) read_data_task: [0xe0] 290
+[2026-05-13 14:53:50.897] W (31244) RESEND_0: Timeout reached, resending 000000e0... Attempt: 6 of 10
+[2026-05-13 14:53:50.899] I (31245) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.937] W (31284) RESEND_0: Timeout reached, resending 000000e0... Attempt: 7 of 10
+[2026-05-13 14:53:50.938] I (31286) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:50.990] I (31338) read_data_task: [0xe0] 291
+[2026-05-13 14:53:51.011] W (31359) RESEND_0: Timeout reached, resending 000000e0... Attempt: 8 of 10
+[2026-05-13 14:53:51.013] I (31360) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.069] W (31417) RESEND_0: Timeout reached, resending 000000e0... Attempt: 9 of 10
+[2026-05-13 14:53:51.071] I (31418) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.091] I (31438) read_data_task: [0xe0] 292
+[2026-05-13 14:53:51.123] W (31468) RESEND_0: Timeout reached, resending 000000e0... Attempt: 10 of 10
+[2026-05-13 14:53:51.125] E (31468) CAN_PROC_0: Max retry attempts reached for 000000e0
+[2026-05-13 14:53:51.127] I (31469) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.191] I (31538) read_data_task: [0xe0] 293
+[2026-05-13 14:53:51.238] I (31569) CAN_PROC_0: 0x000000e0 batch 7 [287..293] at (31375)
+[2026-05-13 14:53:51.252] I (31570) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.291] I (31638) read_data_task: [0xe0] 294
+[2026-05-13 14:53:51.301] W (31648) RESEND_0: Timeout reached, resending 000000e0... Attempt: 1 of 10
+[2026-05-13 14:53:51.303] I (31649) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.357] W (31704) RESEND_0: Timeout reached, resending 000000e0... Attempt: 2 of 10
+[2026-05-13 14:53:51.358] I (31705) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.392] I (31738) read_data_task: [0xe0] 295
+[2026-05-13 14:53:51.435] W (31782) RESEND_0: Timeout reached, resending 000000e0... Attempt: 3 of 10
+[2026-05-13 14:53:51.437] I (31783) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.492] I (31839) read_data_task: [0xe0] 296
+[2026-05-13 14:53:51.513] W (31860) RESEND_0: Timeout reached, resending 000000e0... Attempt: 4 of 10
+[2026-05-13 14:53:51.515] I (31861) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.549] W (31891) RESEND_0: Timeout reached, resending 000000e0... Attempt: 5 of 10
+[2026-05-13 14:53:51.552] I (31892) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 14:53:51.592] I (31939) read_data_task: [0xe0] 297
+
+# Monitor stopped: 2026-05-13T14:53:51.592520

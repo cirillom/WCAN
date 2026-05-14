@@ -1,0 +1,941 @@
+# Monitor started: 2026-05-13T04:44:18.450891
+# Port: /dev/ttyACM1, Baud: 921600, Duration: 30s
+
+# UART boot config: wcan v=1 role=receiver transport=UNICAST filter=all
+[2026-05-13 04:44:18.452] ESP-ROM:esp32c3-api1-20210207
+[2026-05-13 04:44:18.453] Build:Feb  7 2021
+[2026-05-13 04:44:18.462] rst:0x15 (USB_UART_CHIP_RESET),boot:0xd (SPI_FAST_FLASH_BOOT)
+[2026-05-13 04:44:18.465] Saved PC:0x40384eae
+[2026-05-13 04:44:18.466] SPIWP:0xee
+[2026-05-13 04:44:18.471] mode:DIO, clock div:1
+[2026-05-13 04:44:18.475] load:0x3fcd5820,len:0x1574
+[2026-05-13 04:44:18.480] load:0x403cc710,len:0xc30
+[2026-05-13 04:44:18.483] load:0x403ce710,len:0x2fa0
+[2026-05-13 04:44:18.484] entry 0x403cc71a
+[2026-05-13 04:44:18.488] I (24) boot: ESP-IDF v5.4.1 2nd stage bootloader
+[2026-05-13 04:44:18.497] I (24) boot: compile time May 12 2026 19:49:19
+[2026-05-13 04:44:18.502] I (25) boot: chip revision: v0.4
+[2026-05-13 04:44:18.507] I (25) boot: efuse block revision: v1.3
+[2026-05-13 04:44:18.511] I (25) boot.esp32c3: SPI Speed      : 80MHz
+[2026-05-13 04:44:18.514] I (25) boot.esp32c3: SPI Mode       : DIO
+[2026-05-13 04:44:18.516] I (26) boot.esp32c3: SPI Flash Size : 2MB
+[2026-05-13 04:44:18.521] I (26) boot: Enabling RNG early entropy source...
+[2026-05-13 04:44:18.523] I (27) boot: Partition Table:
+[2026-05-13 04:44:18.527] I (27) boot: ## Label            Usage          Type ST Offset   Length
+[2026-05-13 04:44:18.529] I (28) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+[2026-05-13 04:44:18.531] I (29) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+[2026-05-13 04:44:18.536] I (29) boot:  2 factory          factory app      00 00 00010000 00100000
+[2026-05-13 04:44:18.537] I (30) boot: End of partition table
+[2026-05-13 04:44:18.539] I (31) esp_image: segment 0: paddr=00010020 vaddr=3c0a0020 size=1a0c8h (106696) map
+[2026-05-13 04:44:18.541] I (49) esp_image: segment 1: paddr=0002a0f0 vaddr=3fc95400 size=02db0h ( 11696) load
+[2026-05-13 04:44:18.544] I (51) esp_image: segment 2: paddr=0002cea8 vaddr=40380000 size=03170h ( 12656) load
+[2026-05-13 04:44:18.546] I (54) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=94510h (607504) map
+[2026-05-13 04:44:18.547] I (151) esp_image: segment 4: paddr=000c4538 vaddr=40383170 size=1223ch ( 74300) load
+[2026-05-13 04:44:18.549] I (165) esp_image: segment 5: paddr=000d677c vaddr=50000200 size=0001ch (    28) load
+[2026-05-13 04:44:18.556] I (172) boot: Loaded app from partition at offset 0x10000
+[2026-05-13 04:44:18.558] I (172) boot: Disabling RNG early entropy source...
+[2026-05-13 04:44:18.560] I (174) cpu_start: Unicore app
+[2026-05-13 04:44:18.561] I (182) cpu_start: Pro cpu start user code
+[2026-05-13 04:44:18.563] I (182) cpu_start: cpu freq: 160000000 Hz
+[2026-05-13 04:44:18.565] I (182) app_init: Application information:
+[2026-05-13 04:44:18.566] I (182) app_init: Project name:     sensor_acquirer
+[2026-05-13 04:44:18.567] I (183) app_init: App version:      v1.0-60-gb67991a-dirty
+[2026-05-13 04:44:18.568] I (183) app_init: Compile time:     May 12 2026 19:49:10
+[2026-05-13 04:44:18.569] I (184) app_init: ELF file SHA256:  b80335c0b...
+[2026-05-13 04:44:18.570] I (185) app_init: ESP-IDF:          v5.4.1
+[2026-05-13 04:44:18.571] I (185) efuse_init: Min chip rev:     v0.3
+[2026-05-13 04:44:18.572] I (186) efuse_init: Max chip rev:     v1.99
+[2026-05-13 04:44:18.572] I (186) efuse_init: Chip rev:         v0.4
+[2026-05-13 04:44:18.573] I (187) heap_init: Initializing. RAM available for dynamic allocation:
+[2026-05-13 04:44:18.574] I (187) heap_init: At 3FC9CF80 len 00023080 (140 KiB): RAM
+[2026-05-13 04:44:18.575] I (188) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM
+[2026-05-13 04:44:18.576] I (189) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM
+[2026-05-13 04:44:18.578] I (189) heap_init: At 5000021C len 00001DCC (7 KiB): RTCRAM
+[2026-05-13 04:44:18.578] I (191) spi_flash: detected chip: generic
+[2026-05-13 04:44:18.579] I (191) spi_flash: flash io: dio
+[2026-05-13 04:44:18.581] W (191) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+[2026-05-13 04:44:18.582] I (193) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[2026-05-13 04:44:18.583] I (193) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[2026-05-13 04:44:18.584] I (194) main_task: Started on CPU0
+[2026-05-13 04:44:18.585] I (194) main_task: Calling app_main()
+[2026-05-13 04:44:18.585] I (194) BOOT_TS: us=5220
+[2026-05-13 04:44:18.585] I (195) BOOT_CONFIG: waiting for UART config
+[2026-05-13 04:44:18.585] WCAN_CFG_WAIT v=1
+# UART boot config sent: wcan v=1 role=receiver transport=UNICAST filter=all
+[2026-05-13 04:44:18.585] WCAN_CFG_WAIT v=1
+[2026-05-13 04:44:19.608] I (1355) BOOT_CONFIG: accepted role=receiver transport=UNICAST
+[2026-05-13 04:44:19.609] I (1355) BOOT_CONFIG: receiver filter=accept-all count=0
+[2026-05-13 04:44:19.610] WCAN_CFG_ACK
+# Waiting for coordinated capture start
+[2026-05-13 04:44:21.432] WCAN_CFG_ACK
+[2026-05-13 04:44:21.443] I (1359) pp: pp rom version: 9387209
+[2026-05-13 04:44:21.454] I (1360) net80211: net80211 rom version: 9387209
+[2026-05-13 04:44:21.474] I (1361) wifi:wifi driver task: 3fca7138, prio:23, stack:6656, core=0
+[2026-05-13 04:44:21.489] I (1365) wifi:wifi firmware version: 79fa3f41ba
+[2026-05-13 04:44:21.504] I (1365) wifi:wifi certification version: v7.0
+[2026-05-13 04:44:21.509] I (1365) wifi:config NVS flash: enabled
+[2026-05-13 04:44:21.514] I (1365) wifi:config nano formatting: disabled
+[2026-05-13 04:44:21.517] I (1366) wifi:Init data frame dynamic rx buffer num: 32
+[2026-05-13 04:44:21.519] I (1366) wifi:Init static rx mgmt buffer num: 5
+[2026-05-13 04:44:21.526] I (1367) wifi:Init management short buffer num: 32
+[2026-05-13 04:44:21.536] I (1367) wifi:Init dynamic tx buffer num: 32
+[2026-05-13 04:44:21.538] I (1368) wifi:Init static tx FG buffer num: 2
+[2026-05-13 04:44:21.545] I (1368) wifi:Init static rx buffer size: 1600
+[2026-05-13 04:44:21.549] I (1369) wifi:Init static rx buffer num: 10
+[2026-05-13 04:44:21.553] I (1369) wifi:Init dynamic rx buffer num: 32
+[2026-05-13 04:44:21.557] I (1370) wifi_init: rx ba win: 6
+[2026-05-13 04:44:21.560] I (1371) wifi_init: accept mbox: 6
+[2026-05-13 04:44:21.562] I (1371) wifi_init: tcpip mbox: 32
+[2026-05-13 04:44:21.564] I (1371) wifi_init: udp mbox: 6
+[2026-05-13 04:44:21.567] I (1371) wifi_init: tcp mbox: 6
+[2026-05-13 04:44:21.571] I (1372) wifi_init: tcp tx win: 5760
+[2026-05-13 04:44:21.575] I (1372) wifi_init: tcp rx win: 5760
+[2026-05-13 04:44:21.576] I (1373) wifi_init: tcp mss: 1440
+[2026-05-13 04:44:21.581] I (1373) wifi_init: WiFi IRAM OP enabled
+[2026-05-13 04:44:21.583] I (1373) wifi_init: WiFi RX IRAM OP enabled
+[2026-05-13 04:44:21.585] I (1374) phy_init: phy_version 1200,2b7123f9,Feb 18 2025,15:22:21
+[2026-05-13 04:44:21.588] I (1409) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)
+[2026-05-13 04:44:21.589] I (1451) wifi:mode : sta (74:4d:bd:e1:d5:b8)
+[2026-05-13 04:44:21.591] I (1452) wifi:enable tsf
+[2026-05-13 04:44:21.595] I (1453) MAIN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 04:44:21.599] I (1454) RECEIVER_APP: RECEIVER mode - accepting all CAN IDs
+[2026-05-13 04:44:21.601] I (1454) ESPNOW: espnow [version: 2.0] init
+[2026-05-13 04:44:21.604] I (1455) WCAN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 04:44:21.608] I (1455) SEND: Send processing task started
+[2026-05-13 04:44:21.612] I (1455) RecvProcTask: Receive processing task started
+[2026-05-13 04:44:21.615] I (1456) REG_RETRY: Directed registration retry task started
+[2026-05-13 04:44:21.618] I (1455) HEAP: free=186904 min_free=182352 largest=114688
+[2026-05-13 04:44:21.619] I (1457) HELLO_TX: HELLO beacon task started (wildcard, 0 ids)
+[2026-05-13 04:44:21.620] I (1458) WCAN: WCAN initialized
+[2026-05-13 04:44:21.622] I (1458) main_task: Returned from app_main()
+[2026-05-13 04:44:21.623] I (1459) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1146 status=OK
+[2026-05-13 04:44:21.626] I (1509) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=961 status=OK
+[2026-05-13 04:44:21.629] I (1558) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=914 status=OK
+[2026-05-13 04:44:21.631] I (1609) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=944 status=OK
+[2026-05-13 04:44:21.632] I (1658) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=911 status=OK
+[2026-05-13 04:44:21.634] I (1708) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=919 status=OK
+[2026-05-13 04:44:21.635] I (2618) FIRST_RX_TS: us=2428381 id=0xb0
+[2026-05-13 04:44:21.636] I (2618) wcan_recv_callback: [b0] tick=601 [0..59] 60 items
+[2026-05-13 04:44:21.640] I (2623) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=5660 status=OK
+[2026-05-13 04:44:21.642] I (2677) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1189 status=OK
+[2026-05-13 04:44:21.652] I (2709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=986 status=OK
+[2026-05-13 04:44:21.662] I (2717) wcan_recv_callback: [b0] tick=696 [60..119] 60 items
+[2026-05-13 04:44:21.663] I (2807) wcan_recv_callback: [b0] tick=789 [120..179] 60 items
+[2026-05-13 04:44:21.665] I (2900) wcan_recv_callback: [b0] tick=882 [180..239] 60 items
+[2026-05-13 04:44:21.666] I (2993) wcan_recv_callback: [b0] tick=975 [240..299] 60 items
+[2026-05-13 04:44:21.667] I (3087) wcan_recv_callback: [b0] tick=1068 [300..359] 60 items
+[2026-05-13 04:44:21.669] I (3179) wcan_recv_callback: [b0] tick=1160 [360..419] 60 items
+[2026-05-13 04:44:21.672] I (3273) wcan_recv_callback: [b0] tick=1252 [420..479] 60 items
+[2026-05-13 04:44:21.674] I (3364) wcan_recv_callback: [b0] tick=1345 [480..539] 60 items
+[2026-05-13 04:44:21.711] I (3458) wcan_recv_callback: [b0] tick=1439 [540..599] 60 items
+[2026-05-13 04:44:21.804] I (3551) wcan_recv_callback: [b0] tick=1532 [600..659] 60 items
+[2026-05-13 04:44:21.895] I (3643) RX_STATS: id=0xb0 packets=12 samples=720 gaps=0 last=[660..719]
+[2026-05-13 04:44:21.896] I (3643) wcan_recv_callback: [b0] tick=1624 [660..719] 60 items
+[2026-05-13 04:44:21.961] I (3709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1128 status=OK
+[2026-05-13 04:44:21.992] I (3737) wcan_recv_callback: [b0] tick=1718 [720..779] 60 items
+[2026-05-13 04:44:22.085] I (3830) wcan_recv_callback: [b0] tick=1811 [780..839] 60 items
+[2026-05-13 04:44:22.180] I (3923) wcan_recv_callback: [b0] tick=1904 [840..899] 60 items
+[2026-05-13 04:44:22.272] I (4017) wcan_recv_callback: [b0] tick=1996 [900..959] 60 items
+[2026-05-13 04:44:22.368] I (4108) wcan_recv_callback: [b0] tick=2089 [960..1019] 60 items
+[2026-05-13 04:44:22.441] I (4186) wcan_recv_callback: [d0] tick=2527 [0..59] 60 items
+[2026-05-13 04:44:22.443] I (4188) LAT_CB: peer=54:32:04:8c:0b:8c dt_us=1431 status=OK
+[2026-05-13 04:44:22.455] I (4202) wcan_recv_callback: [b0] tick=2182 [1020..1079] 60 items
+[2026-05-13 04:44:22.489] I (4237) LAT_CB: peer=54:32:04:8c:0b:8c dt_us=1383 status=OK
+[2026-05-13 04:44:22.549] I (4276) wcan_recv_callback: [d0] tick=2616 [60..119] 60 items
+[2026-05-13 04:44:22.551] I (4295) wcan_recv_callback: [b0] tick=2276 [1080..1139] 60 items
+[2026-05-13 04:44:22.622] I (4367) wcan_recv_callback: [d0] tick=2708 [120..179] 60 items
+[2026-05-13 04:44:22.652] I (4391) wcan_recv_callback: [b0] tick=2372 [1140..1199] 60 items
+[2026-05-13 04:44:22.710] I (4458) wcan_recv_callback: [d0] tick=2799 [180..239] 60 items
+[2026-05-13 04:44:22.737] I (4483) wcan_recv_callback: [b0] tick=2464 [1200..1259] 60 items
+[2026-05-13 04:44:22.801] I (4549) wcan_recv_callback: [d0] tick=2890 [240..299] 60 items
+[2026-05-13 04:44:22.831] I (4579) wcan_recv_callback: [b0] tick=2557 [1260..1319] 60 items
+[2026-05-13 04:44:22.892] I (4640) wcan_recv_callback: [d0] tick=2981 [300..359] 60 items
+[2026-05-13 04:44:22.925] I (4669) RX_STATS: id=0xb0 packets=23 samples=1380 gaps=0 last=[1320..1379]
+[2026-05-13 04:44:22.928] I (4670) RX_STATS: id=0xd0 packets=6 samples=360 gaps=0 last=[300..359]
+[2026-05-13 04:44:22.931] I (4670) wcan_recv_callback: [b0] tick=2649 [1320..1379] 60 items
+[2026-05-13 04:44:22.961] I (4709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1439 status=OK
+[2026-05-13 04:44:22.984] I (4731) wcan_recv_callback: [d0] tick=3072 [360..419] 60 items
+[2026-05-13 04:44:23.020] I (4761) wcan_recv_callback: [b0] tick=2743 [1380..1439] 60 items
+[2026-05-13 04:44:23.075] I (4822) wcan_recv_callback: [d0] tick=3163 [420..479] 60 items
+[2026-05-13 04:44:23.107] I (4855) wcan_recv_callback: [b0] tick=2836 [1440..1499] 60 items
+[2026-05-13 04:44:23.166] I (4913) wcan_recv_callback: [d0] tick=3254 [480..539] 60 items
+[2026-05-13 04:44:23.203] I (4947) wcan_recv_callback: [b0] tick=2928 [1500..1559] 60 items
+[2026-05-13 04:44:23.258] I (5004) wcan_recv_callback: [d0] tick=3344 [540..599] 60 items
+[2026-05-13 04:44:23.293] I (5041) wcan_recv_callback: [b0] tick=3021 [1560..1619] 60 items
+[2026-05-13 04:44:23.347] I (5095) wcan_recv_callback: [d0] tick=3436 [600..659] 60 items
+[2026-05-13 04:44:23.386] I (5133) wcan_recv_callback: [b0] tick=3114 [1620..1679] 60 items
+[2026-05-13 04:44:23.440] I (5186) wcan_recv_callback: [d0] tick=3527 [660..719] 60 items
+[2026-05-13 04:44:23.481] I (5228) wcan_recv_callback: [b0] tick=3208 [1680..1739] 60 items
+[2026-05-13 04:44:23.541] I (5277) wcan_recv_callback: [d0] tick=3618 [720..779] 60 items
+[2026-05-13 04:44:23.572] I (5319) wcan_recv_callback: [b0] tick=3300 [1740..1799] 60 items
+[2026-05-13 04:44:23.622] I (5368) wcan_recv_callback: [d0] tick=3709 [780..839] 60 items
+[2026-05-13 04:44:23.664] I (5412) wcan_recv_callback: [b0] tick=3394 [1800..1859] 60 items
+[2026-05-13 04:44:23.717] I (5460) wcan_recv_callback: [d0] tick=3800 [840..899] 60 items
+[2026-05-13 04:44:23.758] I (5506) wcan_recv_callback: [b0] tick=3487 [1860..1919] 60 items
+[2026-05-13 04:44:23.804] I (5551) wcan_recv_callback: [d0] tick=3891 [900..959] 60 items
+[2026-05-13 04:44:23.853] I (5599) wcan_recv_callback: [b0] tick=3579 [1920..1979] 60 items
+[2026-05-13 04:44:23.895] I (5642) wcan_recv_callback: [d0] tick=3983 [960..1019] 60 items
+[2026-05-13 04:44:23.943] I (5691) RX_STATS: id=0xb0 packets=34 samples=2040 gaps=0 last=[1980..2039]
+[2026-05-13 04:44:23.945] I (5691) RX_STATS: id=0xd0 packets=17 samples=1020 gaps=0 last=[960..1019]
+[2026-05-13 04:44:23.947] I (5692) wcan_recv_callback: [b0] tick=3672 [1980..2039] 60 items
+[2026-05-13 04:44:23.968] I (5709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1130 status=OK
+[2026-05-13 04:44:23.989] I (5733) wcan_recv_callback: [d0] tick=4074 [1020..1079] 60 items
+[2026-05-13 04:44:24.041] I (5787) wcan_recv_callback: [b0] tick=3764 [2040..2099] 60 items
+[2026-05-13 04:44:24.076] I (5824) wcan_recv_callback: [d0] tick=4165 [1080..1139] 60 items
+[2026-05-13 04:44:24.131] I (5879) wcan_recv_callback: [b0] tick=3860 [2100..2159] 60 items
+[2026-05-13 04:44:24.168] I (5915) wcan_recv_callback: [d0] tick=4256 [1140..1199] 60 items
+[2026-05-13 04:44:24.229] I (5972) wcan_recv_callback: [b0] tick=3954 [2160..2219] 60 items
+[2026-05-13 04:44:24.259] I (6007) wcan_recv_callback: [d0] tick=4348 [1200..1259] 60 items
+[2026-05-13 04:44:24.322] I (6067) wcan_recv_callback: [b0] tick=4047 [2220..2279] 60 items
+[2026-05-13 04:44:24.351] I (6098) wcan_recv_callback: [d0] tick=4439 [1260..1319] 60 items
+[2026-05-13 04:44:24.416] I (6160) wcan_recv_callback: [b0] tick=4140 [2280..2339] 60 items
+[2026-05-13 04:44:24.442] I (6190) wcan_recv_callback: [d0] tick=4531 [1320..1379] 60 items
+[2026-05-13 04:44:24.506] I (6252) wcan_recv_callback: [b0] tick=4233 [2340..2399] 60 items
+[2026-05-13 04:44:24.535] I (6281) wcan_recv_callback: [d0] tick=4622 [1380..1439] 60 items
+[2026-05-13 04:44:24.602] I (6349) wcan_recv_callback: [b0] tick=4329 [2400..2459] 60 items
+[2026-05-13 04:44:24.626] I (6373) wcan_recv_callback: [d0] tick=4713 [1440..1499] 60 items
+[2026-05-13 04:44:24.696] I (6441) wcan_recv_callback: [b0] tick=4422 [2460..2519] 60 items
+[2026-05-13 04:44:24.710] I (6458) HEAP: free=178964 min_free=174276 largest=114688
+[2026-05-13 04:44:24.710] I (6458) MEASURE: airtime_us_total=168 packets_total=14 d_airtime_us=168 d_packets=14 util_per_mille=0
+[2026-05-13 04:44:24.712] I (6460) TASK: name=measure prio=1 state=0 hwm_bytes=1300 runtime=10 total_runtime=6270426
+[2026-05-13 04:44:24.712] I (6460) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=6100836 total_runtime=6270426
+[2026-05-13 04:44:24.714] I (6461) TASK: name=hello_beacon prio=4 state=2 hwm_bytes=2392 runtime=1477 total_runtime=6270426
+[2026-05-13 04:44:24.717] I (6462) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=1814 total_runtime=6270426
+[2026-05-13 04:44:24.719] I (6463) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=956 total_runtime=6270426
+[2026-05-13 04:44:24.723] I (6464) wcan_recv_callback: [d0] tick=4805 [1500..1559] 60 items
+[2026-05-13 04:44:24.727] I (6464) TASK: name=reg_retry prio=4 state=2 hwm_bytes=2272 runtime=6428 total_runtime=6270426
+[2026-05-13 04:44:24.733] I (6465) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=6270426
+[2026-05-13 04:44:24.736] I (6466) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=3005 total_runtime=6270426
+[2026-05-13 04:44:24.738] I (6468) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=107492 total_runtime=6270426
+[2026-05-13 04:44:24.741] I (6469) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2252 runtime=25459 total_runtime=6270426
+[2026-05-13 04:44:24.744] I (6470) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=5986 total_runtime=6270426
+[2026-05-13 04:44:24.746] I (6471) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=6270426
+[2026-05-13 04:44:24.788] I (6535) wcan_recv_callback: [b0] tick=4516 [2520..2579] 60 items
+[2026-05-13 04:44:24.807] I (6556) wcan_recv_callback: [d0] tick=4896 [1560..1619] 60 items
+[2026-05-13 04:44:24.879] I (6627) wcan_recv_callback: [b0] tick=4608 [2580..2639] 60 items
+[2026-05-13 04:44:24.899] I (6645) wcan_recv_callback: [d0] tick=4986 [1620..1679] 60 items
+[2026-05-13 04:44:24.961] I (6709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1111 status=OK
+[2026-05-13 04:44:24.974] I (6721) RX_STATS: id=0xb0 packets=45 samples=2700 gaps=0 last=[2640..2699]
+[2026-05-13 04:44:24.977] I (6721) RX_STATS: id=0xd0 packets=28 samples=1680 gaps=0 last=[1620..1679]
+[2026-05-13 04:44:24.980] I (6722) wcan_recv_callback: [b0] tick=4700 [2640..2699] 60 items
+[2026-05-13 04:44:24.989] I (6737) wcan_recv_callback: [d0] tick=5078 [1680..1739] 60 items
+[2026-05-13 04:44:25.064] I (6813) wcan_recv_callback: [b0] tick=4794 [2700..2759] 60 items
+[2026-05-13 04:44:25.082] I (6828) wcan_recv_callback: [d0] tick=5169 [1740..1799] 60 items
+[2026-05-13 04:44:25.163] I (6906) wcan_recv_callback: [b0] tick=4888 [2760..2819] 60 items
+[2026-05-13 04:44:25.174] I (6919) wcan_recv_callback: [d0] tick=5260 [1800..1859] 60 items
+[2026-05-13 04:44:25.253] I (7001) wcan_recv_callback: [b0] tick=4982 [2820..2879] 60 items
+[2026-05-13 04:44:25.265] I (7010) wcan_recv_callback: [d0] tick=5351 [1860..1919] 60 items
+[2026-05-13 04:44:25.347] I (7094) wcan_recv_callback: [b0] tick=5075 [2880..2939] 60 items
+[2026-05-13 04:44:25.353] I (7102) wcan_recv_callback: [d0] tick=5443 [1920..1979] 60 items
+[2026-05-13 04:44:25.439] I (7187) wcan_recv_callback: [b0] tick=5167 [2940..2999] 60 items
+[2026-05-13 04:44:25.446] I (7193) wcan_recv_callback: [d0] tick=5534 [1980..2039] 60 items
+[2026-05-13 04:44:25.533] I (7280) wcan_recv_callback: [b0] tick=5261 [3000..3059] 60 items
+[2026-05-13 04:44:25.537] I (7284) wcan_recv_callback: [d0] tick=5625 [2040..2099] 60 items
+[2026-05-13 04:44:25.624] I (7372) wcan_recv_callback: [b0] tick=5353 [3060..3119] 60 items
+[2026-05-13 04:44:25.628] I (7376) wcan_recv_callback: [d0] tick=5717 [2100..2159] 60 items
+[2026-05-13 04:44:25.729] I (7467) wcan_recv_callback: [d0] tick=5808 [2160..2219] 60 items
+[2026-05-13 04:44:25.734] I (7470) wcan_recv_callback: [b0] tick=5449 [3120..3179] 60 items
+[2026-05-13 04:44:25.810] I (7557) wcan_recv_callback: [d0] tick=5898 [2220..2279] 60 items
+[2026-05-13 04:44:25.827] I (7574) wcan_recv_callback: [b0] tick=5552 [3180..3239] 60 items
+[2026-05-13 04:44:25.901] I (7648) wcan_recv_callback: [d0] tick=5989 [2280..2339] 60 items
+[2026-05-13 04:44:25.922] I (7667) wcan_recv_callback: [b0] tick=5645 [3240..3299] 60 items
+[2026-05-13 04:44:25.961] I (7709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1134 status=OK
+[2026-05-13 04:44:25.994] I (7740) RX_STATS: id=0xb0 packets=55 samples=3300 gaps=0 last=[3240..3299]
+[2026-05-13 04:44:25.996] I (7741) RX_STATS: id=0xd0 packets=40 samples=2400 gaps=0 last=[2340..2399]
+[2026-05-13 04:44:26.002] I (7741) wcan_recv_callback: [d0] tick=6080 [2340..2399] 60 items
+[2026-05-13 04:44:26.015] I (7759) wcan_recv_callback: [b0] tick=5737 [3300..3359] 60 items
+[2026-05-13 04:44:26.083] I (7830) wcan_recv_callback: [d0] tick=6171 [2400..2459] 60 items
+[2026-05-13 04:44:26.104] I (7851) wcan_recv_callback: [b0] tick=5832 [3360..3419] 60 items
+[2026-05-13 04:44:26.173] I (7921) wcan_recv_callback: [d0] tick=6262 [2460..2519] 60 items
+[2026-05-13 04:44:26.200] I (7945) wcan_recv_callback: [b0] tick=5926 [3420..3479] 60 items
+[2026-05-13 04:44:26.265] I (8012) wcan_recv_callback: [d0] tick=6353 [2520..2579] 60 items
+[2026-05-13 04:44:26.294] I (8037) wcan_recv_callback: [b0] tick=6019 [3480..3539] 60 items
+[2026-05-13 04:44:26.356] I (8104) wcan_recv_callback: [d0] tick=6445 [2580..2639] 60 items
+[2026-05-13 04:44:26.384] I (8131) wcan_recv_callback: [b0] tick=6112 [3540..3599] 60 items
+[2026-05-13 04:44:26.448] I (8195) wcan_recv_callback: [d0] tick=6536 [2640..2699] 60 items
+[2026-05-13 04:44:26.477] I (8223) wcan_recv_callback: [b0] tick=6204 [3600..3659] 60 items
+[2026-05-13 04:44:26.540] I (8287) wcan_recv_callback: [d0] tick=6628 [2700..2759] 60 items
+[2026-05-13 04:44:26.570] I (8318) wcan_recv_callback: [b0] tick=6296 [3660..3719] 60 items
+[2026-05-13 04:44:26.631] I (8377) wcan_recv_callback: [d0] tick=6718 [2760..2819] 60 items
+[2026-05-13 04:44:26.662] I (8408) wcan_recv_callback: [b0] tick=6390 [3720..3779] 60 items
+[2026-05-13 04:44:26.721] I (8469) wcan_recv_callback: [d0] tick=6810 [2820..2879] 60 items
+[2026-05-13 04:44:26.754] I (8502) wcan_recv_callback: [b0] tick=6483 [3780..3839] 60 items
+[2026-05-13 04:44:26.812] I (8560) wcan_recv_callback: [d0] tick=6901 [2880..2939] 60 items
+[2026-05-13 04:44:26.850] I (8598) wcan_recv_callback: [b0] tick=6579 [3840..3899] 60 items
+[2026-05-13 04:44:26.906] I (8650) wcan_recv_callback: [d0] tick=6991 [2940..2999] 60 items
+[2026-05-13 04:44:26.944] I (8692) wcan_recv_callback: [b0] tick=6672 [3900..3959] 60 items
+[2026-05-13 04:44:26.962] I (8709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1120 status=OK
+[2026-05-13 04:44:26.996] I (8742) RX_STATS: id=0xb0 packets=66 samples=3960 gaps=0 last=[3900..3959]
+[2026-05-13 04:44:26.997] I (8742) RX_STATS: id=0xd0 packets=51 samples=3060 gaps=0 last=[3000..3059]
+[2026-05-13 04:44:27.001] I (8743) wcan_recv_callback: [d0] tick=7083 [3000..3059] 60 items
+[2026-05-13 04:44:27.035] I (8783) wcan_recv_callback: [b0] tick=6764 [3960..4019] 60 items
+[2026-05-13 04:44:27.095] I (8833) wcan_recv_callback: [d0] tick=7174 [3060..3119] 60 items
+[2026-05-13 04:44:27.130] I (8875) wcan_recv_callback: [b0] tick=6856 [4020..4079] 60 items
+[2026-05-13 04:44:27.178] I (8924) wcan_recv_callback: [d0] tick=7265 [3120..3179] 60 items
+[2026-05-13 04:44:27.223] I (8967) wcan_recv_callback: [b0] tick=6949 [4080..4139] 60 items
+[2026-05-13 04:44:27.268] I (9016) wcan_recv_callback: [d0] tick=7357 [3180..3239] 60 items
+[2026-05-13 04:44:27.314] I (9063) wcan_recv_callback: [b0] tick=7043 [4140..4199] 60 items
+[2026-05-13 04:44:27.371] I (9119) wcan_recv_callback: [d0] tick=7460 [3240..3299] 60 items
+[2026-05-13 04:44:27.409] I (9156) wcan_recv_callback: [b0] tick=7137 [4200..4259] 60 items
+[2026-05-13 04:44:27.464] I (9211) wcan_recv_callback: [d0] tick=7551 [3300..3359] 60 items
+[2026-05-13 04:44:27.502] I (9250) wcan_recv_callback: [b0] tick=7231 [4260..4319] 60 items
+[2026-05-13 04:44:27.554] I (9302) wcan_recv_callback: [d0] tick=7643 [3360..3419] 60 items
+[2026-05-13 04:44:27.597] I (9344) wcan_recv_callback: [b0] tick=7325 [4320..4379] 60 items
+[2026-05-13 04:44:27.646] I (9393) wcan_recv_callback: [d0] tick=7734 [3420..3479] 60 items
+[2026-05-13 04:44:27.688] I (9436) wcan_recv_callback: [b0] tick=7417 [4380..4439] 60 items
+[2026-05-13 04:44:27.739] I (9485) wcan_recv_callback: [d0] tick=7825 [3480..3539] 60 items
+[2026-05-13 04:44:27.785] I (9532) wcan_recv_callback: [b0] tick=7513 [4440..4499] 60 items
+[2026-05-13 04:44:27.828] I (9574) wcan_recv_callback: [d0] tick=7915 [3540..3599] 60 items
+[2026-05-13 04:44:27.878] I (9626) wcan_recv_callback: [b0] tick=7607 [4500..4559] 60 items
+[2026-05-13 04:44:27.918] I (9665) wcan_recv_callback: [d0] tick=8006 [3600..3659] 60 items
+[2026-05-13 04:44:27.961] I (9709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1109 status=OK
+[2026-05-13 04:44:27.975] I (9721) wcan_recv_callback: [b0] tick=7701 [4560..4619] 60 items
+[2026-05-13 04:44:28.012] I (9757) RX_STATS: id=0xb0 packets=77 samples=4620 gaps=0 last=[4560..4619]
+[2026-05-13 04:44:28.017] I (9757) RX_STATS: id=0xd0 packets=62 samples=3720 gaps=0 last=[3660..3719]
+[2026-05-13 04:44:28.020] I (9758) wcan_recv_callback: [d0] tick=8098 [3660..3719] 60 items
+[2026-05-13 04:44:28.066] I (9812) wcan_recv_callback: [b0] tick=7793 [4620..4679] 60 items
+[2026-05-13 04:44:28.105] I (9849) wcan_recv_callback: [d0] tick=8189 [3720..3779] 60 items
+[2026-05-13 04:44:28.157] I (9904) wcan_recv_callback: [b0] tick=7885 [4680..4739] 60 items
+[2026-05-13 04:44:28.191] I (9939) wcan_recv_callback: [d0] tick=8280 [3780..3839] 60 items
+[2026-05-13 04:44:28.252] I (9998) wcan_recv_callback: [b0] tick=7977 [4740..4799] 60 items
+[2026-05-13 04:44:28.288] I (10031) wcan_recv_callback: [d0] tick=8371 [3840..3899] 60 items
+[2026-05-13 04:44:28.345] I (10092) wcan_recv_callback: [b0] tick=8070 [4800..4859] 60 items
+[2026-05-13 04:44:28.377] I (10122) wcan_recv_callback: [d0] tick=8463 [3900..3959] 60 items
+[2026-05-13 04:44:28.437] I (10181) wcan_recv_callback: [b0] tick=8162 [4860..4919] 60 items
+[2026-05-13 04:44:28.466] I (10213) wcan_recv_callback: [d0] tick=8554 [3960..4019] 60 items
+[2026-05-13 04:44:28.526] I (10274) wcan_recv_callback: [b0] tick=8254 [4920..4979] 60 items
+[2026-05-13 04:44:28.557] I (10305) wcan_recv_callback: [d0] tick=8646 [4020..4079] 60 items
+[2026-05-13 04:44:28.621] I (10367) wcan_recv_callback: [b0] tick=8348 [4980..5039] 60 items
+[2026-05-13 04:44:28.652] I (10396) wcan_recv_callback: [d0] tick=8737 [4080..4139] 60 items
+[2026-05-13 04:44:28.714] I (10461) wcan_recv_callback: [b0] tick=8442 [5040..5099] 60 items
+[2026-05-13 04:44:28.741] I (10487) wcan_recv_callback: [d0] tick=8828 [4140..4199] 60 items
+[2026-05-13 04:44:28.807] I (10553) wcan_recv_callback: [b0] tick=8534 [5100..5159] 60 items
+[2026-05-13 04:44:28.832] I (10579) wcan_recv_callback: [d0] tick=8920 [4200..4259] 60 items
+[2026-05-13 04:44:28.901] I (10648) wcan_recv_callback: [b0] tick=8630 [5160..5219] 60 items
+[2026-05-13 04:44:28.921] I (10669) wcan_recv_callback: [d0] tick=9010 [4260..4319] 60 items
+[2026-05-13 04:44:28.964] I (10712) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=4727 status=OK
+[2026-05-13 04:44:28.996] I (10742) wcan_recv_callback: [b0] tick=8723 [5220..5279] 60 items
+[2026-05-13 04:44:29.016] I (10761) RX_STATS: id=0xb0 packets=88 samples=5280 gaps=0 last=[5220..5279]
+[2026-05-13 04:44:29.020] I (10761) RX_STATS: id=0xd0 packets=73 samples=4380 gaps=0 last=[4320..4379]
+[2026-05-13 04:44:29.022] I (10761) wcan_recv_callback: [d0] tick=9101 [4320..4379] 60 items
+[2026-05-13 04:44:29.088] I (10835) wcan_recv_callback: [b0] tick=8817 [5280..5339] 60 items
+[2026-05-13 04:44:29.105] I (10852) wcan_recv_callback: [d0] tick=9193 [4380..4439] 60 items
+[2026-05-13 04:44:29.182] I (10929) wcan_recv_callback: [b0] tick=8910 [5340..5399] 60 items
+[2026-05-13 04:44:29.196] I (10943) wcan_recv_callback: [d0] tick=9284 [4440..4499] 60 items
+[2026-05-13 04:44:29.282] I (11025) wcan_recv_callback: [b0] tick=9006 [5400..5459] 60 items
+[2026-05-13 04:44:29.293] I (11035) wcan_recv_callback: [d0] tick=9375 [4500..4559] 60 items
+[2026-05-13 04:44:29.370] I (11118) wcan_recv_callback: [b0] tick=9099 [5460..5519] 60 items
+[2026-05-13 04:44:29.378] I (11126) wcan_recv_callback: [d0] tick=9467 [4560..4619] 60 items
+[2026-05-13 04:44:29.465] I (11212) wcan_recv_callback: [b0] tick=9191 [5520..5579] 60 items
+[2026-05-13 04:44:29.469] I (11218) wcan_recv_callback: [d0] tick=9558 [4620..4679] 60 items
+[2026-05-13 04:44:29.556] I (11304) wcan_recv_callback: [b0] tick=9285 [5580..5639] 60 items
+[2026-05-13 04:44:29.562] I (11309) wcan_recv_callback: [d0] tick=9650 [4680..4739] 60 items
+[2026-05-13 04:44:29.655] I (11399) wcan_recv_callback: [b0] tick=9381 [5640..5699] 60 items
+[2026-05-13 04:44:29.660] I (11402) wcan_recv_callback: [d0] tick=9741 [4740..4799] 60 items
+[2026-05-13 04:44:29.711] I (11458) HEAP: free=178956 min_free=174276 largest=114688
+[2026-05-13 04:44:29.725] I (11472) MEASURE: airtime_us_total=228 packets_total=19 d_airtime_us=60 d_packets=5 util_per_mille=0
+[2026-05-13 04:44:29.727] I (11473) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=13135 total_runtime=11283963
+[2026-05-13 04:44:29.729] I (11474) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=11031843 total_runtime=11283963
+[2026-05-13 04:44:29.730] I (11474) TASK: name=hello_beacon prio=4 state=2 hwm_bytes=2392 runtime=1925 total_runtime=11283963
+[2026-05-13 04:44:29.731] I (11475) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=3221 total_runtime=11283963
+[2026-05-13 04:44:29.733] I (11476) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1330 total_runtime=11283963
+[2026-05-13 04:44:29.734] I (11477) TASK: name=reg_retry prio=4 state=2 hwm_bytes=2272 runtime=12008 total_runtime=11283963
+[2026-05-13 04:44:29.735] I (11478) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=4230 total_runtime=11283963
+[2026-05-13 04:44:29.736] I (11480) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=126373 total_runtime=11283963
+[2026-05-13 04:44:29.741] I (11481) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2252 runtime=66040 total_runtime=11283963
+[2026-05-13 04:44:29.746] I (11482) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=6998 total_runtime=11283963
+[2026-05-13 04:44:29.749] I (11483) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=11283963
+[2026-05-13 04:44:29.755] I (11484) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=11283963
+[2026-05-13 04:44:29.758] I (11492) wcan_recv_callback: [d0] tick=9832 [4800..4859] 60 items
+[2026-05-13 04:44:29.760] I (11494) wcan_recv_callback: [b0] tick=9474 [5700..5759] 60 items
+[2026-05-13 04:44:29.839] I (11581) wcan_recv_callback: [d0] tick=9922 [4860..4919] 60 items
+[2026-05-13 04:44:29.853] I (11595) wcan_recv_callback: [b0] tick=9568 [5760..5819] 60 items
+[2026-05-13 04:44:29.925] I (11672) wcan_recv_callback: [d0] tick=10013 [4920..4979] 60 items
+[2026-05-13 04:44:29.941] I (11686) wcan_recv_callback: [b0] tick=9663 [5820..5879] 60 items
+[2026-05-13 04:44:29.962] I (11709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1142 status=OK
+[2026-05-13 04:44:30.017] I (11763) RX_STATS: id=0xb0 packets=98 samples=5880 gaps=0 last=[5820..5879]
+[2026-05-13 04:44:30.024] I (11763) RX_STATS: id=0xd0 packets=84 samples=5040 gaps=0 last=[4980..5039]
+[2026-05-13 04:44:30.034] I (11764) wcan_recv_callback: [d0] tick=10103 [4980..5039] 60 items
+[2026-05-13 04:44:30.038] I (11779) wcan_recv_callback: [b0] tick=9756 [5880..5939] 60 items
+[2026-05-13 04:44:30.106] I (11854) wcan_recv_callback: [d0] tick=10194 [5040..5099] 60 items
+[2026-05-13 04:44:30.124] I (11870) wcan_recv_callback: [b0] tick=9849 [5940..5999] 60 items
+[2026-05-13 04:44:30.199] I (11945) wcan_recv_callback: [d0] tick=10285 [5100..5159] 60 items
+[2026-05-13 04:44:30.219] I (11964) wcan_recv_callback: [b0] tick=9943 [6000..6059] 60 items
+[2026-05-13 04:44:30.288] I (12035) wcan_recv_callback: [d0] tick=10376 [5160..5219] 60 items
+[2026-05-13 04:44:30.308] I (12056) wcan_recv_callback: [b0] tick=10037 [6060..6119] 60 items
+[2026-05-13 04:44:30.381] I (12127) wcan_recv_callback: [d0] tick=10468 [5220..5279] 60 items
+[2026-05-13 04:44:30.413] I (12156) wcan_recv_callback: [b0] tick=10131 [6120..6179] 60 items
+[2026-05-13 04:44:30.473] I (12219) wcan_recv_callback: [d0] tick=10559 [5280..5339] 60 items
+[2026-05-13 04:44:30.497] I (12245) wcan_recv_callback: [b0] tick=10227 [6180..6239] 60 items
+[2026-05-13 04:44:30.562] I (12309) wcan_recv_callback: [d0] tick=10650 [5340..5399] 60 items
+[2026-05-13 04:44:30.592] I (12340) wcan_recv_callback: [b0] tick=10320 [6240..6299] 60 items
+[2026-05-13 04:44:30.654] I (12401) wcan_recv_callback: [d0] tick=10742 [5400..5459] 60 items
+[2026-05-13 04:44:30.688] I (12432) wcan_recv_callback: [b0] tick=10413 [6300..6359] 60 items
+[2026-05-13 04:44:30.747] I (12492) wcan_recv_callback: [d0] tick=10833 [5460..5519] 60 items
+[2026-05-13 04:44:30.779] I (12526) wcan_recv_callback: [b0] tick=10507 [6360..6419] 60 items
+[2026-05-13 04:44:30.838] I (12584) wcan_recv_callback: [d0] tick=10925 [5520..5579] 60 items
+[2026-05-13 04:44:30.880] I (12628) wcan_recv_callback: [b0] tick=10609 [6420..6479] 60 items
+[2026-05-13 04:44:30.928] I (12675) wcan_recv_callback: [d0] tick=11016 [5580..5639] 60 items
+[2026-05-13 04:44:30.964] I (12709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1112 status=OK
+[2026-05-13 04:44:30.975] I (12722) wcan_recv_callback: [b0] tick=10701 [6480..6539] 60 items
+[2026-05-13 04:44:31.020] I (12767) RX_STATS: id=0xb0 packets=109 samples=6540 gaps=0 last=[6480..6539]
+[2026-05-13 04:44:31.023] I (12767) RX_STATS: id=0xd0 packets=95 samples=5700 gaps=0 last=[5640..5699]
+[2026-05-13 04:44:31.026] I (12768) wcan_recv_callback: [d0] tick=11108 [5640..5699] 60 items
+[2026-05-13 04:44:31.065] I (12813) wcan_recv_callback: [b0] tick=10794 [6540..6599] 60 items
+[2026-05-13 04:44:31.111] I (12858) wcan_recv_callback: [d0] tick=11199 [5700..5759] 60 items
+[2026-05-13 04:44:31.162] I (12909) wcan_recv_callback: [b0] tick=10888 [6600..6659] 60 items
+[2026-05-13 04:44:31.203] I (12950) wcan_recv_callback: [d0] tick=11291 [5760..5819] 60 items
+[2026-05-13 04:44:31.256] I (13001) wcan_recv_callback: [b0] tick=10982 [6660..6719] 60 items
+[2026-05-13 04:44:31.295] I (13042) wcan_recv_callback: [d0] tick=11383 [5820..5879] 60 items
+[2026-05-13 04:44:31.353] I (13094) wcan_recv_callback: [b0] tick=11075 [6720..6779] 60 items
+[2026-05-13 04:44:31.389] I (13134) wcan_recv_callback: [d0] tick=11474 [5880..5939] 60 items
+[2026-05-13 04:44:31.439] I (13186) wcan_recv_callback: [b0] tick=11167 [6780..6839] 60 items
+[2026-05-13 04:44:31.477] I (13225) wcan_recv_callback: [d0] tick=11566 [5940..5999] 60 items
+[2026-05-13 04:44:31.531] I (13279) wcan_recv_callback: [b0] tick=11260 [6840..6899] 60 items
+[2026-05-13 04:44:31.568] I (13315) wcan_recv_callback: [d0] tick=11656 [6000..6059] 60 items
+[2026-05-13 04:44:31.627] I (13373) wcan_recv_callback: [b0] tick=11354 [6900..6959] 60 items
+[2026-05-13 04:44:31.660] I (13407) wcan_recv_callback: [d0] tick=11747 [6060..6119] 60 items
+[2026-05-13 04:44:31.719] I (13466) wcan_recv_callback: [b0] tick=11447 [6960..7019] 60 items
+[2026-05-13 04:44:31.753] I (13498) wcan_recv_callback: [d0] tick=11839 [6120..6179] 60 items
+[2026-05-13 04:44:31.813] I (13559) wcan_recv_callback: [b0] tick=11541 [7020..7079] 60 items
+[2026-05-13 04:44:31.844] I (13589) wcan_recv_callback: [d0] tick=11930 [6180..6239] 60 items
+[2026-05-13 04:44:31.905] I (13652) wcan_recv_callback: [b0] tick=11634 [7080..7139] 60 items
+[2026-05-13 04:44:31.934] I (13681) wcan_recv_callback: [d0] tick=12022 [6240..6299] 60 items
+[2026-05-13 04:44:31.961] I (13709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1134 status=OK
+[2026-05-13 04:44:32.019] I (13746) wcan_recv_callback: [b0] tick=11727 [7140..7199] 60 items
+[2026-05-13 04:44:32.038] I (13772) RX_STATS: id=0xb0 packets=120 samples=7200 gaps=0 last=[7140..7199]
+[2026-05-13 04:44:32.042] I (13773) RX_STATS: id=0xd0 packets=106 samples=6360 gaps=0 last=[6300..6359]
+[2026-05-13 04:44:32.044] I (13773) wcan_recv_callback: [d0] tick=12113 [6300..6359] 60 items
+[2026-05-13 04:44:32.093] I (13838) wcan_recv_callback: [b0] tick=11819 [7200..7259] 60 items
+[2026-05-13 04:44:32.118] I (13864) wcan_recv_callback: [d0] tick=12205 [6360..6419] 60 items
+[2026-05-13 04:44:32.185] I (13931) wcan_recv_callback: [b0] tick=11913 [7260..7319] 60 items
+[2026-05-13 04:44:32.211] I (13956) wcan_recv_callback: [d0] tick=12297 [6420..6479] 60 items
+[2026-05-13 04:44:32.279] I (14025) wcan_recv_callback: [b0] tick=12006 [7320..7379] 60 items
+[2026-05-13 04:44:32.302] I (14048) wcan_recv_callback: [d0] tick=12388 [6480..6539] 60 items
+[2026-05-13 04:44:32.373] I (14119) wcan_recv_callback: [b0] tick=12100 [7380..7439] 60 items
+[2026-05-13 04:44:32.404] I (14150) wcan_recv_callback: [d0] tick=12491 [6540..6599] 60 items
+[2026-05-13 04:44:32.463] I (14211) wcan_recv_callback: [b0] tick=12192 [7440..7499] 60 items
+[2026-05-13 04:44:32.495] I (14242) wcan_recv_callback: [d0] tick=12583 [6600..6659] 60 items
+[2026-05-13 04:44:32.558] I (14303) wcan_recv_callback: [b0] tick=12285 [7500..7559] 60 items
+[2026-05-13 04:44:32.586] I (14333) wcan_recv_callback: [d0] tick=12674 [6660..6719] 60 items
+[2026-05-13 04:44:32.651] I (14397) wcan_recv_callback: [b0] tick=12378 [7560..7619] 60 items
+[2026-05-13 04:44:32.678] I (14424) wcan_recv_callback: [d0] tick=12765 [6720..6779] 60 items
+[2026-05-13 04:44:32.746] I (14494) wcan_recv_callback: [b0] tick=12471 [7620..7679] 60 items
+[2026-05-13 04:44:32.768] I (14515) wcan_recv_callback: [d0] tick=12856 [6780..6839] 60 items
+[2026-05-13 04:44:32.836] I (14584) wcan_recv_callback: [b0] tick=12565 [7680..7739] 60 items
+[2026-05-13 04:44:32.862] I (14607) wcan_recv_callback: [d0] tick=12948 [6840..6899] 60 items
+[2026-05-13 04:44:32.931] I (14677) wcan_recv_callback: [b0] tick=12659 [7740..7799] 60 items
+[2026-05-13 04:44:32.950] I (14698) wcan_recv_callback: [d0] tick=13039 [6900..6959] 60 items
+[2026-05-13 04:44:32.964] I (14709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1224 status=OK
+[2026-05-13 04:44:33.028] I (14773) RX_STATS: id=0xb0 packets=131 samples=7860 gaps=0 last=[7800..7859]
+[2026-05-13 04:44:33.029] I (14774) RX_STATS: id=0xd0 packets=116 samples=6960 gaps=0 last=[6900..6959]
+[2026-05-13 04:44:33.030] I (14774) wcan_recv_callback: [b0] tick=12752 [7800..7859] 60 items
+[2026-05-13 04:44:33.047] I (14789) wcan_recv_callback: [d0] tick=13130 [6960..7019] 60 items
+[2026-05-13 04:44:33.116] I (14864) wcan_recv_callback: [b0] tick=12845 [7860..7919] 60 items
+[2026-05-13 04:44:33.135] I (14881) wcan_recv_callback: [d0] tick=13222 [7020..7079] 60 items
+[2026-05-13 04:44:33.210] I (14958) wcan_recv_callback: [b0] tick=12939 [7920..7979] 60 items
+[2026-05-13 04:44:33.225] I (14973) wcan_recv_callback: [d0] tick=13313 [7080..7139] 60 items
+[2026-05-13 04:44:33.305] I (15052) wcan_recv_callback: [b0] tick=13033 [7980..8039] 60 items
+[2026-05-13 04:44:33.316] I (15064) wcan_recv_callback: [d0] tick=13404 [7140..7199] 60 items
+[2026-05-13 04:44:33.401] I (15146) wcan_recv_callback: [b0] tick=13127 [8040..8099] 60 items
+[2026-05-13 04:44:33.410] I (15155) wcan_recv_callback: [d0] tick=13496 [7200..7259] 60 items
+[2026-05-13 04:44:33.494] I (15242) wcan_recv_callback: [b0] tick=13223 [8100..8159] 60 items
+[2026-05-13 04:44:33.499] I (15247) wcan_recv_callback: [d0] tick=13588 [7260..7319] 60 items
+[2026-05-13 04:44:33.593] I (15335) wcan_recv_callback: [b0] tick=13316 [8160..8219] 60 items
+[2026-05-13 04:44:33.598] I (15338) wcan_recv_callback: [d0] tick=13679 [7320..7379] 60 items
+[2026-05-13 04:44:33.681] I (15429) wcan_recv_callback: [b0] tick=13410 [8220..8279] 60 items
+[2026-05-13 04:44:33.686] I (15432) wcan_recv_callback: [d0] tick=13771 [7380..7439] 60 items
+[2026-05-13 04:44:33.786] I (15523) wcan_recv_callback: [d0] tick=13861 [7440..7499] 60 items
+[2026-05-13 04:44:33.791] I (15529) wcan_recv_callback: [b0] tick=13505 [8280..8339] 60 items
+[2026-05-13 04:44:33.867] I (15613) wcan_recv_callback: [d0] tick=13952 [7500..7559] 60 items
+[2026-05-13 04:44:33.875] I (15622) wcan_recv_callback: [b0] tick=13600 [8340..8399] 60 items
+[2026-05-13 04:44:33.954] I (15702) wcan_recv_callback: [d0] tick=14043 [7560..7619] 60 items
+[2026-05-13 04:44:33.972] I (15716) wcan_recv_callback: [b0] tick=13694 [8400..8459] 60 items
+[2026-05-13 04:44:33.975] I (15717) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=9712 status=OK
+[2026-05-13 04:44:34.049] I (15792) RX_STATS: id=0xb0 packets=141 samples=8460 gaps=0 last=[8400..8459]
+[2026-05-13 04:44:34.055] I (15793) RX_STATS: id=0xd0 packets=128 samples=7680 gaps=0 last=[7620..7679]
+[2026-05-13 04:44:34.058] I (15793) wcan_recv_callback: [d0] tick=14133 [7620..7679] 60 items
+[2026-05-13 04:44:34.073] I (15808) wcan_recv_callback: [b0] tick=13786 [8460..8519] 60 items
+[2026-05-13 04:44:34.137] I (15883) wcan_recv_callback: [d0] tick=14224 [7680..7739] 60 items
+[2026-05-13 04:44:34.155] I (15901) wcan_recv_callback: [b0] tick=13879 [8520..8579] 60 items
+[2026-05-13 04:44:34.228] I (15974) wcan_recv_callback: [d0] tick=14315 [7740..7799] 60 items
+[2026-05-13 04:44:34.246] I (15993) wcan_recv_callback: [b0] tick=13973 [8580..8639] 60 items
+[2026-05-13 04:44:34.318] I (16066) wcan_recv_callback: [d0] tick=14407 [7800..7859] 60 items
+[2026-05-13 04:44:34.337] I (16085) wcan_recv_callback: [b0] tick=14066 [8640..8699] 60 items
+[2026-05-13 04:44:34.410] I (16157) wcan_recv_callback: [d0] tick=14498 [7860..7919] 60 items
+[2026-05-13 04:44:34.434] I (16177) wcan_recv_callback: [b0] tick=14159 [8700..8759] 60 items
+[2026-05-13 04:44:34.503] I (16249) wcan_recv_callback: [d0] tick=14590 [7920..7979] 60 items
+[2026-05-13 04:44:34.524] I (16271) wcan_recv_callback: [b0] tick=14252 [8760..8819] 60 items
+[2026-05-13 04:44:34.594] I (16341) wcan_recv_callback: [d0] tick=14682 [7980..8039] 60 items
+[2026-05-13 04:44:34.620] I (16364) wcan_recv_callback: [b0] tick=14346 [8820..8879] 60 items
+[2026-05-13 04:44:34.684] I (16431) wcan_recv_callback: [d0] tick=14772 [8040..8099] 60 items
+[2026-05-13 04:44:34.710] I (16458) HEAP: free=178956 min_free=174276 largest=114688
+[2026-05-13 04:44:34.711] I (16458) wcan_recv_callback: [b0] tick=14439 [8880..8939] 60 items
+[2026-05-13 04:44:34.738] I (16485) MEASURE: airtime_us_total=288 packets_total=24 d_airtime_us=60 d_packets=5 util_per_mille=0
+[2026-05-13 04:44:34.740] I (16486) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=26490 total_runtime=16296958
+[2026-05-13 04:44:34.742] I (16487) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=15960601 total_runtime=16296958
+[2026-05-13 04:44:34.744] I (16487) TASK: name=hello_beacon prio=4 state=2 hwm_bytes=2392 runtime=2375 total_runtime=16296958
+[2026-05-13 04:44:34.745] I (16488) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=4258 total_runtime=16296958
+[2026-05-13 04:44:34.749] I (16489) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1709 total_runtime=16296958
+[2026-05-13 04:44:34.751] I (16490) TASK: name=reg_retry prio=4 state=2 hwm_bytes=2272 runtime=17590 total_runtime=16296958
+[2026-05-13 04:44:34.753] I (16491) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=5459 total_runtime=16296958
+[2026-05-13 04:44:34.754] I (16493) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=8001 total_runtime=16296958
+[2026-05-13 04:44:34.755] I (16494) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=145303 total_runtime=16296958
+[2026-05-13 04:44:34.757] I (16495) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2236 runtime=108317 total_runtime=16296958
+[2026-05-13 04:44:34.758] I (16496) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=16296958
+[2026-05-13 04:44:34.760] I (16497) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=16296958
+[2026-05-13 04:44:34.775] I (16523) wcan_recv_callback: [d0] tick=14864 [8100..8159] 60 items
+[2026-05-13 04:44:34.803] I (16551) wcan_recv_callback: [b0] tick=14532 [8940..8999] 60 items
+[2026-05-13 04:44:34.867] I (16614) wcan_recv_callback: [d0] tick=14955 [8160..8219] 60 items
+[2026-05-13 04:44:34.899] I (16646) wcan_recv_callback: [b0] tick=14626 [9000..9059] 60 items
+[2026-05-13 04:44:34.958] I (16706) wcan_recv_callback: [d0] tick=15047 [8220..8279] 60 items
+[2026-05-13 04:44:34.966] I (16710) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=2878 status=OK
+[2026-05-13 04:44:34.993] I (16739) wcan_recv_callback: [b0] tick=14720 [9060..9119] 60 items
+[2026-05-13 04:44:35.051] I (16797) RX_STATS: id=0xb0 packets=152 samples=9120 gaps=0 last=[9060..9119]
+[2026-05-13 04:44:35.054] I (16798) RX_STATS: id=0xd0 packets=139 samples=8340 gaps=0 last=[8280..8339]
+[2026-05-13 04:44:35.055] I (16798) wcan_recv_callback: [d0] tick=15138 [8280..8339] 60 items
+[2026-05-13 04:44:35.085] I (16832) wcan_recv_callback: [b0] tick=14813 [9120..9179] 60 items
+[2026-05-13 04:44:35.141] I (16889) wcan_recv_callback: [d0] tick=15230 [8340..8399] 60 items
+[2026-05-13 04:44:35.178] I (16925) wcan_recv_callback: [b0] tick=14906 [9180..9239] 60 items
+[2026-05-13 04:44:35.233] I (16980) wcan_recv_callback: [d0] tick=15321 [8400..8459] 60 items
+[2026-05-13 04:44:35.276] I (17022) wcan_recv_callback: [b0] tick=15000 [9240..9299] 60 items
+[2026-05-13 04:44:35.326] I (17072) wcan_recv_callback: [d0] tick=15413 [8460..8519] 60 items
+[2026-05-13 04:44:35.366] I (17113) wcan_recv_callback: [b0] tick=15094 [9300..9359] 60 items
+[2026-05-13 04:44:35.419] I (17165) wcan_recv_callback: [d0] tick=15504 [8520..8579] 60 items
+[2026-05-13 04:44:35.461] I (17207) wcan_recv_callback: [b0] tick=15188 [9360..9419] 60 items
+[2026-05-13 04:44:35.507] I (17254) wcan_recv_callback: [d0] tick=15595 [8580..8639] 60 items
+[2026-05-13 04:44:35.554] I (17299) wcan_recv_callback: [b0] tick=15281 [9420..9479] 60 items
+[2026-05-13 04:44:35.598] I (17346) wcan_recv_callback: [d0] tick=15687 [8640..8699] 60 items
+[2026-05-13 04:44:35.652] I (17392) wcan_recv_callback: [b0] tick=15374 [9480..9539] 60 items
+[2026-05-13 04:44:35.695] I (17437) wcan_recv_callback: [d0] tick=15778 [8700..8759] 60 items
+[2026-05-13 04:44:35.739] I (17486) wcan_recv_callback: [b0] tick=15467 [9540..9599] 60 items
+[2026-05-13 04:44:35.782] I (17529) wcan_recv_callback: [d0] tick=15870 [8760..8819] 60 items
+[2026-05-13 04:44:35.842] I (17585) wcan_recv_callback: [b0] tick=15565 [9600..9659] 60 items
+[2026-05-13 04:44:35.874] I (17620) wcan_recv_callback: [d0] tick=15961 [8820..8879] 60 items
+[2026-05-13 04:44:35.934] I (17681) wcan_recv_callback: [b0] tick=15662 [9660..9719] 60 items
+[2026-05-13 04:44:35.961] I (17709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1114 status=OK
+[2026-05-13 04:44:35.969] I (17712) wcan_recv_callback: [d0] tick=16053 [8880..8939] 60 items
+[2026-05-13 04:44:36.034] I (17777) wcan_recv_callback: [b0] tick=15756 [9720..9779] 60 items
+[2026-05-13 04:44:36.056] I (17804) RX_STATS: id=0xb0 packets=163 samples=9780 gaps=0 last=[9720..9779]
+[2026-05-13 04:44:36.059] I (17804) RX_STATS: id=0xd0 packets=150 samples=9000 gaps=0 last=[8940..8999]
+[2026-05-13 04:44:36.061] I (17804) wcan_recv_callback: [d0] tick=16145 [8940..8999] 60 items
+[2026-05-13 04:44:36.121] I (17868) wcan_recv_callback: [b0] tick=15849 [9780..9839] 60 items
+[2026-05-13 04:44:36.149] I (17895) wcan_recv_callback: [d0] tick=16236 [9000..9059] 60 items
+[2026-05-13 04:44:36.218] I (17962) wcan_recv_callback: [b0] tick=15943 [9840..9899] 60 items
+[2026-05-13 04:44:36.240] I (17987) wcan_recv_callback: [d0] tick=16327 [9060..9119] 60 items
+[2026-05-13 04:44:36.309] I (18056) wcan_recv_callback: [b0] tick=16037 [9900..9959] 60 items
+[2026-05-13 04:44:36.331] I (18078) wcan_recv_callback: [d0] tick=16419 [9120..9179] 60 items
+[2026-05-13 04:44:36.404] I (18152) wcan_recv_callback: [b0] tick=16131 [9960..10019] 60 items
+[2026-05-13 04:44:36.425] I (18172) wcan_recv_callback: [d0] tick=16511 [9180..9239] 60 items
+[2026-05-13 04:44:36.499] I (18246) wcan_recv_callback: [b0] tick=16226 [10020..10079] 60 items
+[2026-05-13 04:44:36.514] I (18261) wcan_recv_callback: [d0] tick=16602 [9240..9299] 60 items
+[2026-05-13 04:44:36.594] I (18338) wcan_recv_callback: [b0] tick=16320 [10080..10139] 60 items
+[2026-05-13 04:44:36.605] I (18353) wcan_recv_callback: [d0] tick=16693 [9300..9359] 60 items
+[2026-05-13 04:44:36.692] I (18437) wcan_recv_callback: [b0] tick=16414 [10140..10199] 60 items
+[2026-05-13 04:44:36.700] I (18444) wcan_recv_callback: [d0] tick=16785 [9360..9419] 60 items
+[2026-05-13 04:44:36.779] I (18526) wcan_recv_callback: [b0] tick=16507 [10200..10259] 60 items
+[2026-05-13 04:44:36.788] I (18536) wcan_recv_callback: [d0] tick=16877 [9420..9479] 60 items
+[2026-05-13 04:44:36.872] I (18620) wcan_recv_callback: [b0] tick=16601 [10260..10319] 60 items
+[2026-05-13 04:44:36.881] I (18627) wcan_recv_callback: [d0] tick=16968 [9480..9539] 60 items
+[2026-05-13 04:44:36.968] I (18711) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=3675 status=OK
+[2026-05-13 04:44:36.971] I (18715) wcan_recv_callback: [b0] tick=16695 [10320..10379] 60 items
+[2026-05-13 04:44:36.975] I (18720) wcan_recv_callback: [d0] tick=17060 [9540..9599] 60 items
+[2026-05-13 04:44:37.066] I (18811) RX_STATS: id=0xb0 packets=173 samples=10380 gaps=0 last=[10320..10379]
+[2026-05-13 04:44:37.069] I (18811) RX_STATS: id=0xd0 packets=161 samples=9660 gaps=0 last=[9600..9659]
+[2026-05-13 04:44:37.072] I (18811) wcan_recv_callback: [d0] tick=17151 [9600..9659] 60 items
+[2026-05-13 04:44:37.076] I (18813) wcan_recv_callback: [b0] tick=16791 [10380..10439] 60 items
+[2026-05-13 04:44:37.156] I (18901) wcan_recv_callback: [d0] tick=17242 [9660..9719] 60 items
+[2026-05-13 04:44:37.160] I (18908) wcan_recv_callback: [b0] tick=16884 [10440..10499] 60 items
+[2026-05-13 04:44:37.245] I (18993) wcan_recv_callback: [d0] tick=17334 [9720..9779] 60 items
+[2026-05-13 04:44:37.260] I (19005) wcan_recv_callback: [b0] tick=16979 [10500..10559] 60 items
+[2026-05-13 04:44:37.339] I (19086) wcan_recv_callback: [d0] tick=17425 [9780..9839] 60 items
+[2026-05-13 04:44:37.349] I (19095) wcan_recv_callback: [b0] tick=17072 [10560..10619] 60 items
+[2026-05-13 04:44:37.442] I (19184) wcan_recv_callback: [b0] tick=17165 [10620..10679] 60 items
+[2026-05-13 04:44:37.450] I (19188) wcan_recv_callback: [d0] tick=17529 [9840..9899] 60 items
+[2026-05-13 04:44:37.532] I (19280) wcan_recv_callback: [b0] tick=17259 [10680..10739] 60 items
+[2026-05-13 04:44:37.535] I (19283) wcan_recv_callback: [d0] tick=17621 [9900..9959] 60 items
+[2026-05-13 04:44:37.627] I (19373) wcan_recv_callback: [d0] tick=17712 [9960..10019] 60 items
+[2026-05-13 04:44:37.630] I (19376) wcan_recv_callback: [b0] tick=17352 [10740..10799] 60 items
+[2026-05-13 04:44:37.716] I (19462) wcan_recv_callback: [d0] tick=17803 [10020..10079] 60 items
+[2026-05-13 04:44:37.720] I (19465) wcan_recv_callback: [b0] tick=17444 [10800..10859] 60 items
+[2026-05-13 04:44:37.810] I (19555) wcan_recv_callback: [d0] tick=17894 [10080..10139] 60 items
+[2026-05-13 04:44:37.812] I (19558) wcan_recv_callback: [b0] tick=17537 [10860..10919] 60 items
+[2026-05-13 04:44:37.900] I (19645) wcan_recv_callback: [d0] tick=17984 [10140..10199] 60 items
+[2026-05-13 04:44:37.908] I (19654) wcan_recv_callback: [b0] tick=17632 [10920..10979] 60 items
+[2026-05-13 04:44:37.967] I (19710) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=2608 status=OK
+[2026-05-13 04:44:37.990] I (19735) wcan_recv_callback: [d0] tick=18075 [10200..10259] 60 items
+[2026-05-13 04:44:38.015] I (19749) wcan_recv_callback: [b0] tick=17726 [10980..11039] 60 items
+[2026-05-13 04:44:38.081] I (19828) RX_STATS: id=0xb0 packets=184 samples=11040 gaps=0 last=[10980..11039]
+[2026-05-13 04:44:38.084] I (19828) RX_STATS: id=0xd0 packets=172 samples=10320 gaps=0 last=[10260..10319]
+[2026-05-13 04:44:38.086] I (19829) wcan_recv_callback: [d0] tick=18167 [10260..10319] 60 items
+[2026-05-13 04:44:38.097] I (19843) wcan_recv_callback: [b0] tick=17818 [11040..11099] 60 items
+[2026-05-13 04:44:38.169] I (19917) wcan_recv_callback: [d0] tick=18258 [10320..10379] 60 items
+[2026-05-13 04:44:38.192] I (19937) wcan_recv_callback: [b0] tick=17911 [11100..11159] 60 items
+[2026-05-13 04:44:38.261] I (20008) wcan_recv_callback: [d0] tick=18349 [10380..10439] 60 items
+[2026-05-13 04:44:38.279] I (20025) wcan_recv_callback: [b0] tick=18004 [11160..11219] 60 items
+[2026-05-13 04:44:38.353] I (20100) wcan_recv_callback: [d0] tick=18440 [10440..10499] 60 items
+[2026-05-13 04:44:38.373] I (20119) wcan_recv_callback: [b0] tick=18099 [11220..11279] 60 items
+[2026-05-13 04:44:38.444] I (20192) wcan_recv_callback: [d0] tick=18532 [10500..10559] 60 items
+[2026-05-13 04:44:38.471] I (20219) wcan_recv_callback: [b0] tick=18195 [11280..11339] 60 items
+[2026-05-13 04:44:38.536] I (20283) wcan_recv_callback: [d0] tick=18624 [10560..10619] 60 items
+[2026-05-13 04:44:38.561] I (20307) wcan_recv_callback: [b0] tick=18288 [11340..11399] 60 items
+[2026-05-13 04:44:38.629] I (20375) wcan_recv_callback: [d0] tick=18716 [10620..10679] 60 items
+[2026-05-13 04:44:38.654] I (20401) wcan_recv_callback: [b0] tick=18382 [11400..11459] 60 items
+[2026-05-13 04:44:38.723] I (20467) wcan_recv_callback: [d0] tick=18808 [10680..10739] 60 items
+[2026-05-13 04:44:38.751] I (20499) wcan_recv_callback: [b0] tick=18476 [11460..11519] 60 items
+[2026-05-13 04:44:38.812] I (20558) wcan_recv_callback: [d0] tick=18899 [10740..10799] 60 items
+[2026-05-13 04:44:38.844] I (20590) wcan_recv_callback: [b0] tick=18571 [11520..11579] 60 items
+[2026-05-13 04:44:38.903] I (20650) wcan_recv_callback: [d0] tick=18991 [10800..10859] 60 items
+[2026-05-13 04:44:38.937] I (20684) wcan_recv_callback: [b0] tick=18665 [11580..11639] 60 items
+[2026-05-13 04:44:38.963] I (20709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1129 status=OK
+[2026-05-13 04:44:38.996] I (20742) wcan_recv_callback: [d0] tick=19083 [10860..10919] 60 items
+[2026-05-13 04:44:39.030] I (20777) wcan_recv_callback: [b0] tick=18758 [11640..11699] 60 items
+[2026-05-13 04:44:39.091] I (20833) RX_STATS: id=0xb0 packets=195 samples=11700 gaps=0 last=[11640..11699]
+[2026-05-13 04:44:39.094] I (20833) RX_STATS: id=0xd0 packets=183 samples=10980 gaps=0 last=[10920..10979]
+[2026-05-13 04:44:39.100] I (20834) wcan_recv_callback: [d0] tick=19174 [10920..10979] 60 items
+[2026-05-13 04:44:39.123] I (20870) wcan_recv_callback: [b0] tick=18850 [11700..11759] 60 items
+[2026-05-13 04:44:39.179] I (20925) wcan_recv_callback: [d0] tick=19266 [10980..11039] 60 items
+[2026-05-13 04:44:39.219] I (20963) wcan_recv_callback: [b0] tick=18945 [11760..11819] 60 items
+[2026-05-13 04:44:39.269] I (21017) wcan_recv_callback: [d0] tick=19357 [11040..11099] 60 items
+[2026-05-13 04:44:39.315] I (21061) wcan_recv_callback: [b0] tick=19040 [11820..11879] 60 items
+[2026-05-13 04:44:39.362] I (21108) wcan_recv_callback: [d0] tick=19449 [11100..11159] 60 items
+[2026-05-13 04:44:39.405] I (21153) wcan_recv_callback: [b0] tick=19134 [11880..11939] 60 items
+[2026-05-13 04:44:39.453] I (21200) wcan_recv_callback: [d0] tick=19541 [11160..11219] 60 items
+[2026-05-13 04:44:39.500] I (21246) wcan_recv_callback: [b0] tick=19227 [11940..11999] 60 items
+[2026-05-13 04:44:39.545] I (21292) wcan_recv_callback: [d0] tick=19633 [11220..11279] 60 items
+[2026-05-13 04:44:39.592] I (21340) wcan_recv_callback: [b0] tick=19321 [12000..12059] 60 items
+[2026-05-13 04:44:39.637] I (21384) wcan_recv_callback: [d0] tick=19724 [11280..11339] 60 items
+[2026-05-13 04:44:39.687] I (21434) wcan_recv_callback: [b0] tick=19413 [12060..12119] 60 items
+[2026-05-13 04:44:39.710] I (21458) HEAP: free=178956 min_free=174276 largest=114688
+[2026-05-13 04:44:39.729] I (21475) wcan_recv_callback: [d0] tick=19816 [11340..11399] 60 items
+[2026-05-13 04:44:39.752] I (21498) MEASURE: airtime_us_total=348 packets_total=29 d_airtime_us=60 d_packets=5 util_per_mille=0
+[2026-05-13 04:44:39.755] I (21499) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=39835 total_runtime=21309976
+[2026-05-13 04:44:39.758] I (21500) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=20887761 total_runtime=21309976
+[2026-05-13 04:44:39.759] I (21500) TASK: name=hello_beacon prio=4 state=2 hwm_bytes=2392 runtime=2825 total_runtime=21309976
+[2026-05-13 04:44:39.761] I (21501) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=5295 total_runtime=21309976
+[2026-05-13 04:44:39.763] I (21502) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2085 total_runtime=21309976
+[2026-05-13 04:44:39.765] I (21503) TASK: name=reg_retry prio=4 state=2 hwm_bytes=2272 runtime=23184 total_runtime=21309976
+[2026-05-13 04:44:39.767] I (21504) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=6689 total_runtime=21309976
+[2026-05-13 04:44:39.771] I (21506) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=9002 total_runtime=21309976
+[2026-05-13 04:44:39.776] I (21507) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=164279 total_runtime=21309976
+[2026-05-13 04:44:39.783] I (21508) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2236 runtime=152148 total_runtime=21309976
+[2026-05-13 04:44:39.785] I (21509) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=21309976
+[2026-05-13 04:44:39.789] I (21510) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=21309976
+[2026-05-13 04:44:39.790] I (21527) wcan_recv_callback: [b0] tick=19508 [12120..12179] 60 items
+[2026-05-13 04:44:39.822] I (21569) wcan_recv_callback: [d0] tick=19908 [11400..11459] 60 items
+[2026-05-13 04:44:39.872] I (21619) wcan_recv_callback: [b0] tick=19600 [12180..12239] 60 items
+[2026-05-13 04:44:39.912] I (21659) wcan_recv_callback: [d0] tick=20000 [11460..11519] 60 items
+[2026-05-13 04:44:39.964] I (21709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1269 status=OK
+[2026-05-13 04:44:39.969] I (21712) wcan_recv_callback: [b0] tick=19693 [12240..12299] 60 items
+[2026-05-13 04:44:40.005] I (21751) wcan_recv_callback: [d0] tick=20091 [11520..11579] 60 items
+[2026-05-13 04:44:40.061] I (21806) wcan_recv_callback: [b0] tick=19787 [12300..12359] 60 items
+[2026-05-13 04:44:40.097] I (21842) RX_STATS: id=0xb0 packets=206 samples=12360 gaps=0 last=[12300..12359]
+[2026-05-13 04:44:40.101] I (21843) RX_STATS: id=0xd0 packets=194 samples=11640 gaps=0 last=[11580..11639]
+[2026-05-13 04:44:40.104] I (21843) wcan_recv_callback: [d0] tick=20183 [11580..11639] 60 items
+[2026-05-13 04:44:40.171] I (21900) wcan_recv_callback: [b0] tick=19881 [12360..12419] 60 items
+[2026-05-13 04:44:40.195] I (21934) wcan_recv_callback: [d0] tick=20275 [11640..11699] 60 items
+[2026-05-13 04:44:40.250] I (21995) wcan_recv_callback: [b0] tick=19976 [12420..12479] 60 items
+[2026-05-13 04:44:40.280] I (22026) wcan_recv_callback: [d0] tick=20367 [11700..11759] 60 items
+[2026-05-13 04:44:40.343] I (22090) wcan_recv_callback: [b0] tick=20070 [12480..12539] 60 items
+[2026-05-13 04:44:40.373] I (22118) wcan_recv_callback: [d0] tick=20459 [11760..11819] 60 items
+[2026-05-13 04:44:40.436] I (22183) wcan_recv_callback: [b0] tick=20164 [12540..12599] 60 items
+[2026-05-13 04:44:40.462] I (22210) wcan_recv_callback: [d0] tick=20551 [11820..11879] 60 items
+[2026-05-13 04:44:40.533] I (22281) wcan_recv_callback: [b0] tick=20258 [12600..12659] 60 items
+[2026-05-13 04:44:40.556] I (22302) wcan_recv_callback: [d0] tick=20643 [11880..11939] 60 items
+[2026-05-13 04:44:40.625] I (22371) wcan_recv_callback: [b0] tick=20352 [12660..12719] 60 items
+[2026-05-13 04:44:40.647] I (22393) wcan_recv_callback: [d0] tick=20734 [11940..11999] 60 items
+[2026-05-13 04:44:40.723] I (22470) wcan_recv_callback: [b0] tick=20447 [12720..12779] 60 items
+[2026-05-13 04:44:40.738] I (22485) wcan_recv_callback: [d0] tick=20826 [12000..12059] 60 items
+[2026-05-13 04:44:40.834] I (22562) wcan_recv_callback: [b0] tick=20542 [12780..12839] 60 items
+[2026-05-13 04:44:40.851] I (22577) wcan_recv_callback: [d0] tick=20918 [12060..12119] 60 items
+[2026-05-13 04:44:40.923] I (22665) wcan_recv_callback: [b0] tick=20646 [12840..12899] 60 items
+[2026-05-13 04:44:40.926] I (22668) wcan_recv_callback: [d0] tick=21009 [12120..12179] 60 items
+[2026-05-13 04:44:40.966] I (22709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1124 status=OK
+[2026-05-13 04:44:41.014] I (22760) wcan_recv_callback: [d0] tick=21101 [12180..12239] 60 items
+[2026-05-13 04:44:41.016] I (22763) wcan_recv_callback: [b0] tick=20739 [12900..12959] 60 items
+[2026-05-13 04:44:41.112] I (22854) RX_STATS: id=0xb0 packets=216 samples=12960 gaps=0 last=[12900..12959]
+[2026-05-13 04:44:41.116] I (22854) RX_STATS: id=0xd0 packets=205 samples=12300 gaps=0 last=[12240..12299]
+[2026-05-13 04:44:41.119] I (22855) wcan_recv_callback: [d0] tick=21192 [12240..12299] 60 items
+[2026-05-13 04:44:41.132] I (22857) wcan_recv_callback: [b0] tick=20833 [12960..13019] 60 items
+[2026-05-13 04:44:41.197] I (22943) wcan_recv_callback: [d0] tick=21283 [12300..12359] 60 items
+[2026-05-13 04:44:41.216] I (22956) wcan_recv_callback: [b0] tick=20929 [13020..13079] 60 items
+[2026-05-13 04:44:41.287] I (23033) wcan_recv_callback: [d0] tick=21374 [12360..12419] 60 items
+[2026-05-13 04:44:41.305] I (23048) wcan_recv_callback: [b0] tick=21023 [13080..13139] 60 items
+[2026-05-13 04:44:41.376] I (23124) wcan_recv_callback: [d0] tick=21465 [12420..12479] 60 items
+[2026-05-13 04:44:41.403] I (23142) wcan_recv_callback: [b0] tick=21117 [13140..13199] 60 items
+[2026-05-13 04:44:41.468] I (23216) wcan_recv_callback: [d0] tick=21557 [12480..12539] 60 items
+[2026-05-13 04:44:41.493] I (23236) wcan_recv_callback: [b0] tick=21211 [13200..13259] 60 items
+[2026-05-13 04:44:41.560] I (23307) wcan_recv_callback: [d0] tick=21648 [12540..12599] 60 items
+[2026-05-13 04:44:41.583] I (23329) wcan_recv_callback: [b0] tick=21305 [13260..13319] 60 items
+[2026-05-13 04:44:41.653] I (23399) wcan_recv_callback: [d0] tick=21740 [12600..12659] 60 items
+[2026-05-13 04:44:41.678] I (23421) wcan_recv_callback: [b0] tick=21400 [13320..13379] 60 items
+[2026-05-13 04:44:41.744] I (23490) wcan_recv_callback: [d0] tick=21831 [12660..12719] 60 items
+[2026-05-13 04:44:41.771] I (23517) wcan_recv_callback: [b0] tick=21493 [13380..13439] 60 items
+[2026-05-13 04:44:41.835] I (23582) wcan_recv_callback: [d0] tick=21923 [12720..12779] 60 items
+[2026-05-13 04:44:41.871] I (23616) wcan_recv_callback: [b0] tick=21588 [13440..13499] 60 items
+[2026-05-13 04:44:41.928] I (23674) wcan_recv_callback: [d0] tick=22015 [12780..12839] 60 items
+[2026-05-13 04:44:41.962] I (23707) wcan_recv_callback: [b0] tick=21682 [13500..13559] 60 items
+[2026-05-13 04:44:41.964] I (23709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1108 status=OK
+[2026-05-13 04:44:42.019] I (23766) wcan_recv_callback: [d0] tick=22107 [12840..12899] 60 items
+[2026-05-13 04:44:42.067] I (23804) wcan_recv_callback: [b0] tick=21778 [13560..13619] 60 items
+[2026-05-13 04:44:42.112] I (23858) RX_STATS: id=0xb0 packets=227 samples=13620 gaps=0 last=[13560..13619]
+[2026-05-13 04:44:42.115] I (23858) RX_STATS: id=0xd0 packets=216 samples=12960 gaps=0 last=[12900..12959]
+[2026-05-13 04:44:42.117] I (23859) wcan_recv_callback: [d0] tick=22198 [12900..12959] 60 items
+[2026-05-13 04:44:42.143] I (23890) wcan_recv_callback: [b0] tick=21870 [13620..13679] 60 items
+[2026-05-13 04:44:42.202] I (23948) wcan_recv_callback: [d0] tick=22289 [12960..13019] 60 items
+[2026-05-13 04:44:42.251] I (23987) wcan_recv_callback: [b0] tick=21964 [13680..13739] 60 items
+[2026-05-13 04:44:42.293] I (24040) wcan_recv_callback: [d0] tick=22381 [13020..13079] 60 items
+[2026-05-13 04:44:42.331] I (24078) wcan_recv_callback: [b0] tick=22057 [13740..13799] 60 items
+[2026-05-13 04:44:42.397] I (24144) wcan_recv_callback: [d0] tick=22485 [13080..13139] 60 items
+[2026-05-13 04:44:42.424] I (24170) wcan_recv_callback: [b0] tick=22151 [13800..13859] 60 items
+[2026-05-13 04:44:42.489] I (24236) wcan_recv_callback: [d0] tick=22577 [13140..13199] 60 items
+[2026-05-13 04:44:42.522] I (24269) wcan_recv_callback: [b0] tick=22245 [13860..13919] 60 items
+[2026-05-13 04:44:42.582] I (24328) wcan_recv_callback: [d0] tick=22669 [13200..13259] 60 items
+[2026-05-13 04:44:42.615] I (24362) wcan_recv_callback: [b0] tick=22339 [13920..13979] 60 items
+[2026-05-13 04:44:42.673] I (24420) wcan_recv_callback: [d0] tick=22761 [13260..13319] 60 items
+[2026-05-13 04:44:42.712] I (24457) wcan_recv_callback: [b0] tick=22434 [13980..14039] 60 items
+[2026-05-13 04:44:42.765] I (24512) wcan_recv_callback: [d0] tick=22852 [13320..13379] 60 items
+[2026-05-13 04:44:42.802] I (24550) wcan_recv_callback: [b0] tick=22528 [14040..14099] 60 items
+[2026-05-13 04:44:42.858] I (24603) wcan_recv_callback: [d0] tick=22944 [13380..13439] 60 items
+[2026-05-13 04:44:42.899] I (24646) wcan_recv_callback: [b0] tick=22624 [14100..14159] 60 items
+[2026-05-13 04:44:42.948] I (24695) wcan_recv_callback: [d0] tick=23036 [13440..13499] 60 items
+[2026-05-13 04:44:42.962] I (24709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1118 status=OK
+[2026-05-13 04:44:42.999] I (24740) wcan_recv_callback: [b0] tick=22718 [14160..14219] 60 items
+[2026-05-13 04:44:43.042] I (24787) wcan_recv_callback: [d0] tick=23128 [13500..13559] 60 items
+[2026-05-13 04:44:43.100] I (24833) wcan_recv_callback: [b0] tick=22811 [14220..14279] 60 items
+[2026-05-13 04:44:43.133] I (24878) RX_STATS: id=0xb0 packets=238 samples=14280 gaps=0 last=[14220..14279]
+[2026-05-13 04:44:43.137] I (24879) RX_STATS: id=0xd0 packets=227 samples=13620 gaps=0 last=[13560..13619]
+[2026-05-13 04:44:43.141] I (24879) wcan_recv_callback: [d0] tick=23219 [13560..13619] 60 items
+[2026-05-13 04:44:43.178] I (24925) wcan_recv_callback: [b0] tick=22905 [14280..14339] 60 items
+[2026-05-13 04:44:43.225] I (24971) wcan_recv_callback: [d0] tick=23311 [13620..13679] 60 items
+[2026-05-13 04:44:43.271] I (25018) wcan_recv_callback: [b0] tick=22999 [14340..14399] 60 items
+[2026-05-13 04:44:43.319] I (25062) wcan_recv_callback: [d0] tick=23403 [13680..13739] 60 items
+[2026-05-13 04:44:43.365] I (25112) wcan_recv_callback: [b0] tick=23091 [14400..14459] 60 items
+[2026-05-13 04:44:43.408] I (25154) wcan_recv_callback: [d0] tick=23495 [13740..13799] 60 items
+[2026-05-13 04:44:43.460] I (25206) wcan_recv_callback: [b0] tick=23186 [14460..14519] 60 items
+[2026-05-13 04:44:43.500] I (25246) wcan_recv_callback: [d0] tick=23587 [13800..13859] 60 items
+[2026-05-13 04:44:43.553] I (25299) wcan_recv_callback: [b0] tick=23279 [14520..14579] 60 items
+[2026-05-13 04:44:43.592] I (25338) wcan_recv_callback: [d0] tick=23679 [13860..13919] 60 items
+[2026-05-13 04:44:43.646] I (25392) wcan_recv_callback: [b0] tick=23373 [14580..14639] 60 items
+[2026-05-13 04:44:43.683] I (25430) wcan_recv_callback: [d0] tick=23770 [13920..13979] 60 items
+[2026-05-13 04:44:43.741] I (25488) wcan_recv_callback: [b0] tick=23467 [14640..14699] 60 items
+[2026-05-13 04:44:43.775] I (25521) wcan_recv_callback: [d0] tick=23862 [13980..14039] 60 items
+[2026-05-13 04:44:43.834] I (25580) wcan_recv_callback: [b0] tick=23561 [14700..14759] 60 items
+[2026-05-13 04:44:43.865] I (25613) wcan_recv_callback: [d0] tick=23954 [14040..14099] 60 items
+[2026-05-13 04:44:43.929] I (25674) wcan_recv_callback: [b0] tick=23653 [14760..14819] 60 items
+[2026-05-13 04:44:43.959] I (25704) wcan_recv_callback: [d0] tick=24045 [14100..14159] 60 items
+[2026-05-13 04:44:43.971] I (25709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1393 status=OK
+[2026-05-13 04:44:44.022] I (25769) wcan_recv_callback: [b0] tick=23746 [14820..14879] 60 items
+[2026-05-13 04:44:44.051] I (25796) wcan_recv_callback: [d0] tick=24137 [14160..14219] 60 items
+[2026-05-13 04:44:44.115] I (25860) wcan_recv_callback: [b0] tick=23840 [14880..14939] 60 items
+[2026-05-13 04:44:44.146] I (25888) RX_STATS: id=0xb0 packets=249 samples=14940 gaps=0 last=[14880..14939]
+[2026-05-13 04:44:44.149] I (25888) RX_STATS: id=0xd0 packets=238 samples=14280 gaps=0 last=[14220..14279]
+[2026-05-13 04:44:44.152] I (25889) wcan_recv_callback: [d0] tick=24229 [14220..14279] 60 items
+[2026-05-13 04:44:44.210] I (25956) wcan_recv_callback: [b0] tick=23934 [14940..14999] 60 items
+[2026-05-13 04:44:44.232] I (25980) wcan_recv_callback: [d0] tick=24320 [14280..14339] 60 items
+[2026-05-13 04:44:44.303] I (26049) wcan_recv_callback: [b0] tick=24026 [15000..15059] 60 items
+[2026-05-13 04:44:44.324] I (26071) wcan_recv_callback: [d0] tick=24412 [14340..14399] 60 items
+[2026-05-13 04:44:44.394] I (26139) wcan_recv_callback: [b0] tick=24119 [15060..15119] 60 items
+[2026-05-13 04:44:44.416] I (26163) wcan_recv_callback: [d0] tick=24504 [14400..14459] 60 items
+[2026-05-13 04:44:44.491] I (26233) wcan_recv_callback: [b0] tick=24213 [15120..15179] 60 items
+[2026-05-13 04:44:44.509] I (26254) wcan_recv_callback: [d0] tick=24595 [14460..14519] 60 items
+[2026-05-13 04:44:44.581] I (26328) wcan_recv_callback: [b0] tick=24308 [15180..15239] 60 items
+[2026-05-13 04:44:44.598] I (26346) wcan_recv_callback: [d0] tick=24687 [14520..14579] 60 items
+[2026-05-13 04:44:44.681] I (26422) wcan_recv_callback: [b0] tick=24402 [15240..15299] 60 items
+[2026-05-13 04:44:44.692] I (26437) wcan_recv_callback: [d0] tick=24778 [14580..14639] 60 items
+[2026-05-13 04:44:44.712] I (26458) HEAP: free=178956 min_free=174276 largest=114688
+[2026-05-13 04:44:44.764] I (26511) MEASURE: airtime_us_total=408 packets_total=34 d_airtime_us=60 d_packets=5 util_per_mille=0
+[2026-05-13 04:44:44.766] I (26512) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=53182 total_runtime=26323018
+[2026-05-13 04:44:44.770] I (26513) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=25814793 total_runtime=26323018
+[2026-05-13 04:44:44.773] I (26513) TASK: name=hello_beacon prio=4 state=2 hwm_bytes=2392 runtime=3277 total_runtime=26323018
+[2026-05-13 04:44:44.776] I (26514) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=6332 total_runtime=26323018
+[2026-05-13 04:44:44.778] I (26515) wcan_recv_callback: [b0] tick=24496 [15300..15359] 60 items
+[2026-05-13 04:44:44.781] I (26516) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2478 total_runtime=26323018
+[2026-05-13 04:44:44.786] I (26517) TASK: name=reg_retry prio=4 state=2 hwm_bytes=2272 runtime=28765 total_runtime=26323018
+[2026-05-13 04:44:44.790] I (26518) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=7916 total_runtime=26323018
+[2026-05-13 04:44:44.792] I (26519) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=183317 total_runtime=26323018
+[2026-05-13 04:44:44.796] I (26520) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2236 runtime=196013 total_runtime=26323018
+[2026-05-13 04:44:44.801] I (26522) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=10030 total_runtime=26323018
+[2026-05-13 04:44:44.804] I (26523) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=26323018
+[2026-05-13 04:44:44.806] I (26524) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=26323018
+[2026-05-13 04:44:44.808] I (26529) wcan_recv_callback: [d0] tick=24870 [14640..14699] 60 items
+[2026-05-13 04:44:44.863] I (26610) wcan_recv_callback: [b0] tick=24590 [15360..15419] 60 items
+[2026-05-13 04:44:44.875] I (26621) wcan_recv_callback: [d0] tick=24962 [14700..14759] 60 items
+[2026-05-13 04:44:44.962] I (26708) wcan_recv_callback: [b0] tick=24685 [15420..15479] 60 items
+[2026-05-13 04:44:44.964] I (26709) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1269 status=OK
+[2026-05-13 04:44:44.967] I (26713) wcan_recv_callback: [d0] tick=25053 [14760..14819] 60 items
+[2026-05-13 04:44:45.053] I (26801) wcan_recv_callback: [b0] tick=24779 [15480..15539] 60 items
+[2026-05-13 04:44:45.058] I (26804) wcan_recv_callback: [d0] tick=25145 [14820..14879] 60 items
+[2026-05-13 04:44:45.149] I (26895) RX_STATS: id=0xb0 packets=260 samples=15600 gaps=0 last=[15540..15599]
+[2026-05-13 04:44:45.152] I (26895) RX_STATS: id=0xd0 packets=248 samples=14880 gaps=0 last=[14820..14879]
+[2026-05-13 04:44:45.157] I (26895) wcan_recv_callback: [b0] tick=24873 [15540..15599] 60 items
+[2026-05-13 04:44:45.159] I (26898) wcan_recv_callback: [d0] tick=25237 [14880..14939] 60 items
+[2026-05-13 04:44:45.245] I (26986) wcan_recv_callback: [b0] tick=24967 [15600..15659] 60 items
+[2026-05-13 04:44:45.250] I (26989) wcan_recv_callback: [d0] tick=25329 [14940..14999] 60 items
+[2026-05-13 04:44:45.333] I (27079) wcan_recv_callback: [d0] tick=25420 [15000..15059] 60 items
+[2026-05-13 04:44:45.336] I (27082) wcan_recv_callback: [b0] tick=25061 [15660..15719] 60 items
+[2026-05-13 04:44:45.424] I (27170) wcan_recv_callback: [d0] tick=25511 [15060..15119] 60 items
+[2026-05-13 04:44:45.439] I (27183) wcan_recv_callback: [b0] tick=25156 [15720..15779] 60 items
+[2026-05-13 04:44:45.528] I (27263) wcan_recv_callback: [d0] tick=25602 [15120..15179] 60 items
+[2026-05-13 04:44:45.538] I (27272) wcan_recv_callback: [b0] tick=25249 [15780..15839] 60 items
+[2026-05-13 04:44:45.607] I (27353) wcan_recv_callback: [d0] tick=25694 [15180..15239] 60 items
+[2026-05-13 04:44:45.628] I (27375) wcan_recv_callback: [b0] tick=25342 [15840..15899] 60 items
+[2026-05-13 04:44:45.698] I (27444) wcan_recv_callback: [d0] tick=25785 [15240..15299] 60 items
+[2026-05-13 04:44:45.721] I (27461) wcan_recv_callback: [b0] tick=25436 [15900..15959] 60 items
+[2026-05-13 04:44:45.788] I (27535) wcan_recv_callback: [d0] tick=25876 [15300..15359] 60 items
+[2026-05-13 04:44:45.808] I (27553) wcan_recv_callback: [b0] tick=25530 [15960..16019] 60 items
+[2026-05-13 04:44:45.879] I (27626) wcan_recv_callback: [d0] tick=25967 [15360..15419] 60 items
+[2026-05-13 04:44:45.906] I (27653) wcan_recv_callback: [b0] tick=25632 [16020..16079] 60 items
+[2026-05-13 04:44:45.963] I (27710) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1106 status=OK
+[2026-05-13 04:44:45.972] I (27718) wcan_recv_callback: [d0] tick=26059 [15420..15479] 60 items
+[2026-05-13 04:44:45.996] I (27743) wcan_recv_callback: [b0] tick=25724 [16080..16139] 60 items
+[2026-05-13 04:44:46.063] I (27810) wcan_recv_callback: [d0] tick=26151 [15480..15539] 60 items
+[2026-05-13 04:44:46.090] I (27837) wcan_recv_callback: [b0] tick=25817 [16140..16199] 60 items
+[2026-05-13 04:44:46.155] I (27901) RX_STATS: id=0xb0 packets=270 samples=16200 gaps=0 last=[16140..16199]
+[2026-05-13 04:44:46.158] I (27902) RX_STATS: id=0xd0 packets=260 samples=15600 gaps=0 last=[15540..15599]
+[2026-05-13 04:44:46.164] I (27902) wcan_recv_callback: [d0] tick=26242 [15540..15599] 60 items
+[2026-05-13 04:44:46.186] I (27930) wcan_recv_callback: [b0] tick=25911 [16200..16259] 60 items
+[2026-05-13 04:44:46.246] I (27993) wcan_recv_callback: [d0] tick=26334 [15600..15659] 60 items
+[2026-05-13 04:44:46.279] I (28026) wcan_recv_callback: [b0] tick=26006 [16260..16319] 60 items
+[2026-05-13 04:44:46.338] I (28085) wcan_recv_callback: [d0] tick=26426 [15660..15719] 60 items
+[2026-05-13 04:44:46.375] I (28122) wcan_recv_callback: [b0] tick=26100 [16320..16379] 60 items
+[2026-05-13 04:44:46.430] I (28177) wcan_recv_callback: [d0] tick=26517 [15720..15779] 60 items
+[2026-05-13 04:44:46.472] I (28217) wcan_recv_callback: [b0] tick=26194 [16380..16439] 60 items
+[2026-05-13 04:44:46.522] I (28268) wcan_recv_callback: [d0] tick=26609 [15780..15839] 60 items
+[2026-05-13 04:44:46.561] I (28307) wcan_recv_callback: [b0] tick=26288 [16440..16499] 60 items
+[2026-05-13 04:44:46.614] I (28360) wcan_recv_callback: [d0] tick=26701 [15840..15899] 60 items
+[2026-05-13 04:44:46.660] I (28407) wcan_recv_callback: [b0] tick=26381 [16500..16559] 60 items
+[2026-05-13 04:44:46.705] I (28452) wcan_recv_callback: [d0] tick=26793 [15900..15959] 60 items
+[2026-05-13 04:44:46.758] I (28503) wcan_recv_callback: [b0] tick=26474 [16560..16619] 60 items
+[2026-05-13 04:44:46.797] I (28543) wcan_recv_callback: [d0] tick=26884 [15960..16019] 60 items
+[2026-05-13 04:44:46.840] I (28587) wcan_recv_callback: [b0] tick=26567 [16620..16679] 60 items
+[2026-05-13 04:44:46.904] I (28635) wcan_recv_callback: [d0] tick=26976 [16020..16079] 60 items
+[2026-05-13 04:44:46.937] I (28684) wcan_recv_callback: [b0] tick=26661 [16680..16739] 60 items
+[2026-05-13 04:44:46.962] I (28710) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1174 status=OK
+[2026-05-13 04:44:46.981] I (28727) wcan_recv_callback: [d0] tick=27068 [16080..16139] 60 items
+[2026-05-13 04:44:47.034] I (28779) wcan_recv_callback: [b0] tick=26755 [16740..16799] 60 items
+[2026-05-13 04:44:47.071] I (28819) wcan_recv_callback: [d0] tick=27160 [16140..16199] 60 items
+[2026-05-13 04:44:47.123] I (28870) wcan_recv_callback: [b0] tick=26849 [16800..16859] 60 items
+[2026-05-13 04:44:47.164] I (28910) RX_STATS: id=0xb0 packets=281 samples=16860 gaps=0 last=[16800..16859]
+[2026-05-13 04:44:47.167] I (28911) RX_STATS: id=0xd0 packets=271 samples=16260 gaps=0 last=[16200..16259]
+[2026-05-13 04:44:47.170] I (28911) wcan_recv_callback: [d0] tick=27251 [16200..16259] 60 items
+[2026-05-13 04:44:47.218] I (28963) wcan_recv_callback: [b0] tick=26943 [16860..16919] 60 items
+[2026-05-13 04:44:47.256] I (29002) wcan_recv_callback: [d0] tick=27343 [16260..16319] 60 items
+[2026-05-13 04:44:47.315] I (29060) wcan_recv_callback: [b0] tick=27037 [16920..16979] 60 items
+[2026-05-13 04:44:47.358] I (29105) wcan_recv_callback: [d0] tick=27446 [16320..16379] 60 items
+[2026-05-13 04:44:47.409] I (29150) wcan_recv_callback: [b0] tick=27130 [16980..17039] 60 items
+[2026-05-13 04:44:47.450] I (29197) wcan_recv_callback: [d0] tick=27538 [16380..16439] 60 items
+[2026-05-13 04:44:47.496] I (29243) wcan_recv_callback: [b0] tick=27224 [17040..17099] 60 items
+[2026-05-13 04:44:47.551] I (29288) wcan_recv_callback: [d0] tick=27629 [16440..16499] 60 items
+[2026-05-13 04:44:47.589] I (29335) wcan_recv_callback: [b0] tick=27317 [17100..17159] 60 items
+[2026-05-13 04:44:47.633] I (29380) wcan_recv_callback: [d0] tick=27721 [16500..16559] 60 items
+[2026-05-13 04:44:47.681] I (29428) wcan_recv_callback: [b0] tick=27409 [17160..17219] 60 items
+[2026-05-13 04:44:47.725] I (29471) wcan_recv_callback: [d0] tick=27812 [16560..16619] 60 items
+[2026-05-13 04:44:47.776] I (29523) wcan_recv_callback: [b0] tick=27503 [17220..17279] 60 items
+[2026-05-13 04:44:47.817] I (29563) wcan_recv_callback: [d0] tick=27904 [16620..16679] 60 items
+[2026-05-13 04:44:47.870] I (29614) wcan_recv_callback: [b0] tick=27595 [17280..17339] 60 items
+[2026-05-13 04:44:47.910] I (29655) wcan_recv_callback: [d0] tick=27996 [16680..16739] 60 items
+[2026-05-13 04:44:47.961] I (29707) wcan_recv_callback: [b0] tick=27688 [17340..17399] 60 items
+[2026-05-13 04:44:47.964] I (29710) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1110 status=OK
+[2026-05-13 04:44:48.003] I (29747) wcan_recv_callback: [d0] tick=28088 [16740..16799] 60 items
+[2026-05-13 04:44:48.061] I (29801) wcan_recv_callback: [b0] tick=27782 [17400..17459] 60 items
+[2026-05-13 04:44:48.095] I (29839) wcan_recv_callback: [d0] tick=28179 [16800..16859] 60 items
+[2026-05-13 04:44:48.161] I (29895) wcan_recv_callback: [b0] tick=27876 [17460..17519] 60 items
+[2026-05-13 04:44:48.185] I (29930) RX_STATS: id=0xb0 packets=292 samples=17520 gaps=0 last=[17460..17519]
+[2026-05-13 04:44:48.192] I (29931) RX_STATS: id=0xd0 packets=282 samples=16920 gaps=0 last=[16860..16919]
+[2026-05-13 04:44:48.199] I (29931) wcan_recv_callback: [d0] tick=28271 [16860..16919] 60 items
+[2026-05-13 04:44:48.249] I (29990) wcan_recv_callback: [b0] tick=27971 [17520..17579] 60 items
+[2026-05-13 04:44:48.275] I (30022) wcan_recv_callback: [d0] tick=28363 [16920..16979] 60 items
+[2026-05-13 04:44:48.336] I (30083) wcan_recv_callback: [b0] tick=28064 [17580..17639] 60 items
+[2026-05-13 04:44:48.367] I (30114) wcan_recv_callback: [d0] tick=28455 [16980..17039] 60 items
+[2026-05-13 04:44:48.432] I (30179) wcan_recv_callback: [b0] tick=28158 [17640..17699] 60 items
+[2026-05-13 04:44:48.458] I (30206) wcan_recv_callback: [d0] tick=28547 [17040..17099] 60 items
+[2026-05-13 04:44:48.523] I (30270) wcan_recv_callback: [b0] tick=28251 [17700..17759] 60 items
+[2026-05-13 04:44:48.555] I (30299) wcan_recv_callback: [d0] tick=28638 [17100..17159] 60 items
+[2026-05-13 04:44:48.616] I (30364) wcan_recv_callback: [b0] tick=28343 [17760..17819] 60 items
+[2026-05-13 04:44:48.647] I (30389) wcan_recv_callback: [d0] tick=28730 [17160..17219] 60 items
+[2026-05-13 04:44:48.710] I (30457) wcan_recv_callback: [b0] tick=28438 [17820..17879] 60 items
+[2026-05-13 04:44:48.733] I (30481) wcan_recv_callback: [d0] tick=28822 [17220..17279] 60 items
+[2026-05-13 04:44:48.803] I (30551) wcan_recv_callback: [b0] tick=28532 [17880..17939] 60 items
+[2026-05-13 04:44:48.835] I (30572) wcan_recv_callback: [d0] tick=28913 [17280..17339] 60 items
+[2026-05-13 04:44:48.899] I (30645) wcan_recv_callback: [b0] tick=28625 [17940..17999] 60 items
+[2026-05-13 04:44:48.917] I (30665) wcan_recv_callback: [d0] tick=29006 [17340..17399] 60 items
+[2026-05-13 04:44:48.964] I (30710) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1117 status=OK
+[2026-05-13 04:44:48.993] I (30739) wcan_recv_callback: [b0] tick=28718 [18000..18059] 60 items
+[2026-05-13 04:44:49.010] I (30757) wcan_recv_callback: [d0] tick=29097 [17400..17459] 60 items
+[2026-05-13 04:44:49.086] I (30831) wcan_recv_callback: [b0] tick=28811 [18060..18119] 60 items
+[2026-05-13 04:44:49.110] I (30849) wcan_recv_callback: [d0] tick=29189 [17460..17519] 60 items
+[2026-05-13 04:44:49.177] I (30923) wcan_recv_callback: [b0] tick=28904 [18120..18179] 60 items
+[2026-05-13 04:44:49.195] I (30940) RX_STATS: id=0xb0 packets=303 samples=18180 gaps=0 last=[18120..18179]
+[2026-05-13 04:44:49.202] I (30941) RX_STATS: id=0xd0 packets=293 samples=17580 gaps=0 last=[17520..17579]
+[2026-05-13 04:44:49.204] I (30941) wcan_recv_callback: [d0] tick=29281 [17520..17579] 60 items
+[2026-05-13 04:44:49.272] I (31018) wcan_recv_callback: [b0] tick=28999 [18180..18239] 60 items
+[2026-05-13 04:44:49.287] I (31032) wcan_recv_callback: [d0] tick=29373 [17580..17639] 60 items
+[2026-05-13 04:44:49.365] I (31113) wcan_recv_callback: [b0] tick=29093 [18240..18299] 60 items
+[2026-05-13 04:44:49.376] I (31124) wcan_recv_callback: [d0] tick=29465 [17640..17699] 60 items
+[2026-05-13 04:44:49.475] I (31206) wcan_recv_callback: [b0] tick=29187 [18300..18359] 60 items
+[2026-05-13 04:44:49.487] I (31215) wcan_recv_callback: [d0] tick=29556 [17700..17759] 60 items
+[2026-05-13 04:44:49.554] I (31302) wcan_recv_callback: [b0] tick=29283 [18360..18419] 60 items
+[2026-05-13 04:44:49.561] I (31307) wcan_recv_callback: [d0] tick=29648 [17760..17819] 60 items
+[2026-05-13 04:44:49.649] I (31396) wcan_recv_callback: [b0] tick=29377 [18420..18479] 60 items
+[2026-05-13 04:44:49.653] I (31399) wcan_recv_callback: [d0] tick=29739 [17820..17879] 60 items
+[2026-05-13 04:44:49.711] I (31458) HEAP: free=178956 min_free=174276 largest=114688
+[2026-05-13 04:44:49.744] I (31491) wcan_recv_callback: [b0] tick=29471 [18480..18539] 60 items
+[2026-05-13 04:44:49.751] I (31493) wcan_recv_callback: [d0] tick=29832 [17880..17939] 60 items
+[2026-05-13 04:44:49.779] I (31525) MEASURE: airtime_us_total=468 packets_total=39 d_airtime_us=60 d_packets=5 util_per_mille=0
+[2026-05-13 04:44:49.782] I (31526) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=66471 total_runtime=31337015
+[2026-05-13 04:44:49.785] I (31527) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=30741605 total_runtime=31337015
+[2026-05-13 04:44:49.789] I (31527) TASK: name=hello_beacon prio=4 state=2 hwm_bytes=2392 runtime=3737 total_runtime=31337015
+[2026-05-13 04:44:49.791] I (31528) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=7361 total_runtime=31337015
+[2026-05-13 04:44:49.794] I (31529) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2850 total_runtime=31337015
+[2026-05-13 04:44:49.796] I (31530) TASK: name=reg_retry prio=4 state=2 hwm_bytes=2272 runtime=34347 total_runtime=31337015
+[2026-05-13 04:44:49.797] I (31531) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=9139 total_runtime=31337015
+[2026-05-13 04:44:49.798] I (31533) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=11032 total_runtime=31337015
+[2026-05-13 04:44:49.800] I (31534) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=202204 total_runtime=31337015
+[2026-05-13 04:44:49.804] I (31535) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2236 runtime=241357 total_runtime=31337015
+[2026-05-13 04:44:49.806] I (31536) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=31337015
+[2026-05-13 04:44:49.807] I (31537) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=31337015
+[2026-05-13 04:44:49.836] I (31583) wcan_recv_callback: [d0] tick=29922 [17940..17999] 60 items
+[2026-05-13 04:44:49.838] I (31586) wcan_recv_callback: [b0] tick=29565 [18540..18599] 60 items
+[2026-05-13 04:44:49.931] I (31675) wcan_recv_callback: [d0] tick=30013 [18000..18059] 60 items
+[2026-05-13 04:44:49.933] I (31678) wcan_recv_callback: [b0] tick=29658 [18600..18659] 60 items
+[2026-05-13 04:44:49.962] I (31710) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1139 status=OK
+[2026-05-13 04:44:50.021] I (31766) wcan_recv_callback: [d0] tick=30104 [18060..18119] 60 items
+[2026-05-13 04:44:50.031] I (31775) wcan_recv_callback: [b0] tick=29752 [18660..18719] 60 items
+[2026-05-13 04:44:50.107] I (31855) wcan_recv_callback: [d0] tick=30196 [18120..18179] 60 items
+[2026-05-13 04:44:50.128] I (31871) wcan_recv_callback: [b0] tick=29846 [18720..18779] 60 items
+[2026-05-13 04:44:50.200] I (31945) RX_STATS: id=0xb0 packets=313 samples=18780 gaps=0 last=[18720..18779]
+[2026-05-13 04:44:50.203] I (31945) RX_STATS: id=0xd0 packets=304 samples=18240 gaps=0 last=[18180..18239]
+[2026-05-13 04:44:50.208] I (31946) wcan_recv_callback: [d0] tick=30286 [18180..18239] 60 items
+[2026-05-13 04:44:50.214] I (31961) wcan_recv_callback: [b0] tick=29940 [18780..18839] 60 items
+[2026-05-13 04:44:50.289] I (32036) wcan_recv_callback: [d0] tick=30377 [18240..18299] 60 items
+[2026-05-13 04:44:50.308] I (32055) wcan_recv_callback: [b0] tick=30034 [18840..18899] 60 items
+[2026-05-13 04:44:50.382] I (32128) wcan_recv_callback: [d0] tick=30469 [18300..18359] 60 items
+[2026-05-13 04:44:50.402] I (32148) wcan_recv_callback: [b0] tick=30129 [18900..18959] 60 items
+[2026-05-13 04:44:50.475] I (32220) wcan_recv_callback: [d0] tick=30561 [18360..18419] 60 items
+[2026-05-13 04:44:50.495] I (32242) wcan_recv_callback: [b0] tick=30222 [18960..19019] 60 items
+[2026-05-13 04:44:50.565] I (32312) wcan_recv_callback: [d0] tick=30653 [18420..18479] 60 items
+[2026-05-13 04:44:50.589] I (32337) wcan_recv_callback: [b0] tick=30316 [19020..19079] 60 items
+[2026-05-13 04:44:50.658] I (32404) wcan_recv_callback: [d0] tick=30745 [18480..18539] 60 items
+[2026-05-13 04:44:50.685] I (32432) wcan_recv_callback: [b0] tick=30410 [19080..19139] 60 items
+[2026-05-13 04:44:50.749] I (32495) wcan_recv_callback: [d0] tick=30836 [18540..18599] 60 items
+[2026-05-13 04:44:50.779] I (32526) wcan_recv_callback: [b0] tick=30505 [19140..19199] 60 items
+[2026-05-13 04:44:50.841] I (32587) wcan_recv_callback: [d0] tick=30928 [18600..18659] 60 items
+[2026-05-13 04:44:50.873] I (32620) wcan_recv_callback: [b0] tick=30600 [19200..19259] 60 items
+[2026-05-13 04:44:50.940] I (32679) wcan_recv_callback: [d0] tick=31019 [18660..18719] 60 items
+[2026-05-13 04:44:50.965] I (32710) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1111 status=OK
+[2026-05-13 04:44:50.977] I (32722) wcan_recv_callback: [b0] tick=30702 [19260..19319] 60 items
+[2026-05-13 04:44:51.022] I (32770) wcan_recv_callback: [d0] tick=31110 [18720..18779] 60 items
+[2026-05-13 04:44:51.066] I (32814) wcan_recv_callback: [b0] tick=30795 [19320..19379] 60 items
+[2026-05-13 04:44:51.114] I (32861) wcan_recv_callback: [d0] tick=31202 [18780..18839] 60 items
+[2026-05-13 04:44:51.162] I (32908) wcan_recv_callback: [b0] tick=30889 [19380..19439] 60 items
+[2026-05-13 04:44:51.207] I (32953) RX_STATS: id=0xb0 packets=324 samples=19440 gaps=0 last=[19380..19439]
+[2026-05-13 04:44:51.210] I (32954) RX_STATS: id=0xd0 packets=315 samples=18900 gaps=0 last=[18840..18899]
+[2026-05-13 04:44:51.212] I (32954) wcan_recv_callback: [d0] tick=31294 [18840..18899] 60 items
+[2026-05-13 04:44:51.256] I (33002) wcan_recv_callback: [b0] tick=30983 [19440..19499] 60 items
+[2026-05-13 04:44:51.299] I (33044) wcan_recv_callback: [d0] tick=31385 [18900..18959] 60 items
+[2026-05-13 04:44:51.352] I (33099) wcan_recv_callback: [b0] tick=31078 [19500..19559] 60 items
+[2026-05-13 04:44:51.389] I (33137) wcan_recv_callback: [d0] tick=31477 [18960..19019] 60 items
+[2026-05-13 04:44:51.442] I (33190) wcan_recv_callback: [b0] tick=31171 [19560..19619] 60 items
+
+# Monitor stopped: 2026-05-13T04:44:51.442934

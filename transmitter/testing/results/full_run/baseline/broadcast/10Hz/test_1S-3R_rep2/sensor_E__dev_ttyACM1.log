@@ -1,0 +1,1505 @@
+# Monitor started: 2026-05-13T00:51:46.511971
+# Port: /dev/ttyACM1, Baud: 921600, Duration: 30s
+
+# UART boot config: wcan v=1 role=sensor transport=BROADCAST base=0xe0 count=1 hz=10 linger=100
+[2026-05-13 00:51:46.512] ESP-ROM:esp32c3-api1-20210207
+[2026-05-13 00:51:46.513] Build:Feb  7 2021
+[2026-05-13 00:51:46.514] rst:0x15 (USB_UART_CHIP_RESET),boot:0xd (SPI_FAST_FLASH_BOOT)
+[2026-05-13 00:51:46.514] Saved PC:0x40384eae
+[2026-05-13 00:51:46.515] SPIWP:0xee
+[2026-05-13 00:51:46.515] mode:DIO, clock div:1
+[2026-05-13 00:51:46.516] load:0x3fcd5820,len:0x1574
+[2026-05-13 00:51:46.516] load:0x403cc710,len:0xc30
+[2026-05-13 00:51:46.516] load:0x403ce710,len:0x2fa0
+[2026-05-13 00:51:46.516] entry 0x403cc71a
+[2026-05-13 00:51:46.517] I (24) boot: ESP-IDF v5.4.1 2nd stage bootloader
+[2026-05-13 00:51:46.517] I (24) boot: compile time May 12 2026 19:48:29
+[2026-05-13 00:51:46.517] I (24) boot: chip revision: v0.4
+[2026-05-13 00:51:46.517] I (25) boot: efuse block revision: v1.3
+[2026-05-13 00:51:46.517] I (25) boot.esp32c3: SPI Speed      : 80MHz
+[2026-05-13 00:51:46.518] I (25) boot.esp32c3: SPI Mode       : DIO
+[2026-05-13 00:51:46.518] I (26) boot.esp32c3: SPI Flash Size : 2MB
+[2026-05-13 00:51:46.518] I (26) boot: Enabling RNG early entropy source...
+[2026-05-13 00:51:46.518] I (27) boot: Partition Table:
+[2026-05-13 00:51:46.518] I (27) boot: ## Label            Usage          Type ST Offset   Length
+[2026-05-13 00:51:46.519] I (28) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+[2026-05-13 00:51:46.519] I (29) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+[2026-05-13 00:51:46.519] I (29) boot:  2 factory          factory app      00 00 00010000 00100000
+[2026-05-13 00:51:46.519] I (30) boot: End of partition table
+[2026-05-13 00:51:46.520] I (31) esp_image: segment 0: paddr=00010020 vaddr=3c0a0020 size=19ea0h (106144) map
+[2026-05-13 00:51:46.520] I (49) esp_image: segment 1: paddr=00029ec8 vaddr=3fc95800 size=02db0h ( 11696) load
+[2026-05-13 00:51:46.520] I (51) esp_image: segment 2: paddr=0002cc80 vaddr=40380000 size=03398h ( 13208) load
+[2026-05-13 00:51:46.521] I (54) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=93210h (602640) map
+[2026-05-13 00:51:46.521] I (150) esp_image: segment 4: paddr=000c3238 vaddr=40383398 size=12310h ( 74512) load
+[2026-05-13 00:51:46.522] I (164) esp_image: segment 5: paddr=000d5550 vaddr=50000200 size=0001ch (    28) load
+[2026-05-13 00:51:46.522] I (171) boot: Loaded app from partition at offset 0x10000
+[2026-05-13 00:51:46.522] I (171) boot: Disabling RNG early entropy source...
+[2026-05-13 00:51:46.522] I (173) cpu_start: Unicore app
+[2026-05-13 00:51:46.522] I (181) cpu_start: Pro cpu start user code
+[2026-05-13 00:51:46.522] I (181) cpu_start: cpu freq: 160000000 Hz
+[2026-05-13 00:51:46.523] I (182) app_init: Application information:
+[2026-05-13 00:51:46.523] I (182) app_init: Project name:     sensor_acquirer
+[2026-05-13 00:51:46.523] I (182) app_init: App version:      v1.0-60-gb67991a-dirty
+[2026-05-13 00:51:46.523] I (183) app_init: Compile time:     May 12 2026 19:48:20
+[2026-05-13 00:51:46.524] I (183) app_init: ELF file SHA256:  fd27e32a6...
+[2026-05-13 00:51:46.524] I (184) app_init: ESP-IDF:          v5.4.1
+[2026-05-13 00:51:46.524] I (184) efuse_init: Min chip rev:     v0.3
+[2026-05-13 00:51:46.524] I (185) efuse_init: Max chip rev:     v1.99
+[2026-05-13 00:51:46.524] I (185) efuse_init: Chip rev:         v0.4
+[2026-05-13 00:51:46.525] I (186) heap_init: Initializing. RAM available for dynamic allocation:
+[2026-05-13 00:51:46.525] I (187) heap_init: At 3FC9D210 len 00022DF0 (139 KiB): RAM
+[2026-05-13 00:51:46.525] I (187) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM
+[2026-05-13 00:51:46.526] I (188) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM
+[2026-05-13 00:51:46.526] I (189) heap_init: At 5000021C len 00001DCC (7 KiB): RTCRAM
+[2026-05-13 00:51:46.526] I (190) spi_flash: detected chip: generic
+[2026-05-13 00:51:46.526] I (190) spi_flash: flash io: dio
+[2026-05-13 00:51:46.527] W (190) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+[2026-05-13 00:51:46.527] I (192) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[2026-05-13 00:51:46.527] I (193) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[2026-05-13 00:51:46.528] I (194) main_task: Started on CPU0
+[2026-05-13 00:51:46.528] I (194) main_task: Calling app_main()
+[2026-05-13 00:51:46.528] I (194) BOOT_TS: us=5200
+[2026-05-13 00:51:46.528] I (195) BOOT_CONFIG: waiting for UART config
+[2026-05-13 00:51:46.528] WCAN_CFG_WAIT v=1
+# UART boot config sent: wcan v=1 role=sensor transport=BROADCAST base=0xe0 count=1 hz=10 linger=100
+[2026-05-13 00:51:46.529] WCAN_CFG_WAIT v=1
+[2026-05-13 00:51:48.030] I (1717) BOOT_CONFIG: accepted role=sensor transport=BROADCAST
+[2026-05-13 00:51:48.031] I (1717) BOOT_CONFIG: sensor base=0xe0 count=1 hz=10 linger=100
+[2026-05-13 00:51:48.032] WCAN_CFG_ACK
+# Waiting for coordinated capture start
+[2026-05-13 00:51:48.698] WCAN_CFG_ACK
+[2026-05-13 00:51:48.713] I (1721) pp: pp rom version: 9387209
+[2026-05-13 00:51:48.725] I (1722) net80211: net80211 rom version: 9387209
+[2026-05-13 00:51:48.732] I (1724) wifi:wifi driver task: 3fca73c8, prio:23, stack:6656, core=0
+[2026-05-13 00:51:48.734] I (1728) wifi:wifi firmware version: 79fa3f41ba
+[2026-05-13 00:51:48.737] I (1728) wifi:wifi certification version: v7.0
+[2026-05-13 00:51:48.742] I (1728) wifi:config NVS flash: enabled
+[2026-05-13 00:51:48.745] I (1728) wifi:config nano formatting: disabled
+[2026-05-13 00:51:48.747] I (1729) wifi:Init data frame dynamic rx buffer num: 32
+[2026-05-13 00:51:48.752] I (1729) wifi:Init static rx mgmt buffer num: 5
+[2026-05-13 00:51:48.756] I (1730) wifi:Init management short buffer num: 32
+[2026-05-13 00:51:48.761] I (1730) wifi:Init dynamic tx buffer num: 32
+[2026-05-13 00:51:48.764] I (1731) wifi:Init static tx FG buffer num: 2
+[2026-05-13 00:51:48.766] I (1731) wifi:Init static rx buffer size: 1600
+[2026-05-13 00:51:48.769] I (1732) wifi:Init static rx buffer num: 10
+[2026-05-13 00:51:48.773] I (1732) wifi:Init dynamic rx buffer num: 32
+[2026-05-13 00:51:48.773] I (1733) wifi_init: rx ba win: 6
+[2026-05-13 00:51:48.776] I (1734) wifi_init: accept mbox: 6
+[2026-05-13 00:51:48.778] I (1734) wifi_init: tcpip mbox: 32
+[2026-05-13 00:51:48.778] I (1734) wifi_init: udp mbox: 6
+[2026-05-13 00:51:48.782] I (1734) wifi_init: tcp mbox: 6
+[2026-05-13 00:51:48.785] I (1735) wifi_init: tcp tx win: 5760
+[2026-05-13 00:51:48.788] I (1735) wifi_init: tcp rx win: 5760
+[2026-05-13 00:51:48.790] I (1736) wifi_init: tcp mss: 1440
+[2026-05-13 00:51:48.793] I (1736) wifi_init: WiFi IRAM OP enabled
+[2026-05-13 00:51:48.795] I (1736) wifi_init: WiFi RX IRAM OP enabled
+[2026-05-13 00:51:48.802] I (1737) phy_init: phy_version 1200,2b7123f9,Feb 18 2025,15:22:21
+[2026-05-13 00:51:48.805] I (1772) wifi:mode : sta (74:4d:bd:e1:d5:b8)
+[2026-05-13 00:51:48.806] I (1773) wifi:enable tsf
+[2026-05-13 00:51:48.809] I (1774) MAIN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 00:51:48.812] I (1775) SENSOR_APP: SENSOR mode - CAN ID: 0xe0 (count=1, linger=100 ms, hz=10)
+[2026-05-13 00:51:48.815] I (1775) SENSOR_APP: Sensor CAN ID[0] = 0xe0
+[2026-05-13 00:51:48.817] I (1775) SENSOR_APP: Startup jitter: 380 ms
+[2026-05-13 00:51:48.817] I (2155) ESPNOW: espnow [version: 2.0] init
+[2026-05-13 00:51:48.819] I (2155) WCAN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 00:51:48.820] I (2156) SEND: Send processing task started
+[2026-05-13 00:51:48.821] I (2156) CAN_PROC_0: CAN processing task 0 started
+[2026-05-13 00:51:48.824] I (2156) HEAP: free=182056 min_free=182056 largest=114688
+[2026-05-13 00:51:48.826] I (2157) WCAN: WCAN initialized
+[2026-05-13 00:51:48.827] I (2157) read_data_task: read_data_task started with 1 CAN ID(s) at 10 Hz
+[2026-05-13 00:51:48.827] I (2158) read_data_task: [0xe0] 0
+[2026-05-13 00:51:48.828] I (2158) main_task: Returned from app_main()
+[2026-05-13 00:51:48.828] I (2258) CAN_PROC_0: 0x000000e0 batch 1 [0..0] at (2064)
+[2026-05-13 00:51:48.828] I (2259) read_data_task: [0xe0] 1
+[2026-05-13 00:51:48.829] I (2259) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:48.829] I (2261) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:48.830] W (2262) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:48.830] W (2268) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:48.830] I (2359) read_data_task: [0xe0] 2
+[2026-05-13 00:51:48.831] I (2362) CAN_PROC_0: 0x000000e0 batch 2 [1..2] at (2168)
+[2026-05-13 00:51:48.831] I (2363) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:48.831] I (2364) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:48.831] W (2365) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:48.832] W (2366) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:48.832] I (2459) read_data_task: [0xe0] 3
+[2026-05-13 00:51:48.871] I (2559) CAN_PROC_0: 0x000000e0 batch 1 [3..3] at (2365)
+[2026-05-13 00:51:48.872] I (2559) read_data_task: [0xe0] 4
+[2026-05-13 00:51:48.872] I (2560) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:48.877] I (2561) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:48.879] W (2562) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:48.880] W (2564) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:48.881] W (2565) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:48.973] I (2660) read_data_task: [0xe0] 5
+[2026-05-13 00:51:48.978] I (2662) CAN_PROC_0: 0x000000e0 batch 2 [4..5] at (2468)
+[2026-05-13 00:51:48.993] I (2663) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:49.004] I (2664) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:49.005] W (2665) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.006] W (2666) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.073] I (2760) read_data_task: [0xe0] 6
+[2026-05-13 00:51:49.175] I (2860) CAN_PROC_0: 0x000000e0 batch 1 [6..6] at (2666)
+[2026-05-13 00:51:49.183] I (2861) read_data_task: [0xe0] 7
+[2026-05-13 00:51:49.201] I (2861) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:49.208] I (2862) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:49.209] W (2863) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.209] W (2864) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.274] I (2961) read_data_task: [0xe0] 8
+[2026-05-13 00:51:49.276] I (2963) CAN_PROC_0: 0x000000e0 batch 2 [7..8] at (2769)
+[2026-05-13 00:51:49.284] I (2964) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:49.299] I (2966) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:49.307] W (2967) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.308] W (2968) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.374] I (3061) read_data_task: [0xe0] 9
+[2026-05-13 00:51:49.474] I (3161) CAN_PROC_0: 0x000000e0 batch 1 [9..9] at (2967)
+[2026-05-13 00:51:49.485] I (3161) read_data_task: [0xe0] 10
+[2026-05-13 00:51:49.497] I (3162) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:49.503] I (3163) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:49.504] W (3164) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.505] W (3165) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.575] I (3262) read_data_task: [0xe0] 11
+[2026-05-13 00:51:49.577] I (3264) CAN_PROC_0: 0x000000e0 batch 2 [10..11] at (3070)
+[2026-05-13 00:51:49.589] I (3265) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:49.604] I (3266) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:49.618] W (3267) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.625] W (3268) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.675] I (3362) read_data_task: [0xe0] 12
+[2026-05-13 00:51:49.779] I (3462) CAN_PROC_0: 0x000000e0 batch 1 [12..12] at (3268)
+[2026-05-13 00:51:49.791] I (3463) read_data_task: [0xe0] 13
+[2026-05-13 00:51:49.804] I (3463) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:49.805] I (3464) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:49.806] W (3465) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.807] W (3466) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.876] I (3563) read_data_task: [0xe0] 14
+[2026-05-13 00:51:49.878] I (3565) CAN_PROC_0: 0x000000e0 batch 2 [13..14] at (3371)
+[2026-05-13 00:51:49.897] I (3566) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:49.906] I (3567) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:49.907] W (3568) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.908] W (3569) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:49.976] I (3663) read_data_task: [0xe0] 15
+[2026-05-13 00:51:50.077] I (3763) CAN_PROC_0: 0x000000e0 batch 1 [15..15] at (3569)
+[2026-05-13 00:51:50.084] I (3764) read_data_task: [0xe0] 16
+[2026-05-13 00:51:50.095] I (3765) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:50.108] I (3766) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:50.108] W (3767) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.109] W (3768) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.177] I (3864) read_data_task: [0xe0] 17
+[2026-05-13 00:51:50.183] I (3867) CAN_PROC_0: 0x000000e0 batch 2 [16..17] at (3673)
+[2026-05-13 00:51:50.196] I (3868) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:50.209] I (3869) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:50.211] W (3870) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.212] W (3871) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.277] I (3964) read_data_task: [0xe0] 18
+[2026-05-13 00:51:50.383] I (4064) CAN_PROC_0: 0x000000e0 batch 1 [18..18] at (3870)
+[2026-05-13 00:51:50.391] I (4064) read_data_task: [0xe0] 19
+[2026-05-13 00:51:50.400] I (4065) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:50.408] I (4066) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:50.409] W (4067) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.410] W (4068) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.478] I (4165) read_data_task: [0xe0] 20
+[2026-05-13 00:51:50.480] I (4167) CAN_PROC_0: 0x000000e0 batch 2 [19..20] at (3973)
+[2026-05-13 00:51:50.500] I (4168) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:50.504] I (4170) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:50.505] W (4171) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.506] W (4174) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.577] I (4265) read_data_task: [0xe0] 21
+[2026-05-13 00:51:50.678] I (4365) CAN_PROC_0: 0x000000e0 batch 1 [21..21] at (4171)
+[2026-05-13 00:51:50.685] I (4365) read_data_task: [0xe0] 22
+[2026-05-13 00:51:50.697] I (4366) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:50.711] I (4367) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:50.724] W (4368) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.729] W (4369) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.779] I (4466) read_data_task: [0xe0] 23
+[2026-05-13 00:51:50.781] I (4468) CAN_PROC_0: 0x000000e0 batch 2 [22..23] at (4274)
+[2026-05-13 00:51:50.796] I (4469) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:50.807] I (4470) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:50.811] W (4471) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.812] W (4472) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:50.879] I (4566) read_data_task: [0xe0] 24
+[2026-05-13 00:51:50.979] I (4666) CAN_PROC_0: 0x000000e0 batch 1 [24..24] at (4472)
+[2026-05-13 00:51:50.980] I (4666) read_data_task: [0xe0] 25
+[2026-05-13 00:51:50.992] I (4669) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:51.002] I (4671) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:51.012] W (4672) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.013] W (4673) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.079] I (4767) read_data_task: [0xe0] 26
+[2026-05-13 00:51:51.090] I (4771) CAN_PROC_0: 0x000000e0 batch 2 [25..26] at (4577)
+[2026-05-13 00:51:51.101] I (4772) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:51.112] I (4773) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:51.114] W (4774) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.115] W (4775) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.180] I (4867) read_data_task: [0xe0] 27
+[2026-05-13 00:51:51.296] I (4967) CAN_PROC_0: 0x000000e0 batch 1 [27..27] at (4773)
+[2026-05-13 00:51:51.303] I (4967) read_data_task: [0xe0] 28
+[2026-05-13 00:51:51.308] I (4968) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:51.312] I (4969) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:51.315] W (4970) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.318] W (4971) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.381] I (5068) read_data_task: [0xe0] 29
+[2026-05-13 00:51:51.383] I (5070) CAN_PROC_0: 0x000000e0 batch 2 [28..29] at (4876)
+[2026-05-13 00:51:51.394] I (5071) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:51.409] I (5072) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:51.412] W (5073) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.413] W (5074) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.481] I (5168) read_data_task: [0xe0] 30
+[2026-05-13 00:51:51.582] I (5268) CAN_PROC_0: 0x000000e0 batch 1 [30..30] at (5074)
+[2026-05-13 00:51:51.590] I (5269) read_data_task: [0xe0] 31
+[2026-05-13 00:51:51.601] I (5269) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:51.612] I (5270) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:51.613] W (5271) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.614] W (5272) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.682] I (5369) read_data_task: [0xe0] 32
+[2026-05-13 00:51:51.687] I (5371) CAN_PROC_0: 0x000000e0 batch 2 [31..32] at (5177)
+[2026-05-13 00:51:51.695] I (5372) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:51.710] I (5374) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:51.730] W (5374) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.737] W (5375) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.782] I (5469) read_data_task: [0xe0] 33
+[2026-05-13 00:51:51.886] I (5569) CAN_PROC_0: 0x000000e0 batch 1 [33..33] at (5375)
+[2026-05-13 00:51:51.895] I (5569) read_data_task: [0xe0] 34
+[2026-05-13 00:51:51.906] I (5570) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:51.915] I (5571) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:51.918] W (5572) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.919] W (5573) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:51.983] I (5670) read_data_task: [0xe0] 35
+[2026-05-13 00:51:51.990] I (5672) CAN_PROC_0: 0x000000e0 batch 2 [34..35] at (5478)
+[2026-05-13 00:51:52.000] I (5673) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:52.013] I (5674) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:52.018] W (5675) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.019] W (5676) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.083] I (5770) read_data_task: [0xe0] 36
+[2026-05-13 00:51:52.184] I (5870) CAN_PROC_0: 0x000000e0 batch 1 [36..36] at (5676)
+[2026-05-13 00:51:52.192] I (5871) read_data_task: [0xe0] 37
+[2026-05-13 00:51:52.208] I (5871) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:52.215] I (5872) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:52.216] W (5873) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.217] W (5874) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.284] I (5971) read_data_task: [0xe0] 38
+[2026-05-13 00:51:52.288] I (5973) CAN_PROC_0: 0x000000e0 batch 2 [37..38] at (5779)
+[2026-05-13 00:51:52.299] I (5974) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:52.315] I (5975) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:52.318] W (5976) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.319] W (5977) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.384] I (6071) read_data_task: [0xe0] 39
+[2026-05-13 00:51:52.491] I (6171) CAN_PROC_0: 0x000000e0 batch 1 [39..39] at (5977)
+[2026-05-13 00:51:52.500] I (6172) read_data_task: [0xe0] 40
+[2026-05-13 00:51:52.511] I (6172) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:52.513] I (6173) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:52.514] W (6174) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.515] W (6175) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.585] I (6272) read_data_task: [0xe0] 41
+[2026-05-13 00:51:52.587] I (6274) CAN_PROC_0: 0x000000e0 batch 2 [40..41] at (6080)
+[2026-05-13 00:51:52.606] I (6275) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:52.613] I (6276) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:52.615] W (6277) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.616] W (6278) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.685] I (6372) read_data_task: [0xe0] 42
+[2026-05-13 00:51:52.786] I (6472) CAN_PROC_0: 0x000000e0 batch 1 [42..42] at (6278)
+[2026-05-13 00:51:52.797] I (6473) read_data_task: [0xe0] 43
+[2026-05-13 00:51:52.813] I (6473) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:52.829] I (6474) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:52.831] W (6475) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.833] W (6476) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.886] I (6573) read_data_task: [0xe0] 44
+[2026-05-13 00:51:52.891] I (6575) CAN_PROC_0: 0x000000e0 batch 2 [43..44] at (6381)
+[2026-05-13 00:51:52.904] I (6576) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:52.913] I (6577) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:52.917] W (6578) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.919] W (6579) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:52.986] I (6673) read_data_task: [0xe0] 45
+[2026-05-13 00:51:53.094] I (6773) CAN_PROC_0: 0x000000e0 batch 1 [45..45] at (6579)
+[2026-05-13 00:51:53.111] I (6774) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:53.115] I (6774) read_data_task: [0xe0] 46
+[2026-05-13 00:51:53.119] I (6775) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:53.120] W (6776) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.122] W (6777) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.187] I (6874) read_data_task: [0xe0] 47
+[2026-05-13 00:51:53.196] I (6876) CAN_PROC_0: 0x000000e0 batch 2 [46..47] at (6682)
+[2026-05-13 00:51:53.212] I (6877) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:53.221] I (6878) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:53.222] W (6879) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.223] W (6880) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.287] I (6974) read_data_task: [0xe0] 48
+[2026-05-13 00:51:53.388] I (7074) CAN_PROC_0: 0x000000e0 batch 1 [48..48] at (6880)
+[2026-05-13 00:51:53.401] I (7075) read_data_task: [0xe0] 49
+[2026-05-13 00:51:53.412] I (7075) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:53.419] I (7076) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:53.419] W (7077) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.420] W (7078) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.470] I (7157) HEAP: free=178740 min_free=174168 largest=114688
+[2026-05-13 00:51:53.472] I (7157) MEASURE: airtime_us_total=641 packets_total=33 d_airtime_us=641 d_packets=33 util_per_mille=0
+[2026-05-13 00:51:53.474] I (7159) TASK: name=measure prio=1 state=0 hwm_bytes=1312 runtime=11 total_runtime=6969378
+[2026-05-13 00:51:53.475] I (7159) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=6733833 total_runtime=6969378
+[2026-05-13 00:51:53.477] I (7159) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2348 runtime=21823 total_runtime=6969378
+[2026-05-13 00:51:53.479] I (7161) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=1828 total_runtime=6969378
+[2026-05-13 00:51:53.480] I (7162) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=746 total_runtime=6969378
+[2026-05-13 00:51:53.482] I (7163) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=76207 total_runtime=6969378
+[2026-05-13 00:51:53.484] I (7164) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=6969378
+[2026-05-13 00:51:53.485] I (7165) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=7374 total_runtime=6969378
+[2026-05-13 00:51:53.487] I (7166) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=101591 total_runtime=6969378
+[2026-05-13 00:51:53.489] I (7167) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=7647 total_runtime=6969378
+[2026-05-13 00:51:53.491] I (7168) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=6969378
+[2026-05-13 00:51:53.499] I (7175) read_data_task: [0xe0] 50
+[2026-05-13 00:51:53.507] I (7177) CAN_PROC_0: 0x000000e0 batch 2 [49..50] at (6983)
+[2026-05-13 00:51:53.508] I (7178) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:53.509] I (7179) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:53.510] W (7180) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.510] W (7181) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.588] I (7275) read_data_task: [0xe0] 51
+[2026-05-13 00:51:53.687] I (7375) CAN_PROC_0: 0x000000e0 batch 1 [51..51] at (7181)
+[2026-05-13 00:51:53.688] I (7376) read_data_task: [0xe0] 52
+[2026-05-13 00:51:53.688] I (7376) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:53.692] I (7377) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:53.695] W (7378) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.696] W (7379) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.789] I (7476) read_data_task: [0xe0] 53
+[2026-05-13 00:51:53.791] I (7478) CAN_PROC_0: 0x000000e0 batch 2 [52..53] at (7284)
+[2026-05-13 00:51:53.802] I (7479) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:53.813] I (7480) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:53.817] W (7481) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.818] W (7482) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:53.888] I (7576) read_data_task: [0xe0] 54
+[2026-05-13 00:51:53.993] I (7676) CAN_PROC_0: 0x000000e0 batch 1 [54..54] at (7482)
+[2026-05-13 00:51:54.008] I (7677) read_data_task: [0xe0] 55
+[2026-05-13 00:51:54.019] I (7677) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:54.021] I (7678) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:54.022] W (7679) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.023] W (7680) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.090] I (7777) read_data_task: [0xe0] 56
+[2026-05-13 00:51:54.101] I (7779) CAN_PROC_0: 0x000000e0 batch 2 [55..56] at (7585)
+[2026-05-13 00:51:54.105] I (7780) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:54.122] I (7781) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:54.125] W (7782) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.126] W (7783) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.190] I (7877) read_data_task: [0xe0] 57
+[2026-05-13 00:51:54.292] I (7977) CAN_PROC_0: 0x000000e0 batch 1 [57..57] at (7783)
+[2026-05-13 00:51:54.306] I (7977) read_data_task: [0xe0] 58
+[2026-05-13 00:51:54.314] I (7978) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:54.318] I (7979) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:54.319] W (7980) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.320] W (7981) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.391] I (8078) read_data_task: [0xe0] 59
+[2026-05-13 00:51:54.397] I (8080) CAN_PROC_0: 0x000000e0 batch 2 [58..59] at (7886)
+[2026-05-13 00:51:54.412] I (8081) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:54.421] I (8082) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:54.423] W (8083) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.423] W (8084) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.491] I (8178) read_data_task: [0xe0] 60
+[2026-05-13 00:51:54.591] I (8278) CAN_PROC_0: 0x000000e0 batch 1 [60..60] at (8084)
+[2026-05-13 00:51:54.591] I (8279) read_data_task: [0xe0] 61
+[2026-05-13 00:51:54.593] I (8279) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:54.596] I (8281) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:54.599] W (8282) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.600] W (8283) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.691] I (8379) read_data_task: [0xe0] 62
+[2026-05-13 00:51:54.693] I (8381) CAN_PROC_0: 0x000000e0 batch 2 [61..62] at (8187)
+[2026-05-13 00:51:54.694] I (8382) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:54.699] I (8383) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:54.700] W (8384) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.701] W (8385) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.791] I (8479) read_data_task: [0xe0] 63
+[2026-05-13 00:51:54.892] I (8579) CAN_PROC_0: 0x000000e0 batch 1 [63..63] at (8385)
+[2026-05-13 00:51:54.892] I (8579) read_data_task: [0xe0] 64
+[2026-05-13 00:51:54.894] I (8580) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:54.901] I (8581) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:54.910] W (8582) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.911] W (8583) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:54.993] I (8680) read_data_task: [0xe0] 65
+[2026-05-13 00:51:55.001] I (8682) CAN_PROC_0: 0x000000e0 batch 2 [64..65] at (8488)
+[2026-05-13 00:51:55.014] I (8683) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:55.026] I (8684) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:55.027] W (8685) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.029] W (8686) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.092] I (8780) read_data_task: [0xe0] 66
+[2026-05-13 00:51:55.200] I (8880) CAN_PROC_0: 0x000000e0 batch 1 [66..66] at (8686)
+[2026-05-13 00:51:55.214] I (8881) read_data_task: [0xe0] 67
+[2026-05-13 00:51:55.222] I (8881) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:55.224] I (8885) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:55.225] W (8885) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.226] W (8887) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.294] I (8981) read_data_task: [0xe0] 68
+[2026-05-13 00:51:55.299] I (8985) CAN_PROC_0: 0x000000e0 batch 2 [67..68] at (8791)
+[2026-05-13 00:51:55.313] I (8987) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:55.327] I (8989) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:55.329] W (8990) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.330] W (8991) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.397] I (9081) read_data_task: [0xe0] 69
+[2026-05-13 00:51:55.493] I (9181) CAN_PROC_0: 0x000000e0 batch 1 [69..69] at (8987)
+[2026-05-13 00:51:55.494] I (9182) read_data_task: [0xe0] 70
+[2026-05-13 00:51:55.494] I (9182) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:55.496] I (9184) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:55.497] W (9185) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.499] W (9186) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.500] W (9187) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.594] I (9282) read_data_task: [0xe0] 71
+[2026-05-13 00:51:55.597] I (9284) CAN_PROC_0: 0x000000e0 batch 2 [70..71] at (9090)
+[2026-05-13 00:51:55.597] I (9285) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:55.601] I (9286) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:55.603] W (9287) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.603] W (9288) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.695] I (9382) read_data_task: [0xe0] 72
+[2026-05-13 00:51:55.798] I (9482) CAN_PROC_0: 0x000000e0 batch 1 [72..72] at (9288)
+[2026-05-13 00:51:55.812] I (9482) read_data_task: [0xe0] 73
+[2026-05-13 00:51:55.826] I (9483) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:55.828] I (9484) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:55.829] W (9485) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.831] W (9486) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.896] I (9583) read_data_task: [0xe0] 74
+[2026-05-13 00:51:55.898] I (9585) CAN_PROC_0: 0x000000e0 batch 2 [73..74] at (9391)
+[2026-05-13 00:51:55.913] I (9586) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:55.922] I (9588) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:55.936] W (9589) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.947] W (9590) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:55.996] I (9683) read_data_task: [0xe0] 75
+[2026-05-13 00:51:56.096] I (9783) CAN_PROC_0: 0x000000e0 batch 1 [75..75] at (9589)
+[2026-05-13 00:51:56.105] I (9784) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:56.107] I (9784) read_data_task: [0xe0] 76
+[2026-05-13 00:51:56.109] I (9785) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:56.109] W (9786) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.110] W (9789) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.196] I (9884) read_data_task: [0xe0] 77
+[2026-05-13 00:51:56.198] I (9886) CAN_PROC_0: 0x000000e0 batch 2 [76..77] at (9692)
+[2026-05-13 00:51:56.199] I (9887) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:56.201] I (9888) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:56.204] W (9889) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.205] W (9891) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.296] I (9984) read_data_task: [0xe0] 78
+[2026-05-13 00:51:56.396] I (10084) CAN_PROC_0: 0x000000e0 batch 1 [78..78] at (9890)
+[2026-05-13 00:51:56.397] I (10085) read_data_task: [0xe0] 79
+[2026-05-13 00:51:56.397] I (10085) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:56.399] I (10086) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:56.402] W (10087) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.403] W (10088) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.498] I (10185) read_data_task: [0xe0] 80
+[2026-05-13 00:51:56.504] I (10187) CAN_PROC_0: 0x000000e0 batch 2 [79..80] at (9993)
+[2026-05-13 00:51:56.521] I (10188) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:56.527] I (10189) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:56.529] W (10190) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.530] W (10191) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.598] I (10285) read_data_task: [0xe0] 81
+[2026-05-13 00:51:56.704] I (10385) CAN_PROC_0: 0x000000e0 batch 1 [81..81] at (10191)
+[2026-05-13 00:51:56.711] I (10386) read_data_task: [0xe0] 82
+[2026-05-13 00:51:56.720] I (10386) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:56.731] I (10387) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:56.734] W (10388) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.735] W (10389) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.799] I (10486) read_data_task: [0xe0] 83
+[2026-05-13 00:51:56.802] I (10488) CAN_PROC_0: 0x000000e0 batch 2 [82..83] at (10294)
+[2026-05-13 00:51:56.813] I (10489) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:56.827] I (10490) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:56.833] W (10491) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.835] W (10494) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:56.899] I (10586) read_data_task: [0xe0] 84
+[2026-05-13 00:51:57.004] I (10686) CAN_PROC_0: 0x000000e0 batch 1 [84..84] at (10492)
+[2026-05-13 00:51:57.013] I (10687) read_data_task: [0xe0] 85
+[2026-05-13 00:51:57.024] I (10687) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:57.036] I (10688) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:57.044] W (10689) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.050] W (10690) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.099] I (10787) read_data_task: [0xe0] 86
+[2026-05-13 00:51:57.102] I (10789) CAN_PROC_0: 0x000000e0 batch 2 [85..86] at (10595)
+[2026-05-13 00:51:57.102] I (10790) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:57.108] I (10791) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:57.109] W (10792) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.111] W (10793) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.199] I (10887) read_data_task: [0xe0] 87
+[2026-05-13 00:51:57.301] I (10987) CAN_PROC_0: 0x000000e0 batch 1 [87..87] at (10793)
+[2026-05-13 00:51:57.318] I (10988) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:57.325] I (10988) read_data_task: [0xe0] 88
+[2026-05-13 00:51:57.332] I (10989) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:57.334] W (10990) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.335] W (10991) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.401] I (11088) read_data_task: [0xe0] 89
+[2026-05-13 00:51:57.404] I (11090) CAN_PROC_0: 0x000000e0 batch 2 [88..89] at (10896)
+[2026-05-13 00:51:57.420] I (11091) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:57.433] I (11092) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:57.434] W (11093) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.435] W (11094) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.501] I (11188) read_data_task: [0xe0] 90
+[2026-05-13 00:51:57.601] I (11288) CAN_PROC_0: 0x000000e0 batch 1 [90..90] at (11094)
+[2026-05-13 00:51:57.601] I (11289) read_data_task: [0xe0] 91
+[2026-05-13 00:51:57.602] I (11289) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:57.608] I (11290) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:57.612] W (11291) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.614] W (11292) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.702] I (11389) read_data_task: [0xe0] 92
+[2026-05-13 00:51:57.706] I (11391) CAN_PROC_0: 0x000000e0 batch 2 [91..92] at (11197)
+[2026-05-13 00:51:57.727] I (11392) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:57.731] I (11393) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:57.736] W (11394) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.737] W (11395) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.802] I (11489) read_data_task: [0xe0] 93
+[2026-05-13 00:51:57.908] I (11589) CAN_PROC_0: 0x000000e0 batch 1 [93..93] at (11395)
+[2026-05-13 00:51:57.916] I (11590) read_data_task: [0xe0] 94
+[2026-05-13 00:51:57.928] I (11590) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:57.935] I (11591) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:57.940] W (11594) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:57.941] W (11598) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.003] I (11690) read_data_task: [0xe0] 95
+[2026-05-13 00:51:58.006] I (11692) CAN_PROC_0: 0x000000e0 batch 2 [94..95] at (11498)
+[2026-05-13 00:51:58.028] I (11695) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:58.039] I (11696) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:58.047] W (11697) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.052] W (11698) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.103] I (11790) read_data_task: [0xe0] 96
+[2026-05-13 00:51:58.203] I (11890) CAN_PROC_0: 0x000000e0 batch 1 [96..96] at (11696)
+[2026-05-13 00:51:58.209] I (11891) read_data_task: [0xe0] 97
+[2026-05-13 00:51:58.224] I (11891) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:58.237] I (11893) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:58.240] W (11894) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.242] W (11895) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.304] I (11991) read_data_task: [0xe0] 98
+[2026-05-13 00:51:58.307] I (11993) CAN_PROC_0: 0x000000e0 batch 2 [97..98] at (11799)
+[2026-05-13 00:51:58.323] I (11994) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:58.334] I (11995) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:58.336] W (11996) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.337] W (12000) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.404] I (12091) read_data_task: [0xe0] 99
+[2026-05-13 00:51:58.470] I (12157) HEAP: free=178752 min_free=174168 largest=114688
+[2026-05-13 00:51:58.483] I (12169) MEASURE: airtime_us_total=1287 packets_total=66 d_airtime_us=646 d_packets=33 util_per_mille=0
+[2026-05-13 00:51:58.485] I (12170) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=12050 total_runtime=11980886
+[2026-05-13 00:51:58.487] I (12170) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=11567200 total_runtime=11980886
+[2026-05-13 00:51:58.489] I (12171) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2348 runtime=43422 total_runtime=11980886
+[2026-05-13 00:51:58.490] I (12172) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=3254 total_runtime=11980886
+[2026-05-13 00:51:58.492] I (12173) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1133 total_runtime=11980886
+[2026-05-13 00:51:58.494] I (12174) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=153151 total_runtime=11980886
+[2026-05-13 00:51:58.496] I (12175) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=14568 total_runtime=11980886
+[2026-05-13 00:51:58.498] I (12177) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=156958 total_runtime=11980886
+[2026-05-13 00:51:58.499] I (12178) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=10933 total_runtime=11980886
+[2026-05-13 00:51:58.501] I (12179) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=11980886
+[2026-05-13 00:51:58.503] I (12180) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=11980886
+[2026-05-13 00:51:58.504] I (12191) CAN_PROC_0: 0x000000e0 batch 1 [99..99] at (11997)
+[2026-05-13 00:51:58.514] I (12192) read_data_task: [0xe0] 100
+[2026-05-13 00:51:58.528] I (12192) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:58.531] I (12193) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:58.532] W (12194) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.533] W (12195) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.605] I (12292) read_data_task: [0xe0] 101
+[2026-05-13 00:51:58.623] I (12294) CAN_PROC_0: 0x000000e0 batch 2 [100..101] at (12100)
+[2026-05-13 00:51:58.634] I (12295) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:58.640] I (12297) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:58.641] W (12298) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.642] W (12299) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.705] I (12392) read_data_task: [0xe0] 102
+[2026-05-13 00:51:58.816] I (12492) CAN_PROC_0: 0x000000e0 batch 1 [102..102] at (12298)
+[2026-05-13 00:51:58.830] I (12493) read_data_task: [0xe0] 103
+[2026-05-13 00:51:58.835] I (12493) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:58.839] I (12494) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:58.840] W (12495) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.841] W (12496) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.906] I (12593) read_data_task: [0xe0] 104
+[2026-05-13 00:51:58.920] I (12595) CAN_PROC_0: 0x000000e0 batch 2 [103..104] at (12401)
+[2026-05-13 00:51:58.935] I (12596) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:58.942] I (12597) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:58.943] W (12599) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:58.944] W (12601) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.006] I (12693) read_data_task: [0xe0] 105
+[2026-05-13 00:51:59.117] I (12793) CAN_PROC_0: 0x000000e0 batch 1 [105..105] at (12599)
+[2026-05-13 00:51:59.128] I (12794) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:59.140] I (12794) read_data_task: [0xe0] 106
+[2026-05-13 00:51:59.154] I (12795) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:59.159] W (12796) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.161] W (12797) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.207] I (12894) read_data_task: [0xe0] 107
+[2026-05-13 00:51:59.221] I (12896) CAN_PROC_0: 0x000000e0 batch 2 [106..107] at (12702)
+[2026-05-13 00:51:59.237] I (12897) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:59.241] I (12898) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:51:59.242] W (12899) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.243] W (12900) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.307] I (12994) read_data_task: [0xe0] 108
+[2026-05-13 00:51:59.424] I (13094) CAN_PROC_0: 0x000000e0 batch 1 [108..108] at (12900)
+[2026-05-13 00:51:59.435] I (13095) read_data_task: [0xe0] 109
+[2026-05-13 00:51:59.436] I (13095) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:59.437] I (13096) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:59.438] W (13097) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.439] W (13098) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.508] I (13195) read_data_task: [0xe0] 110
+[2026-05-13 00:51:59.526] I (13197) CAN_PROC_0: 0x000000e0 batch 2 [109..110] at (13003)
+[2026-05-13 00:51:59.535] I (13198) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:59.538] I (13200) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:59.539] W (13200) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.540] W (13201) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.608] I (13295) read_data_task: [0xe0] 111
+[2026-05-13 00:51:59.721] I (13395) CAN_PROC_0: 0x000000e0 batch 1 [111..111] at (13201)
+[2026-05-13 00:51:59.726] I (13396) read_data_task: [0xe0] 112
+[2026-05-13 00:51:59.740] I (13396) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:59.742] I (13397) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:51:59.743] W (13398) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.744] W (13399) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.809] I (13496) read_data_task: [0xe0] 113
+[2026-05-13 00:51:59.827] I (13498) CAN_PROC_0: 0x000000e0 batch 2 [112..113] at (13304)
+[2026-05-13 00:51:59.839] I (13499) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:51:59.841] I (13500) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:51:59.842] W (13501) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.843] W (13502) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:51:59.909] I (13596) read_data_task: [0xe0] 114
+[2026-05-13 00:52:00.010] I (13696) CAN_PROC_0: 0x000000e0 batch 1 [114..114] at (13502)
+[2026-05-13 00:52:00.023] I (13697) read_data_task: [0xe0] 115
+[2026-05-13 00:52:00.030] I (13697) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:00.042] I (13699) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:00.044] W (13700) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.045] W (13701) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.109] I (13797) read_data_task: [0xe0] 116
+[2026-05-13 00:52:00.128] I (13799) CAN_PROC_0: 0x000000e0 batch 2 [115..116] at (13605)
+[2026-05-13 00:52:00.135] I (13800) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:00.147] I (13802) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:00.156] W (13802) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.158] W (13803) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.210] I (13897) read_data_task: [0xe0] 117
+[2026-05-13 00:52:00.322] I (13997) CAN_PROC_0: 0x000000e0 batch 1 [117..117] at (13803)
+[2026-05-13 00:52:00.331] I (13997) read_data_task: [0xe0] 118
+[2026-05-13 00:52:00.341] I (13998) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:00.344] I (13999) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:00.346] W (14000) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.347] W (14001) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.411] I (14098) read_data_task: [0xe0] 119
+[2026-05-13 00:52:00.422] I (14100) CAN_PROC_0: 0x000000e0 batch 2 [118..119] at (13906)
+[2026-05-13 00:52:00.430] I (14101) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:00.443] I (14102) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:00.445] W (14103) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.446] W (14104) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.511] I (14198) read_data_task: [0xe0] 120
+[2026-05-13 00:52:00.611] I (14298) CAN_PROC_0: 0x000000e0 batch 1 [120..120] at (14104)
+[2026-05-13 00:52:00.611] I (14299) read_data_task: [0xe0] 121
+[2026-05-13 00:52:00.613] I (14299) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:00.617] I (14300) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:00.618] W (14301) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.618] W (14302) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.712] I (14399) read_data_task: [0xe0] 122
+[2026-05-13 00:52:00.728] I (14401) CAN_PROC_0: 0x000000e0 batch 2 [121..122] at (14207)
+[2026-05-13 00:52:00.743] I (14402) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:00.748] I (14403) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:00.749] W (14405) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.750] W (14407) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.812] I (14499) read_data_task: [0xe0] 123
+[2026-05-13 00:52:00.913] I (14599) CAN_PROC_0: 0x000000e0 batch 1 [123..123] at (14405)
+[2026-05-13 00:52:00.914] I (14600) read_data_task: [0xe0] 124
+[2026-05-13 00:52:00.929] I (14602) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:00.942] I (14603) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:00.946] W (14604) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:00.947] W (14605) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.013] I (14700) read_data_task: [0xe0] 125
+[2026-05-13 00:52:01.035] I (14704) CAN_PROC_0: 0x000000e0 batch 2 [124..125] at (14510)
+[2026-05-13 00:52:01.045] I (14705) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:01.049] I (14707) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:01.050] W (14708) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.051] W (14710) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.113] I (14800) read_data_task: [0xe0] 126
+[2026-05-13 00:52:01.227] I (14900) CAN_PROC_0: 0x000000e0 batch 1 [126..126] at (14706)
+[2026-05-13 00:52:01.240] I (14901) read_data_task: [0xe0] 127
+[2026-05-13 00:52:01.253] I (14901) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:01.260] I (14902) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:01.261] W (14903) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.262] W (14904) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.314] I (15001) read_data_task: [0xe0] 128
+[2026-05-13 00:52:01.334] I (15003) CAN_PROC_0: 0x000000e0 batch 2 [127..128] at (14809)
+[2026-05-13 00:52:01.340] I (15004) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:01.346] I (15005) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:01.347] W (15006) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.348] W (15011) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.414] I (15101) read_data_task: [0xe0] 129
+[2026-05-13 00:52:01.527] I (15201) CAN_PROC_0: 0x000000e0 batch 1 [129..129] at (15007)
+[2026-05-13 00:52:01.537] I (15202) read_data_task: [0xe0] 130
+[2026-05-13 00:52:01.545] I (15202) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:01.547] I (15203) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:01.548] W (15204) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.549] W (15205) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.615] I (15302) read_data_task: [0xe0] 131
+[2026-05-13 00:52:01.631] I (15304) CAN_PROC_0: 0x000000e0 batch 2 [130..131] at (15110)
+[2026-05-13 00:52:01.645] I (15305) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:01.649] I (15307) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:01.650] W (15307) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.652] W (15308) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.653] W (15309) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.715] I (15402) read_data_task: [0xe0] 132
+[2026-05-13 00:52:01.826] I (15502) CAN_PROC_0: 0x000000e0 batch 1 [132..132] at (15308)
+[2026-05-13 00:52:01.832] I (15502) read_data_task: [0xe0] 133
+[2026-05-13 00:52:01.843] I (15503) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:01.848] I (15504) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:01.849] W (15505) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.850] W (15506) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.916] I (15603) read_data_task: [0xe0] 134
+[2026-05-13 00:52:01.928] I (15605) CAN_PROC_0: 0x000000e0 batch 2 [133..134] at (15411)
+[2026-05-13 00:52:01.942] I (15606) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:01.951] I (15607) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:01.952] W (15608) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:01.953] W (15610) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.016] I (15703) read_data_task: [0xe0] 135
+[2026-05-13 00:52:02.135] I (15803) CAN_PROC_0: 0x000000e0 batch 1 [135..135] at (15609)
+[2026-05-13 00:52:02.143] I (15804) read_data_task: [0xe0] 136
+[2026-05-13 00:52:02.148] I (15804) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:02.149] I (15805) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:02.150] W (15806) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.151] W (15807) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.217] I (15904) read_data_task: [0xe0] 137
+[2026-05-13 00:52:02.228] I (15906) CAN_PROC_0: 0x000000e0 batch 2 [136..137] at (15712)
+[2026-05-13 00:52:02.242] I (15907) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:02.262] I (15908) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:02.264] W (15909) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.266] W (15910) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.317] I (16004) read_data_task: [0xe0] 138
+[2026-05-13 00:52:02.428] I (16104) CAN_PROC_0: 0x000000e0 batch 1 [138..138] at (15910)
+[2026-05-13 00:52:02.436] I (16105) read_data_task: [0xe0] 139
+[2026-05-13 00:52:02.444] I (16105) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:02.451] I (16106) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:02.452] W (16107) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.453] W (16108) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.518] I (16205) read_data_task: [0xe0] 140
+[2026-05-13 00:52:02.534] I (16207) CAN_PROC_0: 0x000000e0 batch 2 [139..140] at (16013)
+[2026-05-13 00:52:02.550] I (16208) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:02.552] I (16209) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:02.553] W (16210) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.553] W (16211) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.618] I (16305) read_data_task: [0xe0] 141
+[2026-05-13 00:52:02.735] I (16405) CAN_PROC_0: 0x000000e0 batch 1 [141..141] at (16211)
+[2026-05-13 00:52:02.745] I (16406) read_data_task: [0xe0] 142
+[2026-05-13 00:52:02.753] I (16406) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:02.754] I (16407) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:02.755] W (16408) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.756] W (16409) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.818] I (16506) read_data_task: [0xe0] 143
+[2026-05-13 00:52:02.823] I (16508) CAN_PROC_0: 0x000000e0 batch 2 [142..143] at (16314)
+[2026-05-13 00:52:02.825] I (16509) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:02.828] I (16510) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:02.829] W (16511) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.830] W (16512) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:02.918] I (16606) read_data_task: [0xe0] 144
+[2026-05-13 00:52:03.019] I (16706) CAN_PROC_0: 0x000000e0 batch 1 [144..144] at (16512)
+[2026-05-13 00:52:03.022] I (16706) read_data_task: [0xe0] 145
+[2026-05-13 00:52:03.025] I (16707) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:03.027] I (16708) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:03.028] W (16709) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.028] W (16710) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.119] I (16807) read_data_task: [0xe0] 146
+[2026-05-13 00:52:03.124] I (16809) CAN_PROC_0: 0x000000e0 batch 2 [145..146] at (16615)
+[2026-05-13 00:52:03.128] I (16810) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:03.130] I (16811) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:03.130] W (16812) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.130] W (16813) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.219] I (16907) read_data_task: [0xe0] 147
+[2026-05-13 00:52:03.330] I (17007) CAN_PROC_0: 0x000000e0 batch 1 [147..147] at (16813)
+[2026-05-13 00:52:03.337] I (17008) read_data_task: [0xe0] 148
+[2026-05-13 00:52:03.351] I (17008) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:03.366] I (17009) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:03.367] W (17010) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.368] W (17011) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.421] I (17108) read_data_task: [0xe0] 149
+[2026-05-13 00:52:03.440] I (17110) CAN_PROC_0: 0x000000e0 batch 2 [148..149] at (16916)
+[2026-05-13 00:52:03.451] I (17111) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:03.452] I (17112) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:03.453] W (17113) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.454] W (17114) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.470] I (17157) HEAP: free=178752 min_free=174168 largest=114688
+[2026-05-13 00:52:03.495] I (17181) MEASURE: airtime_us_total=1950 packets_total=100 d_airtime_us=663 d_packets=34 util_per_mille=0
+[2026-05-13 00:52:03.497] I (17182) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=24306 total_runtime=16992884
+[2026-05-13 00:52:03.498] I (17182) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=16396261 total_runtime=16992884
+[2026-05-13 00:52:03.500] I (17183) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=4306 total_runtime=16992884
+[2026-05-13 00:52:03.502] I (17184) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1528 total_runtime=16992884
+[2026-05-13 00:52:03.504] I (17185) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=231914 total_runtime=16992884
+[2026-05-13 00:52:03.505] I (17186) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=21927 total_runtime=16992884
+[2026-05-13 00:52:03.507] I (17188) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2348 runtime=65934 total_runtime=16992884
+[2026-05-13 00:52:03.509] I (17189) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=214196 total_runtime=16992884
+[2026-05-13 00:52:03.511] I (17190) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=14297 total_runtime=16992884
+[2026-05-13 00:52:03.512] I (17191) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=16992884
+[2026-05-13 00:52:03.514] I (17192) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=16992884
+[2026-05-13 00:52:03.521] I (17208) read_data_task: [0xe0] 150
+[2026-05-13 00:52:03.632] I (17308) CAN_PROC_0: 0x000000e0 batch 1 [150..150] at (17114)
+[2026-05-13 00:52:03.645] I (17309) read_data_task: [0xe0] 151
+[2026-05-13 00:52:03.650] I (17309) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:03.652] I (17310) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:03.652] W (17311) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.653] W (17312) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.722] I (17409) read_data_task: [0xe0] 152
+[2026-05-13 00:52:03.741] I (17411) CAN_PROC_0: 0x000000e0 batch 2 [151..152] at (17217)
+[2026-05-13 00:52:03.755] I (17412) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:03.757] I (17413) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:03.758] W (17414) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.759] W (17415) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.822] I (17509) read_data_task: [0xe0] 153
+[2026-05-13 00:52:03.922] I (17609) CAN_PROC_0: 0x000000e0 batch 1 [153..153] at (17415)
+[2026-05-13 00:52:03.922] I (17609) read_data_task: [0xe0] 154
+[2026-05-13 00:52:03.924] I (17610) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:03.929] I (17611) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:03.931] W (17612) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:03.932] W (17613) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.023] I (17710) read_data_task: [0xe0] 155
+[2026-05-13 00:52:04.035] I (17712) CAN_PROC_0: 0x000000e0 batch 2 [154..155] at (17518)
+[2026-05-13 00:52:04.050] I (17713) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:04.055] I (17714) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:04.056] W (17715) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.057] W (17716) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.123] I (17810) read_data_task: [0xe0] 156
+[2026-05-13 00:52:04.241] I (17910) CAN_PROC_0: 0x000000e0 batch 1 [156..156] at (17716)
+[2026-05-13 00:52:04.248] I (17911) read_data_task: [0xe0] 157
+[2026-05-13 00:52:04.256] I (17911) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:04.257] I (17912) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:04.258] W (17913) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.259] W (17914) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.324] I (18011) read_data_task: [0xe0] 158
+[2026-05-13 00:52:04.337] I (18013) CAN_PROC_0: 0x000000e0 batch 2 [157..158] at (17819)
+[2026-05-13 00:52:04.352] I (18014) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:04.366] I (18015) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:04.368] W (18016) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.369] W (18017) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.424] I (18111) read_data_task: [0xe0] 159
+[2026-05-13 00:52:04.535] I (18211) CAN_PROC_0: 0x000000e0 batch 1 [159..159] at (18017)
+[2026-05-13 00:52:04.547] I (18212) read_data_task: [0xe0] 160
+[2026-05-13 00:52:04.556] I (18212) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:04.557] I (18213) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:04.558] W (18214) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.559] W (18215) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.625] I (18312) read_data_task: [0xe0] 161
+[2026-05-13 00:52:04.639] I (18314) CAN_PROC_0: 0x000000e0 batch 2 [160..161] at (18120)
+[2026-05-13 00:52:04.654] I (18315) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:04.659] I (18316) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:04.660] W (18317) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.661] W (18318) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.725] I (18412) read_data_task: [0xe0] 162
+[2026-05-13 00:52:04.834] I (18512) CAN_PROC_0: 0x000000e0 batch 1 [162..162] at (18318)
+[2026-05-13 00:52:04.843] I (18512) read_data_task: [0xe0] 163
+[2026-05-13 00:52:04.860] I (18513) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:04.861] I (18514) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:04.862] W (18515) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.863] W (18516) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.926] I (18613) read_data_task: [0xe0] 164
+[2026-05-13 00:52:04.937] I (18615) CAN_PROC_0: 0x000000e0 batch 2 [163..164] at (18421)
+[2026-05-13 00:52:04.950] I (18616) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:04.959] I (18617) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:04.960] W (18618) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:04.961] W (18619) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.026] I (18713) read_data_task: [0xe0] 165
+[2026-05-13 00:52:05.139] I (18813) CAN_PROC_0: 0x000000e0 batch 1 [165..165] at (18619)
+[2026-05-13 00:52:05.146] I (18814) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:05.159] I (18814) read_data_task: [0xe0] 166
+[2026-05-13 00:52:05.160] I (18817) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:05.161] W (18818) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.162] W (18819) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.227] I (18914) read_data_task: [0xe0] 167
+[2026-05-13 00:52:05.247] I (18918) CAN_PROC_0: 0x000000e0 batch 2 [166..167] at (18724)
+[2026-05-13 00:52:05.258] I (18920) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:05.262] I (18921) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:05.263] W (18922) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.264] W (18923) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.327] I (19014) read_data_task: [0xe0] 168
+[2026-05-13 00:52:05.440] I (19114) CAN_PROC_0: 0x000000e0 batch 1 [168..168] at (18920)
+[2026-05-13 00:52:05.452] I (19115) read_data_task: [0xe0] 169
+[2026-05-13 00:52:05.463] I (19115) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:05.476] I (19116) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:05.478] W (19117) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.479] W (19118) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.528] I (19215) read_data_task: [0xe0] 170
+[2026-05-13 00:52:05.541] I (19217) CAN_PROC_0: 0x000000e0 batch 2 [169..170] at (19023)
+[2026-05-13 00:52:05.551] I (19218) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:05.560] I (19220) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:05.568] W (19221) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.580] W (19222) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.627] I (19315) read_data_task: [0xe0] 171
+[2026-05-13 00:52:05.728] I (19415) CAN_PROC_0: 0x000000e0 batch 1 [171..171] at (19221)
+[2026-05-13 00:52:05.728] I (19416) read_data_task: [0xe0] 172
+[2026-05-13 00:52:05.730] I (19416) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:05.735] I (19418) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:05.737] W (19418) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.739] W (19419) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.828] I (19516) read_data_task: [0xe0] 173
+[2026-05-13 00:52:05.835] I (19518) CAN_PROC_0: 0x000000e0 batch 2 [172..173] at (19324)
+[2026-05-13 00:52:05.839] I (19519) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:05.842] I (19521) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:05.843] W (19522) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.844] W (19523) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:05.929] I (19616) read_data_task: [0xe0] 174
+[2026-05-13 00:52:06.044] I (19716) CAN_PROC_0: 0x000000e0 batch 1 [174..174] at (19522)
+[2026-05-13 00:52:06.052] I (19717) read_data_task: [0xe0] 175
+[2026-05-13 00:52:06.060] I (19717) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:06.062] I (19718) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:06.062] W (19719) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.063] W (19722) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.130] I (19817) read_data_task: [0xe0] 176
+[2026-05-13 00:52:06.142] I (19819) CAN_PROC_0: 0x000000e0 batch 2 [175..176] at (19625)
+[2026-05-13 00:52:06.155] I (19820) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:06.161] I (19821) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:06.162] W (19824) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.163] W (19825) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.230] I (19917) read_data_task: [0xe0] 177
+[2026-05-13 00:52:06.339] I (20017) CAN_PROC_0: 0x000000e0 batch 1 [177..177] at (19823)
+[2026-05-13 00:52:06.351] I (20017) read_data_task: [0xe0] 178
+[2026-05-13 00:52:06.358] I (20018) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:06.359] I (20019) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:06.360] W (20020) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.361] W (20021) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.431] I (20118) read_data_task: [0xe0] 179
+[2026-05-13 00:52:06.445] I (20120) CAN_PROC_0: 0x000000e0 batch 2 [178..179] at (19926)
+[2026-05-13 00:52:06.457] I (20121) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:06.472] I (20123) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:06.478] W (20123) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.481] W (20124) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.531] I (20218) read_data_task: [0xe0] 180
+[2026-05-13 00:52:06.648] I (20318) CAN_PROC_0: 0x000000e0 batch 1 [180..180] at (20124)
+[2026-05-13 00:52:06.659] I (20318) read_data_task: [0xe0] 181
+[2026-05-13 00:52:06.662] I (20319) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:06.664] I (20320) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:06.665] W (20321) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.666] W (20322) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.732] I (20419) read_data_task: [0xe0] 182
+[2026-05-13 00:52:06.752] I (20421) CAN_PROC_0: 0x000000e0 batch 2 [181..182] at (20227)
+[2026-05-13 00:52:06.764] I (20422) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:06.768] I (20423) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:06.769] W (20424) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.770] W (20425) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.832] I (20519) read_data_task: [0xe0] 183
+[2026-05-13 00:52:06.948] I (20619) CAN_PROC_0: 0x000000e0 batch 1 [183..183] at (20425)
+[2026-05-13 00:52:06.959] I (20620) read_data_task: [0xe0] 184
+[2026-05-13 00:52:06.962] I (20620) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:06.966] I (20621) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:06.967] W (20622) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:06.968] W (20623) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.033] I (20720) read_data_task: [0xe0] 185
+[2026-05-13 00:52:07.058] I (20722) CAN_PROC_0: 0x000000e0 batch 2 [184..185] at (20528)
+[2026-05-13 00:52:07.064] I (20723) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:07.067] I (20725) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:07.070] W (20726) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.070] W (20727) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.133] I (20820) read_data_task: [0xe0] 186
+[2026-05-13 00:52:07.242] I (20920) CAN_PROC_0: 0x000000e0 batch 1 [186..186] at (20726)
+[2026-05-13 00:52:07.248] I (20921) read_data_task: [0xe0] 187
+[2026-05-13 00:52:07.250] I (20921) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:07.251] I (20922) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:07.251] W (20923) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.253] W (20924) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.333] I (21021) read_data_task: [0xe0] 188
+[2026-05-13 00:52:07.336] I (21023) CAN_PROC_0: 0x000000e0 batch 2 [187..188] at (20829)
+[2026-05-13 00:52:07.339] I (21024) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:07.341] I (21025) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:07.342] W (21026) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.343] W (21027) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.434] I (21121) read_data_task: [0xe0] 189
+[2026-05-13 00:52:07.544] I (21221) CAN_PROC_0: 0x000000e0 batch 1 [189..189] at (21027)
+[2026-05-13 00:52:07.552] I (21222) read_data_task: [0xe0] 190
+[2026-05-13 00:52:07.565] I (21222) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:07.581] I (21223) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:07.582] W (21224) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.582] W (21225) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.635] I (21322) read_data_task: [0xe0] 191
+[2026-05-13 00:52:07.654] I (21324) CAN_PROC_0: 0x000000e0 batch 2 [190..191] at (21130)
+[2026-05-13 00:52:07.668] I (21325) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:07.671] I (21326) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:07.673] W (21327) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.674] W (21328) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.735] I (21422) read_data_task: [0xe0] 192
+[2026-05-13 00:52:07.851] I (21522) CAN_PROC_0: 0x000000e0 batch 1 [192..192] at (21328)
+[2026-05-13 00:52:07.858] I (21523) read_data_task: [0xe0] 193
+[2026-05-13 00:52:07.864] I (21523) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:07.866] I (21524) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:07.867] W (21525) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.868] W (21526) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.936] I (21623) read_data_task: [0xe0] 194
+[2026-05-13 00:52:07.951] I (21625) CAN_PROC_0: 0x000000e0 batch 2 [193..194] at (21431)
+[2026-05-13 00:52:07.967] I (21626) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:07.968] I (21627) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:07.969] W (21628) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:07.970] W (21629) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.036] I (21723) read_data_task: [0xe0] 195
+[2026-05-13 00:52:08.144] I (21823) CAN_PROC_0: 0x000000e0 batch 1 [195..195] at (21629)
+[2026-05-13 00:52:08.154] I (21824) read_data_task: [0xe0] 196
+[2026-05-13 00:52:08.163] I (21824) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:08.165] I (21826) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:08.166] W (21827) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.167] W (21828) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.236] I (21924) read_data_task: [0xe0] 197
+[2026-05-13 00:52:08.252] I (21926) CAN_PROC_0: 0x000000e0 batch 2 [196..197] at (21732)
+[2026-05-13 00:52:08.263] I (21927) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:08.270] I (21929) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:08.272] W (21930) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.273] W (21933) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.337] I (22024) read_data_task: [0xe0] 198
+[2026-05-13 00:52:08.453] I (22124) CAN_PROC_0: 0x000000e0 batch 1 [198..198] at (21930)
+[2026-05-13 00:52:08.462] I (22124) read_data_task: [0xe0] 199
+[2026-05-13 00:52:08.468] I (22125) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:08.470] I (22126) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:08.470] W (22127) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.471] W (22128) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.472] W (22129) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.473] I (22157) HEAP: free=178752 min_free=174168 largest=114688
+[2026-05-13 00:52:08.507] I (22193) MEASURE: airtime_us_total=2591 packets_total=133 d_airtime_us=641 d_packets=33 util_per_mille=0
+[2026-05-13 00:52:08.509] I (22194) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=36558 total_runtime=22004878
+[2026-05-13 00:52:08.510] I (22194) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=21228297 total_runtime=22004878
+[2026-05-13 00:52:08.512] I (22195) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2348 runtime=87706 total_runtime=22004878
+[2026-05-13 00:52:08.513] I (22196) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=5358 total_runtime=22004878
+[2026-05-13 00:52:08.515] I (22197) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1921 total_runtime=22004878
+[2026-05-13 00:52:08.517] I (22198) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=310468 total_runtime=22004878
+[2026-05-13 00:52:08.519] I (22199) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=29050 total_runtime=22004878
+[2026-05-13 00:52:08.520] I (22201) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=269746 total_runtime=22004878
+[2026-05-13 00:52:08.522] I (22202) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=17565 total_runtime=22004878
+[2026-05-13 00:52:08.523] I (22203) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=22004878
+[2026-05-13 00:52:08.525] I (22204) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=22004878
+[2026-05-13 00:52:08.538] I (22225) read_data_task: [0xe0] 200
+[2026-05-13 00:52:08.550] I (22227) CAN_PROC_0: 0x000000e0 batch 2 [199..200] at (22033)
+[2026-05-13 00:52:08.563] I (22228) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:08.571] I (22230) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:08.575] W (22230) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.576] W (22231) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.638] I (22325) read_data_task: [0xe0] 201
+[2026-05-13 00:52:08.750] I (22425) CAN_PROC_0: 0x000000e0 batch 1 [201..201] at (22231)
+[2026-05-13 00:52:08.762] I (22426) read_data_task: [0xe0] 202
+[2026-05-13 00:52:08.773] I (22426) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:08.776] I (22427) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:08.777] W (22428) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.778] W (22429) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.839] I (22526) read_data_task: [0xe0] 203
+[2026-05-13 00:52:08.852] I (22528) CAN_PROC_0: 0x000000e0 batch 2 [202..203] at (22334)
+[2026-05-13 00:52:08.868] I (22529) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:08.874] I (22530) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:08.875] W (22531) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.876] W (22532) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:08.939] I (22626) read_data_task: [0xe0] 204
+[2026-05-13 00:52:09.056] I (22726) CAN_PROC_0: 0x000000e0 batch 1 [204..204] at (22532)
+[2026-05-13 00:52:09.069] I (22727) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:09.070] I (22727) read_data_task: [0xe0] 205
+[2026-05-13 00:52:09.071] I (22728) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:09.072] W (22729) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.073] W (22730) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.140] I (22827) read_data_task: [0xe0] 206
+[2026-05-13 00:52:09.155] I (22829) CAN_PROC_0: 0x000000e0 batch 2 [205..206] at (22635)
+[2026-05-13 00:52:09.167] I (22831) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:09.172] I (22834) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:09.172] W (22835) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.173] W (22838) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.240] I (22927) read_data_task: [0xe0] 207
+[2026-05-13 00:52:09.341] I (23027) CAN_PROC_0: 0x000000e0 batch 1 [207..207] at (22833)
+[2026-05-13 00:52:09.342] I (23028) read_data_task: [0xe0] 208
+[2026-05-13 00:52:09.349] I (23031) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:09.367] I (23032) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:09.374] W (23033) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.378] W (23034) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.441] I (23128) read_data_task: [0xe0] 209
+[2026-05-13 00:52:09.466] I (23133) CAN_PROC_0: 0x000000e0 batch 2 [208..209] at (22939)
+[2026-05-13 00:52:09.477] I (23136) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:09.481] I (23138) LAT_RTT: id=0x000000e0 rtt_ms=5 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:09.482] W (23139) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.484] W (23140) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.541] I (23228) read_data_task: [0xe0] 210
+[2026-05-13 00:52:09.651] I (23328) CAN_PROC_0: 0x000000e0 batch 1 [210..210] at (23134)
+[2026-05-13 00:52:09.661] I (23329) read_data_task: [0xe0] 211
+[2026-05-13 00:52:09.670] I (23329) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:09.682] I (23330) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:09.689] W (23331) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.689] W (23332) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.742] I (23429) read_data_task: [0xe0] 212
+[2026-05-13 00:52:09.758] I (23431) CAN_PROC_0: 0x000000e0 batch 2 [211..212] at (23237)
+[2026-05-13 00:52:09.773] I (23432) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:09.776] I (23433) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:09.777] W (23434) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.778] W (23436) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.842] I (23529) read_data_task: [0xe0] 213
+[2026-05-13 00:52:09.954] I (23629) CAN_PROC_0: 0x000000e0 batch 1 [213..213] at (23435)
+[2026-05-13 00:52:09.959] I (23630) read_data_task: [0xe0] 214
+[2026-05-13 00:52:09.971] I (23630) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:09.974] I (23632) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:09.975] W (23633) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:09.976] W (23634) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.043] I (23730) read_data_task: [0xe0] 215
+[2026-05-13 00:52:10.059] I (23732) CAN_PROC_0: 0x000000e0 batch 2 [214..215] at (23538)
+[2026-05-13 00:52:10.075] I (23733) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:10.078] I (23735) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:10.079] W (23736) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.080] W (23737) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.143] I (23830) read_data_task: [0xe0] 216
+[2026-05-13 00:52:10.259] I (23930) CAN_PROC_0: 0x000000e0 batch 1 [216..216] at (23736)
+[2026-05-13 00:52:10.267] I (23930) read_data_task: [0xe0] 217
+[2026-05-13 00:52:10.276] I (23931) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:10.278] I (23932) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:10.279] W (23933) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.280] W (23934) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.344] I (24031) read_data_task: [0xe0] 218
+[2026-05-13 00:52:10.357] I (24033) CAN_PROC_0: 0x000000e0 batch 2 [217..218] at (23839)
+[2026-05-13 00:52:10.372] I (24034) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:10.381] I (24035) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:10.383] W (24036) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.384] W (24040) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.444] I (24131) read_data_task: [0xe0] 219
+[2026-05-13 00:52:10.550] I (24231) CAN_PROC_0: 0x000000e0 batch 1 [219..219] at (24037)
+[2026-05-13 00:52:10.560] I (24232) read_data_task: [0xe0] 220
+[2026-05-13 00:52:10.575] I (24232) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:10.582] I (24234) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:10.591] W (24235) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.597] W (24237) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.644] I (24332) read_data_task: [0xe0] 221
+[2026-05-13 00:52:10.647] I (24334) CAN_PROC_0: 0x000000e0 batch 2 [220..221] at (24140)
+[2026-05-13 00:52:10.651] I (24335) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:10.658] I (24337) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:10.658] W (24337) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.658] W (24338) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.745] I (24432) read_data_task: [0xe0] 222
+[2026-05-13 00:52:10.846] I (24532) CAN_PROC_0: 0x000000e0 batch 1 [222..222] at (24338)
+[2026-05-13 00:52:10.856] I (24532) read_data_task: [0xe0] 223
+[2026-05-13 00:52:10.869] I (24534) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:10.878] I (24536) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:10.879] W (24537) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.880] W (24540) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.881] W (24546) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.946] I (24633) read_data_task: [0xe0] 224
+[2026-05-13 00:52:10.964] I (24636) CAN_PROC_0: 0x000000e0 batch 2 [223..224] at (24442)
+[2026-05-13 00:52:10.978] I (24637) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:10.980] I (24639) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:10.981] W (24640) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:10.982] W (24641) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.046] I (24733) read_data_task: [0xe0] 225
+[2026-05-13 00:52:11.159] I (24833) CAN_PROC_0: 0x000000e0 batch 1 [225..225] at (24639)
+[2026-05-13 00:52:11.171] I (24834) read_data_task: [0xe0] 226
+[2026-05-13 00:52:11.175] I (24834) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:11.176] I (24835) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:11.177] W (24836) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.178] W (24839) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.247] I (24934) read_data_task: [0xe0] 227
+[2026-05-13 00:52:11.267] I (24936) CAN_PROC_0: 0x000000e0 batch 2 [226..227] at (24742)
+[2026-05-13 00:52:11.278] I (24937) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:11.286] I (24938) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:11.287] W (24939) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.288] W (24940) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.347] I (25034) read_data_task: [0xe0] 228
+[2026-05-13 00:52:11.461] I (25134) CAN_PROC_0: 0x000000e0 batch 1 [228..228] at (24940)
+[2026-05-13 00:52:11.470] I (25134) read_data_task: [0xe0] 229
+[2026-05-13 00:52:11.478] I (25135) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:11.479] I (25136) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:11.480] W (25137) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.481] W (25138) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.548] I (25235) read_data_task: [0xe0] 230
+[2026-05-13 00:52:11.567] I (25237) CAN_PROC_0: 0x000000e0 batch 2 [229..230] at (25043)
+[2026-05-13 00:52:11.579] I (25238) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:11.584] I (25239) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:11.585] W (25240) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.586] W (25241) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.648] I (25335) read_data_task: [0xe0] 231
+[2026-05-13 00:52:11.757] I (25435) CAN_PROC_0: 0x000000e0 batch 1 [231..231] at (25241)
+[2026-05-13 00:52:11.770] I (25436) read_data_task: [0xe0] 232
+[2026-05-13 00:52:11.788] I (25436) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:11.793] I (25437) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:11.794] W (25438) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.795] W (25439) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.849] I (25536) read_data_task: [0xe0] 233
+[2026-05-13 00:52:11.860] I (25538) CAN_PROC_0: 0x000000e0 batch 2 [232..233] at (25344)
+[2026-05-13 00:52:11.877] I (25539) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:11.881] I (25540) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:11.885] W (25541) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.888] W (25542) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:11.949] I (25636) read_data_task: [0xe0] 234
+[2026-05-13 00:52:12.065] I (25736) CAN_PROC_0: 0x000000e0 batch 1 [234..234] at (25542)
+[2026-05-13 00:52:12.073] I (25737) read_data_task: [0xe0] 235
+[2026-05-13 00:52:12.079] I (25737) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:12.082] I (25738) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:12.083] W (25739) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.084] W (25740) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.149] I (25837) read_data_task: [0xe0] 236
+[2026-05-13 00:52:12.154] I (25839) CAN_PROC_0: 0x000000e0 batch 2 [235..236] at (25645)
+[2026-05-13 00:52:12.157] I (25840) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:12.160] I (25841) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:12.160] W (25842) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.161] W (25843) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.250] I (25937) read_data_task: [0xe0] 237
+[2026-05-13 00:52:12.361] I (26037) CAN_PROC_0: 0x000000e0 batch 1 [237..237] at (25843)
+[2026-05-13 00:52:12.369] I (26037) read_data_task: [0xe0] 238
+[2026-05-13 00:52:12.376] I (26038) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:12.385] I (26039) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:12.386] W (26040) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.387] W (26041) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.451] I (26138) read_data_task: [0xe0] 239
+[2026-05-13 00:52:12.466] I (26140) CAN_PROC_0: 0x000000e0 batch 2 [238..239] at (25946)
+[2026-05-13 00:52:12.477] I (26141) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:12.483] I (26142) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:12.484] W (26143) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.485] W (26144) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.551] I (26238) read_data_task: [0xe0] 240
+[2026-05-13 00:52:12.661] I (26338) CAN_PROC_0: 0x000000e0 batch 1 [240..240] at (26144)
+[2026-05-13 00:52:12.670] I (26339) read_data_task: [0xe0] 241
+[2026-05-13 00:52:12.679] I (26339) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:12.687] I (26340) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:12.688] W (26341) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.689] W (26342) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.752] I (26439) read_data_task: [0xe0] 242
+[2026-05-13 00:52:12.767] I (26441) CAN_PROC_0: 0x000000e0 batch 2 [241..242] at (26247)
+[2026-05-13 00:52:12.779] I (26442) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:12.795] I (26444) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:12.800] W (26445) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.801] W (26446) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.852] I (26539) read_data_task: [0xe0] 243
+[2026-05-13 00:52:12.962] I (26639) CAN_PROC_0: 0x000000e0 batch 1 [243..243] at (26445)
+[2026-05-13 00:52:12.973] I (26639) read_data_task: [0xe0] 244
+[2026-05-13 00:52:12.982] I (26640) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:12.984] I (26641) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:12.985] W (26642) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.986] W (26643) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:12.987] W (26644) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.053] I (26740) read_data_task: [0xe0] 245
+[2026-05-13 00:52:13.065] I (26742) CAN_PROC_0: 0x000000e0 batch 2 [244..245] at (26548)
+[2026-05-13 00:52:13.076] I (26743) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:13.086] I (26744) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:13.087] W (26745) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.088] W (26746) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.153] I (26840) read_data_task: [0xe0] 246
+[2026-05-13 00:52:13.273] I (26940) CAN_PROC_0: 0x000000e0 batch 1 [246..246] at (26746)
+[2026-05-13 00:52:13.278] I (26941) read_data_task: [0xe0] 247
+[2026-05-13 00:52:13.284] I (26941) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:13.285] I (26942) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:13.286] W (26943) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.287] W (26944) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.354] I (27041) read_data_task: [0xe0] 248
+[2026-05-13 00:52:13.372] I (27043) CAN_PROC_0: 0x000000e0 batch 2 [247..248] at (26849)
+[2026-05-13 00:52:13.384] I (27044) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:13.388] I (27046) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:13.389] W (27047) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.390] W (27048) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.454] I (27141) read_data_task: [0xe0] 249
+[2026-05-13 00:52:13.470] I (27157) HEAP: free=178752 min_free=174168 largest=114688
+[2026-05-13 00:52:13.519] I (27205) MEASURE: airtime_us_total=3237 packets_total=166 d_airtime_us=646 d_packets=33 util_per_mille=0
+[2026-05-13 00:52:13.522] I (27206) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=48808 total_runtime=27016873
+[2026-05-13 00:52:13.531] I (27206) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=26060742 total_runtime=27016873
+[2026-05-13 00:52:13.533] I (27207) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2348 runtime=109411 total_runtime=27016873
+[2026-05-13 00:52:13.535] I (27208) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=6410 total_runtime=27016873
+[2026-05-13 00:52:13.536] I (27209) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2300 total_runtime=27016873
+[2026-05-13 00:52:13.538] I (27210) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=388283 total_runtime=27016873
+[2026-05-13 00:52:13.540] I (27211) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=36149 total_runtime=27016873
+[2026-05-13 00:52:13.542] I (27213) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=325743 total_runtime=27016873
+[2026-05-13 00:52:13.543] I (27214) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=20823 total_runtime=27016873
+[2026-05-13 00:52:13.545] I (27215) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=27016873
+[2026-05-13 00:52:13.547] I (27216) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=27016873
+[2026-05-13 00:52:13.565] I (27241) CAN_PROC_0: 0x000000e0 batch 1 [249..249] at (27047)
+[2026-05-13 00:52:13.572] I (27242) read_data_task: [0xe0] 250
+[2026-05-13 00:52:13.578] I (27242) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:13.580] I (27243) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:13.581] W (27244) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.581] W (27245) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.655] I (27342) read_data_task: [0xe0] 251
+[2026-05-13 00:52:13.669] I (27344) CAN_PROC_0: 0x000000e0 batch 2 [250..251] at (27150)
+[2026-05-13 00:52:13.682] I (27345) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:13.689] I (27346) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:13.692] W (27347) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.693] W (27348) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.755] I (27442) read_data_task: [0xe0] 252
+[2026-05-13 00:52:13.864] I (27542) CAN_PROC_0: 0x000000e0 batch 1 [252..252] at (27348)
+[2026-05-13 00:52:13.873] I (27543) read_data_task: [0xe0] 253
+[2026-05-13 00:52:13.881] I (27543) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:13.893] I (27545) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:13.898] W (27545) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.899] W (27546) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.956] I (27643) read_data_task: [0xe0] 254
+[2026-05-13 00:52:13.972] I (27645) CAN_PROC_0: 0x000000e0 batch 2 [253..254] at (27451)
+[2026-05-13 00:52:13.979] I (27646) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:13.984] I (27648) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:13.985] W (27648) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:13.986] W (27649) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.056] I (27743) read_data_task: [0xe0] 255
+[2026-05-13 00:52:14.170] I (27843) CAN_PROC_0: 0x000000e0 batch 1 [255..255] at (27649)
+[2026-05-13 00:52:14.179] I (27844) read_data_task: [0xe0] 256
+[2026-05-13 00:52:14.188] I (27844) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:14.191] I (27845) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:14.192] W (27846) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.193] W (27847) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.257] I (27944) read_data_task: [0xe0] 257
+[2026-05-13 00:52:14.275] I (27946) CAN_PROC_0: 0x000000e0 batch 2 [256..257] at (27752)
+[2026-05-13 00:52:14.284] I (27947) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:14.294] I (27948) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:14.295] W (27949) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.296] W (27950) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.357] I (28044) read_data_task: [0xe0] 258
+[2026-05-13 00:52:14.467] I (28144) CAN_PROC_0: 0x000000e0 batch 1 [258..258] at (27950)
+[2026-05-13 00:52:14.474] I (28144) read_data_task: [0xe0] 259
+[2026-05-13 00:52:14.486] I (28145) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:14.489] I (28146) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:14.490] W (28147) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.491] W (28148) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.558] I (28245) read_data_task: [0xe0] 260
+[2026-05-13 00:52:14.572] I (28247) CAN_PROC_0: 0x000000e0 batch 2 [259..260] at (28053)
+[2026-05-13 00:52:14.582] I (28248) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:14.592] I (28249) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:14.594] W (28250) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.595] W (28251) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.658] I (28345) read_data_task: [0xe0] 261
+[2026-05-13 00:52:14.773] I (28445) CAN_PROC_0: 0x000000e0 batch 1 [261..261] at (28251)
+[2026-05-13 00:52:14.783] I (28446) read_data_task: [0xe0] 262
+[2026-05-13 00:52:14.790] I (28446) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:14.793] I (28448) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:14.795] W (28448) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.796] W (28449) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.859] I (28546) read_data_task: [0xe0] 263
+[2026-05-13 00:52:14.870] I (28548) CAN_PROC_0: 0x000000e0 batch 2 [262..263] at (28354)
+[2026-05-13 00:52:14.885] I (28549) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:14.898] I (28551) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:14.902] W (28552) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.904] W (28553) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:14.959] I (28646) read_data_task: [0xe0] 264
+[2026-05-13 00:52:15.074] I (28746) CAN_PROC_0: 0x000000e0 batch 1 [264..264] at (28552)
+[2026-05-13 00:52:15.084] I (28747) read_data_task: [0xe0] 265
+[2026-05-13 00:52:15.091] I (28747) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:15.093] I (28750) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:15.094] W (28751) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.095] W (28752) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.160] I (28847) read_data_task: [0xe0] 266
+[2026-05-13 00:52:15.175] I (28851) CAN_PROC_0: 0x000000e0 batch 2 [265..266] at (28657)
+[2026-05-13 00:52:15.188] I (28853) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:15.196] I (28854) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:15.197] W (28855) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.198] W (28856) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.260] I (28947) read_data_task: [0xe0] 267
+[2026-05-13 00:52:15.369] I (29047) CAN_PROC_0: 0x000000e0 batch 1 [267..267] at (28853)
+[2026-05-13 00:52:15.380] I (29048) read_data_task: [0xe0] 268
+[2026-05-13 00:52:15.393] I (29048) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:15.394] I (29049) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:15.395] W (29050) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.396] W (29051) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.461] I (29148) read_data_task: [0xe0] 269
+[2026-05-13 00:52:15.477] I (29150) CAN_PROC_0: 0x000000e0 batch 2 [268..269] at (28956)
+[2026-05-13 00:52:15.489] I (29151) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:15.493] I (29152) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:15.494] W (29153) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.495] W (29154) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.561] I (29248) read_data_task: [0xe0] 270
+[2026-05-13 00:52:15.661] I (29348) CAN_PROC_0: 0x000000e0 batch 1 [270..270] at (29154)
+[2026-05-13 00:52:15.664] I (29349) read_data_task: [0xe0] 271
+[2026-05-13 00:52:15.665] I (29349) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:15.666] I (29352) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:15.667] W (29353) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.668] W (29354) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.762] I (29449) read_data_task: [0xe0] 272
+[2026-05-13 00:52:15.780] I (29452) CAN_PROC_0: 0x000000e0 batch 2 [271..272] at (29258)
+[2026-05-13 00:52:15.792] I (29453) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:15.796] I (29454) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:15.799] W (29455) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.800] W (29456) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:15.862] I (29549) read_data_task: [0xe0] 273
+[2026-05-13 00:52:15.974] I (29649) CAN_PROC_0: 0x000000e0 batch 1 [273..273] at (29455)
+[2026-05-13 00:52:15.980] I (29649) read_data_task: [0xe0] 274
+[2026-05-13 00:52:15.989] I (29650) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:16.007] I (29651) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:16.015] W (29655) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.016] W (29656) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.063] I (29750) read_data_task: [0xe0] 275
+[2026-05-13 00:52:16.076] I (29752) CAN_PROC_0: 0x000000e0 batch 2 [274..275] at (29558)
+[2026-05-13 00:52:16.085] I (29753) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:16.096] I (29755) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:16.097] W (29757) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.099] W (29758) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.163] I (29850) read_data_task: [0xe0] 276
+[2026-05-13 00:52:16.276] I (29950) CAN_PROC_0: 0x000000e0 batch 1 [276..276] at (29756)
+[2026-05-13 00:52:16.289] I (29950) read_data_task: [0xe0] 277
+[2026-05-13 00:52:16.294] I (29951) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:16.297] I (29952) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:16.297] W (29953) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.298] W (29954) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.364] I (30051) read_data_task: [0xe0] 278
+[2026-05-13 00:52:16.377] I (30053) CAN_PROC_0: 0x000000e0 batch 2 [277..278] at (29859)
+[2026-05-13 00:52:16.387] I (30054) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:16.396] I (30055) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:16.397] W (30056) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.398] W (30057) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.399] W (30058) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.464] I (30151) read_data_task: [0xe0] 279
+[2026-05-13 00:52:16.579] I (30251) CAN_PROC_0: 0x000000e0 batch 1 [279..279] at (30057)
+[2026-05-13 00:52:16.589] I (30252) read_data_task: [0xe0] 280
+[2026-05-13 00:52:16.595] I (30252) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:16.599] I (30253) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:16.601] W (30254) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.602] W (30255) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.665] I (30352) read_data_task: [0xe0] 281
+[2026-05-13 00:52:16.685] I (30354) CAN_PROC_0: 0x000000e0 batch 2 [280..281] at (30160)
+[2026-05-13 00:52:16.698] I (30355) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:16.699] I (30357) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:16.700] W (30357) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.701] W (30358) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.766] I (30452) read_data_task: [0xe0] 282
+[2026-05-13 00:52:16.878] I (30552) CAN_PROC_0: 0x000000e0 batch 1 [282..282] at (30358)
+[2026-05-13 00:52:16.894] I (30552) read_data_task: [0xe0] 283
+[2026-05-13 00:52:16.896] I (30553) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:16.898] I (30554) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:16.899] W (30555) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.899] W (30556) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:16.966] I (30653) read_data_task: [0xe0] 284
+[2026-05-13 00:52:16.977] I (30655) CAN_PROC_0: 0x000000e0 batch 2 [283..284] at (30461)
+[2026-05-13 00:52:16.992] I (30656) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:16.997] I (30657) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:17.011] W (30658) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.014] W (30659) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.066] I (30753) read_data_task: [0xe0] 285
+[2026-05-13 00:52:17.180] I (30853) CAN_PROC_0: 0x000000e0 batch 1 [285..285] at (30659)
+[2026-05-13 00:52:17.188] I (30854) read_data_task: [0xe0] 286
+[2026-05-13 00:52:17.195] I (30854) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:17.198] I (30855) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:17.199] W (30856) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.200] W (30857) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.267] I (30954) read_data_task: [0xe0] 287
+[2026-05-13 00:52:17.279] I (30956) CAN_PROC_0: 0x000000e0 batch 2 [286..287] at (30762)
+[2026-05-13 00:52:17.295] I (30957) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:17.299] I (30958) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:17.300] W (30959) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.301] W (30960) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.367] I (31054) read_data_task: [0xe0] 288
+[2026-05-13 00:52:17.482] I (31154) CAN_PROC_0: 0x000000e0 batch 1 [288..288] at (30960)
+[2026-05-13 00:52:17.489] I (31154) read_data_task: [0xe0] 289
+[2026-05-13 00:52:17.498] I (31155) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:17.500] I (31156) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:17.501] W (31157) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.502] W (31158) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.568] I (31255) read_data_task: [0xe0] 290
+[2026-05-13 00:52:17.580] I (31257) CAN_PROC_0: 0x000000e0 batch 2 [289..290] at (31063)
+[2026-05-13 00:52:17.592] I (31258) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:17.602] I (31259) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:17.603] W (31260) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.604] W (31261) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.668] I (31355) read_data_task: [0xe0] 291
+[2026-05-13 00:52:17.778] I (31455) CAN_PROC_0: 0x000000e0 batch 1 [291..291] at (31261)
+[2026-05-13 00:52:17.790] I (31455) read_data_task: [0xe0] 292
+[2026-05-13 00:52:17.800] I (31456) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:17.802] I (31457) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:17.803] W (31458) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.803] W (31459) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.869] I (31556) read_data_task: [0xe0] 293
+[2026-05-13 00:52:17.882] I (31558) CAN_PROC_0: 0x000000e0 batch 2 [292..293] at (31364)
+[2026-05-13 00:52:17.897] I (31559) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:17.903] I (31560) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:17.904] W (31561) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.905] W (31562) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:17.969] I (31656) read_data_task: [0xe0] 294
+[2026-05-13 00:52:18.080] I (31756) CAN_PROC_0: 0x000000e0 batch 1 [294..294] at (31562)
+[2026-05-13 00:52:18.091] I (31757) read_data_task: [0xe0] 295
+[2026-05-13 00:52:18.104] I (31757) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:18.121] I (31759) LAT_RTT: id=0x000000e0 rtt_ms=3 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:18.123] W (31759) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.124] W (31760) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.170] I (31857) read_data_task: [0xe0] 296
+[2026-05-13 00:52:18.185] I (31859) CAN_PROC_0: 0x000000e0 batch 2 [295..296] at (31665)
+[2026-05-13 00:52:18.189] I (31860) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:18.190] I (31861) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:c9:78
+[2026-05-13 00:52:18.191] W (31862) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.191] W (31863) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.270] I (31957) read_data_task: [0xe0] 297
+[2026-05-13 00:52:18.371] I (32057) CAN_PROC_0: 0x000000e0 batch 1 [297..297] at (31863)
+[2026-05-13 00:52:18.382] I (32057) read_data_task: [0xe0] 298
+[2026-05-13 00:52:18.390] I (32059) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:18.402] I (32061) LAT_RTT: id=0x000000e0 rtt_ms=4 peer=54:32:04:8c:0b:8c
+[2026-05-13 00:52:18.403] W (32062) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.404] W (32064) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.471] I (32158) read_data_task: [0xe0] 299
+[2026-05-13 00:52:18.472] I (32158) HEAP: free=178752 min_free=174168 largest=114688
+[2026-05-13 00:52:18.484] I (32161) CAN_PROC_0: 0x000000e0 batch 2 [298..299] at (31967)
+[2026-05-13 00:52:18.494] I (32162) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:18.503] I (32163) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:18.507] W (32164) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.509] W (32166) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.531] I (32217) MEASURE: airtime_us_total=3900 packets_total=200 d_airtime_us=663 d_packets=34 util_per_mille=0
+[2026-05-13 00:52:18.532] I (32218) TASK: name=measure prio=1 state=0 hwm_bytes=1228 runtime=61028 total_runtime=32028870
+[2026-05-13 00:52:18.534] I (32218) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=30890680 total_runtime=32028870
+[2026-05-13 00:52:18.536] I (32219) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=7462 total_runtime=32028870
+[2026-05-13 00:52:18.537] I (32220) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2657 total_runtime=32028870
+[2026-05-13 00:52:18.539] I (32221) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2244 runtime=466693 total_runtime=32028870
+[2026-05-13 00:52:18.541] I (32222) TASK: name=send_processing prio=6 state=2 hwm_bytes=2360 runtime=43487 total_runtime=32028870
+[2026-05-13 00:52:18.542] I (32223) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=24140 total_runtime=32028870
+[2026-05-13 00:52:18.544] I (32225) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2348 runtime=131650 total_runtime=32028870
+[2026-05-13 00:52:18.546] I (32226) TASK: name=wifi prio=23 state=2 hwm_bytes=4204 runtime=382872 total_runtime=32028870
+[2026-05-13 00:52:18.547] I (32227) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=32028870
+[2026-05-13 00:52:18.549] I (32228) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=58 total_runtime=32028870
+[2026-05-13 00:52:18.570] I (32258) read_data_task: [0xe0] 300
+[2026-05-13 00:52:18.671] I (32358) CAN_PROC_0: 0x000000e0 batch 1 [300..300] at (32164)
+[2026-05-13 00:52:18.672] I (32359) read_data_task: [0xe0] 301
+[2026-05-13 00:52:18.676] I (32359) SEND_CB: Successfully sent packet to ffff
+[2026-05-13 00:52:18.678] I (32360) LAT_RTT: id=0x000000e0 rtt_ms=2 peer=28:05:a5:31:d6:d0
+[2026-05-13 00:52:18.679] W (32361) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.679] W (32362) ACK: Duplicate ACK ignored for 0x000000e0
+[2026-05-13 00:52:18.772] I (32459) read_data_task: [0xe0] 302
+
+# Monitor stopped: 2026-05-13T00:52:18.772662

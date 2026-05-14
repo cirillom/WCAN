@@ -1,0 +1,783 @@
+# Monitor started: 2026-05-13T01:15:46.603623
+# Port: /dev/ttyACM1, Baud: 921600, Duration: 30s
+
+# UART boot config: wcan v=1 role=receiver transport=BROADCAST filter=all
+[2026-05-13 01:15:46.604] ESP-ROM:esp32c3-api1-20210207
+[2026-05-13 01:15:46.605] Build:Feb  7 2021
+[2026-05-13 01:15:46.606] rst:0x15 (USB_UART_CHIP_RESET),boot:0xd (SPI_FAST_FLASH_BOOT)
+[2026-05-13 01:15:46.607] Saved PC:0x40384eae
+[2026-05-13 01:15:46.608] SPIWP:0xee
+[2026-05-13 01:15:46.609] mode:DIO, clock div:1
+[2026-05-13 01:15:46.611] load:0x3fcd5820,len:0x1574
+[2026-05-13 01:15:46.613] load:0x403cc710,len:0xc30
+[2026-05-13 01:15:46.614] load:0x403ce710,len:0x2fa0
+[2026-05-13 01:15:46.616] entry 0x403cc71a
+[2026-05-13 01:15:46.619] I (24) boot: ESP-IDF v5.4.1 2nd stage bootloader
+[2026-05-13 01:15:46.622] I (24) boot: compile time May 12 2026 19:48:29
+[2026-05-13 01:15:46.624] I (25) boot: chip revision: v0.4
+[2026-05-13 01:15:46.626] I (25) boot: efuse block revision: v1.3
+[2026-05-13 01:15:46.629] I (25) boot.esp32c3: SPI Speed      : 80MHz
+[2026-05-13 01:15:46.631] I (25) boot.esp32c3: SPI Mode       : DIO
+[2026-05-13 01:15:46.633] I (26) boot.esp32c3: SPI Flash Size : 2MB
+[2026-05-13 01:15:46.635] I (26) boot: Enabling RNG early entropy source...
+[2026-05-13 01:15:46.636] I (27) boot: Partition Table:
+[2026-05-13 01:15:46.639] I (27) boot: ## Label            Usage          Type ST Offset   Length
+[2026-05-13 01:15:46.641] I (28) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+[2026-05-13 01:15:46.643] I (29) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+[2026-05-13 01:15:46.644] I (29) boot:  2 factory          factory app      00 00 00010000 00100000
+[2026-05-13 01:15:46.645] I (30) boot: End of partition table
+[2026-05-13 01:15:46.647] I (31) esp_image: segment 0: paddr=00010020 vaddr=3c0a0020 size=19ea0h (106144) map
+[2026-05-13 01:15:46.649] I (49) esp_image: segment 1: paddr=00029ec8 vaddr=3fc95800 size=02db0h ( 11696) load
+[2026-05-13 01:15:46.651] I (51) esp_image: segment 2: paddr=0002cc80 vaddr=40380000 size=03398h ( 13208) load
+[2026-05-13 01:15:46.652] I (54) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=93210h (602640) map
+[2026-05-13 01:15:46.654] I (150) esp_image: segment 4: paddr=000c3238 vaddr=40383398 size=12310h ( 74512) load
+[2026-05-13 01:15:46.655] I (164) esp_image: segment 5: paddr=000d5550 vaddr=50000200 size=0001ch (    28) load
+[2026-05-13 01:15:46.656] I (171) boot: Loaded app from partition at offset 0x10000
+[2026-05-13 01:15:46.657] I (171) boot: Disabling RNG early entropy source...
+[2026-05-13 01:15:46.657] I (173) cpu_start: Unicore app
+[2026-05-13 01:15:46.658] I (181) cpu_start: Pro cpu start user code
+[2026-05-13 01:15:46.659] I (181) cpu_start: cpu freq: 160000000 Hz
+[2026-05-13 01:15:46.659] I (181) app_init: Application information:
+[2026-05-13 01:15:46.660] I (182) app_init: Project name:     sensor_acquirer
+[2026-05-13 01:15:46.661] I (182) app_init: App version:      v1.0-60-gb67991a-dirty
+[2026-05-13 01:15:46.661] I (183) app_init: Compile time:     May 12 2026 19:48:20
+[2026-05-13 01:15:46.661] I (183) app_init: ELF file SHA256:  fd27e32a6...
+[2026-05-13 01:15:46.661] I (184) app_init: ESP-IDF:          v5.4.1
+[2026-05-13 01:15:46.662] I (184) efuse_init: Min chip rev:     v0.3
+[2026-05-13 01:15:46.662] I (185) efuse_init: Max chip rev:     v1.99
+[2026-05-13 01:15:46.662] I (185) efuse_init: Chip rev:         v0.4
+[2026-05-13 01:15:46.662] I (186) heap_init: Initializing. RAM available for dynamic allocation:
+[2026-05-13 01:15:46.663] I (187) heap_init: At 3FC9D210 len 00022DF0 (139 KiB): RAM
+[2026-05-13 01:15:46.663] I (187) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM
+[2026-05-13 01:15:46.663] I (188) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM
+[2026-05-13 01:15:46.663] I (189) heap_init: At 5000021C len 00001DCC (7 KiB): RTCRAM
+[2026-05-13 01:15:46.664] I (190) spi_flash: detected chip: generic
+[2026-05-13 01:15:46.664] I (190) spi_flash: flash io: dio
+[2026-05-13 01:15:46.664] W (190) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+[2026-05-13 01:15:46.665] I (192) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[2026-05-13 01:15:46.665] I (192) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[2026-05-13 01:15:46.665] I (194) main_task: Started on CPU0
+[2026-05-13 01:15:46.665] I (194) main_task: Calling app_main()
+[2026-05-13 01:15:46.665] I (194) BOOT_TS: us=5200
+[2026-05-13 01:15:46.666] I (195) BOOT_CONFIG: waiting for UART config
+[2026-05-13 01:15:46.666] WCAN_CFG_WAIT v=1
+# UART boot config sent: wcan v=1 role=receiver transport=BROADCAST filter=all
+[2026-05-13 01:15:46.666] WCAN_CFG_WAIT v=1
+[2026-05-13 01:15:47.728] I (1323) BOOT_CONFIG: accepted role=receiver transport=BROADCAST
+[2026-05-13 01:15:47.729] I (1323) BOOT_CONFIG: receiver filter=accept-all count=0
+[2026-05-13 01:15:47.729] WCAN_CFG_ACK
+# Waiting for coordinated capture start
+[2026-05-13 01:15:49.496] WCAN_CFG_ACK
+[2026-05-13 01:15:49.508] I (1327) pp: pp rom version: 9387209
+[2026-05-13 01:15:49.528] I (1328) net80211: net80211 rom version: 9387209
+[2026-05-13 01:15:49.537] I (1330) wifi:wifi driver task: 3fca73c8, prio:23, stack:6656, core=0
+[2026-05-13 01:15:49.540] I (1334) wifi:wifi firmware version: 79fa3f41ba
+[2026-05-13 01:15:49.544] I (1334) wifi:wifi certification version: v7.0
+[2026-05-13 01:15:49.547] I (1334) wifi:config NVS flash: enabled
+[2026-05-13 01:15:49.551] I (1334) wifi:config nano formatting: disabled
+[2026-05-13 01:15:49.554] I (1335) wifi:Init data frame dynamic rx buffer num: 32
+[2026-05-13 01:15:49.556] I (1335) wifi:Init static rx mgmt buffer num: 5
+[2026-05-13 01:15:49.557] I (1336) wifi:Init management short buffer num: 32
+[2026-05-13 01:15:49.557] I (1336) wifi:Init dynamic tx buffer num: 32
+[2026-05-13 01:15:49.558] I (1337) wifi:Init static tx FG buffer num: 2
+[2026-05-13 01:15:49.560] I (1337) wifi:Init static rx buffer size: 1600
+[2026-05-13 01:15:49.562] I (1338) wifi:Init static rx buffer num: 10
+[2026-05-13 01:15:49.562] I (1338) wifi:Init dynamic rx buffer num: 32
+[2026-05-13 01:15:49.563] I (1339) wifi_init: rx ba win: 6
+[2026-05-13 01:15:49.565] I (1340) wifi_init: accept mbox: 6
+[2026-05-13 01:15:49.566] I (1340) wifi_init: tcpip mbox: 32
+[2026-05-13 01:15:49.566] I (1340) wifi_init: udp mbox: 6
+[2026-05-13 01:15:49.567] I (1340) wifi_init: tcp mbox: 6
+[2026-05-13 01:15:49.567] I (1341) wifi_init: tcp tx win: 5760
+[2026-05-13 01:15:49.568] I (1341) wifi_init: tcp rx win: 5760
+[2026-05-13 01:15:49.569] I (1342) wifi_init: tcp mss: 1440
+[2026-05-13 01:15:49.569] I (1342) wifi_init: WiFi IRAM OP enabled
+[2026-05-13 01:15:49.572] I (1342) wifi_init: WiFi RX IRAM OP enabled
+[2026-05-13 01:15:49.573] I (1343) phy_init: phy_version 1200,2b7123f9,Feb 18 2025,15:22:21
+[2026-05-13 01:15:49.574] I (1377) wifi:mode : sta (74:4d:bd:e1:d5:b8)
+[2026-05-13 01:15:49.574] I (1378) wifi:enable tsf
+[2026-05-13 01:15:49.577] I (1379) MAIN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 01:15:49.580] I (1380) RECEIVER_APP: RECEIVER mode - accepting all CAN IDs
+[2026-05-13 01:15:49.581] I (1380) ESPNOW: espnow [version: 2.0] init
+[2026-05-13 01:15:49.581] I (1381) WCAN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 01:15:49.582] I (1381) SEND: Send processing task started
+[2026-05-13 01:15:49.583] I (1381) RecvProcTask: Receive processing task started
+[2026-05-13 01:15:49.584] I (1381) HEAP: free=186248 min_free=186248 largest=114688
+[2026-05-13 01:15:49.585] I (1382) WCAN: WCAN initialized
+[2026-05-13 01:15:49.585] I (1382) main_task: Returned from app_main()
+[2026-05-13 01:15:49.586] I (2941) FIRST_RX_TS: us=2751429 id=0xb0
+[2026-05-13 01:15:49.587] I (2941) wcan_recv_callback: [b0] tick=966 [0..9] 10 items
+[2026-05-13 01:15:49.587] I (2943) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:49.588] I (3045) wcan_recv_callback: [b0] tick=1071 [10..19] 10 items
+[2026-05-13 01:15:49.589] I (3048) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:49.590] I (3149) wcan_recv_callback: [b0] tick=1175 [20..30] 11 items
+[2026-05-13 01:15:49.592] I (3151) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:49.663] I (3258) wcan_recv_callback: [b0] tick=1284 [31..40] 10 items
+[2026-05-13 01:15:49.666] I (3260) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:49.770] I (3362) wcan_recv_callback: [b0] tick=1388 [41..50] 10 items
+[2026-05-13 01:15:49.774] I (3364) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:49.877] I (3466) wcan_recv_callback: [b0] tick=1492 [51..60] 10 items
+[2026-05-13 01:15:49.883] I (3468) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:49.980] I (3569) wcan_recv_callback: [b0] tick=1595 [61..70] 10 items
+[2026-05-13 01:15:49.985] I (3571) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.085] I (3673) wcan_recv_callback: [b0] tick=1699 [71..81] 11 items
+[2026-05-13 01:15:50.088] I (3675) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.195] I (3782) wcan_recv_callback: [b0] tick=1808 [82..91] 10 items
+[2026-05-13 01:15:50.202] I (3784) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.304] I (3886) wcan_recv_callback: [b0] tick=1912 [92..101] 10 items
+[2026-05-13 01:15:50.309] I (3888) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.405] I (3990) RX_STATS: id=0xb0 packets=11 samples=112 gaps=0 last=[102..111]
+[2026-05-13 01:15:50.409] I (3990) wcan_recv_callback: [b0] tick=2016 [102..111] 10 items
+[2026-05-13 01:15:50.418] I (3992) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.507] I (4094) wcan_recv_callback: [b0] tick=2120 [112..122] 11 items
+[2026-05-13 01:15:50.511] I (4096) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.613] I (4203) wcan_recv_callback: [b0] tick=2229 [123..132] 10 items
+[2026-05-13 01:15:50.617] I (4205) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.713] I (4307) wcan_recv_callback: [b0] tick=2333 [133..142] 10 items
+[2026-05-13 01:15:50.719] I (4309) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.819] I (4410) wcan_recv_callback: [b0] tick=2436 [143..152] 10 items
+[2026-05-13 01:15:50.825] I (4412) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:50.926] I (4514) wcan_recv_callback: [b0] tick=2540 [153..162] 10 items
+[2026-05-13 01:15:50.930] I (4516) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.032] I (4618) wcan_recv_callback: [b0] tick=2644 [163..173] 11 items
+[2026-05-13 01:15:51.038] I (4620) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.133] I (4727) wcan_recv_callback: [b0] tick=2753 [174..183] 10 items
+[2026-05-13 01:15:51.136] I (4729) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.241] I (4831) wcan_recv_callback: [b0] tick=2857 [184..193] 10 items
+[2026-05-13 01:15:51.247] I (4833) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.340] I (4935) wcan_recv_callback: [b0] tick=2961 [194..203] 10 items
+[2026-05-13 01:15:51.344] I (4939) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.457] I (5042) RX_STATS: id=0xb0 packets=21 samples=215 gaps=0 last=[204..214]
+[2026-05-13 01:15:51.464] I (5043) wcan_recv_callback: [b0] tick=3065 [204..214] 11 items
+[2026-05-13 01:15:51.470] I (5044) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.561] I (5147) wcan_recv_callback: [b0] tick=3173 [215..224] 10 items
+[2026-05-13 01:15:51.568] I (5150) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.660] I (5251) wcan_recv_callback: [b0] tick=3277 [225..234] 10 items
+[2026-05-13 01:15:51.662] I (5253) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.770] I (5355) wcan_recv_callback: [b0] tick=3381 [235..244] 10 items
+[2026-05-13 01:15:51.776] I (5357) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.873] I (5459) wcan_recv_callback: [b0] tick=3485 [245..255] 11 items
+[2026-05-13 01:15:51.878] I (5461) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:51.976] I (5569) wcan_recv_callback: [b0] tick=3594 [256..265] 10 items
+[2026-05-13 01:15:51.977] I (5571) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.078] I (5673) wcan_recv_callback: [b0] tick=3699 [266..275] 10 items
+[2026-05-13 01:15:52.080] I (5674) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.182] I (5777) wcan_recv_callback: [b0] tick=3803 [276..286] 11 items
+[2026-05-13 01:15:52.184] I (5779) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.293] I (5886) wcan_recv_callback: [b0] tick=3912 [287..296] 10 items
+[2026-05-13 01:15:52.297] I (5888) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.401] I (5990) wcan_recv_callback: [b0] tick=4016 [297..306] 10 items
+[2026-05-13 01:15:52.409] I (5992) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.509] I (6094) RX_STATS: id=0xb0 packets=31 samples=317 gaps=0 last=[307..316]
+[2026-05-13 01:15:52.514] I (6094) wcan_recv_callback: [b0] tick=4120 [307..316] 10 items
+[2026-05-13 01:15:52.516] I (6097) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.605] I (6198) wcan_recv_callback: [b0] tick=4224 [317..327] 11 items
+[2026-05-13 01:15:52.606] I (6201) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.718] I (6309) wcan_recv_callback: [b0] tick=4335 [328..337] 10 items
+[2026-05-13 01:15:52.723] I (6311) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.788] I (6382) HEAP: free=187356 min_free=182816 largest=114688
+[2026-05-13 01:15:52.791] I (6382) MEASURE: airtime_us_total=561 packets_total=33 d_airtime_us=561 d_packets=33 util_per_mille=0
+[2026-05-13 01:15:52.793] I (6384) TASK: name=measure prio=1 state=0 hwm_bytes=1280 runtime=11 total_runtime=6194421
+[2026-05-13 01:15:52.799] I (6384) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=6067905 total_runtime=6194421
+[2026-05-13 01:15:52.802] I (6385) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=348 runtime=1154 total_runtime=6194421
+[2026-05-13 01:15:52.804] I (6386) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=1824 total_runtime=6194421
+[2026-05-13 01:15:52.810] I (6387) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=6194421
+[2026-05-13 01:15:52.812] I (6388) TASK: name=send_processing prio=6 state=2 hwm_bytes=2364 runtime=6611 total_runtime=6194421
+[2026-05-13 01:15:52.814] I (6389) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2276 runtime=20681 total_runtime=6194421
+[2026-05-13 01:15:52.816] I (6390) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=71773 total_runtime=6194421
+[2026-05-13 01:15:52.825] I (6391) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=7373 total_runtime=6194421
+[2026-05-13 01:15:52.827] I (6392) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=6194421
+[2026-05-13 01:15:52.828] I (6413) wcan_recv_callback: [b0] tick=4439 [338..347] 10 items
+[2026-05-13 01:15:52.830] I (6415) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:52.940] I (6517) wcan_recv_callback: [b0] tick=4543 [348..358] 11 items
+[2026-05-13 01:15:52.943] I (6519) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.038] I (6626) wcan_recv_callback: [b0] tick=4652 [359..368] 10 items
+[2026-05-13 01:15:53.040] I (6628) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.147] I (6730) wcan_recv_callback: [b0] tick=4756 [369..378] 10 items
+[2026-05-13 01:15:53.152] I (6732) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.247] I (6834) wcan_recv_callback: [b0] tick=4860 [379..388] 10 items
+[2026-05-13 01:15:53.253] I (6836) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.354] I (6941) wcan_recv_callback: [b0] tick=4964 [389..399] 11 items
+[2026-05-13 01:15:53.362] I (6944) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.461] I (7047) wcan_recv_callback: [b0] tick=5073 [400..409] 10 items
+[2026-05-13 01:15:53.468] I (7050) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.565] I (7151) RX_STATS: id=0xb0 packets=41 samples=420 gaps=0 last=[410..419]
+[2026-05-13 01:15:53.568] I (7151) wcan_recv_callback: [b0] tick=5177 [410..419] 10 items
+[2026-05-13 01:15:53.570] I (7153) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.659] I (7255) wcan_recv_callback: [b0] tick=5281 [420..429] 10 items
+[2026-05-13 01:15:53.662] I (7257) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.764] I (7359) wcan_recv_callback: [b0] tick=5385 [430..440] 11 items
+[2026-05-13 01:15:53.766] I (7361) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.874] I (7469) wcan_recv_callback: [b0] tick=5495 [441..450] 10 items
+[2026-05-13 01:15:53.876] I (7471) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:53.989] I (7574) wcan_recv_callback: [b0] tick=5599 [451..460] 10 items
+[2026-05-13 01:15:53.995] I (7577) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.092] I (7678) wcan_recv_callback: [b0] tick=5704 [461..471] 11 items
+[2026-05-13 01:15:54.100] I (7680) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.202] I (7786) wcan_recv_callback: [b0] tick=5812 [472..481] 10 items
+[2026-05-13 01:15:54.205] I (7788) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.301] I (7890) wcan_recv_callback: [b0] tick=5916 [482..491] 10 items
+[2026-05-13 01:15:54.305] I (7892) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.411] I (7994) wcan_recv_callback: [b0] tick=6020 [492..501] 10 items
+[2026-05-13 01:15:54.415] I (7996) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.515] I (8098) wcan_recv_callback: [b0] tick=6124 [502..511] 10 items
+[2026-05-13 01:15:54.518] I (8100) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.609] I (8202) RX_STATS: id=0xb0 packets=51 samples=523 gaps=0 last=[512..522]
+[2026-05-13 01:15:54.612] I (8202) wcan_recv_callback: [b0] tick=6228 [512..522] 11 items
+[2026-05-13 01:15:54.613] I (8204) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.717] I (8311) wcan_recv_callback: [b0] tick=6337 [523..532] 10 items
+[2026-05-13 01:15:54.721] I (8313) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.826] I (8415) wcan_recv_callback: [b0] tick=6441 [533..542] 10 items
+[2026-05-13 01:15:54.834] I (8417) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:54.937] I (8519) wcan_recv_callback: [b0] tick=6545 [543..552] 10 items
+[2026-05-13 01:15:54.942] I (8524) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.032] I (8623) wcan_recv_callback: [b0] tick=6649 [553..563] 11 items
+[2026-05-13 01:15:55.035] I (8626) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.146] I (8733) wcan_recv_callback: [b0] tick=6758 [564..573] 10 items
+[2026-05-13 01:15:55.150] I (8736) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.252] I (8838) wcan_recv_callback: [b0] tick=6864 [574..583] 10 items
+[2026-05-13 01:15:55.259] I (8842) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.357] I (8944) wcan_recv_callback: [b0] tick=6970 [584..594] 11 items
+[2026-05-13 01:15:55.360] I (8946) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.461] I (9051) wcan_recv_callback: [b0] tick=7077 [595..604] 10 items
+[2026-05-13 01:15:55.468] I (9053) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.568] I (9157) wcan_recv_callback: [b0] tick=7181 [605..614] 10 items
+[2026-05-13 01:15:55.577] I (9159) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.676] I (9261) RX_STATS: id=0xb0 packets=61 samples=626 gaps=0 last=[615..625]
+[2026-05-13 01:15:55.686] I (9261) wcan_recv_callback: [b0] tick=7287 [615..625] 11 items
+[2026-05-13 01:15:55.689] I (9264) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.782] I (9370) wcan_recv_callback: [b0] tick=7396 [626..635] 10 items
+[2026-05-13 01:15:55.788] I (9374) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.888] I (9474) wcan_recv_callback: [b0] tick=7500 [636..645] 10 items
+[2026-05-13 01:15:55.896] I (9477) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:55.984] I (9579) wcan_recv_callback: [b0] tick=7605 [646..656] 11 items
+[2026-05-13 01:15:55.986] I (9581) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.102] I (9687) wcan_recv_callback: [b0] tick=7713 [657..666] 10 items
+[2026-05-13 01:15:56.108] I (9689) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.206] I (9791) wcan_recv_callback: [b0] tick=7817 [667..676] 10 items
+[2026-05-13 01:15:56.212] I (9794) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.309] I (9895) wcan_recv_callback: [b0] tick=7921 [677..686] 10 items
+[2026-05-13 01:15:56.316] I (9898) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.411] I (9999) wcan_recv_callback: [b0] tick=8025 [687..697] 11 items
+[2026-05-13 01:15:56.418] I (10002) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.519] I (10108) wcan_recv_callback: [b0] tick=8134 [698..707] 10 items
+[2026-05-13 01:15:56.534] I (10111) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.624] I (10212) wcan_recv_callback: [b0] tick=8238 [708..717] 10 items
+[2026-05-13 01:15:56.632] I (10214) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.726] I (10316) RX_STATS: id=0xb0 packets=71 samples=728 gaps=0 last=[718..727]
+[2026-05-13 01:15:56.735] I (10316) wcan_recv_callback: [b0] tick=8342 [718..727] 10 items
+[2026-05-13 01:15:56.744] I (10318) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.838] I (10420) wcan_recv_callback: [b0] tick=8446 [728..738] 11 items
+[2026-05-13 01:15:56.842] I (10422) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:56.935] I (10529) wcan_recv_callback: [b0] tick=8555 [739..748] 10 items
+[2026-05-13 01:15:56.936] I (10531) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.039] I (10633) wcan_recv_callback: [b0] tick=8659 [749..758] 10 items
+[2026-05-13 01:15:57.040] I (10635) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.142] I (10737) wcan_recv_callback: [b0] tick=8763 [759..768] 10 items
+[2026-05-13 01:15:57.144] I (10739) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.246] I (10841) wcan_recv_callback: [b0] tick=8867 [769..779] 11 items
+[2026-05-13 01:15:57.248] I (10844) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.356] I (10950) wcan_recv_callback: [b0] tick=8976 [780..789] 10 items
+[2026-05-13 01:15:57.358] I (10952) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.468] I (11054) wcan_recv_callback: [b0] tick=9080 [790..799] 10 items
+[2026-05-13 01:15:57.472] I (11057) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.570] I (11158) wcan_recv_callback: [b0] tick=9184 [800..809] 10 items
+[2026-05-13 01:15:57.576] I (11160) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.676] I (11262) wcan_recv_callback: [b0] tick=9288 [810..820] 11 items
+[2026-05-13 01:15:57.678] I (11265) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.788] I (11371) RX_STATS: id=0xb0 packets=81 samples=831 gaps=0 last=[821..830]
+[2026-05-13 01:15:57.798] I (11371) wcan_recv_callback: [b0] tick=9397 [821..830] 10 items
+[2026-05-13 01:15:57.804] I (11374) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:57.808] I (11382) HEAP: free=187348 min_free=182816 largest=114688
+[2026-05-13 01:15:57.811] I (11393) MEASURE: airtime_us_total=1377 packets_total=81 d_airtime_us=816 d_packets=48 util_per_mille=0
+[2026-05-13 01:15:57.812] I (11394) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=10833 total_runtime=11204800
+[2026-05-13 01:15:57.814] I (11394) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=10984051 total_runtime=11204800
+[2026-05-13 01:15:57.815] I (11395) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=348 runtime=1593 total_runtime=11204800
+[2026-05-13 01:15:57.816] I (11396) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=3230 total_runtime=11204800
+[2026-05-13 01:15:57.817] I (11397) TASK: name=send_processing prio=6 state=2 hwm_bytes=2364 runtime=15933 total_runtime=11204800
+[2026-05-13 01:15:57.818] I (11398) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2276 runtime=49588 total_runtime=11204800
+[2026-05-13 01:15:57.819] I (11399) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=111156 total_runtime=11204800
+[2026-05-13 01:15:57.820] I (11400) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=11370 total_runtime=11204800
+[2026-05-13 01:15:57.821] I (11402) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=11204800
+[2026-05-13 01:15:57.822] I (11403) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=11204800
+[2026-05-13 01:15:57.896] I (11475) wcan_recv_callback: [b0] tick=9501 [831..840] 10 items
+[2026-05-13 01:15:57.899] I (11477) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.005] I (11579) wcan_recv_callback: [b0] tick=9605 [841..850] 10 items
+[2026-05-13 01:15:58.009] I (11581) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.098] I (11683) wcan_recv_callback: [b0] tick=9709 [851..861] 11 items
+[2026-05-13 01:15:58.104] I (11685) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.212] I (11793) wcan_recv_callback: [b0] tick=9818 [862..871] 10 items
+[2026-05-13 01:15:58.215] I (11795) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.316] I (11896) wcan_recv_callback: [b0] tick=9922 [872..881] 10 items
+[2026-05-13 01:15:58.319] I (11898) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.422] I (12000) wcan_recv_callback: [b0] tick=10026 [882..891] 10 items
+[2026-05-13 01:15:58.425] I (12002) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.525] I (12104) wcan_recv_callback: [b0] tick=10130 [892..902] 11 items
+[2026-05-13 01:15:58.531] I (12107) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.634] I (12214) wcan_recv_callback: [b0] tick=10239 [903..912] 10 items
+[2026-05-13 01:15:58.645] I (12216) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.732] I (12318) wcan_recv_callback: [b0] tick=10344 [913..922] 10 items
+[2026-05-13 01:15:58.740] I (12320) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.849] I (12422) RX_STATS: id=0xb0 packets=91 samples=934 gaps=0 last=[923..933]
+[2026-05-13 01:15:58.854] I (12423) wcan_recv_callback: [b0] tick=10448 [923..933] 11 items
+[2026-05-13 01:15:58.857] I (12425) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:58.946] I (12532) wcan_recv_callback: [b0] tick=10557 [934..943] 10 items
+[2026-05-13 01:15:58.954] I (12534) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.051] I (12635) wcan_recv_callback: [b0] tick=10661 [944..953] 10 items
+[2026-05-13 01:15:59.058] I (12638) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.154] I (12739) wcan_recv_callback: [b0] tick=10765 [954..964] 11 items
+[2026-05-13 01:15:59.164] I (12741) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.264] I (12850) wcan_recv_callback: [b0] tick=10876 [965..974] 10 items
+[2026-05-13 01:15:59.275] I (12852) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.365] I (12954) wcan_recv_callback: [b0] tick=10980 [975..984] 10 items
+[2026-05-13 01:15:59.372] I (12958) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.477] I (13058) wcan_recv_callback: [b0] tick=11084 [985..995] 11 items
+[2026-05-13 01:15:59.480] I (13061) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.573] I (13167) wcan_recv_callback: [b0] tick=11193 [996..1005] 10 items
+[2026-05-13 01:15:59.575] I (13169) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.683] I (13271) wcan_recv_callback: [b0] tick=11297 [1006..1015] 10 items
+[2026-05-13 01:15:59.686] I (13273) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.789] I (13375) wcan_recv_callback: [b0] tick=11401 [1016..1025] 10 items
+[2026-05-13 01:15:59.792] I (13377) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:15:59.896] I (13479) RX_STATS: id=0xb0 packets=101 samples=1037 gaps=0 last=[1026..1036]
+[2026-05-13 01:15:59.906] I (13479) wcan_recv_callback: [b0] tick=11505 [1026..1036] 11 items
+[2026-05-13 01:15:59.913] I (13482) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.008] I (13593) wcan_recv_callback: [b0] tick=11615 [1037..1046] 10 items
+[2026-05-13 01:16:00.023] I (13595) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.112] I (13697) wcan_recv_callback: [b0] tick=11723 [1047..1057] 11 items
+[2026-05-13 01:16:00.116] I (13700) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.218] I (13804) wcan_recv_callback: [b0] tick=11830 [1058..1067] 10 items
+[2026-05-13 01:16:00.227] I (13806) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.324] I (13908) wcan_recv_callback: [b0] tick=11934 [1068..1077] 10 items
+[2026-05-13 01:16:00.329] I (13910) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.427] I (14012) wcan_recv_callback: [b0] tick=12038 [1078..1088] 11 items
+[2026-05-13 01:16:00.432] I (14014) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.536] I (14121) wcan_recv_callback: [b0] tick=12147 [1089..1098] 10 items
+[2026-05-13 01:16:00.543] I (14123) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.643] I (14227) wcan_recv_callback: [b0] tick=12251 [1099..1108] 10 items
+[2026-05-13 01:16:00.650] I (14230) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.749] I (14331) wcan_recv_callback: [b0] tick=12357 [1109..1119] 11 items
+[2026-05-13 01:16:00.752] I (14333) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.860] I (14442) wcan_recv_callback: [b0] tick=12466 [1120..1129] 10 items
+[2026-05-13 01:16:00.864] I (14444) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:00.962] I (14545) RX_STATS: id=0xb0 packets=111 samples=1140 gaps=0 last=[1130..1139]
+[2026-05-13 01:16:00.971] I (14545) wcan_recv_callback: [b0] tick=12571 [1130..1139] 10 items
+[2026-05-13 01:16:00.974] I (14547) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.066] I (14649) wcan_recv_callback: [b0] tick=12675 [1140..1150] 11 items
+[2026-05-13 01:16:01.071] I (14652) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.174] I (14758) wcan_recv_callback: [b0] tick=12784 [1151..1160] 10 items
+[2026-05-13 01:16:01.180] I (14761) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.277] I (14862) wcan_recv_callback: [b0] tick=12888 [1161..1170] 10 items
+[2026-05-13 01:16:01.282] I (14864) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.384] I (14966) wcan_recv_callback: [b0] tick=12992 [1171..1180] 10 items
+[2026-05-13 01:16:01.391] I (14968) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.485] I (15070) wcan_recv_callback: [b0] tick=13096 [1181..1191] 11 items
+[2026-05-13 01:16:01.488] I (15073) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.594] I (15180) wcan_recv_callback: [b0] tick=13206 [1192..1201] 10 items
+[2026-05-13 01:16:01.601] I (15183) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.696] I (15284) wcan_recv_callback: [b0] tick=13310 [1202..1211] 10 items
+[2026-05-13 01:16:01.706] I (15287) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.804] I (15388) wcan_recv_callback: [b0] tick=13414 [1212..1222] 11 items
+[2026-05-13 01:16:01.811] I (15391) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:01.911] I (15497) wcan_recv_callback: [b0] tick=13523 [1223..1232] 10 items
+[2026-05-13 01:16:01.915] I (15499) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.018] I (15601) RX_STATS: id=0xb0 packets=121 samples=1243 gaps=0 last=[1233..1242]
+[2026-05-13 01:16:02.024] I (15601) wcan_recv_callback: [b0] tick=13627 [1233..1242] 10 items
+[2026-05-13 01:16:02.034] I (15604) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.122] I (15706) wcan_recv_callback: [b0] tick=13731 [1243..1252] 10 items
+[2026-05-13 01:16:02.130] I (15708) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.221] I (15810) wcan_recv_callback: [b0] tick=13836 [1253..1263] 11 items
+[2026-05-13 01:16:02.224] I (15813) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.337] I (15919) wcan_recv_callback: [b0] tick=13944 [1264..1273] 10 items
+[2026-05-13 01:16:02.345] I (15921) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.438] I (16023) wcan_recv_callback: [b0] tick=14049 [1274..1283] 10 items
+[2026-05-13 01:16:02.445] I (16026) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.543] I (16127) wcan_recv_callback: [b0] tick=14153 [1284..1294] 11 items
+[2026-05-13 01:16:02.549] I (16129) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.656] I (16238) wcan_recv_callback: [b0] tick=14264 [1295..1304] 10 items
+[2026-05-13 01:16:02.663] I (16240) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.761] I (16344) wcan_recv_callback: [b0] tick=14368 [1305..1314] 10 items
+[2026-05-13 01:16:02.769] I (16347) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.788] I (16382) HEAP: free=187348 min_free=182816 largest=114688
+[2026-05-13 01:16:02.810] I (16404) MEASURE: airtime_us_total=2176 packets_total=128 d_airtime_us=799 d_packets=47 util_per_mille=0
+[2026-05-13 01:16:02.811] I (16405) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=21891 total_runtime=16215785
+[2026-05-13 01:16:02.813] I (16405) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=15901499 total_runtime=16215785
+[2026-05-13 01:16:02.814] I (16406) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=348 runtime=2010 total_runtime=16215785
+[2026-05-13 01:16:02.816] I (16407) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=4268 total_runtime=16215785
+[2026-05-13 01:16:02.820] I (16408) TASK: name=send_processing prio=6 state=2 hwm_bytes=2364 runtime=25238 total_runtime=16215785
+[2026-05-13 01:16:02.822] I (16409) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2272 runtime=79140 total_runtime=16215785
+[2026-05-13 01:16:02.823] I (16410) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=149277 total_runtime=16215785
+[2026-05-13 01:16:02.825] I (16411) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=15431 total_runtime=16215785
+[2026-05-13 01:16:02.826] I (16413) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=16215785
+[2026-05-13 01:16:02.830] I (16414) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=16215785
+[2026-05-13 01:16:02.859] I (16448) wcan_recv_callback: [b0] tick=14474 [1315..1325] 11 items
+[2026-05-13 01:16:02.864] I (16451) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:02.971] I (16555) wcan_recv_callback: [b0] tick=14581 [1326..1335] 10 items
+[2026-05-13 01:16:02.977] I (16557) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.082] I (16659) RX_STATS: id=0xb0 packets=131 samples=1346 gaps=0 last=[1336..1345]
+[2026-05-13 01:16:03.087] I (16659) wcan_recv_callback: [b0] tick=14685 [1336..1345] 10 items
+[2026-05-13 01:16:03.090] I (16662) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.181] I (16767) wcan_recv_callback: [b0] tick=14789 [1346..1355] 10 items
+[2026-05-13 01:16:03.187] I (16769) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.282] I (16871) wcan_recv_callback: [b0] tick=14897 [1356..1366] 11 items
+[2026-05-13 01:16:03.291] I (16873) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.396] I (16980) wcan_recv_callback: [b0] tick=15002 [1367..1376] 10 items
+[2026-05-13 01:16:03.402] I (16983) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.491] I (17084) wcan_recv_callback: [b0] tick=15110 [1377..1387] 11 items
+[2026-05-13 01:16:03.495] I (17086) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.612] I (17196) wcan_recv_callback: [b0] tick=15218 [1388..1397] 10 items
+[2026-05-13 01:16:03.620] I (17199) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.716] I (17300) wcan_recv_callback: [b0] tick=15326 [1398..1408] 11 items
+[2026-05-13 01:16:03.724] I (17303) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.818] I (17407) wcan_recv_callback: [b0] tick=15433 [1409..1418] 10 items
+[2026-05-13 01:16:03.828] I (17409) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:03.922] I (17511) wcan_recv_callback: [b0] tick=15537 [1419..1428] 10 items
+[2026-05-13 01:16:03.930] I (17513) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.031] I (17615) wcan_recv_callback: [b0] tick=15641 [1429..1439] 11 items
+[2026-05-13 01:16:04.038] I (17618) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.139] I (17724) RX_STATS: id=0xb0 packets=141 samples=1450 gaps=0 last=[1440..1449]
+[2026-05-13 01:16:04.149] I (17724) wcan_recv_callback: [b0] tick=15750 [1440..1449] 10 items
+[2026-05-13 01:16:04.155] I (17727) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.243] I (17828) wcan_recv_callback: [b0] tick=15854 [1450..1459] 10 items
+[2026-05-13 01:16:04.249] I (17830) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.341] I (17932) wcan_recv_callback: [b0] tick=15958 [1460..1469] 10 items
+[2026-05-13 01:16:04.346] I (17934) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.451] I (18036) wcan_recv_callback: [b0] tick=16062 [1470..1479] 10 items
+[2026-05-13 01:16:04.461] I (18038) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.556] I (18140) wcan_recv_callback: [b0] tick=16166 [1480..1490] 11 items
+[2026-05-13 01:16:04.559] I (18142) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.666] I (18249) wcan_recv_callback: [b0] tick=16275 [1491..1500] 10 items
+[2026-05-13 01:16:04.670] I (18252) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.765] I (18354) wcan_recv_callback: [b0] tick=16379 [1501..1510] 10 items
+[2026-05-13 01:16:04.771] I (18357) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.869] I (18458) wcan_recv_callback: [b0] tick=16484 [1511..1520] 10 items
+[2026-05-13 01:16:04.873] I (18461) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:04.971] I (18562) wcan_recv_callback: [b0] tick=16588 [1521..1531] 11 items
+[2026-05-13 01:16:04.975] I (18565) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.089] I (18671) wcan_recv_callback: [b0] tick=16697 [1532..1541] 10 items
+[2026-05-13 01:16:05.092] I (18674) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.200] I (18775) RX_STATS: id=0xb0 packets=151 samples=1552 gaps=0 last=[1542..1551]
+[2026-05-13 01:16:05.205] I (18775) wcan_recv_callback: [b0] tick=16801 [1542..1551] 10 items
+[2026-05-13 01:16:05.208] I (18777) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.302] I (18879) wcan_recv_callback: [b0] tick=16905 [1552..1561] 10 items
+[2026-05-13 01:16:05.306] I (18881) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.402] I (18983) wcan_recv_callback: [b0] tick=17009 [1562..1572] 11 items
+[2026-05-13 01:16:05.406] I (18985) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.514] I (19092) wcan_recv_callback: [b0] tick=17118 [1573..1582] 10 items
+[2026-05-13 01:16:05.519] I (19095) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.611] I (19196) wcan_recv_callback: [b0] tick=17222 [1583..1592] 10 items
+[2026-05-13 01:16:05.616] I (19198) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.711] I (19300) wcan_recv_callback: [b0] tick=17326 [1593..1602] 10 items
+[2026-05-13 01:16:05.717] I (19303) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.828] I (19404) wcan_recv_callback: [b0] tick=17430 [1603..1613] 11 items
+[2026-05-13 01:16:05.832] I (19407) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:05.938] I (19515) wcan_recv_callback: [b0] tick=17541 [1614..1623] 10 items
+[2026-05-13 01:16:05.942] I (19517) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.043] I (19619) wcan_recv_callback: [b0] tick=17645 [1624..1633] 10 items
+[2026-05-13 01:16:06.047] I (19622) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.137] I (19723) wcan_recv_callback: [b0] tick=17749 [1634..1644] 11 items
+[2026-05-13 01:16:06.142] I (19725) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.243] I (19832) RX_STATS: id=0xb0 packets=161 samples=1655 gaps=0 last=[1645..1654]
+[2026-05-13 01:16:06.263] I (19832) wcan_recv_callback: [b0] tick=17858 [1645..1654] 10 items
+[2026-05-13 01:16:06.267] I (19835) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.351] I (19936) wcan_recv_callback: [b0] tick=17962 [1655..1664] 10 items
+[2026-05-13 01:16:06.358] I (19938) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.456] I (20040) wcan_recv_callback: [b0] tick=18066 [1665..1674] 10 items
+[2026-05-13 01:16:06.462] I (20043) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.562] I (20144) wcan_recv_callback: [b0] tick=18170 [1675..1685] 11 items
+[2026-05-13 01:16:06.568] I (20146) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.664] I (20253) wcan_recv_callback: [b0] tick=18279 [1686..1695] 10 items
+[2026-05-13 01:16:06.669] I (20256) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.770] I (20357) wcan_recv_callback: [b0] tick=18383 [1696..1705] 10 items
+[2026-05-13 01:16:06.773] I (20360) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.871] I (20461) wcan_recv_callback: [b0] tick=18487 [1706..1715] 10 items
+[2026-05-13 01:16:06.880] I (20463) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:06.978] I (20565) wcan_recv_callback: [b0] tick=18591 [1716..1726] 11 items
+[2026-05-13 01:16:06.989] I (20567) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.084] I (20674) wcan_recv_callback: [b0] tick=18700 [1727..1736] 10 items
+[2026-05-13 01:16:07.092] I (20677) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.186] I (20778) wcan_recv_callback: [b0] tick=18804 [1737..1746] 10 items
+[2026-05-13 01:16:07.190] I (20780) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.294] I (20882) RX_STATS: id=0xb0 packets=171 samples=1757 gaps=0 last=[1747..1756]
+[2026-05-13 01:16:07.305] I (20883) wcan_recv_callback: [b0] tick=18908 [1747..1756] 10 items
+[2026-05-13 01:16:07.310] I (20884) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.400] I (20986) wcan_recv_callback: [b0] tick=19012 [1757..1767] 11 items
+[2026-05-13 01:16:07.404] I (20988) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.505] I (21095) wcan_recv_callback: [b0] tick=19121 [1768..1777] 10 items
+[2026-05-13 01:16:07.519] I (21098) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.611] I (21199) wcan_recv_callback: [b0] tick=19225 [1778..1787] 10 items
+[2026-05-13 01:16:07.622] I (21202) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.716] I (21303) wcan_recv_callback: [b0] tick=19329 [1788..1797] 10 items
+[2026-05-13 01:16:07.724] I (21305) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.787] I (21382) HEAP: free=187348 min_free=182816 largest=114688
+[2026-05-13 01:16:07.825] I (21407) wcan_recv_callback: [b0] tick=19433 [1798..1808] 11 items
+[2026-05-13 01:16:07.829] I (21410) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:07.836] I (21415) MEASURE: airtime_us_total=2992 packets_total=176 d_airtime_us=816 d_packets=48 util_per_mille=0
+[2026-05-13 01:16:07.838] I (21416) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=32973 total_runtime=21226858
+[2026-05-13 01:16:07.841] I (21416) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=20817350 total_runtime=21226858
+[2026-05-13 01:16:07.843] I (21417) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=348 runtime=2501 total_runtime=21226858
+[2026-05-13 01:16:07.845] I (21418) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=5306 total_runtime=21226858
+[2026-05-13 01:16:07.846] I (21419) TASK: name=send_processing prio=6 state=2 hwm_bytes=2364 runtime=34623 total_runtime=21226858
+[2026-05-13 01:16:07.847] I (21420) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2272 runtime=109538 total_runtime=21226858
+[2026-05-13 01:16:07.848] I (21421) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=187976 total_runtime=21226858
+[2026-05-13 01:16:07.849] I (21422) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=19487 total_runtime=21226858
+[2026-05-13 01:16:07.851] I (21424) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=21226858
+[2026-05-13 01:16:07.852] I (21425) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=21226858
+[2026-05-13 01:16:07.932] I (21516) wcan_recv_callback: [b0] tick=19542 [1809..1818] 10 items
+[2026-05-13 01:16:07.939] I (21518) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.033] I (21620) wcan_recv_callback: [b0] tick=19646 [1819..1828] 10 items
+[2026-05-13 01:16:08.042] I (21623) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.140] I (21724) wcan_recv_callback: [b0] tick=19750 [1829..1838] 10 items
+[2026-05-13 01:16:08.147] I (21726) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.244] I (21828) wcan_recv_callback: [b0] tick=19854 [1839..1849] 11 items
+[2026-05-13 01:16:08.257] I (21831) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.350] I (21938) RX_STATS: id=0xb0 packets=181 samples=1860 gaps=0 last=[1850..1859]
+[2026-05-13 01:16:08.357] I (21939) wcan_recv_callback: [b0] tick=19963 [1850..1859] 10 items
+[2026-05-13 01:16:08.362] I (21942) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.453] I (22042) wcan_recv_callback: [b0] tick=20068 [1860..1869] 10 items
+[2026-05-13 01:16:08.461] I (22045) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.554] I (22146) wcan_recv_callback: [b0] tick=20172 [1870..1880] 11 items
+[2026-05-13 01:16:08.558] I (22148) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.681] I (22257) wcan_recv_callback: [b0] tick=20283 [1881..1890] 10 items
+[2026-05-13 01:16:08.687] I (22262) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.773] I (22361) wcan_recv_callback: [b0] tick=20387 [1891..1900] 10 items
+[2026-05-13 01:16:08.777] I (22363) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.873] I (22465) wcan_recv_callback: [b0] tick=20491 [1901..1911] 11 items
+[2026-05-13 01:16:08.878] I (22467) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:08.984] I (22574) wcan_recv_callback: [b0] tick=20600 [1912..1921] 10 items
+[2026-05-13 01:16:08.988] I (22577) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.084] I (22678) wcan_recv_callback: [b0] tick=20704 [1922..1931] 10 items
+[2026-05-13 01:16:09.087] I (22680) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.190] I (22782) wcan_recv_callback: [b0] tick=20808 [1932..1941] 10 items
+[2026-05-13 01:16:09.195] I (22785) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.293] I (22886) wcan_recv_callback: [b0] tick=20912 [1942..1952] 11 items
+[2026-05-13 01:16:09.296] I (22891) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.403] I (22996) RX_STATS: id=0xb0 packets=191 samples=1963 gaps=0 last=[1953..1962]
+[2026-05-13 01:16:09.406] I (22997) wcan_recv_callback: [b0] tick=21021 [1953..1962] 10 items
+[2026-05-13 01:16:09.406] I (22998) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.506] I (23100) wcan_recv_callback: [b0] tick=21126 [1963..1972] 10 items
+[2026-05-13 01:16:09.508] I (23103) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.618] I (23204) wcan_recv_callback: [b0] tick=21230 [1973..1983] 11 items
+[2026-05-13 01:16:09.624] I (23207) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.727] I (23315) wcan_recv_callback: [b0] tick=21341 [1984..1993] 10 items
+[2026-05-13 01:16:09.734] I (23317) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.831] I (23419) wcan_recv_callback: [b0] tick=21445 [1994..2003] 10 items
+[2026-05-13 01:16:09.839] I (23421) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:09.938] I (23523) wcan_recv_callback: [b0] tick=21549 [2004..2014] 11 items
+[2026-05-13 01:16:09.941] I (23525) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.037] I (23632) wcan_recv_callback: [b0] tick=21658 [2015..2024] 10 items
+[2026-05-13 01:16:10.039] I (23634) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.141] I (23736) wcan_recv_callback: [b0] tick=21762 [2025..2034] 10 items
+[2026-05-13 01:16:10.143] I (23738) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.246] I (23840) wcan_recv_callback: [b0] tick=21866 [2035..2044] 10 items
+[2026-05-13 01:16:10.249] I (23842) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.357] I (23944) wcan_recv_callback: [b0] tick=21970 [2045..2055] 11 items
+[2026-05-13 01:16:10.360] I (23946) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.479] I (24053) RX_STATS: id=0xb0 packets=201 samples=2066 gaps=0 last=[2056..2065]
+[2026-05-13 01:16:10.485] I (24053) wcan_recv_callback: [b0] tick=22079 [2056..2065] 10 items
+[2026-05-13 01:16:10.490] I (24056) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.562] I (24157) wcan_recv_callback: [b0] tick=22183 [2066..2075] 10 items
+[2026-05-13 01:16:10.564] I (24159) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.676] I (24261) wcan_recv_callback: [b0] tick=22287 [2076..2085] 10 items
+[2026-05-13 01:16:10.681] I (24263) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.780] I (24365) wcan_recv_callback: [b0] tick=22391 [2086..2096] 11 items
+[2026-05-13 01:16:10.787] I (24368) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.882] I (24474) wcan_recv_callback: [b0] tick=22500 [2097..2106] 10 items
+[2026-05-13 01:16:10.882] I (24478) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:10.985] I (24578) wcan_recv_callback: [b0] tick=22604 [2107..2116] 10 items
+[2026-05-13 01:16:10.987] I (24581) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.094] I (24682) wcan_recv_callback: [b0] tick=22708 [2117..2126] 10 items
+[2026-05-13 01:16:11.101] I (24684) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.202] I (24786) wcan_recv_callback: [b0] tick=22812 [2127..2137] 11 items
+[2026-05-13 01:16:11.208] I (24789) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.306] I (24895) wcan_recv_callback: [b0] tick=22921 [2138..2147] 10 items
+[2026-05-13 01:16:11.314] I (24897) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.416] I (24999) wcan_recv_callback: [b0] tick=23025 [2148..2157] 10 items
+[2026-05-13 01:16:11.421] I (25001) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.516] I (25103) RX_STATS: id=0xb0 packets=211 samples=2168 gaps=0 last=[2158..2167]
+[2026-05-13 01:16:11.521] I (25103) wcan_recv_callback: [b0] tick=23129 [2158..2167] 10 items
+[2026-05-13 01:16:11.528] I (25106) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.612] I (25207) wcan_recv_callback: [b0] tick=23233 [2168..2178] 11 items
+[2026-05-13 01:16:11.615] I (25210) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.724] I (25317) wcan_recv_callback: [b0] tick=23343 [2179..2188] 10 items
+[2026-05-13 01:16:11.725] I (25319) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.827] I (25421) wcan_recv_callback: [b0] tick=23447 [2189..2198] 10 items
+[2026-05-13 01:16:11.829] I (25423) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:11.938] I (25525) wcan_recv_callback: [b0] tick=23551 [2199..2209] 11 items
+[2026-05-13 01:16:11.943] I (25527) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.052] I (25636) wcan_recv_callback: [b0] tick=23662 [2210..2219] 10 items
+[2026-05-13 01:16:12.059] I (25638) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.149] I (25740) wcan_recv_callback: [b0] tick=23766 [2220..2229] 10 items
+[2026-05-13 01:16:12.154] I (25742) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.260] I (25844) wcan_recv_callback: [b0] tick=23870 [2230..2240] 11 items
+[2026-05-13 01:16:12.266] I (25847) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.368] I (25954) wcan_recv_callback: [b0] tick=23980 [2241..2250] 10 items
+[2026-05-13 01:16:12.376] I (25956) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.470] I (26058) wcan_recv_callback: [b0] tick=24084 [2251..2260] 10 items
+[2026-05-13 01:16:12.480] I (26061) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.570] I (26162) RX_STATS: id=0xb0 packets=221 samples=2272 gaps=0 last=[2261..2271]
+[2026-05-13 01:16:12.572] I (26162) wcan_recv_callback: [b0] tick=24188 [2261..2271] 11 items
+[2026-05-13 01:16:12.573] I (26165) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.678] I (26271) wcan_recv_callback: [b0] tick=24297 [2272..2281] 10 items
+[2026-05-13 01:16:12.680] I (26274) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.792] I (26375) wcan_recv_callback: [b0] tick=24401 [2282..2291] 10 items
+[2026-05-13 01:16:12.799] I (26378) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.803] I (26382) HEAP: free=187348 min_free=182816 largest=114688
+[2026-05-13 01:16:12.833] I (26426) MEASURE: airtime_us_total=3791 packets_total=223 d_airtime_us=799 d_packets=47 util_per_mille=0
+[2026-05-13 01:16:12.835] I (26427) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=44102 total_runtime=26237786
+[2026-05-13 01:16:12.837] I (26427) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=25734474 total_runtime=26237786
+[2026-05-13 01:16:12.839] I (26428) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=348 runtime=2919 total_runtime=26237786
+[2026-05-13 01:16:12.841] I (26429) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=6342 total_runtime=26237786
+[2026-05-13 01:16:12.844] I (26430) TASK: name=send_processing prio=6 state=2 hwm_bytes=2364 runtime=43845 total_runtime=26237786
+[2026-05-13 01:16:12.846] I (26431) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2272 runtime=138603 total_runtime=26237786
+[2026-05-13 01:16:12.848] I (26432) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=226938 total_runtime=26237786
+[2026-05-13 01:16:12.849] I (26433) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=23531 total_runtime=26237786
+[2026-05-13 01:16:12.852] I (26435) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=26237786
+[2026-05-13 01:16:12.854] I (26436) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=26237786
+[2026-05-13 01:16:12.894] I (26479) wcan_recv_callback: [b0] tick=24505 [2292..2301] 10 items
+[2026-05-13 01:16:12.898] I (26481) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:12.999] I (26583) wcan_recv_callback: [b0] tick=24609 [2302..2312] 11 items
+[2026-05-13 01:16:13.003] I (26585) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.105] I (26692) wcan_recv_callback: [b0] tick=24718 [2313..2322] 10 items
+[2026-05-13 01:16:13.112] I (26695) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.207] I (26796) wcan_recv_callback: [b0] tick=24822 [2323..2332] 10 items
+[2026-05-13 01:16:13.212] I (26798) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.318] I (26900) wcan_recv_callback: [b0] tick=24926 [2333..2342] 10 items
+[2026-05-13 01:16:13.322] I (26903) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.426] I (27006) wcan_recv_callback: [b0] tick=25030 [2343..2353] 11 items
+[2026-05-13 01:16:13.429] I (27008) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.534] I (27114) wcan_recv_callback: [b0] tick=25140 [2354..2363] 10 items
+[2026-05-13 01:16:13.540] I (27116) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.637] I (27218) RX_STATS: id=0xb0 packets=231 samples=2374 gaps=0 last=[2364..2373]
+[2026-05-13 01:16:13.649] I (27218) wcan_recv_callback: [b0] tick=25244 [2364..2373] 10 items
+[2026-05-13 01:16:13.652] I (27221) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.749] I (27322) wcan_recv_callback: [b0] tick=25348 [2374..2384] 11 items
+[2026-05-13 01:16:13.751] I (27324) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.849] I (27433) wcan_recv_callback: [b0] tick=25457 [2385..2394] 10 items
+[2026-05-13 01:16:13.852] I (27435) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:13.955] I (27536) wcan_recv_callback: [b0] tick=25562 [2395..2404] 10 items
+[2026-05-13 01:16:13.961] I (27538) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.054] I (27640) wcan_recv_callback: [b0] tick=25666 [2405..2415] 11 items
+[2026-05-13 01:16:14.062] I (27643) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.167] I (27751) wcan_recv_callback: [b0] tick=25777 [2416..2425] 10 items
+[2026-05-13 01:16:14.170] I (27753) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.273] I (27855) wcan_recv_callback: [b0] tick=25881 [2426..2435] 10 items
+[2026-05-13 01:16:14.276] I (27858) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.367] I (27959) wcan_recv_callback: [b0] tick=25985 [2436..2445] 10 items
+[2026-05-13 01:16:14.369] I (27962) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.473] I (28063) wcan_recv_callback: [b0] tick=26089 [2446..2455] 10 items
+[2026-05-13 01:16:14.482] I (28066) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.582] I (28167) wcan_recv_callback: [b0] tick=26193 [2456..2466] 11 items
+[2026-05-13 01:16:14.587] I (28170) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.700] I (28276) RX_STATS: id=0xb0 packets=241 samples=2477 gaps=0 last=[2467..2476]
+[2026-05-13 01:16:14.705] I (28276) wcan_recv_callback: [b0] tick=26302 [2467..2476] 10 items
+[2026-05-13 01:16:14.708] I (28279) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.804] I (28380) wcan_recv_callback: [b0] tick=26406 [2477..2486] 10 items
+[2026-05-13 01:16:14.807] I (28382) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:14.905] I (28484) wcan_recv_callback: [b0] tick=26510 [2487..2496] 10 items
+[2026-05-13 01:16:14.908] I (28486) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.007] I (28589) wcan_recv_callback: [b0] tick=26614 [2497..2507] 11 items
+[2026-05-13 01:16:15.011] I (28591) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.109] I (28697) wcan_recv_callback: [b0] tick=26723 [2508..2517] 10 items
+[2026-05-13 01:16:15.117] I (28700) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.219] I (28805) wcan_recv_callback: [b0] tick=26827 [2518..2527] 10 items
+[2026-05-13 01:16:15.231] I (28808) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.331] I (28909) wcan_recv_callback: [b0] tick=26935 [2528..2538] 11 items
+[2026-05-13 01:16:15.334] I (28912) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.434] I (29015) wcan_recv_callback: [b0] tick=27041 [2539..2548] 10 items
+[2026-05-13 01:16:15.437] I (29019) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.545] I (29119) wcan_recv_callback: [b0] tick=27145 [2549..2558] 10 items
+[2026-05-13 01:16:15.549] I (29121) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.641] I (29223) wcan_recv_callback: [b0] tick=27249 [2559..2568] 10 items
+[2026-05-13 01:16:15.646] I (29226) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.745] I (29327) RX_STATS: id=0xb0 packets=251 samples=2580 gaps=0 last=[2569..2579]
+[2026-05-13 01:16:15.755] I (29328) wcan_recv_callback: [b0] tick=27353 [2569..2579] 11 items
+[2026-05-13 01:16:15.762] I (29329) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.850] I (29436) wcan_recv_callback: [b0] tick=27462 [2580..2589] 10 items
+[2026-05-13 01:16:15.856] I (29438) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:15.953] I (29540) wcan_recv_callback: [b0] tick=27566 [2590..2599] 10 items
+[2026-05-13 01:16:15.959] I (29542) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.057] I (29644) wcan_recv_callback: [b0] tick=27670 [2600..2609] 10 items
+[2026-05-13 01:16:16.064] I (29647) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.154] I (29748) wcan_recv_callback: [b0] tick=27774 [2610..2620] 11 items
+[2026-05-13 01:16:16.157] I (29752) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.268] I (29857) wcan_recv_callback: [b0] tick=27883 [2621..2630] 10 items
+[2026-05-13 01:16:16.270] I (29860) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.372] I (29961) wcan_recv_callback: [b0] tick=27987 [2631..2640] 10 items
+[2026-05-13 01:16:16.379] I (29963) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.480] I (30066) wcan_recv_callback: [b0] tick=28091 [2641..2650] 10 items
+[2026-05-13 01:16:16.486] I (30069) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.587] I (30170) wcan_recv_callback: [b0] tick=28196 [2651..2661] 11 items
+[2026-05-13 01:16:16.597] I (30172) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.694] I (30279) wcan_recv_callback: [b0] tick=28305 [2662..2671] 10 items
+[2026-05-13 01:16:16.702] I (30281) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.800] I (30385) RX_STATS: id=0xb0 packets=261 samples=2682 gaps=0 last=[2672..2681]
+[2026-05-13 01:16:16.809] I (30386) wcan_recv_callback: [b0] tick=28409 [2672..2681] 10 items
+[2026-05-13 01:16:16.814] I (30388) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:16.899] I (30489) wcan_recv_callback: [b0] tick=28515 [2682..2692] 11 items
+[2026-05-13 01:16:16.905] I (30491) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.010] I (30596) wcan_recv_callback: [b0] tick=28622 [2693..2702] 10 items
+[2026-05-13 01:16:17.016] I (30599) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.113] I (30700) wcan_recv_callback: [b0] tick=28726 [2703..2712] 10 items
+[2026-05-13 01:16:17.120] I (30702) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.217] I (30804) wcan_recv_callback: [b0] tick=28830 [2713..2722] 10 items
+[2026-05-13 01:16:17.224] I (30807) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.325] I (30908) wcan_recv_callback: [b0] tick=28934 [2723..2733] 11 items
+[2026-05-13 01:16:17.330] I (30910) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.432] I (31017) wcan_recv_callback: [b0] tick=29043 [2734..2743] 10 items
+[2026-05-13 01:16:17.438] I (31020) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.534] I (31121) wcan_recv_callback: [b0] tick=29147 [2744..2753] 10 items
+[2026-05-13 01:16:17.543] I (31123) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.641] I (31225) wcan_recv_callback: [b0] tick=29251 [2754..2763] 10 items
+[2026-05-13 01:16:17.648] I (31227) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.744] I (31329) wcan_recv_callback: [b0] tick=29355 [2764..2774] 11 items
+[2026-05-13 01:16:17.748] I (31332) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.787] I (31382) HEAP: free=187348 min_free=182816 largest=114688
+[2026-05-13 01:16:17.848] I (31437) MEASURE: airtime_us_total=4590 packets_total=270 d_airtime_us=799 d_packets=47 util_per_mille=0
+[2026-05-13 01:16:17.855] I (31438) TASK: name=measure prio=1 state=0 hwm_bytes=1216 runtime=55150 total_runtime=31248781
+[2026-05-13 01:16:17.867] I (31438) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=30652138 total_runtime=31248781
+[2026-05-13 01:16:17.875] I (31439) RX_STATS: id=0xb0 packets=271 samples=2785 gaps=0 last=[2775..2784]
+[2026-05-13 01:16:17.879] I (31440) wcan_recv_callback: [b0] tick=29465 [2775..2784] 10 items
+[2026-05-13 01:16:17.881] I (31440) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:17.884] I (31441) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=348 runtime=3361 total_runtime=31248781
+[2026-05-13 01:16:17.885] I (31443) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=7380 total_runtime=31248781
+[2026-05-13 01:16:17.887] I (31443) TASK: name=recv_processing prio=6 state=2 hwm_bytes=2256 runtime=167173 total_runtime=31248781
+[2026-05-13 01:16:17.888] I (31445) TASK: name=send_processing prio=6 state=2 hwm_bytes=2364 runtime=52982 total_runtime=31248781
+[2026-05-13 01:16:17.889] I (31446) TASK: name=wifi prio=23 state=2 hwm_bytes=4624 runtime=265991 total_runtime=31248781
+[2026-05-13 01:16:17.889] I (31447) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=27579 total_runtime=31248781
+[2026-05-13 01:16:17.890] I (31448) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=31248781
+[2026-05-13 01:16:17.891] I (31449) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=31248781
+[2026-05-13 01:16:17.948] I (31542) wcan_recv_callback: [b0] tick=29568 [2785..2794] 10 items
+[2026-05-13 01:16:17.951] I (31545) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.058] I (31646) wcan_recv_callback: [b0] tick=29672 [2795..2805] 11 items
+[2026-05-13 01:16:18.064] I (31649) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.171] I (31757) wcan_recv_callback: [b0] tick=29783 [2806..2815] 10 items
+[2026-05-13 01:16:18.179] I (31759) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.276] I (31861) wcan_recv_callback: [b0] tick=29887 [2816..2825] 10 items
+[2026-05-13 01:16:18.282] I (31864) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.382] I (31965) wcan_recv_callback: [b0] tick=29991 [2826..2836] 11 items
+[2026-05-13 01:16:18.389] I (31967) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.489] I (32076) wcan_recv_callback: [b0] tick=30100 [2837..2846] 10 items
+[2026-05-13 01:16:18.496] I (32079) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.592] I (32180) wcan_recv_callback: [b0] tick=30206 [2847..2857] 11 items
+[2026-05-13 01:16:18.596] I (32183) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.699] I (32291) wcan_recv_callback: [b0] tick=30317 [2858..2867] 10 items
+[2026-05-13 01:16:18.710] I (32293) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.819] I (32395) wcan_recv_callback: [b0] tick=30421 [2868..2877] 10 items
+[2026-05-13 01:16:18.822] I (32397) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:18.920] I (32499) RX_STATS: id=0xb0 packets=281 samples=2889 gaps=0 last=[2878..2888]
+[2026-05-13 01:16:18.928] I (32499) wcan_recv_callback: [b0] tick=30525 [2878..2888] 11 items
+[2026-05-13 01:16:18.935] I (32502) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:19.021] I (32608) wcan_recv_callback: [b0] tick=30634 [2889..2898] 10 items
+[2026-05-13 01:16:19.027] I (32610) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:19.132] I (32716) wcan_recv_callback: [b0] tick=30738 [2899..2908] 10 items
+[2026-05-13 01:16:19.137] I (32719) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:19.233] I (32820) wcan_recv_callback: [b0] tick=30846 [2909..2919] 11 items
+[2026-05-13 01:16:19.236] I (32822) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:19.339] I (32927) wcan_recv_callback: [b0] tick=30953 [2920..2929] 10 items
+[2026-05-13 01:16:19.346] I (32930) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:19.445] I (33032) wcan_recv_callback: [b0] tick=31058 [2930..2939] 10 items
+[2026-05-13 01:16:19.452] I (33034) SEND_CB: Successfully sent packet to c978
+[2026-05-13 01:16:19.546] I (33136) wcan_recv_callback: [b0] tick=31162 [2940..2949] 10 items
+
+# Monitor stopped: 2026-05-13T01:16:19.547140

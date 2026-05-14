@@ -1,0 +1,75 @@
+{
+  "boards": {
+    "A": {
+      "can_id": "0xa0",
+      "can_ids": [
+        "0xa0"
+      ],
+      "chip": "esp32",
+      "port": "/dev/ttyUSB0"
+    },
+    "B": {
+      "can_id": "0xb0",
+      "can_ids": [
+        "0xb0"
+      ],
+      "chip": "esp32",
+      "port": "/dev/ttyUSB1"
+    },
+    "C": {
+      "can_id": "0xc0",
+      "can_ids": [
+        "0xc0"
+      ],
+      "chip": "esp32",
+      "port": "/dev/ttyUSB2"
+    },
+    "D": {
+      "can_id": "0xd0",
+      "can_ids": [
+        "0xd0"
+      ],
+      "chip": "esp32c3",
+      "port": "/dev/ttyACM0"
+    },
+    "E": {
+      "can_id": "0xe0",
+      "can_ids": [
+        "0xe0"
+      ],
+      "chip": "esp32c3",
+      "port": "/dev/ttyACM1"
+    }
+  },
+  "can_ids_per_sensor": 1,
+  "frequency_hz": 1000,
+  "frequency_tolerance": 0.2,
+  "linger_ms": 100,
+  "profile": "full",
+  "repeat": 2,
+  "roles": {
+    "idle": [
+      "C",
+      "B"
+    ],
+    "receivers": [
+      "E"
+    ],
+    "sensors": [
+      "A",
+      "D"
+    ]
+  },
+  "scenario": "baseline",
+  "sensor_frequencies": {},
+  "suite": "baseline",
+  "topology": "2S-1R",
+  "transport": "BROADCAST",
+  "uart_boot_config": {
+    "A": "wcan v=1 role=sensor transport=BROADCAST base=0xa0 count=1 hz=1000 linger=100",
+    "B": "wcan v=1 role=idle transport=BROADCAST",
+    "C": "wcan v=1 role=idle transport=BROADCAST",
+    "D": "wcan v=1 role=sensor transport=BROADCAST base=0xd0 count=1 hz=1000 linger=100",
+    "E": "wcan v=1 role=receiver transport=BROADCAST filter=all"
+  }
+}
