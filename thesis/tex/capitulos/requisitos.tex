@@ -6,11 +6,15 @@ técnicas de integração com o sistema existente.
 \section{Desempenho e Latência}
 
 O sistema deve ser capaz de transmitir dados com latência compatível com as frequências
-de aquisição já praticadas pela equipe. Atrasos na entrega dos dados
-comprometem a sincronização temporal com os demais canais do sistema e podem
-tornar a informação inutilizável para análise. Em sistemas de aquisição para
-Fórmula SAE, a utilidade dos dados depende tanto da taxa de amostragem quanto
-da capacidade de relacionar os sinais coletados a eventos do veículo e do piloto
+de aquisição já praticadas pela equipe. Na arquitetura atual, cada identificador
+CAN é associado a uma frequência fixa de transmissão, em geral de 200 Hz,
+o que simplifica a integração com o barramento e preserva a interpretação temporal
+dos sinais. Em componentes como a manga de eixo, porém, pode ser necessário elevar essa frequência
+para capturar sinais de maior conteúdo espectral; nesses casos, a taxa de amostragem
+precisa continuar compatível com a banda útil do fenômeno observado, conforme o
+teorema de Nyquist. Em sistemas de aquisição para Fórmula SAE, a utilidade dos dados
+depende tanto da taxa de amostragem quanto da capacidade de relacionar os sinais
+coletados a eventos do veículo e do piloto
 \cite{ashford2020_formula_sae_data_analysis,stoffman2004_low_cost_racing_daq}.
 
 \section{Conexão Instantânea}
