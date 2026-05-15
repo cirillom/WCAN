@@ -49,11 +49,28 @@ neste trabalho \cite{espressif_espnow_programming_guide,pasic2021_espnow_esp32}.
 Essa combinação atende melhor aos requisitos de início rápido, baixo overhead e
 operação sem infraestrutura.
 
-A principal limitação está no broadcast: o ESP-NOW não fornece confirmação nativa
-de entrega para cada receptor quando o destino é \texttt{FF:FF:FF:FF:FF:FF}. Por
-isso, a confiabilidade precisou ser construída na camada WCAN, por ACKs de
-aplicação, retransmissões, filtragem e descoberta. Essa decisão é aceitável porque
-o objetivo do projeto é expandir a aquisição de dados, não substituir a rede CAN em
-controle crítico. Trabalhos de telemetria veicular com Wi-Fi ou ESP32 reforçam que
-a escolha do protocolo precisa considerar a finalidade do sistema e sua integração
-com o fluxo de dados do veículo \cite{fernandes2022_formula_sae_wifi_can}.
+Assim como em outros protocolos sem fio, o ESP-NOW trabalha com três modos de comunicação:
+\begin{itemize}
+    \item \textbf{Unicast}: comunicação ponto a ponto entre um transmissor e um receptor específico, 
+    usando o endereço MAC do receptor.
+    \item \textbf{Multicast}: comunicação de um transmissor para um grupo de receptores inscritos, 
+    onde cada receptor confirma a recepção individualmente.
+    \item \textbf{Broadcast}: comunicação de um transmissor para todos os dispositivos no alcance, 
+    sem confirmação de recepção.
+\end{itemize}
+Considerando a natureza da nossa aplicação e o o funcionamento de um barramento CAN tradicional, 
+a estratégia de comunicação mais adequada seria o broadcast, pois o objetivo é que os dados sejam 
+recebidos por qualquer nó interessado, sem a necessidade de estabelecer conexões ou gerenciar grupos 
+de receptores. No entanto, a falta de confirmação nativa no modo broadcast do ESP-NOW introduz a
+necessidade de implementar mecanismos de confiabilidade na camada de aplicação, como técnicas de
+confirmação (ACK) e retransmissão, para garantir a entrega dos dados. Entretanto, a implementação
+desse tipo de sistema introduz complexidade adicional e impactar a robustez do sistema. Por outro lado,
+o uso de multicast, permitiria a confirmação de entrega a nível de hardware, eliminando um ponto de
+falha, mas introduzindo a necessidade de gerenciar inscrições, o que quebraria o requisito de transmissão
+instantânea.
+
+Diante dos cenários citados, entender qual das opções é a mais viável tornou-se um dos principais 
+focos de trabalho desta tese. Essa investigação é bem justificada dado que o projeto 
+visa expandir a aquisição de dados, não substituir a rede CAN em controle crítico. Trabalhos 
+de telemetria veicular com Wi-Fi ou ESP32 reforçam que a escolha do protocolo precisa considerar 
+a finalidade do sistema e sua integração com o fluxo de dados do veículo \cite{fernandes2022_formula_sae_wifi_can}.

@@ -13,12 +13,13 @@ dados recebidos como mensagens com semântica CAN. A camada empacota amostras po
 identificador CAN, aplica filtros no receptor, envia os pacotes pelo rádio e entrega
 os dados aceitos ao callback da aplicação.
 
-Foram implementadas duas variantes de transporte, broadcast e multicast, ligadas em
-tempo de compilação. As duas usam o mesmo formato de pacote e a mesma aplicação de
-teste, o que permitiu comparar estratégias de endereçamento e confiabilidade sem
-alterar a instrumentação. O papel de cada placa, sensor, receptor ou nó ocioso, é
-definido no boot por uma linha enviada pela serial, junto com frequência de geração,
-CAN ID base, quantidade de IDs e valor de \texttt{linger\_ms}.
+Para suprir a necessidade de se investigar a viabilidade entre as abordagens citadas
+anteriormente, foram implementadas duas variantes de transporte para o WCAN, broadcast 
+e multicast, selecionadas em tempo de compilação. As duas usam o mesmo formato de pacote 
+e a mesma aplicação de teste, o que permitiu comparar o impacto dessas estratégias de
+endereçamento de forma isolada na confiabilidade sem alterar a instrumentação. O papel de 
+cada placa, sensor, receptor ou nó ocioso, é definido no boot por uma linha enviada pela 
+serial, junto com frequência de geração, CAN ID base, quantidade de IDs e valor de \texttt{linger\_ms}.
 
 \section{Formato dos Pacotes}
 
