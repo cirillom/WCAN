@@ -21,6 +21,9 @@
 #include "wcan_subscriptions.hpp"
 #include "wcan_utils.hpp"
 
+size_t subscription_snapshot_targets(uint32_t can_id,
+                                     uint8_t out_macs[WCAN_MAX_SUBSCRIBERS][ESP_NOW_ETH_ALEN]);
+
 const uint8_t BROADCAST_MAC[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 QueueHandle_t send_queue = nullptr;
 QueueHandle_t *can_queues = nullptr;
@@ -331,19 +334,39 @@ void can_processing_task(void *pv_parameter)
             continue;
         }
 
-        const size_t fan_out = subscription_snapshot_targets(can_id, targets);
-        if (fan_out == 0) {
+        const size_t alive_subscribers_count = subscription_snapshot_targets(can_id, targets);
+        if (alive_subscribers_count == 0) {
             mark_discovery_mode(can_queue_index);
-            send_data(BROADCAST_MAC, *packet);
-            ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> broadcast discovery (no alive subscribers)",
+        }
+
+        const delivery_mode_t delivery_mode = get_delivery_mode(can_queue_index);
+        switch (delivery_mode) {
+        case delivery_mode_t::MULTICAST_ACTIVE: {
+            size_t success_count = 0;
+            for (uint8_t attempt = 1; attempt <= WCAN_MULTICAST_BATCH_MAX_ATTEMPTS; attempt++) {
+                const bool success = send_multicast_and_wait(targets, alive_subscribers_count, *packet);
+                success_count = success ? 1 : 0;
+                if (success) {
+                    break;
+                }
+                if (attempt < WCAN_MULTICAST_BATCH_MAX_ATTEMPTS) {
+                    vTaskDelay(pdMS_TO_TICKS(5));
+                }
+            }
+
+            record_multicast_batch_result(can_queue_index, success_count > 0);
+
+            ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> %u/%u peers",
                      static_cast<unsigned long>(packet->can_id), packet->data_count,
                      static_cast<unsigned long>(packet->data[0]),
                      static_cast<unsigned long>(packet->data[packet->data_count - 1]),
-                     static_cast<unsigned long>(packet->tick_count));
-            continue;
+                     static_cast<unsigned long>(packet->tick_count),
+                     static_cast<unsigned>(success_count),
+                     static_cast<unsigned>(alive_subscribers_count));
+            break;
         }
-
-        if (get_delivery_mode(can_queue_index) == delivery_mode_t::BROADCAST_DISCOVERY) {
+        case delivery_mode_t::BROADCAST_DISCOVERY:
+        default:
             send_data(BROADCAST_MAC, *packet);
             ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> broadcast discovery",
                      static_cast<unsigned long>(packet->can_id), packet->data_count,
@@ -352,28 +375,6 @@ void can_processing_task(void *pv_parameter)
                      static_cast<unsigned long>(packet->tick_count));
             continue;
         }
-
-        size_t success_count = 0;
-        for (uint8_t attempt = 1; attempt <= WCAN_MULTICAST_BATCH_MAX_ATTEMPTS; attempt++) {
-            const bool success = send_multicast_and_wait(targets, fan_out, *packet);
-            success_count = success ? 1 : 0;
-            if (success) {
-                break;
-            }
-            if (attempt < WCAN_MULTICAST_BATCH_MAX_ATTEMPTS) {
-                vTaskDelay(pdMS_TO_TICKS(5));
-            }
-        }
-
-        record_multicast_batch_result(can_queue_index, success_count > 0);
-
-        ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu) -> %u/%u peers",
-                 static_cast<unsigned long>(packet->can_id), packet->data_count,
-                 static_cast<unsigned long>(packet->data[0]),
-                 static_cast<unsigned long>(packet->data[packet->data_count - 1]),
-                 static_cast<unsigned long>(packet->tick_count),
-                 static_cast<unsigned>(success_count),
-                 static_cast<unsigned>(fan_out));
     }
 }
 
