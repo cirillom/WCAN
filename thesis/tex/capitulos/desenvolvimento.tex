@@ -99,12 +99,16 @@ sabe que algum nó recebeu a mensagem, mas não identifica quais nós a recebera
 \cite{iso11898_1_2024}.
 
 No multicast, o sensor mantém uma tabela de assinantes interessados em cada CAN ID.
-Enquanto não há assinantes vivos, o sensor transmite em broadcast para permitir
-descoberta imediata. Um receptor interessado responde com \texttt{HELLO}, e o sensor
-passa a incluí-lo nas próximas transmissões multicast. Receptores também enviam
-\texttt{HELLO} periodicamente, permitindo que novos nós sejam descobertos mesmo após
-o início da transmissão. O envio multicast usa o retorno do driver ESP-NOW como
-sinal de sucesso \cite{espressif_espnow_programming_guide}.
+Enquanto não há assinantes vivos, o sensor simplesmente transmite seus dados em
+broadcast e opera como se estivesse no modo broadcast. Nessa fase ele não depende de
+ACK para decidir o fluxo de transmissão; a ideia é enviar os pacotes livremente até que
+algum receptor responda com \texttt{CAN\_HELLO}. Quando esse pacote chega, seja por resposta
+ao broadcast ou pela tarefa de descoberta, o sensor registra o emissor como assinante 
+e passa a operar em multicast direcionado, que na
+prática começa como unicast para esse único destino. Receptores também enviam
+\texttt{HELLO} periodicamente, permitindo manter a tabela de assinantes atualizada ao
+longo da execução. O envio multicast usa o retorno do driver ESP-NOW como sinal de
+sucesso \cite{espressif_espnow_programming_guide}.
 
 As duas estratégias refletem compromissos diferentes. O broadcast é simples e
 funciona sem descoberta prévia, mas só garante que ao menos um receptor interessado
