@@ -42,30 +42,61 @@ variante é compilada por vez, não há conflito no firmware final.
 
 Os callbacks do ESP-NOW foram mantidos curtos, conforme a recomendação da Espressif
 de deslocar operações demoradas para filas e tasks de menor prioridade
-\cite{espressif_espnow_programming_guide}. Na recepção, o callback apenas copia e
-valida o pacote recebido. Filtragem, deduplicação, chamada da aplicação,
-descoberta e retransmissões são tratadas fora desse contexto.
+\cite{espressif_espnow_programming_guide}. No WCAN existem três pontos centrais de
+enfileiramento.
 
-No caminho de transmissão, cada CAN ID possui uma fila própria. A task associada
-consome amostras, espera até \texttt{linger\_ms} e fecha o lote quando a janela
-expira ou quando 60 amostras são acumuladas. Esse batching é essencial porque o
-ESP-NOW é um enlace de pacotes, com custo fixo por quadro. Para aquisição de dados
-com frequência conhecida, o atraso controlado por \texttt{linger\_ms} reduz o uso do
-canal e a pressão sobre filas. Quando \texttt{linger\_ms = 0}, o sistema envia uma
-amostra por pacote, configuração mantida apenas como experimento de limite. Estudos
-e medições práticas de ESP-NOW também indicam que tamanho de pacote, topologia e
-condições do enlace afetam diretamente vazão e atraso \cite{hackaday_espnow_throughput,urazayev2023_indoor_espnow,wedyanti2025_espnow_multinode}.
+O primeiro é a fila por CAN ID, criada no caminho de geração. Cada identificador que
+deve ser transmitido possui uma fila própria de amostras brutas, com elementos de 32
+bits. A aplicação produtora insere cada valor nessa fila assim que ele é lido ou
+convertido. A task associada ao CAN ID bloqueia nessa fila, acumula a primeira amostra, 
+espera até \texttt{linger\_ms} por novas amostras e fecha o lote quando a janela expira 
+ou quando o limite de 60 valores é atingido. Esse batching reduz o overhead fixo do 
+ESP-NOW, evita a criação de muitos quadros pequenos e permite ajustar a latência de 
+acordo com a taxa de geração. Quando \texttt{linger\_ms = 0}, o sistema envia uma única 
+amostra por pacote. Estudos e medições práticas de ESP-NOW também indicam que tamanho de
+pacote, topologia e condições do enlace afetam diretamente vazão e atraso
+\cite{hackaday_espnow_throughput,urazayev2023_indoor_espnow,wedyanti2025_espnow_multinode}.
+
+Depois do agrupamento, a task constrói um \texttt{data\_packet\_t}, preenche o MAC
+de origem, o CAN ID, o identificador do pacote e o vetor com as amostras agrupadas, 
+e então repassa o pacote para a fila de envio, \texttt{send\_queue}. Essa fila não 
+guarda amostras isoladas; ela guarda requisições de transmissão já montadas, com os 
+metadados necessários para escolher o destino, sincronizar a confirmação e liberar o 
+fluxo da task de geração sem bloqueá-la no rádio. A task \texttt{send\_processing\_task} 
+consome essa fila, prepara os pares necessários e executa a transmissão no ESP-NOW, 
+seja em broadcast ou multicast, dependendo da variante compilada.
+
+No caminho de recepção, o ponto de entrada é o callback do ESP-NOW. Esse callback
+recebe o quadro cru já associado ao MAC de origem, valida os argumentos e faz a
+desserialização ainda nesse contexto. Isso é importante porque a própria interpretação
+do pacote já define se ele é um pacote de confirmação (ACK), um pacote de inscrição
+(\texttt{HELLO}) ou um pacote de dados que deve seguir para o restante do processamento. 
+A desserialização é custosa, mas precisa acontecer o mais rápidamente possível para que
+a filtragem por identificador CAN e a lógica de registro ou confirmação sejam decididas o mais perto 
+possível do recebimento físico. Adiar esse passo significaria carregar bytes opacos 
+para outra task e postergar uma decisão que depende do conteúdo do pacote.
+
+Se o pacote for de dados e passar pelo filtro, ele é colocado na fila de recepção, \texttt{recv\_queue}.
+Essa fila isola a chegada do rádio do consumo pela aplicação. A task
+\texttt{recv\_processing\_task} retira os pacotes dessa fila, faz a deduplicação por
+identificador de pacote, envia a confirmação, e só então chama o callback de aplicação. 
+Esse último passo é o ponto em que os dados recebidos por rádio passam a ser tratados 
+como mensagens CAN válidas para o restante do sistema.
 
 \section{Transportes Broadcast e Multicast}
 
-No broadcast, todos os pacotes de dados são enviados para
-\texttt{FF:FF:FF:FF:FF:FF}. Os receptores no mesmo canal aplicam seus filtros por
-CAN ID e, se aceitarem o pacote, enviam um ACK direcionado ao sensor. O transmissor
-usa o par CAN ID e contador para correlacionar confirmações, retransmitindo quando
-nenhum ACK válido chega dentro da janela esperada. Quando existem múltiplos
-receptores, o primeiro ACK libera o próximo lote. Essa escolha replica a semântica
-do ACK dominante do CAN, na qual o transmissor sabe que algum nó recebeu a
-mensagem, mas não identifica quais nós a receberam \cite{iso11898_1_2024}.
+O comportamento descrito acima é compartilhado pelas duas variantes de transporte,
+broadcast e multicast, ligadas em tempo de compilação. As duas usam o mesmo formato
+de pacote e a mesma aplicação de teste, o que permitiu comparar estratégias de
+endereçamento e confiabilidade sem alterar a instrumentação. No broadcast, todos os
+pacotes de dados são enviados para \texttt{FF:FF:FF:FF:FF:FF}. Os receptores no mesmo
+canal aplicam seus filtros por CAN ID e, se aceitarem o pacote, enviam um ACK
+direcionado ao sensor. O transmissor usa o par CAN ID e identificador do pacote para
+correlacionar confirmações, retransmitindo quando nenhum ACK válido chega dentro da
+janela esperada. Quando existem múltiplos receptores, o primeiro ACK libera o próximo
+lote. Essa escolha replica a semântica do ACK dominante do CAN, na qual o transmissor
+sabe que algum nó recebeu a mensagem, mas não identifica quais nós a receberam
+\cite{iso11898_1_2024}.
 
 No multicast, o sensor mantém uma tabela de assinantes interessados em cada CAN ID.
 Enquanto não há assinantes vivos, o sensor transmite em broadcast para permitir
@@ -73,8 +104,7 @@ descoberta imediata. Um receptor interessado responde com \texttt{HELLO}, e o se
 passa a incluí-lo nas próximas transmissões multicast. Receptores também enviam
 \texttt{HELLO} periodicamente, permitindo que novos nós sejam descobertos mesmo após
 o início da transmissão. O envio multicast usa o retorno do driver ESP-NOW como
-sinal de sucesso no nível MAC, mas esse retorno não substitui uma confirmação
-explícita de processamento pela aplicação \cite{espressif_espnow_programming_guide}.
+sinal de sucesso \cite{espressif_espnow_programming_guide}.
 
 As duas estratégias refletem compromissos diferentes. O broadcast é simples e
 funciona sem descoberta prévia, mas só garante que ao menos um receptor interessado
