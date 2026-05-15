@@ -127,11 +127,14 @@ variantes foi tratada como questão experimental.
 
 \section{Integração com o CAN Existente}
 
-A integração preserva o CAN ID original. O receptor WCAN entrega um
-\texttt{data\_packet\_t} à aplicação, que pode retransmitir os dados no barramento
-físico via TWAI usando o mesmo identificador. Assim, os demais módulos do veículo
-podem tratar os dados recebidos por rádio como mensagens CAN comuns
+A integração preserva o CAN ID original e entrega cada \texttt{data\_packet\_t} por
+meio de um callback de aplicação implementado pelo usuário. Esse callback recebe o
+pacote já filtrado e pode percorrer seus pontos de dados para tomar a ação desejada:
+retransmiti-los no barramento físico via TWAI com o mesmo identificador, registrá-los
+em log serial ou adotar qualquer outra política de tratamento. Assim, o WCAN deixa a
+fronteira de integração deliberadamente aberta, e os demais módulos do veículo podem
+tratar os dados recebidos por rádio como mensagens CAN comuns
 \cite{silva2009_rede_can_formula_sae,blatt2020_aquisicao_formula_sae}. Nos testes
-quantitativos, o callback registrou os pacotes em log serial para análise de entrega
-e latência. No uso embarcado, essa fronteira é o ponto de injeção no barramento CAN
-local.
+quantitativos, esse callback foi usado para registrar os pacotes em log serial para
+análise de entrega e latência. No uso embarcado, ele se torna o ponto de injeção no
+barramento CAN local.
