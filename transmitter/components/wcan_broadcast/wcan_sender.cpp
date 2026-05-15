@@ -97,6 +97,8 @@ static bool send_with_retry(size_t can_queue_index, const data_packet_t &packet)
     std::snprintf(TAG, sizeof(TAG), "RESEND_%u", static_cast<unsigned>(can_queue_index));
 
     for (int attempt = 0; attempt < WCAN_MAX_RETRY_COUNT; attempt++) {
+        send_data(BROADCAST_MAC, packet);
+
         const uint32_t delay =
             WCAN_RETRY_DELAY_MIN + (esp_random() % (WCAN_RETRY_DELAY_MAX - WCAN_RETRY_DELAY_MIN + 1));
         if (xTaskNotifyWait(0xFFFFFFFFUL, 0, nullptr, pdMS_TO_TICKS(delay)) == pdTRUE) {
@@ -104,7 +106,6 @@ static bool send_with_retry(size_t can_queue_index, const data_packet_t &packet)
         }
         ESP_LOGW(TAG, "Timeout reached, resending %08lx... Attempt: %d of %d",
                  static_cast<unsigned long>(packet.can_id), attempt + 1, WCAN_MAX_RETRY_COUNT);
-        send_data(BROADCAST_MAC, packet);
     }
     return false;
 }
@@ -128,7 +129,6 @@ void can_processing_task(void *pv_parameter)
 
         can_tx_tick_counts[can_queue_index] = packet->tick_count;
         can_tx_packets[can_queue_index] = packet.get();
-        send_data(BROADCAST_MAC, *packet);
 
         ESP_LOGI(TAG, "0x%08lx batch %d [%lu..%lu] at (%lu)", static_cast<unsigned long>(packet->can_id),
                  packet->data_count, static_cast<unsigned long>(packet->data[0]),
