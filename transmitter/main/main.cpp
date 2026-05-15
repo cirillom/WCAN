@@ -67,12 +67,36 @@ static void log_mac()
     ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
+void wcan_recv_callback(const data_packet_t &recv_packet)
+{
+    static const char *TAG = "wcan_recv_callback";
+    if (recv_packet.data_count == 0) {
+        return;
+    }
+
+    receiver_app_detail::RecordPacketStats(recv_packet);
+
+#ifdef MEASURE_INSTR
+    static bool s_first_rx_logged = false;
+    if (!s_first_rx_logged) {
+        s_first_rx_logged = true;
+        ESP_LOGI("FIRST_RX_TS", "us=%lld id=0x%lx", esp_timer_get_time(),
+                 static_cast<unsigned long>(recv_packet.can_id));
+    }
+#endif
+
+    ESP_LOGI(TAG, "[%lx] tick=%lu [%lu..%lu] %u items", static_cast<unsigned long>(recv_packet.can_id),
+             static_cast<unsigned long>(recv_packet.tick_count), static_cast<unsigned long>(recv_packet.data[0]),
+             static_cast<unsigned long>(recv_packet.data[recv_packet.data_count - 1]), recv_packet.data_count);
+}
+
 extern "C" void app_main(void)
 {
 #ifdef MEASURE_INSTR
     ESP_LOGI("BOOT_TS", "us=%lld", esp_timer_get_time());
 #endif
 
+    //Configuration is used for automatic testing
     const runtime_config::RuntimeConfig config = runtime_config::WaitForBootConfig();
     if (config.role == runtime_config::Role::kIdle) {
         ESP_LOGI("MAIN", "IDLE mode - stopping before NVS/Wi-Fi initialization");

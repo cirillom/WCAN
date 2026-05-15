@@ -104,29 +104,6 @@ inline void RecordPacketStats(const data_packet_t &recv_packet)
 
 } // namespace receiver_app_detail
 
-void wcan_recv_callback(const data_packet_t &recv_packet)
-{
-    static const char *TAG = "wcan_recv_callback";
-    if (recv_packet.data_count == 0) {
-        return;
-    }
-
-    receiver_app_detail::RecordPacketStats(recv_packet);
-
-#ifdef MEASURE_INSTR
-    static bool s_first_rx_logged = false;
-    if (!s_first_rx_logged) {
-        s_first_rx_logged = true;
-        ESP_LOGI("FIRST_RX_TS", "us=%lld id=0x%lx", esp_timer_get_time(),
-                 static_cast<unsigned long>(recv_packet.can_id));
-    }
-#endif
-
-    ESP_LOGI(TAG, "[%lx] tick=%lu [%lu..%lu] %u items", static_cast<unsigned long>(recv_packet.can_id),
-             static_cast<unsigned long>(recv_packet.tick_count), static_cast<unsigned long>(recv_packet.data[0]),
-             static_cast<unsigned long>(recv_packet.data[recv_packet.data_count - 1]), recv_packet.data_count);
-}
-
 namespace receiver_app {
 
 inline void SetupReceiver(bool filter_enabled, const uint32_t *filter_ids, size_t filter_count)
