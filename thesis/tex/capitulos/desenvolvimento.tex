@@ -24,11 +24,12 @@ serial, junto com frequência de geração, CAN ID base, quantidade de IDs e val
 \section{Formato dos Pacotes}
 
 A unidade de comunicação é a estrutura \texttt{data\_packet\_t}, composta pelo MAC
-de origem, CAN ID, contador de ticks, quantidade de amostras e vetor de dados de 32
-bits. Para transmissão, o pacote é serializado com 9 bytes de cabeçalho: 4 bytes de
-CAN ID, 4 bytes de contador e 1 byte de quantidade de amostras. Como o ESP-NOW
-clássico permite até 250 bytes de payload, restam 241 bytes para dados, o que limita
-cada lote a 60 amostras de 4 bytes \cite{espressif_espnow_programming_guide}.
+de origem, CAN ID, identificador do pacote gerado a partir do contador de ticks,
+quantidade de amostras e vetor de dados de 32 bits. Para transmissão, o pacote é 
+serializado com 9 bytes de cabeçalho: 4 bytes de CAN ID, 4 bytes do identificador 
+e 1 byte de quantidade de amostras. Como o ESP-NOW clássico permite até 250 bytes de
+payload, restam 241 bytes para dados, o que limita cada lote a 60 amostras de 4 bytes
+\cite{espressif_espnow_programming_guide}.
 
 Os identificadores de controle foram colocados fora do espaço válido de IDs CAN
 estendidos. Como o CAN estendido usa 29 bits, com valor máximo \texttt{0x1FFFFFFF},
