@@ -30,7 +30,7 @@ void subscription_log_state(void);
 // after the function returns; the subscription mutex is released before the
 // caller touches the snapshot, so per-peer side effects (add_peer, send_data)
 // don't run under the lock.
-size_t alive_subscribers_count(uint32_t can_id,
+size_t subscription_snapshot_targets(uint32_t can_id,
                                      uint8_t out_macs[WCAN_MAX_SUBSCRIBERS][ESP_NOW_ETH_ALEN]);
 
 // Update per-peer TX health from the espnow_send_cb. Successful multicast
