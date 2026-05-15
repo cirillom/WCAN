@@ -55,6 +55,12 @@ No broadcast, a taxa de aprovação por frequência cai de 29/30 em 10 Hz para
 19/30 em 100 Hz, 7/30 em 200 Hz, 1/30 em 750 Hz e 0/29 em 1000 Hz. No multicast,
 o padrão é semelhante: 25/30, 26/30, 19/30, 0/30 e 1/30, respectivamente.
 
+Esse é um caso de falha sistemática. Em \texttt{real\_time}, a degradação não se
+limita a perdas isoladas: 51 combinações de topologia e frequência tiveram as
+três repetições reprovadas juntas, e a concentração desses colapsos ocorre em
+750 Hz e 1000 Hz. O efeito é consistente com a ausência de batching, que remove
+a folga operacional do sistema.
+
 Esse comportamento mostra que o batching não é uma otimização marginal. Ele é o
 mecanismo que preserva a margem de operação do WCAN quando a carga aumenta. Sem
 \texttt{linger\_ms}, a combinação de rádio, callbacks, filas e confirmações se
@@ -73,6 +79,18 @@ repetições falha, o que sugere uma margem curta em vez de um defeito
 determinístico. Ao mesmo tempo, há outliers claros: 750 Hz com
 \texttt{2S-2R\_rep2} perdeu 6652 amostras e 1000 Hz com
 \texttt{1S-2R\_rep2} perdeu 3568, ambos com saturação de transporte e retries.
+
+Mesmo assim, o \texttt{multiple} tem apenas três casos sistemáticos de falha 3/3:
+broadcast em \texttt{10Hz/2S-3R}, multicast em \texttt{200Hz/2S-1R} e multicast
+em \texttt{750Hz/4S-1R}. A suspeita mais forte é de saturação determinística do
+caminho de transmissão. No broadcast em \texttt{10Hz/2S-3R}, a perda aparece de
+forma recorrente no mesmo padrão de bloco, o que sugere contenção de fila e de
+confirmação sob fan-out maior. No multicast em \texttt{200Hz/2S-1R}, o log mostra
+\texttt{ESP\_ERR\_ESPNOW\_NO\_MEM} e falhas síncronas de envio, apontando para
+exaustão de memória e de buffers do ESP-NOW. No multicast em
+\texttt{750Hz/4S-1R}, a perda se repete no mesmo sensor enquanto os demais
+permanecem íntegros, o que indica um ponto específico de pressão na agenda de
+transmissão quando quatro sensores disputam um único receptor.
 
 A suíte \texttt{active\_filter} confirmou que receptores configurados com
 allowlist não recebem nem confirmam mensagens fora de interesse. Como na
