@@ -6,17 +6,22 @@ mecanismos de confirmação.
 
 \section{Ambiente Experimental}
 
+O ambiente experimental foi organizado em torno de um servidor Ubuntu usado como
+ponto central de acesso remoto, orquestração e coleta dos testes. Essa escolha
+facilitou o controle das placas espalhadas na bancada, a recuperação dos logs e a
+execução dos scripts de automação sem depender de intervenção manual contínua.
+
 A campanha utilizou cinco placas ESP32 conectadas por USB serial ao computador de
 monitoramento, sendo três ESP32 e duas ESP32-C3. Em cada repetição, as placas
 foram sorteadas como sensores, receptores ou nós ociosos, reduzindo a chance de
 associar um resultado a uma placa específica. Cada ensaio durou 30 s, com três
 repetições por topologia e 5 s de intervalo entre execuções.
 
-A rodada usada como base quantitativa foi a campanha \texttt{full\_run}, arquivada
-com os demais resultados do projeto. Ela avaliou frequências de 10 Hz, 100 Hz,
-200 Hz, 750 Hz e 1000 Hz, sempre com a instrumentação de medição habilitada por
-\texttt{MEASURE=1}. Os artefatos completos da campanha são descritos no
-Apêndice~\ref{appendix:full-run}.
+O objetivo desse arranjo foi tornar a execução e a análise dos testes o mais
+automáticas possível. Em vez de tratar cada ensaio como uma operação manual,
+o ambiente foi estruturado para que a configuração, a sincronização dos papéis,
+o registro das saídas e a posterior consolidação dos dados fossem conduzidos por
+scripts.
 
 \section{Automação dos Testes}
 
