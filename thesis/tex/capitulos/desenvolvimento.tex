@@ -99,22 +99,31 @@ sabe que algum nó recebeu a mensagem, mas não identifica quais nós a recebera
 \cite{iso11898_1_2024}.
 
 No multicast, o sensor mantém uma tabela de assinantes interessados em cada CAN ID.
-Enquanto não há assinantes vivos, o sensor simplesmente transmite seus dados em
-broadcast e opera como se estivesse no modo broadcast. Nessa fase ele não depende de
+Enquanto não há assinantes vivos, o sensor opera como se estivesse no modo broadcast. 
+Nessa fase ele não depende de
 ACK para decidir o fluxo de transmissão; a ideia é enviar os pacotes livremente até que
 algum receptor responda com \texttt{CAN\_HELLO}. Quando esse pacote chega, seja por resposta
-ao broadcast ou pela tarefa de descoberta, o sensor registra o emissor como assinante 
-e passa a operar em multicast direcionado, que na
-prática começa como unicast para esse único destino. Receptores também enviam
-\texttt{HELLO} periodicamente, permitindo manter a tabela de assinantes atualizada ao
-longo da execução. O envio multicast usa o retorno do driver ESP-NOW como sinal de
-sucesso \cite{espressif_espnow_programming_guide}.
+ao broadcast ou pela tarefa de descoberta do receptor, o sensor registra o emissor como assinante
+e passa a operar em multicast direcionado. Nesse modo, basta que um receptor confirme
+o recebimento para que o próximo pacote seja liberado; não há ACK de camada de aplicação.
+O critério adotado é o retorno do send callback do ESP-NOW, que informa no nível do
+MAC se aquele destino recebeu o quadro, considerado suficiente para o
+objetivo do WCAN. A tabela de assinantes é atualizada dinamicamente: cada
+\texttt{CAN\_HELLO} renova o \texttt{last\_seen\_tick} do emissor e pode acrescentar
+um novo assinante, enquanto a checagem de liveness trata como inativos os registros
+cuja atividade ficou velha demais. Além disso, o send callback atualiza a recentidade
+dos destinos confirmados e conta falhas consecutivas, o que permite remover um peer
+quando ele deixa de responder de forma consistente.
 
-As duas estratégias refletem compromissos diferentes. O broadcast é simples e
-funciona sem descoberta prévia, mas só garante que ao menos um receptor interessado
-confirmou o pacote. O multicast é o caminho natural para múltiplos receptores, mas
-depende de descoberta, liveness e gerenciamento de memória mais robustos. Por isso,
-a decisão entre as variantes foi tratada como questão experimental.
+As duas estratégias refletem compromissos diferentes. Ambas trabalham com a garantia
+mínima de que ao menos um receptor interessado confirmou o pacote; a diferença está
+no mecanismo de endereçamento e no custo de coordenação. O broadcast não depende de 
+descoberta prévia, mas tem um custo de complexidade no mecanismo de confirmação.
+O multicast, por sua vez, evita esse problema ao usar a confirmação fornecida pelo ESP-NOW 
+no nível MAC, mas introduz a necessidade de gerenciar uma tabela de assinantes e lidar com a dinâmica de
+registro e expiração. Diante dos cenários citados, entender qual das opções é a mais viável 
+tornou-se um dos principais pontos de investigação deste trabalho, e a decisão entre as 
+variantes foi tratada como questão experimental.
 
 \section{Integração com o CAN Existente}
 
