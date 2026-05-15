@@ -49,14 +49,14 @@
 % Resumo em português
 % conter no máximo 500 palavras
 \textoresumo{
-    Este trabalho apresenta o desenvolvimento de uma ponte de comunicação sem fio para expandir o sistema de aquisição de dados de uma equipe de Fórmula SAE. O sistema atual, baseado em módulos STM32 interligados por CAN, é robusto, mas limita a instrumentação de rodas, componentes aerodinâmicos e sensores externos ao veículo devido às restrições de cabeamento. A solução proposta utiliza ESP32 e ESP-NOW para transportar mensagens com semântica CAN entre nós sensores e receptores conectados ao barramento do veículo. Foram implementadas duas estratégias de transporte, broadcast e multicast, com filas FreeRTOS, empacotamento de amostras, filtragem por identificador CAN, descoberta de assinantes e mecanismos de confiabilidade. Os ensaios com cinco placas ESP32 avaliaram frequências de 10 Hz a 1000 Hz em múltiplas topologias. Os resultados indicam comportamento mais estável do broadcast, enquanto o multicast se mostrou o caminho adequado para múltiplos receptores, mas ainda exige melhorias na descoberta e no gerenciamento de memória. O trabalho discute a rastreabilidade dos requisitos, limitações dos ensaios e próximos passos para validação embarcada.
+    Este trabalho apresenta o desenvolvimento e a avaliação em bancada do WCAN, uma ponte sem fio para integrar novos pontos de medição ao sistema de aquisição de dados de uma equipe de Fórmula SAE. A motivação é reduzir as limitações impostas pelo cabeamento em rodas, componentes aerodinâmicos e sensores externos ao veículo, preservando a semântica das mensagens CAN já usadas pela equipe. A solução foi implementada com ESP32, ESP-NOW, filas FreeRTOS, empacotamento de amostras, filtragem por identificador CAN e duas estratégias de transporte, broadcast e multicast. A campanha experimental utilizou cinco placas ESP32, frequências entre 10 Hz e 1000 Hz e diferentes topologias de sensores e receptores. Os resultados mostram que o broadcast com agrupamento de amostras manteve 100\% de entrega na suíte de referência, enquanto o multicast indicou potencial para múltiplos receptores, mas ainda apresentou limitações de descoberta e memória. Assim, o WCAN se mostra viável para aquisição sem fio em bancada, com validação embarcada ainda necessária.
     }{Fórmula SAE, Aquisição de dados, CAN, ESP-NOW, Comunicação sem fio}
 
 % ---
 % resumo em inglês
 % ---
 \textoresumo[english]{
-    This work presents the development of a wireless communication bridge to extend the data acquisition system of a Formula SAE team. The current system, based on STM32 acquisition modules connected through a CAN bus, is robust, but wiring constraints limit instrumentation on wheels, aerodynamic components and sensors placed outside the vehicle. The proposed solution uses ESP32 and ESP-NOW to transport CAN-like messages between sensor nodes and receivers connected to the vehicle bus. Two transport strategies were implemented, broadcast and multicast, using FreeRTOS queues, sample batching, CAN identifier filtering, subscriber discovery and reliability mechanisms. Experiments with five ESP32 boards evaluated transmission frequencies from 10 Hz to 1000 Hz across multiple topologies. The results indicate more stable behavior for the broadcast variant, while multicast is the appropriate path for multiple receivers but still requires improvements in discovery and memory management. The work also discusses requirement traceability, test limitations and next steps for in-vehicle validation.
+    This work presents the development and bench evaluation of WCAN, a wireless bridge designed to add new measurement points to the data acquisition system of a Formula SAE team. The goal is to reduce wiring limitations on wheels, aerodynamic components and sensors placed outside the vehicle while preserving the CAN message semantics already used by the team. The solution was implemented with ESP32, ESP-NOW, FreeRTOS queues, sample batching, CAN identifier filtering and two transport strategies, broadcast and multicast. The experimental campaign used five ESP32 boards, transmission frequencies from 10 Hz to 1000 Hz and different sensor and receiver topologies. The results show that broadcast with sample batching achieved 100\% delivery in the baseline suite, while multicast showed potential for multiple receivers but still suffered from discovery and memory limitations. Therefore, WCAN is viable for bench wireless acquisition, although in-vehicle validation remains necessary.
     }{Formula SAE, Data acquisition, CAN, ESP-NOW, Wireless communication}
     
 % ---
@@ -154,6 +154,10 @@
 \label{chapter:desenvolvimento}
 \input{tex/capitulos/desenvolvimento}
 
+\chapter{Métodos}
+\label{chapter:metodos}
+\input{tex/capitulos/metodos}
+
 \chapter{Resultados dos Testes}
 \label{chapter:resultados-testes}
 \input{tex/capitulos/resultados_testes}
@@ -178,20 +182,6 @@
 % Referências bibliográficas
 % ----------------------------------------------------------
 \bibliography{references}
-
-% ---------------------------------------------------------------------
-% GLOSSÁRIO
-% ---------------------------------------------------------------------
-
-% Se for utilizar o glossario tem que descomentar as linhas 200,202 e 204 abaixo e alguns comandos no arquivo icmc.cls.
-% linhas para descomentar no icmc.cls: 159 até 165 e 250 até 258 
-
-% Arquivo que contém as definições que vão aparecer no glossário
-% \input{tex/glossario}
-% % Comando para incluir todas as definições do arquivo glossario.tex
-% \glsaddall
-% % Impressão do glossário
-% \printglossaries
 
 % ----------------------------------------------------------
 % Apêndices

@@ -1,1 +1,56 @@
+Os ensaios foram planejados para avaliar a camada WCAN isoladamente, sem tornar
+o barramento CAN físico o fator dominante da análise. A integração com TWAI foi
+validada previamente em bancada com dois transceptores VP230, mas a campanha
+principal concentrou-se no enlace sem fio, nas filas internas, na filtragem e nos
+mecanismos de confirmação.
 
+\section{Ambiente Experimental}
+
+A campanha utilizou cinco placas ESP32 conectadas por USB serial ao computador de
+monitoramento, sendo três ESP32 e duas ESP32-C3. Em cada repetição, as placas
+foram sorteadas como sensores, receptores ou nós ociosos, reduzindo a chance de
+associar um resultado a uma placa específica. Cada ensaio durou 30 s, com três
+repetições por topologia e 5 s de intervalo entre execuções.
+
+A rodada usada como base quantitativa foi a campanha \texttt{full\_run}, arquivada
+com os demais resultados do projeto. Ela avaliou frequências de 10 Hz, 100 Hz,
+200 Hz, 750 Hz e 1000 Hz, sempre com a instrumentação de medição habilitada por
+\texttt{MEASURE=1}. Os artefatos completos da campanha são descritos no
+Apêndice~\ref{appendix:full-run}.
+
+\section{Automação dos Testes}
+
+Os testes foram automatizados pelos scripts em \texttt{transmitter/testing}. O
+arquivo \texttt{boards.yaml} descreve as placas disponíveis e o arquivo
+\texttt{tests.yaml} define suítes, frequências, topologias, duração, repetições,
+transporte, valor de \texttt{linger\_ms} e quantidade de CAN IDs por sensor. Antes
+da execução, o runner gera \texttt{run\_plan.json} e, para cada teste, um
+\texttt{scenario.json} com a topologia, os filtros e a linha de configuração
+enviada a cada placa.
+
+Após gravar os firmwares necessários, o monitor serial reinicia as placas, aguarda
+a mensagem \texttt{WCAN\_CFG\_WAIT} e envia a configuração de papel por UART. A
+mesma imagem de firmware pode atuar como sensor, receptor ou nó ocioso; o
+transporte continua sendo selecionado em compilação. As saídas seriais são salvas
+separadamente por placa, o que permite reconstruir a sequência de eventos e
+inspecionar manualmente os casos reprovados.
+
+\section{Matriz de Ensaios e Métricas}
+
+A matriz principal incluiu topologias com pelo menos um sensor e um receptor,
+limitadas ao total de cinco placas. Assim, foram testadas as combinações de 1S-1R
+até 4S-1R e 1S-4R. A suíte \texttt{baseline} usou um CAN ID por sensor e
+\texttt{linger\_ms = 100}. A suíte \texttt{multiple} usou quatro CAN IDs por
+sensor. A suíte \texttt{real\_time} usou \texttt{linger\_ms = 0}, forçando envio
+amostra a amostra. A suíte \texttt{active\_filter} validou filtros por CAN ID, e
+a suíte \texttt{mixed\_frequency} combinou sensores com frequências diferentes na
+mesma topologia.
+
+A taxa de entrega foi calculada a partir dos contadores transportados nos lotes.
+O analisador reconstrói os intervalos transmitidos e recebidos e calcula a fração
+de contadores que aparece em pelo menos um receptor esperado. Também foram
+observadas métricas de latência instrumentadas no firmware, estimativa relativa
+de ocupação do canal, quedas de fila, falhas de retry, crashes, heap e menor
+margem de pilha das tasks FreeRTOS. Os timestamps do computador foram usados
+apenas como apoio diagnóstico, pois o buffering de portas seriais não permite
+medir latência entre placas com precisão.

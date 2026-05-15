@@ -1,49 +1,41 @@
-% Conteudo migrado de thesis/main.tex.
-% O titulo do capitulo fica definido em thesis.tex.
-
 \section{Microcontrolador}
 
-A primeira decisão de hardware foi a escolha do microcontrolador para o nó sensor.
-A opção mais natural inicialmente seria utilizar a família STM32, já presente
-no sistema de aquisição da equipe e fornecida por um patrocinador. % TODO: confirmar patrocínio
+A escolha do hardware foi condicionada por tamanho, custo, familiaridade da equipe
+e suporte a comunicação sem fio. A primeira opção considerada foi manter a família
+STM32, já presente no sistema de aquisição da equipe. A linha STM32WB oferece
+Bluetooth Low Energy e 802.15.4, mas não possui Wi-Fi nativo \cite{st_stm32wb_series}.
+Outra alternativa seria combinar um STM32 convencional com um módulo Wi-Fi externo,
+porém essa solução exigiria microcontrolador, rádio e circuito de bateria em blocos
+separados, aumentando footprint e complexidade.
 
-A linha STM32 não possui nenhum chip com Wi-Fi nativo. A única família com comunicação
-sem fio integrada é a STM32WB, que oferece Bluetooth Low Energy e 802.15.4 —
-sem suporte a Wi-Fi. O STM32WB integra um núcleo Cortex-M4 para a aplicação
-e um Cortex-M0+ dedicado ao stack de rádio, sendo uma plataforma robusta, bem
-documentada e familiar à equipe \cite{st_stm32wb_series} — uma opção forte, desde que o BLE atendesse
-aos requisitos de comunicação.
-
-Para contornar a ausência de Wi-Fi nativo, uma alternativa seria combinar um
-STM32 convencional com um módulo Wi-Fi externo. No entanto, essa abordagem exigiria
-três componentes distintos na placa do nó sensor: o microcontrolador, o módulo
-de comunicação e um circuito de gerenciamento de bateria separado. A
-combinação resulta em uma solução com footprint físico, complexidade de integração
-e custo de desenvolvimento incompatíveis com os requisitos de compacidade e leveza
-do projeto, e foi descartada por esse motivo.
-
-A terceira opção considerada foi o ESP32, plataforma da Espressif que integra
-nativamente Wi-Fi e Bluetooth em um único chip. Módulos de desenvolvimento
-compactos e com gerenciamento de bateria integrado estão amplamente
-disponíveis para essa plataforma — como o Beetle ESP32-C3 da DFRobot, de
-25×20,5 mm, que inclui gerenciamento de bateria na própria placa, sem
-necessidade de componentes externos adicionais \cite{dfrobot_beetle_esp32c3}.
-
-A decisão entre as duas plataformas foi tomada em conjunto com a escolha do protocolo
-de comunicação, discutida a seguir.
-
-% === SECTION: Protocolo de Comunicação Sem Fio ===
+O ESP32 foi adotado por integrar rádio, processamento e ampla disponibilidade de
+placas compactas. O Beetle ESP32-C3, por exemplo, mede 25 por 20,5 mm e inclui
+gerenciamento de bateria na própria placa \cite{dfrobot_beetle_esp32c3}. Essa
+característica torna a plataforma mais compatível com sensores instalados em rodas,
+componentes aerodinâmicos ou pontos de difícil acesso.
 
 \section{Protocolo de Comunicação Sem Fio}
 
-As opções naturais de protocolo para a solução sem fio foram Bluetooth Low Energy, Wi-Fi convencional e, posteriormente, ESP-NOW.
+Foram considerados Bluetooth Low Energy, Wi-Fi convencional e ESP-NOW. O BLE foi
+descartado porque exige descoberta e estado de conexão antes da troca de dados, o
+que contraria o requisito de transmissão imediata. O Wi-Fi convencional oferece boa
+vazão, mas depende de associação a uma rede, configuração de infraestrutura,
+endereçamento IP e estabelecimento de sessão. Comparações experimentais também
+mostram que alcance, latência, consumo e vazão variam bastante entre ESP-NOW,
+Wi-Fi e Bluetooth, tornando a escolha dependente do uso \cite{eridani2021_espnow_wifi_bluetooth}.
 
-O BLE, disponível tanto no STM32WB quanto no ESP32, foi a primeira opção considerada. No entanto, o protocolo apresenta limitações importantes frente aos requisitos do sistema. O estabelecimento de uma conexão BLE envolve descoberta, pareamento ou associação entre dispositivos, o que introduz latência inicial e estado de conexão incompatíveis com a ideia de um sensor que pode começar a transmitir imediatamente. Além disso, o gerenciamento de múltiplas conexões simultâneas adicionaria complexidade significativa à aplicação. Essas limitações descartaram o BLE como protocolo principal e, por consequência, reduziram a atratividade do STM32WB para este projeto. Comparações experimentais entre ESP-NOW, Wi-Fi e Bluetooth também indicam que diferenças de latência, alcance e consumo tornam a escolha do protocolo dependente do perfil de aplicação \cite{eridani2021_espnow_wifi_bluetooth}.
+O ESP-NOW foi escolhido por permitir comunicação direta entre dispositivos ESP32 sem
+ponto de acesso nem endereço IP. Ele opera sobre a camada física do Wi-Fi, usa
+endereçamento por MAC e permite payload de até 250 bytes na versão clássica usada
+neste trabalho \cite{espressif_espnow_programming_guide,pasic2021_espnow_esp32}.
+Essa combinação atende melhor aos requisitos de início rápido, baixo overhead e
+operação sem infraestrutura.
 
-O Wi-Fi convencional resolveria parte do problema de alcance e vazão, mas manteria o overhead de associação a uma rede, configuração de infraestrutura, obtenção de endereço IP e estabelecimento de sessão. Esse comportamento é inadequado para um sistema que deve funcionar sem ponto de acesso, sem configuração manual de rede e com início de transmissão o mais imediato possível.
-
-Durante o desenvolvimento, foi adotado o ESP-NOW, protocolo proprietário da Espressif para comunicação direta entre dispositivos ESP32. O ESP-NOW opera sobre a camada física do Wi-Fi, mas não exige associação a uma rede Wi-Fi convencional. Os quadros são endereçados diretamente por endereço MAC, utilizam a verificação de integridade do próprio quadro 802.11, incluindo CRC em nível de enlace, e, na versão clássica utilizada neste trabalho, permitem até 250 bytes de payload por transmissão \cite{espressif_espnow_programming_guide,pasic2021_espnow_esp32}. Essa combinação atende aos requisitos de baixo overhead, operação sem infraestrutura e comunicação entre múltiplos dispositivos.
-
-A principal limitação introduzida pelo ESP-NOW aparece no uso de broadcast. Quando um pacote é enviado para o endereço \texttt{FF:FF:FF:FF:FF:FF}, o transmissor não recebe uma confirmação nativa de entrega associada a cada receptor. Portanto, qualquer garantia de confiabilidade precisa ser construída acima do ESP-NOW, na camada de aplicação. Essa restrição motivou o desenvolvimento de duas estratégias internas do transporte WCAN sobre o mesmo protocolo físico: uma estratégia broadcast, que preserva a semântica de barramento compartilhado do CAN, e uma estratégia multicast, que mantém uma lista de receptores interessados e usa o envio do ESP-NOW para todos os peers cadastrados. As duas estratégias implementam a mesma interface de aplicação; a diferença está na forma de descoberta, confirmação e manutenção dos receptores ativos.
-
-Esse trade-off foi considerado aceitável porque o objetivo do projeto é expandir a aquisição de dados do veículo, não substituir por rádio uma malha de controle crítica. A camada WCAN pode acrescentar acknowledgments, retransmissões, filtragem, descoberta de receptores e medição de perdas, enquanto o ESP-NOW fornece a transmissão imediata e sem infraestrutura que os requisitos exigem. A escolha entre broadcast e multicast, portanto, deve ser guiada pelos resultados de entrega, latência e robustez observados nos ensaios, como também ocorre em outras soluções de telemetria veicular baseadas em Wi-Fi ou ESP32 \cite{fernandes2022_formula_sae_wifi_can}.
+A principal limitação está no broadcast: o ESP-NOW não fornece confirmação nativa
+de entrega para cada receptor quando o destino é \texttt{FF:FF:FF:FF:FF:FF}. Por
+isso, a confiabilidade precisou ser construída na camada WCAN, por ACKs de
+aplicação, retransmissões, filtragem e descoberta. Essa decisão é aceitável porque
+o objetivo do projeto é expandir a aquisição de dados, não substituir a rede CAN em
+controle crítico. Trabalhos de telemetria veicular com Wi-Fi ou ESP32 reforçam que
+a escolha do protocolo precisa considerar a finalidade do sistema e sua integração
+com o fluxo de dados do veículo \cite{fernandes2022_formula_sae_wifi_can}.

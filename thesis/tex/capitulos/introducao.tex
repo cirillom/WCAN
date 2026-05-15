@@ -1,6 +1,3 @@
-% Conteudo migrado de thesis/main.tex.
-% O titulo do capitulo fica definido em thesis.tex.
-
 \section{Equipes de Fórmula SAE}
 A Fórmula SAE é uma competição estudantil de âmbito mundial, organizada no Brasil
 pela SAE Brasil e realizada anualmente \cite{sae_brasil_formula_sae}. As equipes são compostas por alunos
@@ -11,7 +8,7 @@ e relevância da modalidade no cenário nacional. A competição é estruturada
 em provas estáticas e dinâmicas. As provas estáticas avaliam o projeto de engenharia,
 o plano de negócios e o detalhamento de custos e manufatura. As provas dinâmicas
 testam diretamente o desempenho do protótipo em situações como aceleração,
-skidpad, autocross e endurance — sendo esta última a de maior peso na pontuação,
+skidpad, autocross e endurance, sendo esta última a de maior peso na pontuação,
 exigindo que o veículo percorra aproximadamente 22 km sem falhas \cite{fsaeonline_endurance_2026}. A equipe vencedora
 no Brasil garante ainda vaga para competir nos Estados Unidos no ano seguinte.
 Dado o calendário anual da competição, cada ciclo de desenvolvimento é único
@@ -25,7 +22,7 @@ ao longo do protótipo fornecem informações que permitem validar e aprimorar p
 de engenharia, orientar ajustes de setup, monitorar a integridade dos sistemas
 críticos em tempo real e comparar objetivamente o desempenho entre diferentes
 pilotos \cite{schultz2017_formula_sae_telemetry,ashford2020_formula_sae_data_analysis}. Sem instrumentação adequada, a equipe depende exclusivamente do feedback
-subjetivo dos pilotos — informação valiosa, mas limitada e sujeita a
+subjetivo dos pilotos, informação valiosa, mas limitada e sujeita a
 variações de percepção. A aquisição de dados transforma essa subjetividade em
 grandezas mensuráveis: pressão de freio, curso de suspensão, ângulo de
 esterço, aceleração lateral, temperatura de óleo, entre outras. Isso permite
@@ -42,17 +39,14 @@ O sistema de aquisição de dados da equipe foi consolidado ao longo de vários
 anos de desenvolvimento e testes. Sua arquitetura é baseada em dois módulos de
 aquisição com microcontroladores STM32, interligados por um barramento CAN a
 1 Mbit/s. Esse barramento conecta ainda os demais módulos eletrônicos do veículo
-— controle, transmissor e distribuição de energia — compondo uma rede coesa
+como controle, transmissor e distribuição de energia, compondo uma rede coesa
 de nós de comunicação \cite{silva2009_rede_can_formula_sae,blatt2020_aquisicao_formula_sae}. Cada módulo de aquisição lê os sinais provenientes dos
-sensores analógicos e digitais instalados no carro — acelerômetro,
+sensores analógicos e digitais instalados no carro, como acelerômetro,
 giroscópio, sensores de pressão de freio, potenciômetros de suspensão e
-esterço, entre outros — e os transmite periodicamente pela rede CAN. Os
+esterço, entre outros, e os transmite periodicamente pela rede CAN. Os
 dados são salvos localmente em cartão SD embarcado no próprio módulo e após
 cada sessão, os dados completos são extraídos do cartão SD e processados em um
 software dedicado, que gera arquivos estruturados para análise em
 ferramentas especializadas. Esse fluxo permite à equipe acompanhar a evolução
 do carro e dos pilotos ao longo do ano, embasando decisões de engenharia com
 informações objetivas e rastreáveis.
-% explain here what a formula sae team is
-% explain the importance of data validation
-% explain how data validation currently works for my team

@@ -1,217 +1,145 @@
-% Conteúdo migrado de thesis/main.tex.
-% O título do capítulo fica definido em thesis.tex.
+\section{Visão Geral}
 
-
-\section{Ambiente de Testes}
-
-Os testes foram executados com cinco placas ESP32 conectadas por USB serial ao computador de monitoramento. O conjunto incluía três placas ESP32 e duas placas ESP32-C3, correspondentes às placas A, B, C, D e E definidas no inventário de testes. Em cada repetição, os papéis de sensor, receptor e nó ocioso foram atribuídos pelo planejador de testes, reduzindo a chance de associar um resultado a uma placa específica. As placas marcadas como \texttt{IDLE} recebiam a configuração de papel ocioso e não participavam do protocolo naquela execução.
-
-Cada ensaio teve duração de 30 s, com 3 repetições por topologia e 5 s de cooldown entre execuções. Foram avaliadas as variantes de transporte disponíveis em cada momento da implementação, sempre com instrumentação de medição habilitada por \texttt{-DMEASURE=1}. A campanha arquivada em \texttt{transmitter/testing/results/full\_run} corresponde à última rodada completa de testes executada com a versão final do firmware analisada neste trabalho. Por isso, ela é usada como fonte principal dos resultados quantitativos deste capítulo. Nessa rodada, as frequências de transmissão usadas nas suítes de varredura foram 10, 100, 200, 750 e 1000 Hz.
-
-O nome \texttt{full\_run} não indica apenas uma pasta de logs, mas uma campanha reprodutível: nela foram armazenados o plano de execução, a configuração das placas, a configuração das suítes, os logs seriais de cada placa e o relatório consolidado gerado pelo analisador. A descrição dos artefatos mantidos nessa pasta é apresentada no Apêndice~\ref{appendix:full-run}. Essa referência é importante porque as análises abaixo dependem não só das médias finais, mas também da inspeção dos casos reprovados individualmente.
-
-\section{Automação dos Ensaios por UART}
-
-A campanha de testes foi automatizada pelos scripts da pasta \texttt{transmitter/testing}. O arquivo \texttt{boards.yaml} descreve as placas disponíveis, incluindo identificador lógico, tipo de chip, porta serial e CAN ID base. O arquivo \texttt{tests.yaml} descreve a matriz experimental: duração, número de repetições, cooldown, baud rate, transportes, frequências, suítes e parâmetros como \texttt{linger\_ms} e quantidade de CAN IDs por sensor.
-
-O script \texttt{test\_runner.py} constrói primeiro um plano de execução. Para isso, ele combina suítes, transportes, frequências, topologias e repetições, sorteando quais placas atuarão como sensores, receptores e nós ociosos em cada caso. Esse plano é salvo no diretório de resultados como \texttt{run\_plan.json}, junto com cópias dos arquivos \texttt{boards.yaml} e \texttt{tests.yaml}. Cada pasta de teste também recebe um \texttt{scenario.json}, contendo a topologia, a suíte, o transporte, as placas selecionadas, filtros de receptor, frequências por sensor e a linha exata de configuração UART enviada para cada placa.
-
-Como o firmware atual usa papel de execução configurável, não é necessário gerar um binário diferente para sensor, receptor e nó ocioso. O runner compila apenas as variantes necessárias por chip, transporte e instrumentação, isto é, combinações como ESP32 com broadcast medido ou ESP32-C3 com multicast medido. Em seguida, para cada execução, todas as placas da topologia são gravadas com a variante de transporte correspondente.
-
-Depois do flash, o monitor serial abre todas as portas a 921600 baud, reinicia cada placa por controle das linhas DTR/RTS e aguarda a mensagem \texttt{WCAN\_CFG\_WAIT}. Ao receber essa mensagem, o computador envia uma linha de configuração de boot. Um sensor, por exemplo, recebe uma linha no formato \texttt{wcan v=1 role=sensor transport=BROADCAST base=0xc0 count=1 hz=1000 linger=100}. Um receptor recebe \texttt{role=receiver} e um campo \texttt{filter}, que pode ser \texttt{all}, \texttt{none} ou uma lista de CAN IDs permitidos. Um nó ocioso recebe apenas o papel \texttt{idle}. A placa confirma a configuração com \texttt{WCAN\_CFG\_ACK}; caso responda \texttt{WCAN\_CFG\_NACK} ou não responda dentro do timeout, a execução é marcada como erro de monitoramento.
-
-A captura também é coordenada por software. O monitor inicia primeiro os receptores, depois os sensores e, por fim, os nós ociosos. Cada thread sinaliza que está pronta depois do handshake UART; somente então um evento comum libera o início da janela de captura. Isso reduz o risco de o sensor começar a transmitir antes de o receptor estar configurado. As saídas de cada placa são gravadas em arquivos separados, com nomes como \texttt{sensor\_B\_\_dev\_ttyUSB1.log} e \texttt{receiver\_D\_\_dev\_ttyACM0.log}. Cada linha recebe timestamp do computador, enquanto as métricas de firmware, como \texttt{LAT\_RTT}, \texttt{LAT\_CB}, \texttt{BOOT\_TS} e \texttt{FIRST\_RX\_TS}, usam timestamps internos da própria placa.
-
-Essa distinção é importante para a interpretação. Os timestamps do computador são suficientes para reconstruir a ordem dos eventos e correlacionar linhas de log, mas não são uma medida precisa de latência entre placas, pois cada porta USB serial tem buffering e escalonamento próprio no sistema operacional. Por esse motivo, as medições de latência consideradas nas conclusões são as métricas instrumentadas no firmware. As estimativas de atraso calculadas a partir de linhas de sensor e receptor são usadas apenas como diagnóstico auxiliar; em algumas execuções elas podem até aparecer negativas quando o buffering das portas seriais reordena a chegada das linhas no computador.
-
-Ao final da campanha, o runner escreve \texttt{summary.csv} com o estado de cada execução. Quando a opção de análise é habilitada, \texttt{analysis.py} percorre as pastas de log, reconstrói os contadores transmitidos e recebidos, verifica saúde do transporte, crashes, heap, filtros e frequências observadas, e escreve um relatório consolidado em \texttt{analysis\_summary.txt}. A matriz nominal da campanha \texttt{full\_run} possuía 1116 execuções; o analisador consolidou 1115 pastas com logs suficientes e reportou 847 execuções aprovadas pelos critérios automáticos.
-
-\section{Topologias e Suítes Testadas}
-
-A matriz principal de topologias incluiu todas as combinações com pelo menos um sensor e um receptor, limitadas pelo total de cinco placas disponíveis, isto é, \(S \geq 1\), \(R \geq 1\) e \(S + R \leq 5\). Isso resultou em 10 topologias: 1S-1R, 1S-2R, 1S-3R, 1S-4R, 2S-1R, 2S-2R, 2S-3R, 3S-1R, 3S-2R e 4S-1R.
-
-A execução \texttt{full\_run} foi organizada em cinco suítes. A suíte \texttt{baseline} usou um CAN ID por sensor e \texttt{linger\_ms = 100}, servindo como referência de desempenho. A suíte \texttt{multiple} manteve \texttt{linger\_ms = 100}, mas configurou quatro CAN IDs por sensor, simulando um módulo de aquisição que publica vários sinais simultaneamente; nessa suíte também foi avaliada a variante multicast, que é o mecanismo adotado para múltiplos receptores interessados. A suíte \texttt{real\_time} configurou \texttt{linger\_ms = 0}, forçando cada amostra a ser enviada em seu próprio pacote ESP-NOW, para medir o custo de operar sem batching. A suíte \texttt{active\_filter} usou pelo menos dois sensores e configurou allowlists nos receptores, validando a filtragem por CAN ID. Por fim, a suíte \texttt{mixed\_frequency} atribuiu frequências diferentes aos sensores de uma mesma topologia, sorteadas entre 100, 200, 750 e 1000 Hz, para verificar se fluxos rápidos prejudicam fluxos lentos.
+A campanha \texttt{full\_run} possuía 1116 execuções nominais. O analisador
+consolidou 1115 pastas com logs suficientes e classificou 847 execuções como
+aprovadas pelos critérios automáticos. A Tabela~\ref{tab:resumo-suites} resume os
+resultados agregados mais relevantes.
 
 \begin{table}[htbp]
 \centering
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{p{0.19\linewidth}|p{0.26\linewidth}|p{0.25\linewidth}|p{0.22\linewidth}}
-\hline
-Suíte & O que foi testado & Resultado esperado & Interpretação pretendida \\
-\hline
-\texttt{baseline} & Um CAN ID por sensor, \texttt{linger\_ms = 100}, varredura de 10 a 1000 Hz. & Entrega próxima de 100\% até frequências altas, pois o batching reduz a quantidade de pacotes. & Estabelecer a referência de desempenho do WCAN com batching. \\
-\hline
-\texttt{multiple} & Quatro CAN IDs por sensor, cada um com sua fila e sua task de processamento. & Aumentar a pressão sobre filas, timers e tarefas, mas sem colapsar se a arquitetura por CAN ID estiver correta. & Verificar concorrência entre fluxos do mesmo módulo. \\
-\hline
-\texttt{real\_time} & \texttt{linger\_ms = 0}, isto é, envio amostra a amostra. & Degradação em frequências altas, por aumento de overhead MAC e ocupação de filas. & Confirmar se batching é essencial para a proposta. \\
-\hline
-\texttt{active\_filter} & Receptores aceitando apenas subconjuntos dos CAN IDs transmitidos. & Receptores não devem entregar nem confirmar mensagens fora da allowlist. & Validar filtragem e comportamento de ACK com receptores parciais. \\
-\hline
-\texttt{mixed\_frequency} & Sensores na mesma topologia transmitindo em frequências diferentes. & Fluxos rápidos não devem impedir a entrega dos fluxos lentos. & Avaliar convivência entre sinais de naturezas diferentes. \\
-\hline
-\end{tabular}
-\caption{Suítes executadas na campanha \texttt{full\_run} e objetivo de cada uma.}
-\label{tab:suites-executadas}
-\end{table}
-
-\section{Métricas Coletadas}
-
-A taxa de entrega foi calculada sobre os valores de contador transportados pelos lotes. No lado sensor, o firmware registra uma linha \texttt{CAN\_PROC\_*} para cada lote colocado no transporte, contendo o CAN ID e o intervalo de contadores do lote, por exemplo \texttt{[0..59]}. No lado receptor, o callback \texttt{wcan\_recv\_callback} registra o mesmo intervalo quando o pacote é recebido. O script \texttt{analysis.py} reconstrói os intervalos recebidos e calcula a fração de contadores transmitidos que aparecem em pelo menos um receptor esperado. Na suíte de filtragem ativa, receptores cuja allowlist não contém determinado CAN ID não entram no denominador daquele fluxo.
-
-Também foi analisada a entrega par a par entre cada sensor e cada receptor. Essa segunda métrica é informativa, mas não é o critério principal de sucesso do broadcast, porque o mecanismo de ACK dessa variante segue a semântica do CAN: se qualquer receptor interessado confirma o pacote, o transmissor considera a transmissão bem-sucedida. Portanto, um pacote pode ser aprovado na métrica principal e ainda assim não ter chegado a todos os receptores da topologia. Essa diferença é relevante para interpretar os resultados de topologias com múltiplos receptores.
-
-A latência foi medida de formas diferentes nas estratégias de transporte, portanto os valores não devem ser comparados diretamente. No broadcast, a métrica \texttt{LAT\_RTT} registra o tempo de ida e volta em milissegundos até o recebimento do ACK de aplicação. No multicast, a métrica \texttt{LAT\_CB} registra, em microssegundos, o tempo entre a chamada a \texttt{esp\_now\_send()} e a execução do callback de transmissão do driver ESP-NOW. Esse segundo valor mede o retorno do driver e a confirmação no nível MAC, não a entrega fim a fim até o processamento da aplicação receptora.
-
-O airtime foi estimado pela instrumentação do firmware. A cada janela periódica, o código acumula a quantidade de bytes transmitidos por ESP-NOW e, assumindo taxa física de 6 Mbps, estima a fração de tempo de canal consumida. O resultado é registrado nas linhas \texttt{MEASURE}, no campo \texttt{util\_per\_mille}, em partes por mil; 10 partes por mil correspondem a 1\% do tempo de canal. A estimativa ignora parte do overhead físico e deve ser interpretada como métrica relativa entre variantes.
-
-Também foi coletado o high-water mark de pilha das tasks FreeRTOS. A instrumentação registra, nas linhas \texttt{TASK}, o campo \texttt{hwm\_bytes}, que indica o menor número de bytes livres observado na pilha daquela task. Valores abaixo de 100 bytes foram tratados como sinal de risco, pois indicam operação próxima de overflow de pilha. O analisador também verificou crashes, quedas de fila do produtor, quedas na fila interna do WCAN, falhas por limite de retry, lacunas em \texttt{RX\_STATS}, integridade de heap e validações específicas de cada suíte.
-
-\section{Resultados}
-
-A Tabela~\ref{tab:baseline-1s1r-delivery} resume a taxa de entrega ponderada por contador na topologia 1S-1R da suíte \texttt{baseline}. Nessa topologia, o broadcast entregou 100\% em toda a varredura, estabelecendo a referência de funcionamento do WCAN com batching.
-
-\begin{table}[htbp]
-\centering
-\begin{tabular}{c|c}
-\hline
-Frequência & Broadcast \\
-\hline
-10 Hz & 100,00\% \\
-100 Hz & 100,00\% \\
-200 Hz & 100,00\% \\
-750 Hz & 100,00\% \\
-1000 Hz & 100,00\% \\
-\hline
-\end{tabular}
-\caption{Taxa de entrega média na topologia 1S-1R da suíte \texttt{baseline}.}
-\label{tab:baseline-1s1r-delivery}
-\end{table}
-
-\begin{table}[htbp]
-\centering
-\scriptsize
-\setlength{\tabcolsep}{3pt}
+\small
+\setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.12}
-\begin{tabular}{p{0.18\linewidth}|p{0.13\linewidth}|p{0.15\linewidth}|p{0.13\linewidth}|p{0.32\linewidth}}
+\begin{tabular}{p{0.25\linewidth}|p{0.18\linewidth}|p{0.17\linewidth}|p{0.3\linewidth}}
 \hline
-Suíte & Transporte & Aprovadas & Entrega & Leitura principal \\
+Suíte e transporte & Aprovadas & Entrega & Leitura principal \\
 \hline
-\texttt{baseline} & Broadcast & 150/150 & 100,00\% & Referência mais estável, sem perdas na matriz principal. \\
+\texttt{baseline}, broadcast & 150/150 & 100,00\% & Referência mais estável, sem perdas na métrica principal. \\
 \hline
-\texttt{multiple} & Broadcast & 127/150 & 99,76\% & Suporta quatro IDs por sensor com perdas pequenas, mas expõe lacunas par a par. \\
-\texttt{multiple} & Multicast & 119/150 & 91,24\% & Modelo para múltiplos interessados, ainda sensível a descoberta e memória. \\
+\texttt{multiple}, broadcast & 127/150 & 99,76\% & Suporta quatro IDs por sensor, mas expõe perdas pequenas. \\
 \hline
-\texttt{real\_time} & Broadcast & 56/149 & 91,77\% & Sem batching, filas e retries passam a limitar o sistema. \\
+\texttt{multiple}, multicast & 119/150 & 91,24\% & Promissor para múltiplos receptores, ainda frágil em descoberta e memória. \\
 \hline
-\texttt{active\_filter} & Broadcast & 75/90 & 99,99\% & Filtro funciona, mas receptores esperados podem perder pacotes em topologias maiores. \\
+\texttt{real\_time}, broadcast & 56/149 & 91,77\% & Sem batching, filas e retries passam a limitar o sistema. \\
 \hline
-\texttt{mixed\_frequency} & Broadcast & 15/18 & 99,99\% & Fluxos de frequências diferentes coexistem; falhas vieram sobretudo da taxa gerada. \\
+\texttt{active\_filter}, broadcast & 75/90 & 99,99\% & A filtragem funciona, mas a entrega par a par ainda varia. \\
+\hline
+\texttt{mixed\_frequency}, broadcast & 15/18 & 99,99\% & Frequências diferentes coexistem, com falhas ligadas sobretudo à geração local. \\
 \hline
 \end{tabular}
 \caption{Resumo agregado das suítes executadas na campanha \texttt{full\_run}.}
 \label{tab:resumo-suites}
 \end{table}
 
-\subsection{Linha de Base}
+O resultado central é que a variante broadcast com batching foi a única
+configuração plenamente estável na matriz de referência. Com
+\texttt{linger\_ms = 100}, a suíte \texttt{baseline} manteve 100\% de entrega em
+todas as topologias e em frequências de 10 Hz a 1000 Hz. Foram analisados mais de
+2,6 milhões de contadores sem perdas na métrica principal. A latência de
+aplicação, medida por \texttt{LAT\_RTT}, ficou tipicamente em poucos
+milissegundos, com mediana próxima de 3 ms entre 10 Hz e 200 Hz e próxima de
+5 ms em 750 Hz e 1000 Hz.
 
-Na suíte \texttt{baseline}, o broadcast confirmou a hipótese principal do projeto: com \texttt{linger\_ms = 100}, a quantidade de quadros ESP-NOW cai o suficiente para operar de 10 a 1000 Hz nas 10 topologias testadas. A entrega agregada foi de 100\%, com mais de 2,6 milhões de contadores analisados sem perdas na métrica principal. A latência de aplicação, medida por \texttt{LAT\_RTT}, teve mediana de aproximadamente 3 ms entre 10 e 200 Hz e de aproximadamente 5 ms em 750 e 1000 Hz. Os máximos isolados chegaram a 109 ms, mas não produziram perda sistemática.
+\section{Efeito do Batching}
 
-Por ser a suíte de referência, a linha de base também ajuda a delimitar a interpretação das falhas nas outras suítes. Quando o mesmo firmware, as mesmas placas e o mesmo ambiente sustentam 100\% de entrega nessa matriz, as perdas observadas em cenários mais agressivos devem ser atribuídas principalmente à pressão adicional de topologia, filtragem, descoberta, múltiplos CAN IDs ou ausência de batching, e não a uma incapacidade básica do enlace ESP-NOW.
+A suíte \texttt{real\_time} mostrou que o bom desempenho da linha de base depende
+diretamente do agrupamento de amostras. Com \texttt{linger\_ms = 0}, cada amostra
+é enviada em um quadro ESP-NOW independente. A entrega agregada do broadcast caiu
+para 91,77\%, com 57970 quedas na fila do produtor e 231 falhas por limite de
+retry. O sistema ainda se manteve quase estável em 10 Hz, mas perdeu robustez a
+partir de 200 Hz e não teve execuções aprovadas em 1000 Hz.
 
-\subsection{Múltiplos CAN IDs por Sensor}
+Esse comportamento confirma que o WCAN não deve ser tratado como substituto sem
+fio de uma rede CAN de controle em tempo real. Sua aplicação adequada é a
+aquisição de dados com frequências conhecidas, na qual uma pequena janela de
+agrupamento reduz o custo fixo de rádio, callbacks, filas e confirmações.
 
-A suíte \texttt{multiple} testou uma situação mais próxima de um módulo real de aquisição: um único sensor publicando quatro CAN IDs simultaneamente. O resultado esperado era aumentar a pressão sobre as filas por CAN ID e sobre as tasks de processamento, mas sem starvation entre fluxos. O broadcast manteve entrega agregada de 99,76\%, mesmo com mais de 4,3 milhões de contadores analisados. Em 1000 Hz, ainda entregou 99,76\%, mas já houve 454 quedas na fila do produtor, 56 falhas por limite de retry e 3681 perdas na métrica principal.
+\section{Múltiplos Fluxos e Filtros}
 
-Mesmo em 10 Hz, algumas repetições broadcast falharam pelos critérios automáticos. A causa não foi colapso geral do transporte, mas lacunas pequenas em receptores específicos e, em alguns casos, poucos contadores ausentes na métrica principal. Esses dois fenômenos precisam ser separados. Quando a lacuna aparece apenas em um receptor de uma topologia com múltiplos receptores, o primeiro ACK pode ter liberado corretamente o transmissor porque outro receptor interessado recebeu o pacote. Quando um contador fica ausente em todos os receptores esperados, a falha não pode ser explicada apenas pela semântica de primeiro ACK; ela indica perda efetiva antes de qualquer recepção registrada, limite de retry, descarte em fila ou borda de medição do teste.
+Na suíte \texttt{multiple}, o broadcast manteve 99,76\% de entrega agregada mesmo
+com quatro CAN IDs por sensor e mais de 4,3 milhões de contadores analisados. As
+falhas apareceram como pequenas lacunas em receptores específicos ou como poucos
+contadores ausentes em todos os receptores esperados. A primeira situação é
+compatível com a semântica de primeiro ACK do broadcast, enquanto a segunda indica
+perda efetiva, descarte em fila ou limite de retry.
 
-Na variante multicast, a suíte \texttt{multiple} teve entrega agregada de 91,24\%, com 119 de 150 repetições aprovadas. Esse resultado deve ser lido com cuidado. O multicast é a estratégia adequada para evitar replicação manual de pacotes quando há múltiplos receptores interessados, mas a versão testada ainda depende de descoberta e manutenção de assinantes por CAN ID. Duas topologias falharam em todas as repetições: 2S-1R a 200 Hz e 4S-1R a 750 Hz. Em casos representativos, os sensores permaneceram em descoberta por muito tempo, registrando ausência de assinantes vivos; alguns receptores chegaram a observar pacotes iniciais, mas o transmissor não consolidou assinantes válidos. Sob carga, esse estado levou a erros de falta de memória no ESP-NOW e a reinicialização por falha de alocação dinâmica. Portanto, a suíte \texttt{multiple} confirma que a arquitetura por filas separadas funciona bem no broadcast com batching, mas mostra que o multicast ainda precisa de tratamento robusto para períodos sem assinantes.
+A suíte \texttt{active\_filter} confirmou que receptores configurados com
+allowlist não entregam nem confirmam mensagens fora de interesse. A entrega
+agregada foi 99,99\%, mas apenas 75 de 90 execuções passaram por todos os
+critérios. Em topologias com múltiplos receptores, um ACK válido prova que algum
+receptor interessado recebeu o pacote, mas não que todos os receptores de interesse
+receberam todos os contadores. Essa é uma limitação esperada do modelo adotado.
 
-\subsection{Operação sem Batching}
+\section{Comportamento do Multicast}
 
-A suíte \texttt{real\_time}, com \texttt{linger\_ms = 0}, foi desenhada para responder uma pergunta específica: o desempenho observado na linha de base vem do ESP-NOW em si ou do batching? O resultado foi claro. Sem batching, cada amostra vira um quadro ESP-NOW independente, aumentando overhead de MAC, callbacks, filas e ACKs.
+O multicast foi avaliado principalmente na suíte \texttt{multiple}. A entrega
+agregada de 91,24\% mostra que a estratégia é viável como direção de evolução,
+mas ainda não está madura. Em casos representativos, sensores permaneceram por
+muito tempo em modo de descoberta, registrando ausência de assinantes vivos mesmo
+após receptores observarem pacotes iniciais. Sob carga, esse estado aumentou a
+pressão sobre filas e heap, gerando erros como
+\texttt{ESP\_ERR\_ESPNOW\_NO\_MEM} e, em alguns casos, reinicialização por falha
+de alocação.
 
-No broadcast, a entrega agregada caiu para 91,77\%. Em 10 Hz, o sistema ainda se manteve praticamente estável, com 99,99\% de entrega e 29 de 30 execuções aprovadas. Em 100 Hz, a entrega ficou em 98,98\%, mas apenas 19 de 30 execuções foram aprovadas. A partir de 200 Hz, o comportamento deixou de ser aceitável: em 200 Hz, apenas 7 de 30 execuções passaram; em 750 Hz, apenas 1 de 30; em 1000 Hz, nenhuma das 27 execuções analisáveis passou. O analisador registrou 57970 quedas na fila do produtor e 231 falhas por limite de retry nessa suíte broadcast.
+A investigação dos logs não apontou incompatibilidade de canal como causa
+principal. O firmware fixa o canal ESP-NOW em 1 e não foram observados erros
+característicos de canal incorreto. As falhas são melhor explicadas por
+convergência incompleta de assinaturas, pressão de memória e falta de uma política
+mais forte para períodos sem assinantes válidos.
 
-Esse resultado era esperado em direção, mas não necessariamente em intensidade. Ele demonstra que a operação em 750 e 1000 Hz depende diretamente do \texttt{linger\_ms}; sem batching, o sistema deixa de ser limitado apenas pela taxa física do rádio e passa a ser limitado por quantidade de pacotes, callbacks, retries e escalonamento das tasks. Portanto, a configuração sem batching deve ser tratada como experimento de limite, não como modo recomendado de operação do WCAN.
+\section{Limitações dos Ensaios}
 
-\subsection{Filtragem Ativa}
+Os resultados foram obtidos em bancada, com placas alimentadas e monitoradas por
+USB. Essa configuração é adequada para comparar variantes e encontrar gargalos de
+firmware, mas ainda não valida vibração, alimentação real, posicionamento de
+antenas, interferência eletromagnética do carro, massa final do encapsulamento ou
+injeção contínua no barramento CAN do veículo.
 
-A suíte \texttt{active\_filter} validou receptores configurados para aceitar apenas parte dos CAN IDs transmitidos. O comportamento esperado era que receptores não entregassem ao callback mensagens fora da allowlist e, no broadcast, não enviassem ACK para pacotes filtrados. Isso é importante porque, caso um receptor confirmasse um pacote que ele mesmo descartaria, o transmissor poderia acreditar que a mensagem foi recebida por algum consumidor válido quando, na prática, ela não foi aceita por ninguém interessado.
-
-Os resultados indicam que a filtragem funcionou conceitualmente: as falhas reportadas foram majoritariamente perdas nos receptores esperados, não recebimento espúrio de CAN IDs filtrados. No broadcast, a entrega agregada foi 99,99\%, mas apenas 75 de 90 execuções passaram por todos os critérios. Em vários casos, sensores cujos CAN IDs estavam filtrados por todos os receptores entraram em retry até o limite; isso é esperado, pois nenhum receptor deve confirmar uma mensagem que não deseja consumir. O analisador ignora esses sensores totalmente filtrados na métrica principal, mas os retries continuam aparecendo nos logs como evidência do comportamento correto do filtro.
-
-Essa suíte também reforça uma limitação da semântica de primeiro ACK no broadcast. Quando múltiplos receptores possuem interesses diferentes, uma confirmação válida para um CAN ID não prova que todos os receptores relevantes receberam aquele contador. Para uma semântica de entrega a todos os interessados, a evolução natural é mover esse cenário para multicast com confirmação e liveness por assinante.
-
-\subsection{Mistura de Frequências}
-
-A suíte \texttt{mixed\_frequency} testou sensores com frequências diferentes na mesma topologia. O objetivo era verificar se um fluxo rápido, por exemplo 1000 Hz, poderia ocupar filas, airtime ou tempo de processamento a ponto de prejudicar fluxos mais lentos de 100 ou 200 Hz. O analisador também verificou se a frequência observada de cada sensor ficou dentro de uma tolerância de 20\% da frequência configurada.
-
-No broadcast, a entrega agregada foi 99,99\%, com 15 de 18 execuções aprovadas. Duas falhas não foram causadas por perda de entrega, mas por frequência observada fora da tolerância: em uma execução 4S-1R, por exemplo, um sensor configurado para 1000 Hz foi observado a 741,2 Hz, abaixo do limite de 800 Hz. Isso indica que, sob carga, a própria geração ou processamento local do sensor pode não sustentar a frequência nominal, mesmo quando os pacotes que chegam ao transporte são entregues corretamente. A única perda relevante de entrega no broadcast dessa suíte foi de 60 contadores em uma execução.
-
-Assim, a mistura de frequências não parece ser, por si só, o problema principal. Ela torna mais visíveis duas pressões distintas: a capacidade do sensor de gerar amostras na taxa configurada e a capacidade do transporte de absorver fluxos rápidos sem prejudicar fluxos lentos. Para a versão multicast, essa suíte deve ser repetida como trabalho futuro, pois ela é especialmente útil para avaliar se a descoberta e a manutenção de assinantes continuam estáveis quando sensores de frequências diferentes coexistem.
-
-\subsection{Anomalias e Limitações}
-
-A principal limitação dos resultados é que a campanha foi executada em bancada, com placas conectadas por USB ao computador, e não no veículo. Isso é adequado para comparar variantes e identificar gargalos de firmware, mas ainda não valida vibração, alimentação, posicionamento de antenas, interferência eletromagnética do carro ou integração real com o barramento CAN.
-
-Também foram observados sinais de risco em memória e pilha. No broadcast, o menor valor observado nas agregações principais foi 64 bytes livres de pilha, e a análise dos logs multicast mostrou que períodos prolongados sem assinantes podem pressionar heap e filas até produzir falhas de alocação. Esses valores não invalidam automaticamente todos os resultados, pois muitas execuções terminaram sem crash, mas indicam que os tamanhos de stack, as filas e a política de alocação devem ser revisados antes de qualquer validação embarcada prolongada.
-
-As falhas de heap reportadas pelo analisador devem ser tratadas como alerta de engenharia. Esse critério é baseado em tendência de queda de memória livre durante a janela de teste; ele é útil como alerta, mas não substitui uma investigação específica de vazamento. Ainda assim, como algumas falhas de entrega completa coincidiram com heap ou stack baixos, a conclusão prudente é tratar esses sinais como bloqueadores para validar o multicast neste estado sem correções adicionais.
-
-Por fim, a análise par a par mostrou uma limitação importante do broadcast. A entrega principal pode ser 100\% porque ao menos um receptor recebeu cada contador, mas outro receptor da mesma topologia pode ter perdido alguns pacotes. Isso não contradiz o modelo adotado, pois ele foi inspirado no ACK dominante do CAN, mas define claramente o limite da solução: ela é forte para extensão de aquisição com um receptor efetivo por fluxo, e mais fraca para multicast confiável a todos os receptores.
-
-\subsection{Interpretação das Falhas do \texttt{full\_run}}
-
-A análise dos casos reprovados indica que os erros observados no \texttt{full\_run} não devem ser interpretados como um único modo de falha do protocolo WCAN. Os logs mostram pelo menos quatro classes distintas de problema: falhas pontuais de entrega em receptores específicos, saturação do sistema em regimes de envio muito agressivos, falhas de descoberta ou assinatura de receptores e falhas relacionadas à pressão de memória no ESP32.
-
-Nos testes \texttt{baseline}, a variante broadcast foi a mais estável. As topologias avaliadas passaram de forma consistente, inclusive em frequências elevadas, indicando que a camada WCAN é capaz de transportar os dados corretamente quando o regime de envio permite agregação por pacote e quando a topologia não força mecanismos adicionais de descoberta ou filtragem. Esse resultado é a âncora experimental da tese: antes de discutir os limites do multicast, é importante notar que o caminho básico de serialização, filas, rádio e recepção funciona de forma robusta no regime com batching.
-
-Nos testes \texttt{active\_filter}, parte das reprovações ocorreu sem que houvesse necessariamente colapso do transporte. Em vários casos, os critérios de entrega e transporte foram aprovados, mas o critério de cenário falhou. Isso significa que os pacotes aceitos pelo transporte foram em grande parte entregues, mas a distribuição final entre sensores, CAN IDs e receptores esperados não correspondeu perfeitamente ao cenário descrito. Portanto, essas falhas devem ser lidas como falhas de semântica de assinatura, filtragem ativa ou lacunas em receptores específicos, e não como perda global do enlace sem fio.
-
-A suíte \texttt{mixed\_frequency} apresentou um comportamento intermediário. Algumas falhas foram pequenas, com poucos contadores ausentes em cenários específicos, enquanto outras ocorreram quando havia sensores de alta frequência combinados com múltiplos transmissores. Como essa suíte possui menos repetições por configuração, ela é útil para revelar casos frágeis, mas é menos adequada para concluir sozinha que uma topologia é sistematicamente inviável. Quando uma falha aparece apenas em uma repetição, ela deve ser interpretada como indício de fragilidade experimental ou de convergência, não como prova definitiva de incapacidade do protocolo.
-
-A suíte \texttt{real\_time} foi a que apresentou as falhas mais sistemáticas. Em 750 Hz e 1000 Hz, o broadcast falhou em muitas topologias, frequentemente com registros de \texttt{producer drops}, lacunas em \texttt{RX\_STATS}, falhas de retransmissão e perdas acumuladas. Esse comportamento é coerente com a configuração dessa suíte: ao reduzir o \texttt{linger\_ms} a zero, o sistema passa a enviar mais pacotes por unidade de tempo. Como o ESP-NOW é um enlace de pacotes, cada envio carrega overhead fixo de rádio, de MAC e de processamento. Assim, a limitação observada não é apenas a taxa nominal de amostragem, mas a quantidade de pacotes independentes que precisam ser montados, enfileirados, transmitidos, confirmados e eventualmente retransmitidos.
-
-No caso multicast, a falha mais importante observada foi diferente da falha clássica de saturação. Em algumas execuções, sensores permaneceram por longos períodos em modo de descoberta, registrando mensagens de ausência de assinantes vivos. Em pelo menos um caso representativo, os receptores chegaram a registrar o recebimento inicial de pacotes, mas o transmissor não consolidou assinantes válidos. O sensor continuou tentando transmitir em descoberta, acumulou pressão de memória, registrou \texttt{ESP\_ERR\_ESPNOW\_NO\_MEM} e posteriormente reiniciou após uma falha de alocação dinâmica. Isso indica que o problema principal não foi simplesmente um pacote perdido, mas uma combinação entre descoberta incompleta, ausência de assinantes efetivos e falta de controle rígido sobre alocações no caminho quente de transmissão.
-
-A investigação dos canais não apontou evidência de incompatibilidade de canal como causa principal. O firmware fixa o canal ESP-NOW em 1, os peers são configurados com esse mesmo canal e os logs registram o canal Wi-Fi travado corretamente. Além disso, não foram encontrados erros característicos de canal incorreto, como falhas do tipo \texttt{ESP\_ERR\_ESPNOW\_CHAN}. Assim, embora o canal seja uma preocupação válida em redes ESP-NOW, os erros do \texttt{full\_run} são melhor explicados por convergência de assinaturas, pressão de filas, uso do canal e memória.
-
-\section{Conclusão dos Resultados}
-
-Com os dados da campanha \texttt{full\_run}, a escolha mais defensável para a versão atual do WCAN é a variante broadcast com batching habilitado, especialmente com \texttt{linger\_ms = 100}. Essa combinação foi a única que manteve 100\% de entrega na matriz \texttt{baseline}, apresentou latência de aplicação de poucos milissegundos na maior parte dos casos e continuou robusta nas suítes de múltiplos CAN IDs, filtragem ativa e mistura de frequências. O resultado também mostra que o batching não é uma otimização secundária; ele é um mecanismo central para permitir operação em frequências altas.
-
-O multicast representa o caminho mais promissor quando há múltiplos receptores interessados, pois usa o suporte do ESP-NOW para envio ao conjunto de peers cadastrados. Ainda assim, o \texttt{full\_run} mostrou que essa variante, no estado atual, não pode ser tratada como resolvida. O problema principal não foi a existência do multicast em si, mas o comportamento do sistema quando a descoberta não converge: o sensor continua tentando publicar sem assinantes consolidados, aumenta a pressão sobre filas e heap e pode chegar a falhas de memória. Essa descoberta é importante porque transforma uma falha de protocolo em uma melhoria concreta de engenharia.
-
-Assim, a conclusão técnica deste capítulo é que o WCAN atende parcialmente aos requisitos em bancada usando broadcast com batching, sendo adequado como extensão sem fio de aquisição de dados quando a semântica desejada é semelhante à do CAN: uma mensagem é considerada confirmada quando algum receptor interessado a reconhece. Para uma evolução em que múltiplos receptores independentes precisem receber todos os pacotes, será necessário amadurecer a variante multicast, alterar a confiabilidade do broadcast para ACK por receptor ou introduzir uma política explícita de confirmação por assinante.
+Também foram observados sinais de risco em memória e pilha. O menor high-water
+mark de pilha observado nas agregações principais do broadcast foi 64 bytes, e os
+logs multicast mostraram pressão de heap em períodos prolongados de descoberta.
+Esses pontos não invalidam a linha de base, mas devem ser tratados antes de uma
+validação embarcada prolongada.
 
 \section{Rastreabilidade dos Requisitos}
 
-A Tabela~\ref{tab:rastreabilidade-requisitos} consolida a ligação entre os requisitos definidos para o projeto, os mecanismos implementados, as evidências obtidas nos ensaios e o estado atual de validação. Essa rastreabilidade explicita quais partes da solução já foram demonstradas experimentalmente e quais ainda dependem de integração em veículo ou de correções de robustez.
+A Tabela~\ref{tab:rastreabilidade-requisitos} resume o estado dos requisitos ao
+final dos ensaios. O resultado mais forte é a validação em bancada do broadcast
+com batching. Os requisitos ligados a múltiplos receptores, integração embarcada
+e robustez física permanecem parciais.
 
 \begin{table}[htbp]
 \centering
 \scriptsize
-\setlength{\tabcolsep}{2pt}
+\setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.12}
-\begin{tabular}{p{0.17\linewidth}|p{0.27\linewidth}|p{0.33\linewidth}|p{0.12\linewidth}}
+\begin{tabular}{p{0.22\linewidth}|p{0.54\linewidth}|p{0.16\linewidth}}
 \hline
-Requisito & Implementação & Evidência de teste & Status \\
+Requisito & Evidência principal & Status \\
 \hline
-\textbf{REQ-01}: desempenho e latência & ESP-NOW com filas FreeRTOS, batching por \texttt{linger\_ms} e transportes broadcast/multicast selecionáveis por \texttt{-DTRANSPORT}. & Na suíte \texttt{baseline}, o broadcast manteve 100\% de entrega de 10 a 1000 Hz nas 10 topologias e mediana de RTT tipicamente entre 3 ms e 5 ms. A suíte \texttt{real\_time} mostrou que remover batching derruba a entrega, confirmando que \texttt{linger\_ms} é essencial para altas frequências. & Atendido em bancada para broadcast com batching \\
+Desempenho e latência & Broadcast com batching entregou 100\% na suíte \texttt{baseline}, de 10 Hz a 1000 Hz. & Atendido em bancada \\
 \hline
-\textbf{REQ-02}: conexão instantânea & Uso de ESP-NOW sem ponto de acesso, endereço IP ou sessão prévia. Broadcast transmite diretamente; multicast usa descoberta por \texttt{HELLO}, fallback por broadcast e registro de assinantes. & O broadcast não apresentou período de associação antes do envio. No multicast, as falhas em cenários sem assinantes consolidados indicam que a descoberta e a convergência ainda precisam ser tornadas recuperáveis. & Parcial \\
+Conexão instantânea & Broadcast transmite sem associação prévia; multicast ainda falha quando a descoberta não converge. & Parcial \\
 \hline
-\textbf{REQ-03}: múltiplas conexões simultâneas & Suporte a múltiplos sensores e receptores por meio de broadcast, filtros por CAN ID e tabela de assinaturas multicast. & Ensaios cobriram topologias de 1S-1R até 4S-1R e 1S-4R. Broadcast foi robusto na métrica de entrega por ao menos um receptor esperado, mas a análise par a par mostrou que primeiro ACK não garante entrega a todos os receptores. O multicast cobre essa lacuna conceitual, mas ainda precisa de melhorias de descoberta e memória. & Parcial \\
+Múltiplas conexões & Topologias até cinco placas foram testadas; primeiro ACK não garante entrega a todos os receptores. & Parcial \\
 \hline
-\textbf{REQ-04}: transparência com o CAN existente & Pacotes \texttt{data\_packet\_t} preservam \texttt{can\_id}; IDs de controle ficam fora do espaço CAN estendido; receptor entrega o pacote para retransmissão via TWAI. & Logs de sensor e receptor correlacionam pacotes pelo mesmo CAN ID e intervalo de contadores. A fronteira de integração com TWAI foi definida, mas os testes descritos registraram os pacotes em log serial em vez de injetá-los no barramento do veículo. & Parcial \\
+Transparência CAN & O CAN ID é preservado e a fronteira de integração com TWAI foi definida, mas os testes finais usaram log serial. & Parcial \\
 \hline
-\textbf{REQ-05}: requisitos físicos e de custo & Escolha do ESP32 como plataforma integrada de rádio e processamento, evitando microcontrolador, módulo Wi-Fi e carregador de bateria separados. & Comparação de arquitetura descartou STM32 com módulo externo por footprint e complexidade; placas ESP32/ESP32-C3 foram usadas nos ensaios. Ainda falta validar placa final, massa, fixação e operação embarcada. & Parcial \\
+Requisitos físicos e custo & ESP32 reduz componentes e custo, mas placa final, fixação e massa ainda não foram validadas. & Parcial \\
 \hline
-\textbf{REQ-06}: modularidade & Papel da placa definido por configuração serial no boot, transporte selecionado por \texttt{-DTRANSPORT}, filas por CAN ID, filtros no receptor, assinaturas dinâmicas no multicast e instrumentação comum. & A mesma base de firmware executou sensores, receptores e nós ociosos durante a matriz de testes. As suítes \texttt{multiple}, \texttt{active\_filter} e \texttt{mixed\_frequency} validaram variações de papel, filtros, CAN IDs múltiplos e frequências por sensor. & Atendido em bancada \\
+Modularidade & Papéis por configuração serial, filtros por CAN ID e múltiplas frequências foram exercitados nos testes. & Atendido em bancada \\
 \hline
 \end{tabular}
-\caption{Matriz de rastreabilidade entre requisitos, implementação, evidência de teste e status de validação.}
+\caption{Estado dos requisitos após a campanha de testes.}
 \label{tab:rastreabilidade-requisitos}
 \end{table}
+
+\section{Conclusão dos Resultados}
+
+Com os dados da campanha \texttt{full\_run}, a configuração mais defensável para
+uso controlado é o broadcast com batching habilitado. Ela atende parcialmente ao
+objetivo do trabalho ao permitir aquisição sem fio em bancada com semântica
+próxima à do CAN, na qual uma mensagem é considerada confirmada quando algum
+receptor interessado a reconhece. Para cenários em que todos os receptores devem
+receber todos os pacotes, será necessário amadurecer o multicast ou introduzir
+confirmação explícita por receptor.
