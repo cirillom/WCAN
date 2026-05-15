@@ -33,12 +33,26 @@ da execução, o runner gera \texttt{run\_plan.json} e, para cada teste, um
 \texttt{scenario.json} com a topologia, os filtros e a linha de configuração
 enviada a cada placa.
 
+A \texttt{main.cpp} foi mantida como uma camada fina de inicialização e exemplo de
+uso. Em vez de concentrar nela a lógica da automação de testes, o \texttt{app\_main} apenas
+prepara o sistema, lê a configuração de boot e despacha a execução para módulos
+específicos conforme o papel informado. A parametrização do ensaio fica isolada em
+\texttt{runtime\_config.cpp}, enquanto o comportamento de sensor e receptor é
+encapsulado, respectivamente, em \texttt{sensor\_app.hpp} e
+\texttt{receiver\_app.hpp}. Essa separação permite reutilizar a mesma imagem de
+firmware em diferentes papéis sem modificar o fluxo central, simplificando a
+automação e a repetição dos testes.
+
 Após gravar os firmwares necessários, o monitor serial reinicia as placas, aguarda
-a mensagem \texttt{WCAN\_CFG\_WAIT} e envia a configuração de papel por UART. A
-mesma imagem de firmware pode atuar como sensor, receptor ou nó ocioso; o
-transporte continua sendo selecionado em compilação. As saídas seriais são salvas
-separadamente por placa, o que permite reconstruir a sequência de eventos e
-inspecionar manualmente os casos reprovados.
+a mensagem \texttt{WCAN\_CFG\_WAIT} e envia por UART uma linha de configuração
+específica para cada placa. Essa linha existe para que o firmware não precise ser
+recompilado a cada repetição: ela informa o papel da placa, o transporte esperado, 
+o CAN ID base do sensor, a quantidade de CAN IDs por sensor, a frequência de geração,
+o valor de \texttt{linger\_ms} e, no caso de receptores, a lista de filtros de CAN ID. 
+Em termos práticos, a mesma imagem de firmware pode atuar como sensor, receptor ou 
+nó ocioso, e a distinção é feita apenas pelo conteúdo enviado nessa fase de boot. 
+As saídas seriais são salvas separadamente por placa, o que permite reconstruir a 
+sequência de eventos e inspecionar manualmente os casos reprovados.
 
 \section{Matriz de Ensaios e Métricas}
 
