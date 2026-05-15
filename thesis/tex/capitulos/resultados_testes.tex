@@ -2,90 +2,108 @@
 
 A campanha \texttt{full\_run} possuía 1116 execuções nominais. O analisador
 consolidou 1115 pastas com logs suficientes e classificou 847 execuções como
-aprovadas pelos critérios automáticos. A Tabela~\ref{tab:resumo-suites} resume os
-resultados agregados mais relevantes.
+aprovadas pelos critérios automáticos. A Tabela~\ref{tab:resumo-suites} resume 
+os resultados agregados mais relevantes por suíte e transporte.
 
 \begin{table}[htbp]
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.12}
-\begin{tabular}{p{0.25\linewidth}|p{0.18\linewidth}|p{0.17\linewidth}|p{0.3\linewidth}}
+\begin{tabular}{p{0.27\linewidth}|p{0.14\linewidth}|p{0.51\linewidth}}
 \hline
-Suíte e transporte & Aprovadas & Entrega & Leitura principal \\
+Suíte e transporte & Aprovadas & Leitura principal \\
 \hline
-\texttt{baseline}, broadcast & 150/150 & 100,00\% & Referência mais estável, sem perdas na métrica principal. \\
+\texttt{baseline}, broadcast & 150/150 & Referência mais estável; passou em todas as frequências e topologias testadas. \\
 \hline
-\texttt{multiple}, broadcast & 127/150 & 99,76\% & Suporta quatro IDs por sensor, mas expõe perdas pequenas. \\
+\texttt{baseline}, multicast & 142/150 & Quase toda a matriz passa; as oito falhas são isoladas e aparecem só em 200 Hz, 750 Hz e 1000 Hz. \\
 \hline
-\texttt{multiple}, multicast & 119/150 & 91,24\% & Promissor para múltiplos receptores, ainda frágil em descoberta e memória. \\
+\texttt{multiple}, broadcast & 127/150 & Melhor leitura prática para vários IDs por sensor; 10 Hz concentra mais falhas por bloco, enquanto 750 Hz e 1000 Hz trazem os maiores surtos. \\
 \hline
-\texttt{real\_time}, broadcast & 56/149 & 91,77\% & Sem batching, filas e retries passam a limitar o sistema. \\
+\texttt{multiple}, multicast & 119/150 & Mais frágil sob carga; além de perdas de entrega, surgem pressão de heap e aborts em algumas execuções. \\
 \hline
-\texttt{active\_filter}, broadcast & 75/90 & 99,99\% & A filtragem funciona, mas a entrega par a par ainda varia. \\
+\texttt{real\_time}, broadcast & 56/149 & Sem batching, a robustez cai rapidamente com a frequência. \\
 \hline
-\texttt{mixed\_frequency}, broadcast & 15/18 & 99,99\% & Frequências diferentes coexistem, com falhas ligadas sobretudo à geração local. \\
+\texttt{real\_time}, multicast & 71/150 & Mesmo padrão do broadcast, com alguma margem extra em baixa frequência. \\
+\hline
+\texttt{active\_filter}, broadcast & 75/90 & A allowlist funciona; as falhas restantes são de carga, não da regra de filtro. \\
+\hline
+\texttt{active\_filter}, multicast & 78/90 & Mesmo comportamento, com perdas concentradas nas topologias mais densas. \\
+\hline
+\texttt{mixed\_frequency}, broadcast & 15/18 & Frequências diferentes coexistem; as falhas são isoladas e ligadas às combinações mais densas. \\
+\hline
+\texttt{mixed\_frequency}, multicast & 14/18 & Mesma leitura, com margem um pouco menor. \\
 \hline
 \end{tabular}
 \caption{Resumo agregado das suítes executadas na campanha \texttt{full\_run}.}
 \label{tab:resumo-suites}
 \end{table}
 
-O resultado central é que a variante broadcast com batching foi a única
-configuração plenamente estável na matriz de referência. Com
-\texttt{linger\_ms = 100}, a suíte \texttt{baseline} manteve 100\% de entrega em
-todas as topologias e em frequências de 10 Hz a 1000 Hz. Foram analisados mais de
-2,6 milhões de contadores sem perdas na métrica principal. A latência de
-aplicação, medida por \texttt{LAT\_RTT}, ficou tipicamente em poucos
-milissegundos, com mediana próxima de 3 ms entre 10 Hz e 200 Hz e próxima de
-5 ms em 750 Hz e 1000 Hz.
+Na base de referência, o broadcast com batching foi perfeito e o multicast
+também foi forte, mas o ponto central da campanha aparece no
+\texttt{multiple}: é nele que a arquitetura é pressionada com vários IDs por
+sensor e várias topologias. Nesse cenário, broadcast ainda é melhor que
+multicast, mas já não permanece estável em todas as combinações.
 
 \section{Efeito do Batching}
 
-A suíte \texttt{real\_time} mostrou que o bom desempenho da linha de base depende
-diretamente do agrupamento de amostras. Com \texttt{linger\_ms = 0}, cada amostra
-é enviada em um quadro ESP-NOW independente. A entrega agregada do broadcast caiu
-para 91,77\%, com 57970 quedas na fila do produtor e 231 falhas por limite de
-retry. O sistema ainda se manteve quase estável em 10 Hz, mas perdeu robustez a
-partir de 200 Hz e não teve execuções aprovadas em 1000 Hz.
+A suíte \texttt{real\_time} confirma que o batching é decisivo. Com
+\texttt{linger\_ms = 0}, a mesma arquitetura passa a enviar uma amostra por
+quadro ESP-NOW, e a robustez cai de forma rápida para os dois transportes. O
+broadcast passou apenas 56 de 149 blocos, enquanto o multicast passou 71 de 150.
+No broadcast, a taxa de aprovação por frequência cai de 29/30 em 10 Hz para
+19/30 em 100 Hz, 7/30 em 200 Hz, 1/30 em 750 Hz e 0/29 em 1000 Hz. No multicast,
+o padrão é semelhante: 25/30, 26/30, 19/30, 0/30 e 1/30, respectivamente.
 
-Esse comportamento confirma que o WCAN não deve ser tratado como substituto sem
-fio de uma rede CAN de controle em tempo real. Sua aplicação adequada é a
-aquisição de dados com frequências conhecidas, na qual uma pequena janela de
-agrupamento reduz o custo fixo de rádio, callbacks, filas e confirmações.
+Esse comportamento mostra que o batching não é uma otimização marginal. Ele é o
+mecanismo que preserva a margem de operação do WCAN quando a carga aumenta. Sem
+\texttt{linger\_ms}, a combinação de rádio, callbacks, filas e confirmações se
+torna o gargalo dominante.
 
 \section{Múltiplos Fluxos e Filtros}
 
-Na suíte \texttt{multiple}, o broadcast manteve 99,76\% de entrega agregada mesmo
-com quatro CAN IDs por sensor e mais de 4,3 milhões de contadores analisados. As
-falhas apareceram como pequenas lacunas em receptores específicos ou como poucos
-contadores ausentes em todos os receptores esperados. A primeira situação é
-compatível com a semântica de primeiro ACK do broadcast, enquanto a segunda indica
-perda efetiva, descarte em fila ou limite de retry.
+Na suíte \texttt{multiple}, o broadcast é a melhor leitura prática para a tese.
+Ele aprova 127 de 150 blocos, e as 23 falhas não se espalham de forma uniforme.
+Vinte e uma falhas são de entrega e transporte, e duas são apenas de transporte.
+Isso indica que o gargalo está no orçamento de fila, retransmissão e callback,
+não em uma quebra lógica do cenário. Em broadcast, 10 Hz é o ponto mais frágil
+em número de blocos falhos, enquanto 750 Hz e 1000 Hz concentram os maiores
+surtos de misses e retry exhaustion. Há topologias em que apenas uma das três
+repetições falha, o que sugere uma margem curta em vez de um defeito
+determinístico. Ao mesmo tempo, há outliers claros: 750 Hz com
+\texttt{2S-2R\_rep2} perdeu 6652 amostras e 1000 Hz com
+\texttt{1S-2R\_rep2} perdeu 3568, ambos com saturação de transporte e retries.
 
 A suíte \texttt{active\_filter} confirmou que receptores configurados com
-allowlist não entregam nem confirmam mensagens fora de interesse. A entrega
-agregada foi 99,99\%, mas apenas 75 de 90 execuções passaram por todos os
-critérios. Em topologias com múltiplos receptores, um ACK válido prova que algum
-receptor interessado recebeu o pacote, mas não que todos os receptores de interesse
-receberam todos os contadores. Essa é uma limitação esperada do modelo adotado.
+allowlist não recebem nem confirmam mensagens fora de interesse. Como na
+semântica do CAN, a confirmação observada aqui é a aceitação por um receptor
+válido, e isso é suficiente para o modelo adotado nos testes. As falhas
+remanescentes aparecem sobretudo em topologias densas e em frequências altas, e
+dizem respeito ao orçamento de transporte, não à regra de filtro.
+
+A suíte \texttt{mixed\_frequency} também foi mais estável do que o texto atual
+sugere. No broadcast, 15 de 18 blocos passaram; no multicast, 14 de 18. As
+falhas são isoladas e se concentram em combinações específicas que misturam um
+ou dois sensores em 1 kHz com topologias mais densas. A heterogeneidade de
+frequência, por si só, não derruba a arquitetura; o que pesa é a combinação entre
+taxas altas e fan-out maior.
 
 \section{Comportamento do Multicast}
 
-O multicast foi avaliado principalmente na suíte \texttt{multiple}. A entrega
-agregada de 91,24\% mostra que a estratégia é viável como direção de evolução,
-mas ainda não está madura. Em casos representativos, sensores permaneceram por
-muito tempo em modo de descoberta, registrando ausência de assinantes vivos mesmo
-após receptores observarem pacotes iniciais. Sob carga, esse estado aumentou a
-pressão sobre filas e heap, gerando erros como
-\texttt{ESP\_ERR\_ESPNOW\_NO\_MEM} e, em alguns casos, reinicialização por falha
-de alocação.
+O multicast é o ponto em que
+a pressão de recursos fica mais visível. No baseline, ele ainda é forte:
+142 de 150 blocos aprovados, com falhas isoladas e não sistêmicas. No
+\texttt{multiple}, porém, a robustez cai para 119 de 150 e passam a aparecer
+falhas com heap pressionado, sobretudo em 200 Hz, 750 Hz e 1000 Hz. O resumo das
+falhas mostra 21 casos de entrega e transporte, 8 casos de entrega, transporte e
+heap, e 2 casos apenas de heap.
 
-A investigação dos logs não apontou incompatibilidade de canal como causa
-principal. O firmware fixa o canal ESP-NOW em 1 e não foram observados erros
-característicos de canal incorreto. As falhas são melhor explicadas por
-convergência incompleta de assinaturas, pressão de memória e falta de uma política
-mais forte para períodos sem assinantes válidos.
+Os logs explicam essa diferença. Em múltiplas execuções aparecem
+\texttt{ESP\_ERR\_ESPNOW\_NO\_MEM}, filas cheias, \texttt{TX semaphore timeout},
+exaurimento de retries e, em alguns casos, \texttt{abort()}. Em outras palavras,
+o limitante do multicast não é a semântica do protocolo, mas o orçamento de
+memória e transmissão quando a carga sobe. É por isso que o multicast ainda não
+deve ser a base da conclusão.
 
 \section{Limitações dos Ensaios}
 
@@ -97,16 +115,18 @@ injeção contínua no barramento CAN do veículo.
 
 Também foram observados sinais de risco em memória e pilha. O menor high-water
 mark de pilha observado nas agregações principais do broadcast foi 64 bytes, e os
-logs multicast mostraram pressão de heap em períodos prolongados de descoberta.
-Esses pontos não invalidam a linha de base, mas devem ser tratados antes de uma
-validação embarcada prolongada.
+logs multicast sob carga alta mostraram pressão de heap e aborts em algumas
+execuções. Esses pontos não invalidam o resultado principal, mas precisam ser
+tratados antes de uma validação embarcada prolongada.
 
 \section{Rastreabilidade dos Requisitos}
 
 A Tabela~\ref{tab:rastreabilidade-requisitos} resume o estado dos requisitos ao
 final dos ensaios. O resultado mais forte é a validação em bancada do broadcast
-com batching. Os requisitos ligados a múltiplos receptores, integração embarcada
-e robustez física permanecem parciais.
+com batching, mas a evidência mais informativa para a tese vem do
+\texttt{multiple}: é nele que a arquitetura é realmente estressada com vários IDs
+por sensor e várias topologias. Os requisitos ligados a robustez física e carga
+mais agressiva permanecem parciais.
 
 \begin{table}[htbp]
 \centering
@@ -117,13 +137,13 @@ e robustez física permanecem parciais.
 \hline
 Requisito & Evidência principal & Status \\
 \hline
-Desempenho e latência & Broadcast com batching entregou 100\% na suíte \texttt{baseline}, de 10 Hz a 1000 Hz. & Atendido em bancada \\
+Desempenho e latência & Broadcast com batching fechou a baseline e sustentou o melhor resultado no \texttt{multiple} broadcast; sem batching, a robustez cai rápido. & Atendido em bancada \\
 \hline
-Conexão instantânea & Broadcast transmite sem associação prévia; multicast ainda falha quando a descoberta não converge. & Parcial \\
+Conexão instantânea & Broadcast e multicast entram em operação sem associação prévia; a semântica de aceitação por receptor válido foi exercitada em bancada. & Atendido em bancada \\
 \hline
-Múltiplas conexões & Topologias até cinco placas foram testadas; primeiro ACK não garante entrega a todos os receptores. & Parcial \\
+Múltiplas conexões & Topologias até cinco placas foram testadas; o \texttt{multiple} broadcast é o melhor caso prático, enquanto o multicast ainda perde margem sob carga. & Parcial \\
 \hline
-Transparência CAN & O CAN ID é preservado e a fronteira de integração com TWAI foi definida, mas os testes finais usaram log serial. & Parcial \\
+Transparência CAN & O CAN ID é preservado e múltiplos IDs por sensor foram exercitados, mas os testes finais usaram log serial. & Parcial \\
 \hline
 Requisitos físicos e custo & ESP32 reduz componentes e custo, mas placa final, fixação e massa ainda não foram validadas. & Parcial \\
 \hline
@@ -136,10 +156,16 @@ Modularidade & Papéis por configuração serial, filtros por CAN ID e múltipla
 
 \section{Conclusão dos Resultados}
 
-Com os dados da campanha \texttt{full\_run}, a configuração mais defensável para
-uso controlado é o broadcast com batching habilitado. Ela atende parcialmente ao
-objetivo do trabalho ao permitir aquisição sem fio em bancada com semântica
-próxima à do CAN, na qual uma mensagem é considerada confirmada quando algum
-receptor interessado a reconhece. Para cenários em que todos os receptores devem
-receber todos os pacotes, será necessário amadurecer o multicast ou introduzir
-confirmação explícita por receptor.
+Com os dados da campanha \texttt{full\_run}, a leitura mais defensável é que o
+WCAN funciona bem em broadcast com batching, e que a evidência mais importante
+da tese vem do \texttt{multiple}, não do baseline isolado. No \texttt{multiple}
+broadcast, o sistema ainda aprova 127 de 150 blocos e, na maior parte das vezes,
+as falhas ficam confinadas a uma repetição ou a uma condição específica; isso
+indica margem limitada, mas não colapso estrutural. No multicast, a mesma carga
+expõe pressão de heap e aborts, então esse caminho ainda não é a base de uso.
+
+A conclusão prática do trabalho é, portanto, que o WCAN é viável para aquisição
+sem fio em bancada com semântica compatível com o CAN, e que o melhor ponto de
+partida para uso controlado é o broadcast com batching. O \texttt{multiple}
+mostra que a arquitetura escala até um envelope útil, mas ainda com folga curta
+em cenários mais agressivos.
