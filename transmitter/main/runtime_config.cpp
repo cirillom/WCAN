@@ -71,7 +71,7 @@ void InitUartInput()
         ESP_LOGW(TAG, "uart_param_config failed: %s", esp_err_to_name(err));
     }
 
-    err = uart_driver_install(kUartPort, 1024, 0, 0, nullptr, 0);
+    err = uart_driver_install(kUartPort, 1024, 8192, 0, nullptr, 0);
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
         ESP_LOGW(TAG, "uart_driver_install failed: %s", esp_err_to_name(err));
     }
