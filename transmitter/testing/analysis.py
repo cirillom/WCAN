@@ -6,6 +6,11 @@ from pathlib import Path
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(iterable, **kwargs):
+        return iterable
 
 # ── Data structures ──────────────────────────────────────────────────────────
 
@@ -48,6 +53,7 @@ class SensorData:
     max_retry_chain: int = 0
     max_retry_fail_count: int = 0
     panic_detected: bool = False
+    crash_details: list = field(default_factory=list) # (line_num, description)
     queue_push_count: int = 0
     queue_drop_count: int = 0
     queue_drop_counters: set = field(default_factory=set)
@@ -64,6 +70,7 @@ class ReceiverData:
     rx_stats: dict = field(default_factory=dict)
     crash_count: int = 0
     panic_detected: bool = False
+    crash_details: list = field(default_factory=list) # (line_num, description)
     queue_drop_count: int = 0
     dedup_drop_count: int = 0
     heap: HeapStats = field(default_factory=HeapStats)
@@ -176,7 +183,7 @@ LEAK_SLOPE_SUSPECTED = -16.0
 LEAK_END_DROP_RATIO = 0.80
 LEAK_ABS_FAIL_BYTES = 2048
 LEAK_ABS_SUSPECTED_BYTES = 1024
-HEAP_INIT_TRANSIENT_SEC = 5.0
+HEAP_INIT_TRANSIENT_SEC = 2.4
 
 def _parse_ts(ts_str: str) -> float:
     return datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S.%f").timestamp()
@@ -467,6 +474,24 @@ def parse_measure(text: str) -> MeasureStats:
 
     return stats
 
+def _find_crash_locations(text: str) -> list:
+    """Find line numbers and descriptions for crashes and panics."""
+    locations = []
+    lines = text.splitlines()
+    first_boot_found = False
+    for i, line in enumerate(lines, 1):
+        if CRASH_MARKER in line:
+            if not first_boot_found:
+                first_boot_found = True
+                continue
+            locations.append((i, "Reboot (WCAN initialized)"))
+        
+        panic_match = RE_PANIC.search(line)
+        if panic_match:
+            locations.append((i, f"Panic ({panic_match.group(0)})"))
+            
+    return locations
+
 def parse_sensor_log(path: Path) -> SensorData:
     _, board_id, port = parse_filename(path)
     text = path.read_text(encoding="utf-8", errors="replace")
@@ -522,6 +547,7 @@ def parse_sensor_log(path: Path) -> SensorData:
 
     crash_count = max(0, text.count(CRASH_MARKER) - 1)
     panic_detected = bool(RE_PANIC.search(text))
+    crash_details = _find_crash_locations(text)
     retry_count = text.count(RETRY_MARKER)
     max_retry_fail_count = text.count(MAX_RETRY_MARKER)
     max_retry_chain = max((int(m.group(1)) for m in RE_RETRY_ATTEMPT.finditer(text)), default=0)
@@ -541,6 +567,7 @@ def parse_sensor_log(path: Path) -> SensorData:
         sent_times_by_can_id=sent_times_by_can_id,
         crash_count=crash_count,
         panic_detected=panic_detected,
+        crash_details=crash_details,
         retry_count=retry_count,
         max_retry_chain=max_retry_chain,
         max_retry_fail_count=max_retry_fail_count,
@@ -581,6 +608,7 @@ def parse_receiver_log(path: Path) -> ReceiverData:
 
     crash_count = max(0, text.count(CRASH_MARKER) - 1)
     panic_detected = bool(RE_PANIC.search(text))
+    crash_details = _find_crash_locations(text)
     queue_drop_count = len(RE_RECEIVER_QUEUE_DROP.findall(text))
     dedup_drop_count = len(RE_RECEIVER_DEDUP_DROP.findall(text))
 
@@ -592,6 +620,7 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         rx_stats=rx_stats,
         crash_count=crash_count,
         panic_detected=panic_detected,
+        crash_details=crash_details,
         queue_drop_count=queue_drop_count,
         dedup_drop_count=dedup_drop_count,
         heap=parse_heap_stats(text),
@@ -780,22 +809,20 @@ def analyze_delivery(sensors, receivers, test_name, context: AnalysisContext = N
     return "\n".join(report_lines), passed
 
 def analyze_crashes(sensors, receivers):
-    """Analyze if there were crashes or panics."""
+    """Analyze if there were crashes or panics with line numbers."""
     report_lines = []
-    total_crashes = 0
-    total_panics = 0
+    total_incidents = 0
     
     for device in sensors + receivers:
-        if device.crash_count > 0:
-            total_crashes += device.crash_count
-            report_lines.append(f"{device.__class__.__name__} {device.board_id} crashed {device.crash_count} times")
-        if device.panic_detected:
-            total_panics += 1
-            report_lines.append(f"{device.__class__.__name__} {device.board_id}: ESP-IDF panic signature detected in log")
+        if device.crash_details:
+            total_incidents += len(device.crash_details)
+            dev_name = f"{device.__class__.__name__} {device.board_id}"
+            for line_num, desc in device.crash_details:
+                report_lines.append(f"{dev_name}: {desc} at line {line_num}")
             
-    passed = total_crashes == 0 and total_panics == 0
+    passed = total_incidents == 0
     status = "PASS" if passed else "FAIL"
-    report_lines.insert(0, f"CRASH ANALYSIS: {status} ({total_crashes} total crashes, {total_panics} total panics)")
+    report_lines.insert(0, f"CRASH ANALYSIS: {status} ({total_incidents} total incidents)")
     return "\n".join(report_lines), passed
 
 def _format_heap(stats) -> str:
@@ -1152,7 +1179,7 @@ def main():
     all_reports = []
     run_results = []
 
-    for folder in test_folders:
+    for folder in tqdm(test_folders, desc="Analyzing tests"):
         report, passed = analyze_all(folder)
         all_reports.append(report)
         run_results.append(analysis_run_result(folder, passed))

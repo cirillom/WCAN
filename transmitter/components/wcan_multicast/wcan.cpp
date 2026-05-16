@@ -135,20 +135,6 @@ static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *
     }
 }
 
-#define WCAN_HEAP_MONITOR_INTERVAL_MS 5000
-
-static void heap_monitor_task(void *)
-{
-    static const char *TAG = "HEAP";
-    const TickType_t period = pdMS_TO_TICKS(WCAN_HEAP_MONITOR_INTERVAL_MS);
-    while (true) {
-        ESP_LOGI(TAG, "free=%u min_free=%u largest=%u", static_cast<unsigned>(esp_get_free_heap_size()),
-                 static_cast<unsigned>(esp_get_minimum_free_heap_size()),
-                 static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)));
-        vTaskDelay(period);
-    }
-}
-
 #define WCAN_HELLO_BURST_COUNT 5
 #define WCAN_HELLO_BURST_INTERVAL_MS 50
 #define WCAN_HELLO_STEADY_INTERVAL_MS 1000
@@ -345,21 +331,15 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
                     nullptr);
     }
 
-    xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, kHeapMonitorTaskPriority, nullptr);
-
     // Sensor: maintain the subscription table populated by HELLO frames from receivers,
     // and periodically log it as a Phase-2 sanity check. Receivers keep beaconing and
     // run a directed registration retry loop after hearing a broadcast data packet.
     if (tx_ids_size > 0) {
-        xTaskCreate(subscription_log_task, "subs_log", 2048, nullptr, kSubscriptionLogTaskPriority, nullptr);
+        xTaskCreate(subscription_log_task, "subs_log", 4096, nullptr, kSubscriptionLogTaskPriority, nullptr);
     } else {
         registration_init();
         xTaskCreate(hello_beacon_task, "hello_beacon", 4096, nullptr, kHelloBeaconTaskPriority, nullptr);
     }
-
-#ifdef MEASURE_INSTR
-    measure_start();
-#endif
 
     ESP_LOGI(TAG, "WCAN initialized");
 }

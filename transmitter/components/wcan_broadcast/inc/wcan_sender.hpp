@@ -33,5 +33,4 @@ void sender_on_send_status(esp_now_send_status_t status);
 #ifdef MEASURE_INSTR
 extern volatile uint64_t g_airtime_total_us;
 extern volatile uint64_t g_packets_sent_total;
-void measure_start(void);
 #endif

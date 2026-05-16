@@ -36,6 +36,4 @@ extern volatile int64_t g_in_flight_send_us;
 extern volatile uint8_t g_in_flight_peer_mac[ESP_NOW_ETH_ALEN];
 extern volatile uint64_t g_airtime_total_us;
 extern volatile uint64_t g_packets_sent_total;
-
-void measure_start(void);
 #endif

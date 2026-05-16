@@ -12,6 +12,7 @@
 #include "receiver_app.hpp"
 #include "runtime_config.hpp"
 #include "sensor_app.hpp"
+#include "app_stats.hpp"
 #include "wcan.hpp"
 
 #ifdef MEASURE_INSTR
@@ -114,4 +115,6 @@ extern "C" void app_main(void)
         receiver_app::SetupReceiver(config.receiver_filter_enabled, config.receiver_filter_ids.data(),
                                     config.receiver_filter_count);
     }
+
+    start_app_stats();
 }

@@ -109,20 +109,6 @@ static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *
     }
 }
 
-#define WCAN_HEAP_MONITOR_INTERVAL_MS 5000
-
-static void heap_monitor_task(void *)
-{
-    static const char *TAG = "HEAP";
-    const TickType_t period = pdMS_TO_TICKS(WCAN_HEAP_MONITOR_INTERVAL_MS);
-    while (true) {
-        ESP_LOGI(TAG, "free=%u min_free=%u largest=%u", static_cast<unsigned>(esp_get_free_heap_size()),
-                 static_cast<unsigned>(esp_get_minimum_free_heap_size()),
-                 static_cast<unsigned>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)));
-        vTaskDelay(period);
-    }
-}
-
 static bool create_handles(void)
 {
     static const char *TAG = "WCAN";
@@ -289,12 +275,6 @@ void wcan_init(bool filter, uint32_t *rx_ids, size_t rx_ids_size, uint32_t *tx_i
         xTaskCreate(can_processing_task, task_name, 4096, reinterpret_cast<void *>(i), kCanProcessingTaskPriority,
                     &can_tx_tasks[i]);
     }
-
-    xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, kHeapMonitorTaskPriority, nullptr);
-
-#ifdef MEASURE_INSTR
-    measure_start();
-#endif
 
     ESP_LOGI(TAG, "WCAN initialized");
 }
