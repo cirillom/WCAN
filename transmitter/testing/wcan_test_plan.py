@@ -71,6 +71,7 @@ class RunSettings:
     transports: list[str]
     measure: bool
     seed: int | None
+    frequency_tolerance: float
 
 
 @dataclass
@@ -252,6 +253,7 @@ def build_run_plan(
         transports=transports,
         measure=effective_measure,
         seed=seed,
+        frequency_tolerance=float(profile_cfg.get("frequency_tolerance", defaults.get("frequency_tolerance", 0.05))),
     )
 
     suites = resolve_suite_names(tests_cfg, suite_or_group)

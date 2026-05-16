@@ -106,6 +106,11 @@ static void ack_send(const data_packet_t &recv_packet)
     ack_data.data_count = 1;
 
     add_peer(ack_data.mac_addr.data());
+
+    // Randomized jitter before first attempt to prevent collisions in dense topologies (like 2S-3R)
+    const uint32_t initial_jitter = esp_random() % 10;
+    vTaskDelay(pdMS_TO_TICKS(initial_jitter));
+
     for (uint8_t attempt = 1; attempt <= WCAN_ACK_SEND_MAX_ATTEMPTS; attempt++) {
         if (send_data_and_wait(ack_data.mac_addr.data(), ack_data)) {
             ESP_LOGD(TAG, "ACK sent for CAN ID 0x%08lx with tick_count %lu on attempt %u",

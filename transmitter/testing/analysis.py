@@ -123,7 +123,7 @@ RE_SENSOR_ACK = re.compile(
     r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?ACK:\s*Received ACK for packet tick\s*(\d+)"
 )
 RE_SENSOR_COUNTER = re.compile(
-    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?read_data_task:\s*(?:\[0x[0-9a-fA-F]+\]\s*)?(\d+)"
+    r"(?:\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?read_data_task:\s*(?:\[0x[0-9a-fA-F]+\]\s*)?(\d+)|S:(\d+):([0-9a-fA-F]+):(\d+))"
 )
 RE_SENSOR_QUEUE_DROP = re.compile(
     r"read_data_task:\s*(?:\[0x[0-9a-fA-F]+\]\s*)?Send queue full,\s*dropping counter=(\d+)"
@@ -133,7 +133,7 @@ RE_WCAN_SEND_QUEUE_DROP = re.compile(
 )
 RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
 RE_RECEIVER_BATCH = re.compile(
-    r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?wcan_recv_callback:\s*\[([0-9a-fA-F]+)\]\s*tick=(\d+)\s*\[(\d+)\.\.(\d+)\]\s*(\d+)\s*items"
+    r"(?:\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?wcan_recv_callback:\s*\[([0-9a-fA-F]+)\]\s*tick=(\d+)\s*\[(\d+)\.\.(\d+)\]\s*(\d+)\s*items|R:(\d+):([0-9a-fA-F]+):(\d+):(\d+):(\d+):(\d+))"
 )
 RE_RECEIVER_RX_STATS = re.compile(
     r"RX_STATS:\s*id=0x([0-9a-fA-F]+)\s*packets=(\d+)\s*samples=(\d+)\s*gaps=(\d+)\s*last=\[(\d+)\.\.(\d+)\]"
@@ -505,7 +505,14 @@ def parse_sensor_log(path: Path) -> SensorData:
     raw_queue_push_count = 0
     for m in RE_SENSOR_COUNTER.finditer(text):
         raw_queue_push_count += 1
-        counter_times[int(m.group(2))] = _parse_ts(m.group(1))
+        # Group 1,2: old format (ts_str, counter); Group 3,4,5: new format (ms, id, counter)
+        if m.group(1):
+            ts = _parse_ts(m.group(1))
+            counter_val = int(m.group(2))
+        else:
+            ts = int(m.group(3)) / 1000.0 # Convert ms to s
+            counter_val = int(m.group(5))
+        counter_times[counter_val] = ts
     queue_drop_counters = {int(m.group(1)) for m in RE_SENSOR_QUEUE_DROP.finditer(text)}
 
     can_proc_times = {}
@@ -589,9 +596,16 @@ def parse_receiver_log(path: Path) -> ReceiverData:
     received = {}
     received_times = {}
     for m in RE_RECEIVER_BATCH.finditer(text):
-        ts = _parse_ts(m.group(1))
-        can_id = _normalize_can_id(m.group(2))
-        first, last = int(m.group(4)), int(m.group(5))
+        # Group 1-6: old format (ts_str, id, tick, first, last, count)
+        # Group 7-12: new format (ms, id, tick, first, last, count)
+        if m.group(1):
+            ts = _parse_ts(m.group(1))
+            can_id = _normalize_can_id(m.group(2))
+            first, last = int(m.group(4)), int(m.group(5))
+        else:
+            ts = int(m.group(7)) / 1000.0
+            can_id = _normalize_can_id(m.group(8))
+            first, last = int(m.group(10)), int(m.group(11))
         received.setdefault(can_id, set()).update(range(first, last + 1))
         received_times.setdefault(can_id, {})[first] = ts
 
@@ -720,6 +734,7 @@ def sensor_summary(sensors, receivers, context: AnalysisContext = None):
             
             # Tail trimming: ignore misses at the very end of the test as they might
             # just be data that hasn't arrived/logged before shutdown.
+            # Boundary is the last counter actually confirmed to have reached a sink.
             n_tail = 0
             for c in reversed(generated):
                 if c in missed_set:
@@ -731,9 +746,10 @@ def sensor_summary(sensors, receivers, context: AnalysisContext = None):
             trimmed_union = union & set(trimmed_generated)
             trimmed_misses = sorted(set(trimmed_generated) - trimmed_union)
             
-            # transport misses: generated but not in transport_counters (always real losses)
+            # transport misses: generated but not in transport_counters AND not in union
+            # (If it arrived at the sink, it obviously reached transport, even if the sensor log was dropped)
             sent_set = set(sent)
-            transport_misses = sorted(c for c in trimmed_generated if c not in sent_set)
+            transport_misses = sorted(c for c in trimmed_generated if c not in sent_set and c not in union)
             
             # network misses: in transport_counters but not received (real radio losses)
             network_misses = sorted(c for c in sent if c in set(trimmed_generated) and c not in trimmed_union)
@@ -961,13 +977,12 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
 
     metadata = context.metadata
     scenario = metadata.get("scenario", "baseline")
-    if scenario == "baseline":
-        return "SCENARIO ANALYSIS: none", True
-
+    
     report_lines = []
     failures = 0
     receiver_by_id = {r.board_id: r for r in receivers}
 
+    # 1. Active Filtering Check (Scenario specific)
     if metadata.get("active_filtering"):
         allowlists = context.receiver_allowlists
         expected_receivers = context.expected_receivers
@@ -1058,32 +1073,35 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
                     failures += len(leaked_to)
         report_lines.append("Active filtering checks complete")
 
-    if metadata.get("frequency_mixing"):
-        tolerance = float(metadata.get("frequency_tolerance", 0.20))
-        expected_freqs = {
-            board_id: float(freq)
-            for board_id, freq in metadata.get("sensor_frequencies", {}).items()
-        }
-        for sensor in sensors:
-            expected = expected_freqs.get(sensor.board_id)
-            if expected is None:
-                failures += 1
-                report_lines.append(f"Sensor {sensor.board_id}: missing expected frequency")
-                continue
-            observed = _sensor_observed_rate_hz(sensor)
-            if observed is None:
-                failures += 1
-                report_lines.append(f"Sensor {sensor.board_id}: insufficient counter timestamps for rate check")
-                continue
-            low = expected * (1.0 - tolerance)
-            high = expected * (1.0 + tolerance)
-            ok = low <= observed <= high
-            if not ok:
-                failures += 1
-            report_lines.append(
-                f"Sensor {sensor.board_id}: expected {expected:.1f}Hz, observed {observed:.1f}Hz "
-                f"({'OK' if ok else 'FAIL'}, tolerance ±{tolerance * 100:.0f}%)"
-            )
+    # 2. Mandatory Frequency Check (Always active for all sensors)
+    tolerance = float(metadata.get("frequency_tolerance", 0.05))
+    expected_freqs = {
+        board_id: float(freq)
+        for board_id, freq in metadata.get("sensor_frequencies", {}).items()
+    }
+    global_freq = metadata.get("frequency_hz")
+    
+    for sensor in sensors:
+        expected = expected_freqs.get(sensor.board_id) or (float(global_freq) if global_freq is not None else None)
+        
+        if expected is None:
+            continue
+            
+        observed = _sensor_observed_rate_hz(sensor)
+        if observed is None:
+            failures += 1
+            report_lines.append(f"Sensor {sensor.board_id}: insufficient counter timestamps for rate check")
+            continue
+            
+        low = expected * (1.0 - tolerance)
+        high = expected * (1.0 + tolerance)
+        ok = low <= observed <= high
+        if not ok:
+            failures += 1
+        report_lines.append(
+            f"Sensor {sensor.board_id}: expected {expected:.1f}Hz, observed {observed:.1f}Hz "
+            f"({'OK' if ok else 'FAIL'}, tolerance ±{tolerance * 100:.0f}%)"
+        )
 
     passed = failures == 0
     status = "PASS" if passed else "FAIL"
@@ -1179,7 +1197,7 @@ def main():
     all_reports = []
     run_results = []
 
-    for folder in tqdm(test_folders, desc="Analyzing tests"):
+    for folder in tqdm(test_folders, desc="Analyzing tests", dynamic_ncols=True):
         report, passed = analyze_all(folder)
         all_reports.append(report)
         run_results.append(analysis_run_result(folder, passed))

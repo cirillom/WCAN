@@ -86,9 +86,13 @@ void wcan_recv_callback(const data_packet_t &recv_packet)
     }
 #endif
 
-    ESP_LOGI(TAG, "[%lx] tick=%lu [%lu..%lu] %u items", static_cast<unsigned long>(recv_packet.can_id),
-             static_cast<unsigned long>(recv_packet.tick_count), static_cast<unsigned long>(recv_packet.data[0]),
-             static_cast<unsigned long>(recv_packet.data[recv_packet.data_count - 1]), recv_packet.data_count);
+    std::printf("R:%lu:%lx:%lu:%lu:%lu:%u\n",
+             (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
+             static_cast<unsigned long>(recv_packet.can_id),
+             static_cast<unsigned long>(recv_packet.tick_count), 
+             static_cast<unsigned long>(recv_packet.data[0]),
+             static_cast<unsigned long>(recv_packet.data[recv_packet.data_count - 1]), 
+             recv_packet.data_count);
 }
 
 extern "C" void app_main(void)

@@ -66,8 +66,8 @@ inline void read_data_task(void *pv_parameter)
                 ESP_LOGW(TAG, "[0x%lx] Send queue full, dropping counter=%lu",
                          static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
             } else {
-                ESP_LOGI(TAG, "[0x%lx] %lu", static_cast<unsigned long>(can_id),
-                         static_cast<unsigned long>(counter));
+                std::printf("S:%lu:%lx:%lu\n", (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()), 
+                         static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
             }
         }
 

@@ -45,7 +45,7 @@ from wcan_test_plan import (
 )
 
 VALID_SCENARIOS = ("baseline", "active_filtering", "frequency_mixing", "advanced")
-FREQUENCY_TOLERANCE = 0.20
+FREQUENCY_TOLERANCE = 0.05
 LEGACY_SCENARIO_TO_SUITE = {
     "baseline": "baseline",
     "active_filtering": "active_filter",
@@ -177,7 +177,7 @@ def _assignment_options(run, board: dict, role: str) -> dict:
     return {}
 
 
-def _write_scenario_metadata(log_dir: Path, run):
+def _write_scenario_metadata(log_dir: Path, run, settings: RunSettings):
     all_boards = run.sensor_boards + run.receiver_boards + run.idle_boards
     runtime_assignments = []
     runtime_assignments.extend(
@@ -196,7 +196,7 @@ def _write_scenario_metadata(log_dir: Path, run):
         "repeat": run.repeat,
         "frequency_hz": run.frequency_hz,
         "sensor_frequencies": run.sensor_frequencies,
-        "frequency_tolerance": FREQUENCY_TOLERANCE,
+        "frequency_tolerance": settings.frequency_tolerance,
         "linger_ms": run.linger_ms,
         "can_ids_per_sensor": run.can_ids_per_sensor,
         "roles": {
@@ -261,7 +261,7 @@ def _summary_row(root: Path, log_dir: Path, run, status: str) -> dict:
 
 def _run_one_plan_test(root: Path, plan, run, measure: bool) -> dict:
     log_dir = _run_dir(root, run)
-    _write_scenario_metadata(log_dir, run)
+    _write_scenario_metadata(log_dir, run, plan.settings)
 
     active = [(board, "SENSOR") for board in run.sensor_boards] + [
         (board, "RECEIVER") for board in run.receiver_boards

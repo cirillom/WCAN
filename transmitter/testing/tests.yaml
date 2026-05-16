@@ -6,6 +6,7 @@ defaults:
   project_path: ".."
   transports: [BROADCAST, MULTICAST]
   frequency_hz: [10, 100, 200, 750, 1000]
+  frequency_tolerance: 0.05
   linger_ms: 100
   measure: true
 
@@ -13,10 +14,12 @@ profiles:
   fast:
     repeats: 1
     duration_seconds: 15
-    frequency_hz: [750]
+    frequency_hz: [200, 1000]
     topologies:
       - sensors: 4
         receivers: 1
+      - sensors: 2
+        receivers: 3
 
   full:
     topologies: full_matrix
