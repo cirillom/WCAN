@@ -42,6 +42,7 @@ from wcan_test_plan import (
     compact_build_dict,
     compact_run_dict,
     parse_test_filter,
+    RunSettings,
 )
 
 VALID_SCENARIOS = ("baseline", "active_filtering", "frequency_mixing", "advanced")

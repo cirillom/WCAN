@@ -115,7 +115,7 @@ class AnalysisRunResult:
 
 # ── Parsing ──────────────────────────────────────────────────────────────────
 
-RE_SENSOR_CAN_ID = re.compile(r"SENSOR mode.*CAN ID:\s*0x([0-9a-fA-F]+)")
+RE_SENSOR_CAN_ID = re.compile(r"(?:CAN ID|Base ID|base=)(?::\s*)?(?:0x([0-9a-fA-F]+)|([0-9a-fA-F]+))", re.IGNORECASE)
 RE_SENSOR_CAN_PROC = re.compile(
     r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?CAN_PROC_\d+:\s*(0x[0-9a-fA-F]+)\s*batch\s*\d+\s*\[(\d+)\.\.(\d+)\]\s*at\s*\((\d+)\)"
 )
@@ -131,7 +131,7 @@ RE_SENSOR_QUEUE_DROP = re.compile(
 RE_WCAN_SEND_QUEUE_DROP = re.compile(
     r"send_data:\s*Send queue full,\s*dropping packet with CAN ID\s*0x[0-9a-fA-F]+"
 )
-RE_RECEIVER_MODE = re.compile(r"RECEIVER mode")
+RE_RECEIVER_MODE = re.compile(r"RECEIVER mode", re.IGNORECASE)
 RE_RECEIVER_BATCH = re.compile(
     r"(?:\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\].*?wcan_recv_callback:\s*\[([0-9a-fA-F]+)\]\s*tick=(\d+)\s*\[(\d+)\.\.(\d+)\]\s*(\d+)\s*items|R:(\d+):([0-9a-fA-F]+):(\d+):(\d+):(\d+):(\d+))"
 )
@@ -498,8 +498,22 @@ def parse_sensor_log(path: Path) -> SensorData:
 
     can_match = RE_SENSOR_CAN_ID.search(text)
     if not can_match:
-        raise ValueError(f"No CAN ID found in sensor log: {path.name}")
-    can_id = _normalize_can_id(can_match.group(1))
+        # Fallback 1: Look for ID in the first CAN_PROC batch
+        can_match = RE_SENSOR_CAN_PROC.search(text)
+        if can_match:
+            can_id = _normalize_can_id(can_match.group(2))
+        else:
+            # Fallback 2: Look for ID in the first high-efficiency log line
+            can_match = RE_SENSOR_COUNTER.search(text)
+            if can_match:
+                # Group 4 is ID in S:MS:ID:Val
+                can_id = _normalize_can_id(can_match.group(4))
+            else:
+                raise ValueError(f"No CAN ID found in sensor log: {path.name}")
+    else:
+        # Pick the group that matched (1 if 0x was present, 2 otherwise)
+        can_id_raw = can_match.group(1) or can_match.group(2)
+        can_id = _normalize_can_id(can_id_raw)
 
     counter_times = {}
     raw_queue_push_count = 0
