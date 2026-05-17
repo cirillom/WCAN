@@ -4,6 +4,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <vector>
 #include <optional>
 #include "esp_now.h"
@@ -22,9 +23,9 @@ struct EspNowPacket{
     static uint32_t extract_can_id(const uint8_t* payload) {
         CANId_t can_id;
         std::memcpy(&can_id, payload, sizeof(CANId_t));
-        return ntohl(can_id);
+        return can_id;
     }
-}
+};
 
 class Packet {
 public:
@@ -71,7 +72,7 @@ private:
     std::vector<DataPoint_t> _data;
     bool _received_via_broadcast = false;
 
-    // Header = ID(4) + Seq(4) + Count(1) = 9 bytes.
+public:
     static constexpr size_t HEADER_SIZE = sizeof(CANId_t) + sizeof(_sequence_id) + sizeof(uint8_t);
     static constexpr size_t MAX_DATA_POINTS = (ESP_NOW_MAX_DATA_LEN - HEADER_SIZE) / sizeof(DataPoint_t);
     static constexpr std::array<uint8_t, ESP_NOW_ETH_ALEN> BROADCAST_MAC{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};

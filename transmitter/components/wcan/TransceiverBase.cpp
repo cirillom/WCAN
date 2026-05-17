@@ -43,7 +43,7 @@ bool TransceiverBase::init() {
         _can_data_queues.resize(tx_count);
         _ack_semaphores.resize(tx_count);
         for (size_t i = 0; i < tx_count; i++) {
-            _can_data_queues[i] = xQueueCreate(QUEUE_SIZE, Packet::DATA_POINT_SIZE);
+            _can_data_queues[i] = xQueueCreate(QUEUE_SIZE, sizeof(DataPoint_t));
             _ack_semaphores[i] = xSemaphoreCreateBinary();
             if (!_can_data_queues[i] || !_ack_semaphores[i]) return false;
         }
@@ -73,7 +73,7 @@ void TransceiverBase::start_tasks() {
 
     for (size_t i = 0; i < _tx_can_ids.size(); i++) {
         auto* ctx = new std::pair<TransceiverBase*, size_t>(this, i);
-        char name[20]; std::snprintf(name, sizeof(name), "wcan_batch_%u", (unsigned)i);
+        char name[22]; std::snprintf(name, sizeof(name), "wcan_batch_%u", (unsigned)i);
         xTaskCreate(batch_task_wrapper, name, 4096, ctx, BATCH_PROCESSING_TASK_PRIORITY, nullptr);
     }
 }
@@ -157,7 +157,7 @@ void TransceiverBase::esp_now_send_cb(const uint8_t *mac, esp_now_send_status_t 
 }
 
 void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
-    if (!s_instance || !info->src_addr || !data || len <= sizeof(CANId_t)) return;
+    if (!s_instance || !info->src_addr || !data || len < Packet::HEADER_SIZE) return;
 
     CANId_t can_id = EspNowPacket::extract_can_id(data);
 
@@ -181,5 +181,5 @@ bool TransceiverBase::should_accept(CANId_t can_id) const {
     if (can_id == CONTROL_ID) return true;
     if (!_filtering_enabled) return true;
     return std::find(_rx_can_ids.begin(), _rx_can_ids.end(), can_id) != _rx_can_ids.end();
-
+}
 } // namespace wcan

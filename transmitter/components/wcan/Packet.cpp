@@ -1,7 +1,8 @@
-#include "Packet.hpp"
-
-#include <arpa/inet.h>
 #include <cstring>
+
+#include "esp_log.h"
+
+#include "Packet.hpp"
 
 namespace wcan {
 
@@ -32,12 +33,12 @@ std::optional<Packet> Packet::from_payload(const uint8_t* src_mac,
     
     uint32_t network_can_id = 0;
     std::memcpy(&network_can_id, payload + offset, sizeof(uint32_t));
-    pkt._can_id = ntohl(network_can_id);
+    pkt._can_id = network_can_id;
     offset += sizeof(uint32_t);
 
     uint32_t network_seq_id = 0;
     std::memcpy(&network_seq_id, payload + offset, sizeof(uint32_t));
-    pkt._sequence_id = ntohl(network_seq_id);
+    pkt._sequence_id = network_seq_id;
     offset += sizeof(uint32_t);
 
     uint8_t data_count = 0;
@@ -57,12 +58,12 @@ std::optional<Packet> Packet::from_payload(const uint8_t* src_mac,
         pkt._data.reserve(MAX_DATA_POINTS); // Reserve for efficiency, even if not full
         for (size_t i = 0; i < data_count; i++) {
             uint32_t network_data_point = 0;
-            std::memcpy(&network_data_point, payload + offset, DATA_POINT_SIZE);
-            if (!pkt.add_data_point(ntohl(network_data_point))) {
+            std::memcpy(&network_data_point, payload + offset, sizeof(DataPoint_t));
+            if (!pkt.add_data_point(network_data_point)) {
                 ESP_LOGE(TAG, "Failed to add data point");
                 return std::nullopt;
             }
-            offset += DATA_POINT_SIZE;
+            offset += sizeof(DataPoint_t);
         }
     }
 
@@ -77,17 +78,17 @@ std::optional<std::vector<uint8_t>> Packet::encode() const {
         return std::nullopt;
     }
 
-    const size_t total_size = HEADER_SIZE + (data_count * DATA_POINT_SIZE);
+    const size_t total_size = HEADER_SIZE + (data_count * sizeof(DataPoint_t));
     std::vector<uint8_t> buffer(total_size);
     
     size_t offset = 0;
 
     // 1. Encode Header (Big-Endian)
-    uint32_t network_can_id = htonl(_can_id);
+    uint32_t network_can_id = _can_id;
     std::memcpy(buffer.data() + offset, &network_can_id, sizeof(uint32_t));
     offset += sizeof(uint32_t);
 
-    uint32_t network_seq_id = htonl(_sequence_id);
+    uint32_t network_seq_id = _sequence_id;
     std::memcpy(buffer.data() + offset, &network_seq_id, sizeof(uint32_t));
     offset += sizeof(uint32_t);
 
@@ -97,9 +98,9 @@ std::optional<std::vector<uint8_t>> Packet::encode() const {
 
     // 2. Encode Data Points (Big-Endian)
     for (uint32_t data_point : _data) {
-        uint32_t network_data_point = htonl(data_point);
-        std::memcpy(buffer.data() + offset, &network_data_point, DATA_POINT_SIZE);
-        offset += DATA_POINT_SIZE;
+        uint32_t network_data_point = data_point;
+        std::memcpy(buffer.data() + offset, &network_data_point, sizeof(DataPoint_t));
+        offset += sizeof(DataPoint_t);
     }
 
     return buffer;
