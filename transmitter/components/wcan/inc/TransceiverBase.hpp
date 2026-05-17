@@ -12,6 +12,11 @@
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_now.h"
+#include "sdkconfig.h"
+
+#ifndef CONFIG_ESPNOW_WIFI_MODE_STATION
+#define CONFIG_ESPNOW_WIFI_MODE_STATION 1
+#endif
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
@@ -33,6 +38,12 @@ public:
 
     using RecvCallback = std::function<void(const Packet&)>;
     void set_recv_callback(RecvCallback callback) { _recv_callback = std::move(callback); }
+
+    /** @brief Enqueues a data point for a specific CAN ID. Thread-safe. */
+    bool send_data(CANId_t can_id, DataPoint_t data);
+
+    /** @brief Helper to find the index of a CAN ID in the TX list. */
+    size_t get_can_queue_index(CANId_t can_id) const;
 
 protected:
     // --- Shared RTOS Resources ---
@@ -80,7 +91,6 @@ protected:
     // --- Helpers ---
     void start_tasks();
     bool setup_esp_now();
-    size_t get_can_queue_index(uint32_t can_id) const;
 
 private:
     bool should_accept(CANId_t can_id) const;
@@ -104,7 +114,7 @@ private:
 
     RecvCallback _recv_callback = nullptr;
 
-    // Constants
+public:
     static constexpr uint32_t SEND_PROCESSING_TASK_PRIORITY = 6;
     static constexpr uint32_t RECV_PROCESSING_TASK_PRIORITY = 6;
     static constexpr uint32_t BATCH_PROCESSING_TASK_PRIORITY = 5;

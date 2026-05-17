@@ -9,18 +9,22 @@ cmake_minimum_required(VERSION 3.5)
 # component is excluded so its source files never enter the build.
 # Usage: idf.py -B build_dir -DTRANSPORT=BROADCAST build
 #    or: idf.py -B build_dir -DTRANSPORT=MULTICAST build
+#    or: idf.py -B build_dir -DTRANSPORT=UNICAST build
 if(NOT DEFINED TRANSPORT)
-    set(TRANSPORT "BROADCAST")
+    set(TRANSPORT "BROADCAST" CACHE STRING "Transport variant")
 endif()
 
 if(TRANSPORT STREQUAL "BROADCAST")
-    set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE STRING "Selected WCAN component")
+    set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE INTERNAL "")
     list(APPEND EXCLUDE_COMPONENTS wcan_multicast)
 elseif(TRANSPORT STREQUAL "MULTICAST")
-    set(WCAN_COMPONENT_NAME "wcan_multicast" CACHE STRING "Selected WCAN component")
+    set(WCAN_COMPONENT_NAME "wcan_multicast" CACHE INTERNAL "")
     list(APPEND EXCLUDE_COMPONENTS wcan_broadcast)
+elseif(TRANSPORT STREQUAL "UNICAST")
+    set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE INTERNAL "") # Uses broadcast implementation for now
+    list(APPEND EXCLUDE_COMPONENTS wcan_multicast)
 else()
-    message(FATAL_ERROR "TRANSPORT must be BROADCAST or MULTICAST; got: ${TRANSPORT}")
+    message(FATAL_ERROR "TRANSPORT must be BROADCAST, MULTICAST or UNICAST; got: ${TRANSPORT}")
 endif()
 
 message(STATUS "Building with TRANSPORT=${TRANSPORT}, component=${WCAN_COMPONENT_NAME}")
@@ -35,5 +39,5 @@ else()
     message(STATUS "MEASURE instrumentation: disabled")
 endif()
 
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+include(~/esp/esp-idf/tools/cmake/project.cmake)
 project(sensor_acquirer)

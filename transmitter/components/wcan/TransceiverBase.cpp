@@ -57,6 +57,12 @@ bool TransceiverBase::init() {
     return true;
 }
 
+bool TransceiverBase::send_data(CANId_t can_id, DataPoint_t data) {
+    size_t idx = get_can_queue_index(can_id);
+    if (idx == SIZE_MAX) return false;
+    return xQueueSend(_can_data_queues[idx], &data, 0) == pdTRUE;
+}
+
 bool TransceiverBase::setup_esp_now() {
     if (esp_now_init() != ESP_OK) return false;
     

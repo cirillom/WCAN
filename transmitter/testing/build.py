@@ -24,19 +24,20 @@ import sys
 from idf_env import check_idf, get_idf_env
 
 VALID_CHIPS = ("esp32", "esp32c3")
-VALID_ROLES = ("RUNTIME",)
 VALID_TRANSPORTS = ("BROADCAST", "MULTICAST")
 
 
-def get_build_dir(chip: str, role: str, transport: str = "BROADCAST",
-                  measure: bool = False, sensor_freq: int = 200,
-                  receiver_filter_ids=None, sensor_base_can_id: int = 0x100,
-                  sensor_can_id_count: int = 1, linger_ms: int = 100) -> str:
+def get_build_dir(chip: str, transport: str = "BROADCAST",
+                  measure: bool = False) -> str:
     """Compute the runtime firmware build directory."""
     chip = chip.lower()
-    transport_tag = "bcast" if transport.upper() == "BROADCAST" else "multicast"
+    transport = transport.lower()
     suffix = "_measure" if measure else ""
-    return f"build_{chip}_{transport_tag}_runtime{suffix}"
+    # if chip is esp32, transport is broadcast and there is no measure the build dir should just be build 
+
+    if chip == "esp32" and transport == "broadcast" and not measure: return f"build"
+
+    return f"build_{chip}_{transport}_{suffix}"
 
 
 def get_sdkconfig(chip: str, measure: bool = False) -> str:
@@ -49,19 +50,17 @@ def get_sdkconfig(chip: str, measure: bool = False) -> str:
     return f"sdkconfig_{chip}"
 
 
-def build_variant(chip: str, role: str, transport: str = "BROADCAST",
+def build_variant(chip: str, transport: str = "BROADCAST",
                   measure: bool = False, project_path: str = "..", sensor_freq: int = 200,
                   receiver_filter_ids=None, sensor_base_can_id: int = 0x100,
                   sensor_can_id_count: int = 1, linger_ms: int = 100,
                   quiet: bool = False) -> bool:
     """Build a single firmware variant. Returns True on success."""
     chip = chip.lower()
-    role = role.upper()
     transport = transport.upper()
 
     build_dir = get_build_dir(
-        chip, role, transport, measure, sensor_freq, receiver_filter_ids,
-        sensor_base_can_id, sensor_can_id_count, linger_ms,
+        chip, transport, measure
     )
     sdkconfig = get_sdkconfig(chip, measure)
 
@@ -116,7 +115,7 @@ def build_needed(chips: set, transport: str = "BROADCAST", measure: bool = False
                  project_path: str = "..", sensor_freq: int = 200) -> bool:
     """Build one runtime-configurable firmware per chip for the given transport."""
     for chip in sorted(chips):
-        if not build_variant(chip, "RUNTIME", transport, measure, project_path, sensor_freq):
+        if not build_variant(chip, transport, measure, project_path, sensor_freq):
             return False
     return True
 
@@ -142,7 +141,7 @@ def main():
     check_idf()
 
     if args.chip:
-        success = build_variant(args.chip, "RUNTIME", args.transport,
+        success = build_variant(args.chip, args.transport,
                                 args.measure, args.project_path)
         sys.exit(0 if success else 1)
     elif not args.chip:
