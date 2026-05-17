@@ -1,0 +1,74 @@
+\section{Equipes de Fórmula SAE}
+A Fórmula SAE é uma competição estudantil de âmbito mundial, organizada no Brasil
+pela SAE Brasil e realizada anualmente \cite{sae_brasil_formula_sae}. As equipes são compostas por alunos
+de engenharia de uma mesma universidade, que ao longo do ano projetam,
+constroem e testam um protótipo de veículo monoposto de competição. Na edição
+de 2025, a competição brasileira contou com 66 equipes inscritas, representando
+64 instituições brasileiras de ensino superior de 11 estados e do Distrito
+Federal, além de duas equipes do exterior \cite{sae_brasil_formula_sae_2025_inscritos}.
+
+A competição é estruturada em provas estáticas e dinâmicas. As provas estáticas
+avaliam o projeto de engenharia, o plano de negócios e o detalhamento de custos
+e manufatura; as provas dinâmicas testam o desempenho do protótipo em situações
+como aceleração, skidpad, autocross e endurance. A prova de endurance tem maior
+peso na pontuação e exige que o veículo percorra aproximadamente 22 km sem
+falhas \cite{fsaeonline_endurance_2026}. Dado o calendário anual, cada ciclo de
+desenvolvimento é único: falhas nas provas representam a perda de um ano de
+trabalho, o que impõe requisitos de robustez, confiabilidade e melhoria
+contínua sobre todos os subsistemas do veículo.
+
+Entre as equipes que participam da Fórmula SAE, a EESC-USP Formula SAE é o
+caso estudado neste trabalho. Vinculada à Escola de Engenharia de São Carlos
+(EESC) da Universidade de São Paulo (USP), a equipe reúne estudantes de vários
+cursos para projetar, manufaturar e testar protótipos em competições nacionais
+e internacionais \cite{eesc_usp_formula_sae_e22_2025}. Seu título mais recente foi
+conquistado em 2025, quando venceu a categoria Combustão da 21ª Competição
+Nacional de Fórmula SAE Brasil, garantindo vaga para a etapa mundial
+\cite{eesc_usp_formula_sae_2025,sae_brasil_resultados_combustao_2025}.
+
+Como equipe vencedora e de alto desempenho, a EESC-USP depende fortemente de
+uma cadeia de suporte técnico que transforma dados experimentais em decisões
+práticas. Esse vínculo entre a coleta de dados no carro e as intervenções no
+projeto é o foco das próximas subseções.
+
+\section{A Importância da Aquisição de Dados}
+Em ambientes de competição automotiva, compreender o comportamento do veículo
+é condição essencial para extrair seu máximo desempenho. Sensores distribuídos
+ao longo do protótipo fornecem informações que permitem validar projetos de
+engenharia, orientar ajustes de setup, monitorar a integridade dos sistemas
+críticos em tempo real e comparar objetivamente o desempenho entre pilotos
+\cite{schultz2017_formula_sae_telemetry,ashford2020_formula_sae_data_analysis}. Sem
+instrumentação adequada, a equipe fica limitada ao feedback subjetivo dos
+pilotos — valioso, mas muitas vezes insuficiente para decisões precisas.
+
+A aquisição de dados converte observações qualitativas em grandezas
+mensuráveis: pressão de freio, curso de suspensão, ângulo de esterço,
+aceleração lateral, temperatura de óleo, entre outras. Esses sinais permitem
+identificar trechos da pista onde o carro perde tempo, avaliar diferenças entre
+pilotos e verificar se modificações realizadas entre sessões surtem o efeito
+esperado. Assim, o sistema de aquisição funciona como o elo entre o trabalho
+de bancada e as decisões tomadas em pista. Trabalhos acadêmicos mostram
+diversas soluções de baixo custo para telemetria e aquisição em Fórmula SAE,
+com combinações variadas de armazenamento local, comunicação sem fio e
+visualização em tempo real \cite{stoffman2004_low_cost_racing_daq,visconti2019_formula_sae_telemetry,zanetti2013_formula_sae_wireless,lauro2021_formula_sae_telemetria}.
+
+No caso da EESC-USP, o sistema de aquisição de dados foi consolidado ao longo de
+vários anos de desenvolvimento e testes, em continuidade a trabalhos anteriores
+de eletrônica embarcada para Fórmula SAE \cite{blatt2020_aquisicao_formula_sae}.
+
+A arquitetura adotada baseia-se em dois módulos de aquisição com
+microcontroladores STM32, interligados por um barramento CAN a 1 Mbit/s, que
+também conecta outros módulos eletrônicos do veículo (controle, transmissor
+e distribuição de energia), formando uma rede de nós de comunicação
+coesa \cite{silva2009_rede_can_formula_sae}. Cada módulo lê sinais provenientes
+de sensores analógicos e digitais instalados no carro — acelerômetro, giroscópio,
+sensores de pressão de freio, potenciômetros de suspensão e de esterço, entre
+outros — e os transmite periodicamente pela rede CAN.
+
+Os dados são registrados localmente em cartão SD embarcado. Ao final de cada
+sessão, os arquivos são extraídos e processados em um software dedicado, que
+gera arquivos estruturados para análise em ferramentas especializadas. Esse
+fluxo (registro embarcado + pós-processamento) permite à equipe acompanhar a
+evolução do veículo e dos pilotos ao longo do ano, fornecendo uma base objetiva
+para decisões de engenharia e planejamento de melhorias.
+

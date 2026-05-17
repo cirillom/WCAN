@@ -1,0 +1,7 @@
+- [x] Validation 1:1
+- [ ] CAN SAVING SETUP
+	- make one of the receivers actually write something
+- [ ] Setup so that we can send more than one data point per send
+- [ ] Validation N:1
+- [ ] Validation 1:N
+- [ ] Validation N:M

@@ -1,0 +1,1065 @@
+# Monitor started: 2026-05-13T12:45:56.777348
+# Port: /dev/ttyACM1, Baud: 921600, Duration: 30s
+
+# UART boot config: wcan v=1 role=sensor transport=UNICAST base=0xe0 count=1 hz=10 linger=0
+[2026-05-13 12:45:56.783] ESP-ROM:esp32c3-api1-20210207
+[2026-05-13 12:45:56.790] Build:Feb  7 2021
+[2026-05-13 12:45:56.808] rst:0x15 (USB_UART_CHIP_RESET),boot:0xd (SPI_FAST_FLASH_BOOT)
+[2026-05-13 12:45:56.815] Saved PC:0x40384eae
+[2026-05-13 12:45:56.817] SPIWP:0xee
+[2026-05-13 12:45:56.821] mode:DIO, clock div:1
+[2026-05-13 12:45:56.827] load:0x3fcd5820,len:0x1574
+[2026-05-13 12:45:56.829] load:0x403cc710,len:0xc30
+[2026-05-13 12:45:56.831] load:0x403ce710,len:0x2fa0
+[2026-05-13 12:45:56.832] entry 0x403cc71a
+[2026-05-13 12:45:56.836] I (24) boot: ESP-IDF v5.4.1 2nd stage bootloader
+[2026-05-13 12:45:56.841] I (24) boot: compile time May 12 2026 19:49:19
+[2026-05-13 12:45:56.843] I (24) boot: chip revision: v0.4
+[2026-05-13 12:45:56.847] I (25) boot: efuse block revision: v1.3
+[2026-05-13 12:45:56.850] I (25) boot.esp32c3: SPI Speed      : 80MHz
+[2026-05-13 12:45:56.852] I (25) boot.esp32c3: SPI Mode       : DIO
+[2026-05-13 12:45:56.856] I (26) boot.esp32c3: SPI Flash Size : 2MB
+[2026-05-13 12:45:56.862] I (26) boot: Enabling RNG early entropy source...
+[2026-05-13 12:45:56.864] I (27) boot: Partition Table:
+[2026-05-13 12:45:56.870] I (27) boot: ## Label            Usage          Type ST Offset   Length
+[2026-05-13 12:45:56.876] I (28) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+[2026-05-13 12:45:56.879] I (29) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+[2026-05-13 12:45:56.885] I (29) boot:  2 factory          factory app      00 00 00010000 00100000
+[2026-05-13 12:45:56.887] I (30) boot: End of partition table
+[2026-05-13 12:45:56.892] I (31) esp_image: segment 0: paddr=00010020 vaddr=3c0a0020 size=1a0c8h (106696) map
+[2026-05-13 12:45:56.899] I (49) esp_image: segment 1: paddr=0002a0f0 vaddr=3fc95400 size=02db0h ( 11696) load
+[2026-05-13 12:45:56.905] I (51) esp_image: segment 2: paddr=0002cea8 vaddr=40380000 size=03170h ( 12656) load
+[2026-05-13 12:45:56.910] I (54) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=94510h (607504) map
+[2026-05-13 12:45:56.913] I (151) esp_image: segment 4: paddr=000c4538 vaddr=40383170 size=1223ch ( 74300) load
+[2026-05-13 12:45:56.914] I (165) esp_image: segment 5: paddr=000d677c vaddr=50000200 size=0001ch (    28) load
+[2026-05-13 12:45:56.924] I (172) boot: Loaded app from partition at offset 0x10000
+[2026-05-13 12:45:56.925] I (172) boot: Disabling RNG early entropy source...
+[2026-05-13 12:45:56.925] I (174) cpu_start: Unicore app
+[2026-05-13 12:45:56.926] I (182) cpu_start: Pro cpu start user code
+[2026-05-13 12:45:56.927] I (182) cpu_start: cpu freq: 160000000 Hz
+[2026-05-13 12:45:56.928] I (182) app_init: Application information:
+[2026-05-13 12:45:56.929] I (183) app_init: Project name:     sensor_acquirer
+[2026-05-13 12:45:56.932] I (183) app_init: App version:      v1.0-60-gb67991a-dirty
+[2026-05-13 12:45:56.933] I (183) app_init: Compile time:     May 12 2026 19:49:10
+[2026-05-13 12:45:56.933] I (184) app_init: ELF file SHA256:  b80335c0b...
+[2026-05-13 12:45:56.935] I (185) app_init: ESP-IDF:          v5.4.1
+[2026-05-13 12:45:56.937] I (185) efuse_init: Min chip rev:     v0.3
+[2026-05-13 12:45:56.938] I (186) efuse_init: Max chip rev:     v1.99
+[2026-05-13 12:45:56.939] I (186) efuse_init: Chip rev:         v0.4
+[2026-05-13 12:45:56.940] I (187) heap_init: Initializing. RAM available for dynamic allocation:
+[2026-05-13 12:45:56.942] I (187) heap_init: At 3FC9CF80 len 00023080 (140 KiB): RAM
+[2026-05-13 12:45:56.943] I (188) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM
+[2026-05-13 12:45:56.944] I (189) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM
+[2026-05-13 12:45:56.945] I (190) heap_init: At 5000021C len 00001DCC (7 KiB): RTCRAM
+[2026-05-13 12:45:56.946] I (191) spi_flash: detected chip: generic
+[2026-05-13 12:45:56.946] I (191) spi_flash: flash io: dio
+[2026-05-13 12:45:56.948] W (191) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+[2026-05-13 12:45:56.950] I (193) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[2026-05-13 12:45:56.951] I (193) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[2026-05-13 12:45:56.951] I (195) main_task: Started on CPU0
+[2026-05-13 12:45:56.952] I (195) main_task: Calling app_main()
+[2026-05-13 12:45:56.952] I (195) BOOT_TS: us=5220
+[2026-05-13 12:45:56.953] I (196) BOOT_CONFIG: waiting for UART config
+[2026-05-13 12:45:56.953] WCAN_CFG_WAIT v=1
+# UART boot config sent: wcan v=1 role=sensor transport=UNICAST base=0xe0 count=1 hz=10 linger=0
+[2026-05-13 12:45:56.954] WCAN_CFG_WAIT v=1
+[2026-05-13 12:45:58.378] I (1797) BOOT_CONFIG: accepted role=sensor transport=UNICAST
+[2026-05-13 12:45:58.382] I (1797) BOOT_CONFIG: sensor base=0xe0 count=1 hz=10 linger=0
+[2026-05-13 12:45:58.383] WCAN_CFG_ACK
+# Waiting for coordinated capture start
+[2026-05-13 12:45:58.387] WCAN_CFG_ACK
+[2026-05-13 12:45:58.400] I (1801) pp: pp rom version: 9387209
+[2026-05-13 12:45:58.417] I (1802) net80211: net80211 rom version: 9387209
+[2026-05-13 12:45:58.436] I (1804) wifi:wifi driver task: 3fca7138, prio:23, stack:6656, core=0
+[2026-05-13 12:45:58.449] I (1808) wifi:wifi firmware version: 79fa3f41ba
+[2026-05-13 12:45:58.468] I (1808) wifi:wifi certification version: v7.0
+[2026-05-13 12:45:58.479] I (1808) wifi:config NVS flash: enabled
+[2026-05-13 12:45:58.493] I (1808) wifi:config nano formatting: disabled
+[2026-05-13 12:45:58.501] I (1809) wifi:Init data frame dynamic rx buffer num: 32
+[2026-05-13 12:45:58.513] I (1809) wifi:Init static rx mgmt buffer num: 5
+[2026-05-13 12:45:58.526] I (1810) wifi:Init management short buffer num: 32
+[2026-05-13 12:45:58.527] I (1810) wifi:Init dynamic tx buffer num: 32
+[2026-05-13 12:45:58.529] I (1811) wifi:Init static tx FG buffer num: 2
+[2026-05-13 12:45:58.531] I (1811) wifi:Init static rx buffer size: 1600
+[2026-05-13 12:45:58.532] I (1812) wifi:Init static rx buffer num: 10
+[2026-05-13 12:45:58.534] I (1812) wifi:Init dynamic rx buffer num: 32
+[2026-05-13 12:45:58.535] I (1813) wifi_init: rx ba win: 6
+[2026-05-13 12:45:58.536] I (1814) wifi_init: accept mbox: 6
+[2026-05-13 12:45:58.539] I (1814) wifi_init: tcpip mbox: 32
+[2026-05-13 12:45:58.543] I (1814) wifi_init: udp mbox: 6
+[2026-05-13 12:45:58.547] I (1814) wifi_init: tcp mbox: 6
+[2026-05-13 12:45:58.548] I (1815) wifi_init: tcp tx win: 5760
+[2026-05-13 12:45:58.551] I (1815) wifi_init: tcp rx win: 5760
+[2026-05-13 12:45:58.557] I (1816) wifi_init: tcp mss: 1440
+[2026-05-13 12:45:58.563] I (1816) wifi_init: WiFi IRAM OP enabled
+[2026-05-13 12:45:58.575] I (1816) wifi_init: WiFi RX IRAM OP enabled
+[2026-05-13 12:45:58.590] I (1817) phy_init: phy_version 1200,2b7123f9,Feb 18 2025,15:22:21
+[2026-05-13 12:45:58.595] I (1853) wifi:mode : sta (74:4d:bd:e1:d5:b8)
+[2026-05-13 12:45:58.595] I (1854) wifi:enable tsf
+[2026-05-13 12:45:58.599] I (1855) MAIN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 12:45:58.610] I (1855) SENSOR_APP: SENSOR mode - CAN ID: 0xe0 (count=1, linger=0 ms, hz=10)
+[2026-05-13 12:45:58.613] I (1856) SENSOR_APP: Sensor CAN ID[0] = 0xe0
+[2026-05-13 12:45:58.617] I (1856) SENSOR_APP: Startup jitter: 485 ms
+[2026-05-13 12:45:58.919] I (2341) ESPNOW: espnow [version: 2.0] init
+[2026-05-13 12:45:58.920] I (2341) WCAN: MAC: 74:4d:bd:e1:d5:b8
+[2026-05-13 12:45:58.921] I (2342) SEND: Send processing task started
+[2026-05-13 12:45:58.922] I (2342) CAN_PROC_0: CAN processing task 0 started
+[2026-05-13 12:45:58.923] I (2342) HEAP: free=182536 min_free=182536 largest=114688
+[2026-05-13 12:45:58.925] I (2343) SUBS: 0 alive subscribers
+[2026-05-13 12:45:58.927] I (2343) WCAN: WCAN initialized
+[2026-05-13 12:45:58.932] I (2343) read_data_task: read_data_task started with 1 CAN ID(s) at 10 Hz
+[2026-05-13 12:45:58.934] I (2345) CAN_PROC_0: 0x000000e0 batch 1 [0..0] at (2149) -> broadcast discovery (no alive subscribers)
+[2026-05-13 12:45:58.935] I (2345) LAT_CB: peer=ff:ff:ff:ff:ff:ff dt_us=1173 status=OK
+[2026-05-13 12:45:58.935] I (2346) read_data_task: [0xe0] 0
+[2026-05-13 12:45:58.936] I (2346) main_task: Returned from app_main()
+[2026-05-13 12:45:58.937] I (2347) SUBS: new subscriber 28:05:a5:31:c9:78 in slot 0
+[2026-05-13 12:45:59.025] I (2447) read_data_task: [0xe0] 1
+[2026-05-13 12:45:59.030] I (2449) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2265 status=OK
+[2026-05-13 12:45:59.034] I (2449) CAN_PROC_0: 0x000000e0 batch 1 [1..1] at (2251) -> 1/1 peers
+[2026-05-13 12:45:59.126] I (2548) read_data_task: [0xe0] 2
+[2026-05-13 12:45:59.130] I (2549) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1431 status=OK
+[2026-05-13 12:45:59.132] I (2549) CAN_PROC_0: 0x000000e0 batch 1 [2..2] at (2352) -> 1/1 peers
+[2026-05-13 12:45:59.227] I (2649) read_data_task: [0xe0] 3
+[2026-05-13 12:45:59.236] I (2650) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1422 status=OK
+[2026-05-13 12:45:59.248] I (2650) CAN_PROC_0: 0x000000e0 batch 1 [3..3] at (2453) -> 1/1 peers
+[2026-05-13 12:45:59.327] I (2750) read_data_task: [0xe0] 4
+[2026-05-13 12:45:59.328] I (2751) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1449 status=OK
+[2026-05-13 12:45:59.329] I (2751) CAN_PROC_0: 0x000000e0 batch 1 [4..4] at (2554) -> 1/1 peers
+[2026-05-13 12:45:59.429] I (2851) read_data_task: [0xe0] 5
+[2026-05-13 12:45:59.433] I (2852) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1502 status=OK
+[2026-05-13 12:45:59.435] I (2852) CAN_PROC_0: 0x000000e0 batch 1 [5..5] at (2655) -> 1/1 peers
+[2026-05-13 12:45:59.530] I (2952) read_data_task: [0xe0] 6
+[2026-05-13 12:45:59.532] I (2954) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2506 status=OK
+[2026-05-13 12:45:59.535] I (2954) CAN_PROC_0: 0x000000e0 batch 1 [6..6] at (2756) -> 1/1 peers
+[2026-05-13 12:45:59.631] I (3053) read_data_task: [0xe0] 7
+[2026-05-13 12:45:59.636] I (3054) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1420 status=OK
+[2026-05-13 12:45:59.637] I (3054) CAN_PROC_0: 0x000000e0 batch 1 [7..7] at (2857) -> 1/1 peers
+[2026-05-13 12:45:59.732] I (3154) read_data_task: [0xe0] 8
+[2026-05-13 12:45:59.736] I (3155) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1416 status=OK
+[2026-05-13 12:45:59.738] I (3155) CAN_PROC_0: 0x000000e0 batch 1 [8..8] at (2958) -> 1/1 peers
+[2026-05-13 12:45:59.833] I (3255) read_data_task: [0xe0] 9
+[2026-05-13 12:45:59.837] I (3256) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1405 status=OK
+[2026-05-13 12:45:59.839] I (3256) CAN_PROC_0: 0x000000e0 batch 1 [9..9] at (3059) -> 1/1 peers
+[2026-05-13 12:45:59.934] I (3356) read_data_task: [0xe0] 10
+[2026-05-13 12:45:59.939] I (3357) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1490 status=OK
+[2026-05-13 12:45:59.940] I (3357) CAN_PROC_0: 0x000000e0 batch 1 [10..10] at (3160) -> 1/1 peers
+[2026-05-13 12:46:00.035] I (3457) read_data_task: [0xe0] 11
+[2026-05-13 12:46:00.039] I (3458) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:00.041] I (3458) CAN_PROC_0: 0x000000e0 batch 1 [11..11] at (3261) -> 1/1 peers
+[2026-05-13 12:46:00.135] I (3557) read_data_task: [0xe0] 12
+[2026-05-13 12:46:00.139] I (3559) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1742 status=OK
+[2026-05-13 12:46:00.142] I (3559) CAN_PROC_0: 0x000000e0 batch 1 [12..12] at (3362) -> 1/1 peers
+[2026-05-13 12:46:00.237] I (3658) read_data_task: [0xe0] 13
+[2026-05-13 12:46:00.241] I (3660) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1606 status=OK
+[2026-05-13 12:46:00.243] I (3660) CAN_PROC_0: 0x000000e0 batch 1 [13..13] at (3463) -> 1/1 peers
+[2026-05-13 12:46:00.337] I (3759) read_data_task: [0xe0] 14
+[2026-05-13 12:46:00.342] I (3760) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1397 status=OK
+[2026-05-13 12:46:00.344] I (3761) CAN_PROC_0: 0x000000e0 batch 1 [14..14] at (3564) -> 1/1 peers
+[2026-05-13 12:46:00.438] I (3860) read_data_task: [0xe0] 15
+[2026-05-13 12:46:00.443] I (3861) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1478 status=OK
+[2026-05-13 12:46:00.445] I (3862) CAN_PROC_0: 0x000000e0 batch 1 [15..15] at (3665) -> 1/1 peers
+[2026-05-13 12:46:00.539] I (3961) read_data_task: [0xe0] 16
+[2026-05-13 12:46:00.544] I (3962) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1555 status=OK
+[2026-05-13 12:46:00.546] I (3963) CAN_PROC_0: 0x000000e0 batch 1 [16..16] at (3766) -> 1/1 peers
+[2026-05-13 12:46:00.640] I (4062) read_data_task: [0xe0] 17
+[2026-05-13 12:46:00.644] I (4063) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1411 status=OK
+[2026-05-13 12:46:00.646] I (4064) CAN_PROC_0: 0x000000e0 batch 1 [17..17] at (3867) -> 1/1 peers
+[2026-05-13 12:46:00.741] I (4163) read_data_task: [0xe0] 18
+[2026-05-13 12:46:00.745] I (4164) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:00.747] I (4165) CAN_PROC_0: 0x000000e0 batch 1 [18..18] at (3968) -> 1/1 peers
+[2026-05-13 12:46:00.842] I (4264) read_data_task: [0xe0] 19
+[2026-05-13 12:46:00.846] I (4265) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1403 status=OK
+[2026-05-13 12:46:00.855] I (4265) CAN_PROC_0: 0x000000e0 batch 1 [19..19] at (4069) -> 1/1 peers
+[2026-05-13 12:46:00.943] I (4365) read_data_task: [0xe0] 20
+[2026-05-13 12:46:00.949] I (4368) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=3206 status=OK
+[2026-05-13 12:46:00.956] I (4368) CAN_PROC_0: 0x000000e0 batch 1 [20..20] at (4170) -> 1/1 peers
+[2026-05-13 12:46:01.044] I (4466) read_data_task: [0xe0] 21
+[2026-05-13 12:46:01.048] I (4467) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1422 status=OK
+[2026-05-13 12:46:01.050] I (4467) CAN_PROC_0: 0x000000e0 batch 1 [21..21] at (4271) -> 1/1 peers
+[2026-05-13 12:46:01.145] I (4567) read_data_task: [0xe0] 22
+[2026-05-13 12:46:01.149] I (4568) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1402 status=OK
+[2026-05-13 12:46:01.151] I (4568) CAN_PROC_0: 0x000000e0 batch 1 [22..22] at (4372) -> 1/1 peers
+[2026-05-13 12:46:01.246] I (4668) read_data_task: [0xe0] 23
+[2026-05-13 12:46:01.251] I (4669) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1402 status=OK
+[2026-05-13 12:46:01.252] I (4669) CAN_PROC_0: 0x000000e0 batch 1 [23..23] at (4472) -> 1/1 peers
+[2026-05-13 12:46:01.348] I (4769) read_data_task: [0xe0] 24
+[2026-05-13 12:46:01.352] I (4770) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1426 status=OK
+[2026-05-13 12:46:01.357] I (4770) CAN_PROC_0: 0x000000e0 batch 1 [24..24] at (4573) -> 1/1 peers
+[2026-05-13 12:46:01.448] I (4870) read_data_task: [0xe0] 25
+[2026-05-13 12:46:01.452] I (4871) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1705 status=OK
+[2026-05-13 12:46:01.454] I (4872) CAN_PROC_0: 0x000000e0 batch 1 [25..25] at (4674) -> 1/1 peers
+[2026-05-13 12:46:01.549] I (4971) read_data_task: [0xe0] 26
+[2026-05-13 12:46:01.552] I (4972) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1410 status=OK
+[2026-05-13 12:46:01.555] I (4972) CAN_PROC_0: 0x000000e0 batch 1 [26..26] at (4775) -> 1/1 peers
+[2026-05-13 12:46:01.649] I (5072) read_data_task: [0xe0] 27
+[2026-05-13 12:46:01.651] I (5073) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:01.651] I (5073) CAN_PROC_0: 0x000000e0 batch 1 [27..27] at (4876) -> 1/1 peers
+[2026-05-13 12:46:01.751] I (5173) read_data_task: [0xe0] 28
+[2026-05-13 12:46:01.755] I (5174) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:01.757] I (5174) CAN_PROC_0: 0x000000e0 batch 1 [28..28] at (4977) -> 1/1 peers
+[2026-05-13 12:46:01.852] I (5274) read_data_task: [0xe0] 29
+[2026-05-13 12:46:01.854] I (5276) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2494 status=OK
+[2026-05-13 12:46:01.857] I (5276) CAN_PROC_0: 0x000000e0 batch 1 [29..29] at (5078) -> 1/1 peers
+[2026-05-13 12:46:01.953] I (5375) read_data_task: [0xe0] 30
+[2026-05-13 12:46:01.957] I (5376) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1447 status=OK
+[2026-05-13 12:46:01.959] I (5376) CAN_PROC_0: 0x000000e0 batch 1 [30..30] at (5179) -> 1/1 peers
+[2026-05-13 12:46:02.054] I (5476) read_data_task: [0xe0] 31
+[2026-05-13 12:46:02.058] I (5477) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1432 status=OK
+[2026-05-13 12:46:02.060] I (5477) CAN_PROC_0: 0x000000e0 batch 1 [31..31] at (5280) -> 1/1 peers
+[2026-05-13 12:46:02.155] I (5577) read_data_task: [0xe0] 32
+[2026-05-13 12:46:02.159] I (5578) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1404 status=OK
+[2026-05-13 12:46:02.161] I (5578) CAN_PROC_0: 0x000000e0 batch 1 [32..32] at (5381) -> 1/1 peers
+[2026-05-13 12:46:02.256] I (5678) read_data_task: [0xe0] 33
+[2026-05-13 12:46:02.260] I (5679) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1400 status=OK
+[2026-05-13 12:46:02.262] I (5679) CAN_PROC_0: 0x000000e0 batch 1 [33..33] at (5482) -> 1/1 peers
+[2026-05-13 12:46:02.357] I (5779) read_data_task: [0xe0] 34
+[2026-05-13 12:46:02.361] I (5780) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1408 status=OK
+[2026-05-13 12:46:02.362] I (5780) CAN_PROC_0: 0x000000e0 batch 1 [34..34] at (5583) -> 1/1 peers
+[2026-05-13 12:46:02.457] I (5880) read_data_task: [0xe0] 35
+[2026-05-13 12:46:02.459] I (5881) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1452 status=OK
+[2026-05-13 12:46:02.459] I (5881) CAN_PROC_0: 0x000000e0 batch 1 [35..35] at (5684) -> 1/1 peers
+[2026-05-13 12:46:02.560] I (5981) read_data_task: [0xe0] 36
+[2026-05-13 12:46:02.564] I (5982) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1404 status=OK
+[2026-05-13 12:46:02.565] I (5982) CAN_PROC_0: 0x000000e0 batch 1 [36..36] at (5785) -> 1/1 peers
+[2026-05-13 12:46:02.659] I (6081) read_data_task: [0xe0] 37
+[2026-05-13 12:46:02.663] I (6083) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1622 status=OK
+[2026-05-13 12:46:02.665] I (6083) CAN_PROC_0: 0x000000e0 batch 1 [37..37] at (5886) -> 1/1 peers
+[2026-05-13 12:46:02.760] I (6182) read_data_task: [0xe0] 38
+[2026-05-13 12:46:02.767] I (6183) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1416 status=OK
+[2026-05-13 12:46:02.778] I (6184) CAN_PROC_0: 0x000000e0 batch 1 [38..38] at (5987) -> 1/1 peers
+[2026-05-13 12:46:02.861] I (6283) read_data_task: [0xe0] 39
+[2026-05-13 12:46:02.866] I (6284) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1483 status=OK
+[2026-05-13 12:46:02.868] I (6285) CAN_PROC_0: 0x000000e0 batch 1 [39..39] at (6088) -> 1/1 peers
+[2026-05-13 12:46:02.962] I (6384) read_data_task: [0xe0] 40
+[2026-05-13 12:46:02.968] I (6385) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1423 status=OK
+[2026-05-13 12:46:02.972] I (6386) CAN_PROC_0: 0x000000e0 batch 1 [40..40] at (6189) -> 1/1 peers
+[2026-05-13 12:46:03.063] I (6485) read_data_task: [0xe0] 41
+[2026-05-13 12:46:03.069] I (6486) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:03.079] I (6487) CAN_PROC_0: 0x000000e0 batch 1 [41..41] at (6290) -> 1/1 peers
+[2026-05-13 12:46:03.164] I (6586) read_data_task: [0xe0] 42
+[2026-05-13 12:46:03.172] I (6587) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1426 status=OK
+[2026-05-13 12:46:03.181] I (6588) CAN_PROC_0: 0x000000e0 batch 1 [42..42] at (6391) -> 1/1 peers
+[2026-05-13 12:46:03.265] I (6687) read_data_task: [0xe0] 43
+[2026-05-13 12:46:03.270] I (6688) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1414 status=OK
+[2026-05-13 12:46:03.271] I (6689) CAN_PROC_0: 0x000000e0 batch 1 [43..43] at (6492) -> 1/1 peers
+[2026-05-13 12:46:03.366] I (6788) read_data_task: [0xe0] 44
+[2026-05-13 12:46:03.371] I (6789) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1417 status=OK
+[2026-05-13 12:46:03.373] I (6789) CAN_PROC_0: 0x000000e0 batch 1 [44..44] at (6593) -> 1/1 peers
+[2026-05-13 12:46:03.467] I (6889) read_data_task: [0xe0] 45
+[2026-05-13 12:46:03.472] I (6890) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1520 status=OK
+[2026-05-13 12:46:03.474] I (6891) CAN_PROC_0: 0x000000e0 batch 1 [45..45] at (6694) -> 1/1 peers
+[2026-05-13 12:46:03.568] I (6990) read_data_task: [0xe0] 46
+[2026-05-13 12:46:03.572] I (6991) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1397 status=OK
+[2026-05-13 12:46:03.574] I (6992) CAN_PROC_0: 0x000000e0 batch 1 [46..46] at (6795) -> 1/1 peers
+[2026-05-13 12:46:03.669] I (7091) read_data_task: [0xe0] 47
+[2026-05-13 12:46:03.673] I (7092) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1418 status=OK
+[2026-05-13 12:46:03.675] I (7092) CAN_PROC_0: 0x000000e0 batch 1 [47..47] at (6896) -> 1/1 peers
+[2026-05-13 12:46:03.770] I (7192) read_data_task: [0xe0] 48
+[2026-05-13 12:46:03.774] I (7193) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1419 status=OK
+[2026-05-13 12:46:03.776] I (7193) CAN_PROC_0: 0x000000e0 batch 1 [48..48] at (6997) -> 1/1 peers
+[2026-05-13 12:46:03.871] I (7293) read_data_task: [0xe0] 49
+[2026-05-13 12:46:03.873] I (7295) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2498 status=OK
+[2026-05-13 12:46:03.877] I (7295) CAN_PROC_0: 0x000000e0 batch 1 [49..49] at (7097) -> 1/1 peers
+[2026-05-13 12:46:03.921] I (7343) HEAP: free=176780 min_free=171944 largest=114688
+[2026-05-13 12:46:03.923] I (7343) MEASURE: airtime_us_total=850 packets_total=50 d_airtime_us=850 d_packets=50 util_per_mille=0
+[2026-05-13 12:46:03.924] I (7345) TASK: name=measure prio=1 state=0 hwm_bytes=1304 runtime=11 total_runtime=7154406
+[2026-05-13 12:46:03.926] I (7345) TASK: name=IDLE prio=0 state=1 hwm_bytes=1252 runtime=6911271 total_runtime=7154406
+[2026-05-13 12:46:03.927] I (7346) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=1829 total_runtime=7154406
+[2026-05-13 12:46:03.929] I (7347) TASK: name=subs_log prio=1 state=2 hwm_bytes=176 runtime=155 total_runtime=7154406
+[2026-05-13 12:46:03.931] I (7348) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=777 total_runtime=7154406
+[2026-05-13 12:46:03.932] I (7349) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2348 runtime=92642 total_runtime=7154406
+[2026-05-13 12:46:03.934] I (7350) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=7154406
+[2026-05-13 12:46:03.936] I (7351) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=12051 total_runtime=7154406
+[2026-05-13 12:46:03.937] I (7352) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2300 runtime=27519 total_runtime=7154406
+[2026-05-13 12:46:03.939] I (7353) TASK: name=wifi prio=23 state=2 hwm_bytes=4336 runtime=80830 total_runtime=7154406
+[2026-05-13 12:46:03.940] I (7354) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=8993 total_runtime=7154406
+[2026-05-13 12:46:03.942] I (7355) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=7154406
+[2026-05-13 12:46:03.972] I (7394) read_data_task: [0xe0] 50
+[2026-05-13 12:46:03.978] I (7398) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=4180 status=OK
+[2026-05-13 12:46:03.985] I (7398) CAN_PROC_0: 0x000000e0 batch 1 [50..50] at (7198) -> 1/1 peers
+[2026-05-13 12:46:04.073] I (7495) read_data_task: [0xe0] 51
+[2026-05-13 12:46:04.077] I (7496) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1395 status=OK
+[2026-05-13 12:46:04.079] I (7496) CAN_PROC_0: 0x000000e0 batch 1 [51..51] at (7300) -> 1/1 peers
+[2026-05-13 12:46:04.174] I (7596) read_data_task: [0xe0] 52
+[2026-05-13 12:46:04.178] I (7597) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1408 status=OK
+[2026-05-13 12:46:04.180] I (7597) CAN_PROC_0: 0x000000e0 batch 1 [52..52] at (7400) -> 1/1 peers
+[2026-05-13 12:46:04.274] I (7697) read_data_task: [0xe0] 53
+[2026-05-13 12:46:04.276] I (7698) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1390 status=OK
+[2026-05-13 12:46:04.277] I (7698) CAN_PROC_0: 0x000000e0 batch 1 [53..53] at (7501) -> 1/1 peers
+[2026-05-13 12:46:04.376] I (7798) read_data_task: [0xe0] 54
+[2026-05-13 12:46:04.380] I (7799) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1398 status=OK
+[2026-05-13 12:46:04.396] I (7799) CAN_PROC_0: 0x000000e0 batch 1 [54..54] at (7602) -> 1/1 peers
+[2026-05-13 12:46:04.477] I (7899) read_data_task: [0xe0] 55
+[2026-05-13 12:46:04.482] I (7900) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1640 status=OK
+[2026-05-13 12:46:04.483] I (7900) CAN_PROC_0: 0x000000e0 batch 1 [55..55] at (7703) -> 1/1 peers
+[2026-05-13 12:46:04.578] I (8000) read_data_task: [0xe0] 56
+[2026-05-13 12:46:04.582] I (8001) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1405 status=OK
+[2026-05-13 12:46:04.584] I (8001) CAN_PROC_0: 0x000000e0 batch 1 [56..56] at (7804) -> 1/1 peers
+[2026-05-13 12:46:04.679] I (8101) read_data_task: [0xe0] 57
+[2026-05-13 12:46:04.683] I (8102) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1388 status=OK
+[2026-05-13 12:46:04.685] I (8102) CAN_PROC_0: 0x000000e0 batch 1 [57..57] at (7905) -> 1/1 peers
+[2026-05-13 12:46:04.780] I (8202) read_data_task: [0xe0] 58
+[2026-05-13 12:46:04.784] I (8203) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1429 status=OK
+[2026-05-13 12:46:04.786] I (8203) CAN_PROC_0: 0x000000e0 batch 1 [58..58] at (8006) -> 1/1 peers
+[2026-05-13 12:46:04.881] I (8303) read_data_task: [0xe0] 59
+[2026-05-13 12:46:04.885] I (8304) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1489 status=OK
+[2026-05-13 12:46:04.888] I (8304) CAN_PROC_0: 0x000000e0 batch 1 [59..59] at (8107) -> 1/1 peers
+[2026-05-13 12:46:04.982] I (8404) read_data_task: [0xe0] 60
+[2026-05-13 12:46:04.986] I (8405) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1454 status=OK
+[2026-05-13 12:46:04.988] I (8405) CAN_PROC_0: 0x000000e0 batch 1 [60..60] at (8208) -> 1/1 peers
+[2026-05-13 12:46:05.082] I (8505) read_data_task: [0xe0] 61
+[2026-05-13 12:46:05.086] I (8506) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1413 status=OK
+[2026-05-13 12:46:05.088] I (8506) CAN_PROC_0: 0x000000e0 batch 1 [61..61] at (8309) -> 1/1 peers
+[2026-05-13 12:46:05.183] I (8605) read_data_task: [0xe0] 62
+[2026-05-13 12:46:05.186] I (8608) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2439 status=OK
+[2026-05-13 12:46:05.189] I (8608) CAN_PROC_0: 0x000000e0 batch 1 [62..62] at (8410) -> 1/1 peers
+[2026-05-13 12:46:05.285] I (8706) read_data_task: [0xe0] 63
+[2026-05-13 12:46:05.289] I (8707) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1413 status=OK
+[2026-05-13 12:46:05.291] I (8708) CAN_PROC_0: 0x000000e0 batch 1 [63..63] at (8511) -> 1/1 peers
+[2026-05-13 12:46:05.386] I (8807) read_data_task: [0xe0] 64
+[2026-05-13 12:46:05.390] I (8808) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1448 status=OK
+[2026-05-13 12:46:05.392] I (8809) CAN_PROC_0: 0x000000e0 batch 1 [64..64] at (8612) -> 1/1 peers
+[2026-05-13 12:46:05.486] I (8908) read_data_task: [0xe0] 65
+[2026-05-13 12:46:05.490] I (8909) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:05.492] I (8910) CAN_PROC_0: 0x000000e0 batch 1 [65..65] at (8713) -> 1/1 peers
+[2026-05-13 12:46:05.587] I (9009) read_data_task: [0xe0] 66
+[2026-05-13 12:46:05.592] I (9010) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:05.594] I (9011) CAN_PROC_0: 0x000000e0 batch 1 [66..66] at (8814) -> 1/1 peers
+[2026-05-13 12:46:05.688] I (9110) read_data_task: [0xe0] 67
+[2026-05-13 12:46:05.692] I (9111) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1412 status=OK
+[2026-05-13 12:46:05.695] I (9112) CAN_PROC_0: 0x000000e0 batch 1 [67..67] at (8915) -> 1/1 peers
+[2026-05-13 12:46:05.789] I (9211) read_data_task: [0xe0] 68
+[2026-05-13 12:46:05.794] I (9212) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1408 status=OK
+[2026-05-13 12:46:05.796] I (9213) CAN_PROC_0: 0x000000e0 batch 1 [68..68] at (9016) -> 1/1 peers
+[2026-05-13 12:46:05.890] I (9312) read_data_task: [0xe0] 69
+[2026-05-13 12:46:05.895] I (9313) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1476 status=OK
+[2026-05-13 12:46:05.899] I (9314) CAN_PROC_0: 0x000000e0 batch 1 [69..69] at (9117) -> 1/1 peers
+[2026-05-13 12:46:05.991] I (9413) read_data_task: [0xe0] 70
+[2026-05-13 12:46:05.996] I (9414) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1453 status=OK
+[2026-05-13 12:46:05.998] I (9415) CAN_PROC_0: 0x000000e0 batch 1 [70..70] at (9218) -> 1/1 peers
+[2026-05-13 12:46:06.092] I (9514) read_data_task: [0xe0] 71
+[2026-05-13 12:46:06.097] I (9515) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1396 status=OK
+[2026-05-13 12:46:06.099] I (9515) CAN_PROC_0: 0x000000e0 batch 1 [71..71] at (9319) -> 1/1 peers
+[2026-05-13 12:46:06.193] I (9615) read_data_task: [0xe0] 72
+[2026-05-13 12:46:06.195] I (9617) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2427 status=OK
+[2026-05-13 12:46:06.199] I (9617) CAN_PROC_0: 0x000000e0 batch 1 [72..72] at (9420) -> 1/1 peers
+[2026-05-13 12:46:06.294] I (9716) read_data_task: [0xe0] 73
+[2026-05-13 12:46:06.298] I (9717) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1412 status=OK
+[2026-05-13 12:46:06.300] I (9717) CAN_PROC_0: 0x000000e0 batch 1 [73..73] at (9520) -> 1/1 peers
+[2026-05-13 12:46:06.397] I (9817) read_data_task: [0xe0] 74
+[2026-05-13 12:46:06.402] I (9818) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1453 status=OK
+[2026-05-13 12:46:06.411] I (9818) CAN_PROC_0: 0x000000e0 batch 1 [74..74] at (9621) -> 1/1 peers
+[2026-05-13 12:46:06.495] I (9918) read_data_task: [0xe0] 75
+[2026-05-13 12:46:06.497] I (9919) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1418 status=OK
+[2026-05-13 12:46:06.497] I (9919) CAN_PROC_0: 0x000000e0 batch 1 [75..75] at (9722) -> 1/1 peers
+[2026-05-13 12:46:06.599] I (10019) read_data_task: [0xe0] 76
+[2026-05-13 12:46:06.602] I (10020) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1393 status=OK
+[2026-05-13 12:46:06.603] I (10020) CAN_PROC_0: 0x000000e0 batch 1 [76..76] at (9823) -> 1/1 peers
+[2026-05-13 12:46:06.698] I (10120) read_data_task: [0xe0] 77
+[2026-05-13 12:46:06.702] I (10121) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:06.704] I (10121) CAN_PROC_0: 0x000000e0 batch 1 [77..77] at (9924) -> 1/1 peers
+[2026-05-13 12:46:06.799] I (10221) read_data_task: [0xe0] 78
+[2026-05-13 12:46:06.804] I (10222) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1403 status=OK
+[2026-05-13 12:46:06.813] I (10222) CAN_PROC_0: 0x000000e0 batch 1 [78..78] at (10025) -> 1/1 peers
+[2026-05-13 12:46:06.899] I (10322) read_data_task: [0xe0] 79
+[2026-05-13 12:46:06.901] I (10323) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1487 status=OK
+[2026-05-13 12:46:06.902] I (10323) CAN_PROC_0: 0x000000e0 batch 1 [79..79] at (10126) -> 1/1 peers
+[2026-05-13 12:46:07.001] I (10423) read_data_task: [0xe0] 80
+[2026-05-13 12:46:07.008] I (10424) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1437 status=OK
+[2026-05-13 12:46:07.013] I (10424) CAN_PROC_0: 0x000000e0 batch 1 [80..80] at (10227) -> 1/1 peers
+[2026-05-13 12:46:07.102] I (10524) read_data_task: [0xe0] 81
+[2026-05-13 12:46:07.107] I (10525) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1422 status=OK
+[2026-05-13 12:46:07.116] I (10525) CAN_PROC_0: 0x000000e0 batch 1 [81..81] at (10328) -> 1/1 peers
+[2026-05-13 12:46:07.203] I (10625) read_data_task: [0xe0] 82
+[2026-05-13 12:46:07.209] I (10626) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1408 status=OK
+[2026-05-13 12:46:07.218] I (10626) CAN_PROC_0: 0x000000e0 batch 1 [82..82] at (10429) -> 1/1 peers
+[2026-05-13 12:46:07.304] I (10726) read_data_task: [0xe0] 83
+[2026-05-13 12:46:07.311] I (10727) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1403 status=OK
+[2026-05-13 12:46:07.315] I (10727) CAN_PROC_0: 0x000000e0 batch 1 [83..83] at (10530) -> 1/1 peers
+[2026-05-13 12:46:07.405] I (10827) read_data_task: [0xe0] 84
+[2026-05-13 12:46:07.412] I (10828) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1512 status=OK
+[2026-05-13 12:46:07.420] I (10828) CAN_PROC_0: 0x000000e0 batch 1 [84..84] at (10631) -> 1/1 peers
+[2026-05-13 12:46:07.505] I (10928) read_data_task: [0xe0] 85
+[2026-05-13 12:46:07.508] I (10929) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1418 status=OK
+[2026-05-13 12:46:07.509] I (10929) CAN_PROC_0: 0x000000e0 batch 1 [85..85] at (10732) -> 1/1 peers
+[2026-05-13 12:46:07.607] I (11029) read_data_task: [0xe0] 86
+[2026-05-13 12:46:07.614] I (11030) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1403 status=OK
+[2026-05-13 12:46:07.621] I (11030) CAN_PROC_0: 0x000000e0 batch 1 [86..86] at (10833) -> 1/1 peers
+[2026-05-13 12:46:07.708] I (11130) read_data_task: [0xe0] 87
+[2026-05-13 12:46:07.712] I (11131) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1422 status=OK
+[2026-05-13 12:46:07.714] I (11131) CAN_PROC_0: 0x000000e0 batch 1 [87..87] at (10934) -> 1/1 peers
+[2026-05-13 12:46:07.808] I (11231) read_data_task: [0xe0] 88
+[2026-05-13 12:46:07.813] I (11232) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1428 status=OK
+[2026-05-13 12:46:07.815] I (11232) CAN_PROC_0: 0x000000e0 batch 1 [88..88] at (11035) -> 1/1 peers
+[2026-05-13 12:46:07.910] I (11332) read_data_task: [0xe0] 89
+[2026-05-13 12:46:07.915] I (11333) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1469 status=OK
+[2026-05-13 12:46:07.920] I (11333) CAN_PROC_0: 0x000000e0 batch 1 [89..89] at (11136) -> 1/1 peers
+[2026-05-13 12:46:08.010] I (11433) read_data_task: [0xe0] 90
+[2026-05-13 12:46:08.013] I (11434) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1453 status=OK
+[2026-05-13 12:46:08.014] I (11434) CAN_PROC_0: 0x000000e0 batch 1 [90..90] at (11237) -> 1/1 peers
+[2026-05-13 12:46:08.112] I (11533) read_data_task: [0xe0] 91
+[2026-05-13 12:46:08.119] I (11534) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1420 status=OK
+[2026-05-13 12:46:08.124] I (11535) CAN_PROC_0: 0x000000e0 batch 1 [91..91] at (11338) -> 1/1 peers
+[2026-05-13 12:46:08.213] I (11634) read_data_task: [0xe0] 92
+[2026-05-13 12:46:08.220] I (11635) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1420 status=OK
+[2026-05-13 12:46:08.227] I (11636) CAN_PROC_0: 0x000000e0 batch 1 [92..92] at (11439) -> 1/1 peers
+[2026-05-13 12:46:08.314] I (11735) read_data_task: [0xe0] 93
+[2026-05-13 12:46:08.318] I (11736) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:08.319] I (11737) CAN_PROC_0: 0x000000e0 batch 1 [93..93] at (11540) -> 1/1 peers
+[2026-05-13 12:46:08.415] I (11836) read_data_task: [0xe0] 94
+[2026-05-13 12:46:08.419] I (11838) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1616 status=OK
+[2026-05-13 12:46:08.421] I (11838) CAN_PROC_0: 0x000000e0 batch 1 [94..94] at (11641) -> 1/1 peers
+[2026-05-13 12:46:08.516] I (11937) read_data_task: [0xe0] 95
+[2026-05-13 12:46:08.520] I (11938) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:08.522] I (11939) CAN_PROC_0: 0x000000e0 batch 1 [95..95] at (11742) -> 1/1 peers
+[2026-05-13 12:46:08.616] I (12038) read_data_task: [0xe0] 96
+[2026-05-13 12:46:08.621] I (12039) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1403 status=OK
+[2026-05-13 12:46:08.623] I (12040) CAN_PROC_0: 0x000000e0 batch 1 [96..96] at (11843) -> 1/1 peers
+[2026-05-13 12:46:08.717] I (12139) read_data_task: [0xe0] 97
+[2026-05-13 12:46:08.721] I (12140) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1423 status=OK
+[2026-05-13 12:46:08.723] I (12141) CAN_PROC_0: 0x000000e0 batch 1 [97..97] at (11944) -> 1/1 peers
+[2026-05-13 12:46:08.818] I (12240) read_data_task: [0xe0] 98
+[2026-05-13 12:46:08.823] I (12241) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1462 status=OK
+[2026-05-13 12:46:08.824] I (12242) CAN_PROC_0: 0x000000e0 batch 1 [98..98] at (12045) -> 1/1 peers
+[2026-05-13 12:46:08.919] I (12341) read_data_task: [0xe0] 99
+[2026-05-13 12:46:08.923] I (12343) SUBS: 1 alive subscribers
+[2026-05-13 12:46:08.930] I (12343) SUBS:   [0] 28:05:a5:31:c9:78 age=75ms ALIVE ids=[*] fails=0
+[2026-05-13 12:46:08.940] I (12343) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1869 status=OK
+[2026-05-13 12:46:08.944] I (12344) CAN_PROC_0: 0x000000e0 batch 1 [99..99] at (12146) -> 1/1 peers
+[2026-05-13 12:46:08.954] I (12344) HEAP: free=176792 min_free=171944 largest=114688
+[2026-05-13 12:46:08.961] I (12356) MEASURE: airtime_us_total=1700 packets_total=100 d_airtime_us=850 d_packets=50 util_per_mille=0
+[2026-05-13 12:46:08.964] I (12357) TASK: name=measure prio=1 state=0 hwm_bytes=1220 runtime=13034 total_runtime=12166955
+[2026-05-13 12:46:08.968] I (12358) TASK: name=IDLE prio=0 state=1 hwm_bytes=1252 runtime=11737744 total_runtime=12166955
+[2026-05-13 12:46:08.969] I (12358) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=3251 total_runtime=12166955
+[2026-05-13 12:46:08.969] I (12359) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1193 total_runtime=12166955
+[2026-05-13 12:46:08.970] I (12360) TASK: name=subs_log prio=1 state=2 hwm_bytes=176 runtime=713 total_runtime=12166955
+[2026-05-13 12:46:08.970] I (12361) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2348 runtime=187451 total_runtime=12166955
+[2026-05-13 12:46:08.971] I (12362) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=23839 total_runtime=12166955
+[2026-05-13 12:46:08.971] I (12364) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2204 runtime=55101 total_runtime=12166955
+[2026-05-13 12:46:08.972] I (12365) TASK: name=wifi prio=23 state=2 hwm_bytes=4336 runtime=112659 total_runtime=12166955
+[2026-05-13 12:46:08.972] I (12366) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=13683 total_runtime=12166955
+[2026-05-13 12:46:08.973] I (12367) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=12166955
+[2026-05-13 12:46:08.973] I (12368) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=12166955
+[2026-05-13 12:46:09.020] I (12442) read_data_task: [0xe0] 100
+[2026-05-13 12:46:09.022] I (12443) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1450 status=OK
+[2026-05-13 12:46:09.023] I (12444) CAN_PROC_0: 0x000000e0 batch 1 [100..100] at (12247) -> 1/1 peers
+[2026-05-13 12:46:09.121] I (12543) read_data_task: [0xe0] 101
+[2026-05-13 12:46:09.126] I (12544) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1397 status=OK
+[2026-05-13 12:46:09.128] I (12545) CAN_PROC_0: 0x000000e0 batch 1 [101..101] at (12348) -> 1/1 peers
+[2026-05-13 12:46:09.222] I (12644) read_data_task: [0xe0] 102
+[2026-05-13 12:46:09.226] I (12645) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:09.229] I (12646) CAN_PROC_0: 0x000000e0 batch 1 [102..102] at (12449) -> 1/1 peers
+[2026-05-13 12:46:09.323] I (12745) read_data_task: [0xe0] 103
+[2026-05-13 12:46:09.325] I (12746) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1423 status=OK
+[2026-05-13 12:46:09.325] I (12747) CAN_PROC_0: 0x000000e0 batch 1 [103..103] at (12550) -> 1/1 peers
+[2026-05-13 12:46:09.424] I (12846) read_data_task: [0xe0] 104
+[2026-05-13 12:46:09.429] I (12847) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1451 status=OK
+[2026-05-13 12:46:09.439] I (12848) CAN_PROC_0: 0x000000e0 batch 1 [104..104] at (12651) -> 1/1 peers
+[2026-05-13 12:46:09.525] I (12947) read_data_task: [0xe0] 105
+[2026-05-13 12:46:09.530] I (12948) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1419 status=OK
+[2026-05-13 12:46:09.531] I (12949) CAN_PROC_0: 0x000000e0 batch 1 [105..105] at (12752) -> 1/1 peers
+[2026-05-13 12:46:09.626] I (13048) read_data_task: [0xe0] 106
+[2026-05-13 12:46:09.642] I (13058) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=10622 status=OK
+[2026-05-13 12:46:09.648] I (13059) CAN_PROC_0: 0x000000e0 batch 1 [106..106] at (12853) -> 1/1 peers
+[2026-05-13 12:46:09.727] I (13149) read_data_task: [0xe0] 107
+[2026-05-13 12:46:09.731] I (13150) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1538 status=OK
+[2026-05-13 12:46:09.733] I (13151) CAN_PROC_0: 0x000000e0 batch 1 [107..107] at (12954) -> 1/1 peers
+[2026-05-13 12:46:09.828] I (13250) read_data_task: [0xe0] 108
+[2026-05-13 12:46:09.832] I (13251) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1411 status=OK
+[2026-05-13 12:46:09.834] I (13251) CAN_PROC_0: 0x000000e0 batch 1 [108..108] at (13055) -> 1/1 peers
+[2026-05-13 12:46:09.929] I (13351) read_data_task: [0xe0] 109
+[2026-05-13 12:46:09.934] I (13352) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1494 status=OK
+[2026-05-13 12:46:09.936] I (13352) CAN_PROC_0: 0x000000e0 batch 1 [109..109] at (13155) -> 1/1 peers
+[2026-05-13 12:46:10.031] I (13452) read_data_task: [0xe0] 110
+[2026-05-13 12:46:10.038] I (13453) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1410 status=OK
+[2026-05-13 12:46:10.045] I (13453) CAN_PROC_0: 0x000000e0 batch 1 [110..110] at (13257) -> 1/1 peers
+[2026-05-13 12:46:10.131] I (13553) read_data_task: [0xe0] 111
+[2026-05-13 12:46:10.139] I (13554) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1400 status=OK
+[2026-05-13 12:46:10.149] I (13554) CAN_PROC_0: 0x000000e0 batch 1 [111..111] at (13357) -> 1/1 peers
+[2026-05-13 12:46:10.232] I (13654) read_data_task: [0xe0] 112
+[2026-05-13 12:46:10.236] I (13655) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1414 status=OK
+[2026-05-13 12:46:10.238] I (13655) CAN_PROC_0: 0x000000e0 batch 1 [112..112] at (13458) -> 1/1 peers
+[2026-05-13 12:46:10.333] I (13755) read_data_task: [0xe0] 113
+[2026-05-13 12:46:10.338] I (13756) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1404 status=OK
+[2026-05-13 12:46:10.339] I (13756) CAN_PROC_0: 0x000000e0 batch 1 [113..113] at (13559) -> 1/1 peers
+[2026-05-13 12:46:10.434] I (13856) read_data_task: [0xe0] 114
+[2026-05-13 12:46:10.439] I (13857) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1459 status=OK
+[2026-05-13 12:46:10.440] I (13857) CAN_PROC_0: 0x000000e0 batch 1 [114..114] at (13660) -> 1/1 peers
+[2026-05-13 12:46:10.535] I (13957) read_data_task: [0xe0] 115
+[2026-05-13 12:46:10.540] I (13959) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2215 status=OK
+[2026-05-13 12:46:10.542] I (13959) CAN_PROC_0: 0x000000e0 batch 1 [115..115] at (13761) -> 1/1 peers
+[2026-05-13 12:46:10.636] I (14058) read_data_task: [0xe0] 116
+[2026-05-13 12:46:10.644] I (14059) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1397 status=OK
+[2026-05-13 12:46:10.650] I (14059) CAN_PROC_0: 0x000000e0 batch 1 [116..116] at (13862) -> 1/1 peers
+[2026-05-13 12:46:10.738] I (14159) read_data_task: [0xe0] 117
+[2026-05-13 12:46:10.745] I (14160) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:10.751] I (14160) CAN_PROC_0: 0x000000e0 batch 1 [117..117] at (13963) -> 1/1 peers
+[2026-05-13 12:46:10.838] I (14260) read_data_task: [0xe0] 118
+[2026-05-13 12:46:10.842] I (14261) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:10.844] I (14261) CAN_PROC_0: 0x000000e0 batch 1 [118..118] at (14064) -> 1/1 peers
+[2026-05-13 12:46:10.939] I (14361) read_data_task: [0xe0] 119
+[2026-05-13 12:46:10.944] I (14362) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1502 status=OK
+[2026-05-13 12:46:10.945] I (14362) CAN_PROC_0: 0x000000e0 batch 1 [119..119] at (14165) -> 1/1 peers
+[2026-05-13 12:46:11.040] I (14462) read_data_task: [0xe0] 120
+[2026-05-13 12:46:11.045] I (14463) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1435 status=OK
+[2026-05-13 12:46:11.046] I (14463) CAN_PROC_0: 0x000000e0 batch 1 [120..120] at (14266) -> 1/1 peers
+[2026-05-13 12:46:11.141] I (14563) read_data_task: [0xe0] 121
+[2026-05-13 12:46:11.145] I (14564) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1417 status=OK
+[2026-05-13 12:46:11.147] I (14564) CAN_PROC_0: 0x000000e0 batch 1 [121..121] at (14367) -> 1/1 peers
+[2026-05-13 12:46:11.242] I (14664) read_data_task: [0xe0] 122
+[2026-05-13 12:46:11.246] I (14666) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2489 status=OK
+[2026-05-13 12:46:11.247] I (14666) CAN_PROC_0: 0x000000e0 batch 1 [122..122] at (14468) -> 1/1 peers
+[2026-05-13 12:46:11.343] I (14765) read_data_task: [0xe0] 123
+[2026-05-13 12:46:11.347] I (14766) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1417 status=OK
+[2026-05-13 12:46:11.349] I (14766) CAN_PROC_0: 0x000000e0 batch 1 [123..123] at (14569) -> 1/1 peers
+[2026-05-13 12:46:11.444] I (14866) read_data_task: [0xe0] 124
+[2026-05-13 12:46:11.448] I (14867) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1456 status=OK
+[2026-05-13 12:46:11.450] I (14867) CAN_PROC_0: 0x000000e0 batch 1 [124..124] at (14670) -> 1/1 peers
+[2026-05-13 12:46:11.545] I (14967) read_data_task: [0xe0] 125
+[2026-05-13 12:46:11.550] I (14968) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1435 status=OK
+[2026-05-13 12:46:11.551] I (14968) CAN_PROC_0: 0x000000e0 batch 1 [125..125] at (14771) -> 1/1 peers
+[2026-05-13 12:46:11.647] I (15068) read_data_task: [0xe0] 126
+[2026-05-13 12:46:11.650] I (15069) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1402 status=OK
+[2026-05-13 12:46:11.653] I (15069) CAN_PROC_0: 0x000000e0 batch 1 [126..126] at (14872) -> 1/1 peers
+[2026-05-13 12:46:11.747] I (15169) read_data_task: [0xe0] 127
+[2026-05-13 12:46:11.751] I (15170) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1417 status=OK
+[2026-05-13 12:46:11.753] I (15170) CAN_PROC_0: 0x000000e0 batch 1 [127..127] at (14973) -> 1/1 peers
+[2026-05-13 12:46:11.848] I (15270) read_data_task: [0xe0] 128
+[2026-05-13 12:46:11.853] I (15271) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1472 status=OK
+[2026-05-13 12:46:11.857] I (15271) CAN_PROC_0: 0x000000e0 batch 1 [128..128] at (15074) -> 1/1 peers
+[2026-05-13 12:46:11.949] I (15371) read_data_task: [0xe0] 129
+[2026-05-13 12:46:11.954] I (15372) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1637 status=OK
+[2026-05-13 12:46:11.961] I (15372) CAN_PROC_0: 0x000000e0 batch 1 [129..129] at (15175) -> 1/1 peers
+[2026-05-13 12:46:12.050] I (15472) read_data_task: [0xe0] 130
+[2026-05-13 12:46:12.057] I (15473) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1430 status=OK
+[2026-05-13 12:46:12.068] I (15473) CAN_PROC_0: 0x000000e0 batch 1 [130..130] at (15276) -> 1/1 peers
+[2026-05-13 12:46:12.151] I (15573) read_data_task: [0xe0] 131
+[2026-05-13 12:46:12.158] I (15574) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1403 status=OK
+[2026-05-13 12:46:12.167] I (15574) CAN_PROC_0: 0x000000e0 batch 1 [131..131] at (15377) -> 1/1 peers
+[2026-05-13 12:46:12.252] I (15673) read_data_task: [0xe0] 132
+[2026-05-13 12:46:12.259] I (15674) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1408 status=OK
+[2026-05-13 12:46:12.266] I (15675) CAN_PROC_0: 0x000000e0 batch 1 [132..132] at (15478) -> 1/1 peers
+[2026-05-13 12:46:12.353] I (15774) read_data_task: [0xe0] 133
+[2026-05-13 12:46:12.360] I (15776) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1798 status=OK
+[2026-05-13 12:46:12.370] I (15776) CAN_PROC_0: 0x000000e0 batch 1 [133..133] at (15579) -> 1/1 peers
+[2026-05-13 12:46:12.453] I (15875) read_data_task: [0xe0] 134
+[2026-05-13 12:46:12.457] I (15876) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1457 status=OK
+[2026-05-13 12:46:12.459] I (15877) CAN_PROC_0: 0x000000e0 batch 1 [134..134] at (15680) -> 1/1 peers
+[2026-05-13 12:46:12.555] I (15976) read_data_task: [0xe0] 135
+[2026-05-13 12:46:12.559] I (15977) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1405 status=OK
+[2026-05-13 12:46:12.560] I (15978) CAN_PROC_0: 0x000000e0 batch 1 [135..135] at (15781) -> 1/1 peers
+[2026-05-13 12:46:12.655] I (16077) read_data_task: [0xe0] 136
+[2026-05-13 12:46:12.662] I (16078) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1391 status=OK
+[2026-05-13 12:46:12.672] I (16079) CAN_PROC_0: 0x000000e0 batch 1 [136..136] at (15882) -> 1/1 peers
+[2026-05-13 12:46:12.757] I (16178) read_data_task: [0xe0] 137
+[2026-05-13 12:46:12.763] I (16179) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1407 status=OK
+[2026-05-13 12:46:12.772] I (16180) CAN_PROC_0: 0x000000e0 batch 1 [137..137] at (15983) -> 1/1 peers
+[2026-05-13 12:46:12.858] I (16279) read_data_task: [0xe0] 138
+[2026-05-13 12:46:12.865] I (16280) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1486 status=OK
+[2026-05-13 12:46:12.875] I (16281) CAN_PROC_0: 0x000000e0 batch 1 [138..138] at (16084) -> 1/1 peers
+[2026-05-13 12:46:12.959] I (16380) read_data_task: [0xe0] 139
+[2026-05-13 12:46:12.984] I (16388) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=7723 status=OK
+[2026-05-13 12:46:13.002] I (16388) CAN_PROC_0: 0x000000e0 batch 1 [139..139] at (16185) -> 1/1 peers
+[2026-05-13 12:46:13.059] I (16481) read_data_task: [0xe0] 140
+[2026-05-13 12:46:13.063] I (16482) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1425 status=OK
+[2026-05-13 12:46:13.064] I (16483) CAN_PROC_0: 0x000000e0 batch 1 [140..140] at (16286) -> 1/1 peers
+[2026-05-13 12:46:13.160] I (16582) read_data_task: [0xe0] 141
+[2026-05-13 12:46:13.165] I (16583) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1417 status=OK
+[2026-05-13 12:46:13.167] I (16584) CAN_PROC_0: 0x000000e0 batch 1 [141..141] at (16387) -> 1/1 peers
+[2026-05-13 12:46:13.262] I (16683) read_data_task: [0xe0] 142
+[2026-05-13 12:46:13.266] I (16684) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1419 status=OK
+[2026-05-13 12:46:13.267] I (16685) CAN_PROC_0: 0x000000e0 batch 1 [142..142] at (16488) -> 1/1 peers
+[2026-05-13 12:46:13.362] I (16784) read_data_task: [0xe0] 143
+[2026-05-13 12:46:13.367] I (16785) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1405 status=OK
+[2026-05-13 12:46:13.368] I (16786) CAN_PROC_0: 0x000000e0 batch 1 [143..143] at (16589) -> 1/1 peers
+[2026-05-13 12:46:13.464] I (16885) read_data_task: [0xe0] 144
+[2026-05-13 12:46:13.468] I (16886) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1458 status=OK
+[2026-05-13 12:46:13.470] I (16887) CAN_PROC_0: 0x000000e0 batch 1 [144..144] at (16690) -> 1/1 peers
+[2026-05-13 12:46:13.564] I (16986) read_data_task: [0xe0] 145
+[2026-05-13 12:46:13.568] I (16987) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1400 status=OK
+[2026-05-13 12:46:13.570] I (16988) CAN_PROC_0: 0x000000e0 batch 1 [145..145] at (16791) -> 1/1 peers
+[2026-05-13 12:46:13.665] I (17087) read_data_task: [0xe0] 146
+[2026-05-13 12:46:13.669] I (17088) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1421 status=OK
+[2026-05-13 12:46:13.671] I (17089) CAN_PROC_0: 0x000000e0 batch 1 [146..146] at (16892) -> 1/1 peers
+[2026-05-13 12:46:13.766] I (17188) read_data_task: [0xe0] 147
+[2026-05-13 12:46:13.771] I (17189) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1396 status=OK
+[2026-05-13 12:46:13.773] I (17189) CAN_PROC_0: 0x000000e0 batch 1 [147..147] at (16993) -> 1/1 peers
+[2026-05-13 12:46:13.868] I (17289) read_data_task: [0xe0] 148
+[2026-05-13 12:46:13.872] I (17290) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1480 status=OK
+[2026-05-13 12:46:13.879] I (17291) CAN_PROC_0: 0x000000e0 batch 1 [148..148] at (17094) -> 1/1 peers
+[2026-05-13 12:46:13.923] I (17345) HEAP: free=176792 min_free=171944 largest=114688
+[2026-05-13 12:46:13.948] I (17369) MEASURE: airtime_us_total=2533 packets_total=149 d_airtime_us=833 d_packets=49 util_per_mille=0
+[2026-05-13 12:46:13.949] I (17370) TASK: name=measure prio=1 state=0 hwm_bytes=1220 runtime=26374 total_runtime=17179878
+[2026-05-13 12:46:13.951] I (17370) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=16571309 total_runtime=17179878
+[2026-05-13 12:46:13.953] I (17371) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=4301 total_runtime=17179878
+[2026-05-13 12:46:13.954] I (17372) TASK: name=subs_log prio=1 state=2 hwm_bytes=176 runtime=713 total_runtime=17179878
+[2026-05-13 12:46:13.956] I (17373) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1617 total_runtime=17179878
+[2026-05-13 12:46:13.958] I (17374) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2348 runtime=278091 total_runtime=17179878
+[2026-05-13 12:46:13.959] I (17375) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=35380 total_runtime=17179878
+[2026-05-13 12:46:13.961] I (17377) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2204 runtime=82032 total_runtime=17179878
+[2026-05-13 12:46:13.963] I (17378) TASK: name=wifi prio=23 state=2 hwm_bytes=4336 runtime=143548 total_runtime=17179878
+[2026-05-13 12:46:13.964] I (17379) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3664 runtime=18303 total_runtime=17179878
+[2026-05-13 12:46:13.966] I (17380) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=17179878
+[2026-05-13 12:46:13.967] I (17381) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=17179878
+[2026-05-13 12:46:13.968] I (17390) read_data_task: [0xe0] 149
+[2026-05-13 12:46:13.973] I (17391) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1451 status=OK
+[2026-05-13 12:46:13.974] I (17392) CAN_PROC_0: 0x000000e0 batch 1 [149..149] at (17195) -> 1/1 peers
+[2026-05-13 12:46:14.069] I (17491) read_data_task: [0xe0] 150
+[2026-05-13 12:46:14.076] I (17492) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1407 status=OK
+[2026-05-13 12:46:14.085] I (17492) CAN_PROC_0: 0x000000e0 batch 1 [150..150] at (17296) -> 1/1 peers
+[2026-05-13 12:46:14.170] I (17592) read_data_task: [0xe0] 151
+[2026-05-13 12:46:14.178] I (17593) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1405 status=OK
+[2026-05-13 12:46:14.184] I (17593) CAN_PROC_0: 0x000000e0 batch 1 [151..151] at (17397) -> 1/1 peers
+[2026-05-13 12:46:14.283] I (17693) read_data_task: [0xe0] 152
+[2026-05-13 12:46:14.288] I (17694) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1389 status=OK
+[2026-05-13 12:46:14.292] I (17694) CAN_PROC_0: 0x000000e0 batch 1 [152..152] at (17497) -> 1/1 peers
+[2026-05-13 12:46:14.372] I (17794) read_data_task: [0xe0] 153
+[2026-05-13 12:46:14.379] I (17795) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1604 status=OK
+[2026-05-13 12:46:14.402] I (17795) CAN_PROC_0: 0x000000e0 batch 1 [153..153] at (17598) -> 1/1 peers
+[2026-05-13 12:46:14.472] I (17895) read_data_task: [0xe0] 154
+[2026-05-13 12:46:14.475] I (17896) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1526 status=OK
+[2026-05-13 12:46:14.475] I (17896) CAN_PROC_0: 0x000000e0 batch 1 [154..154] at (17699) -> 1/1 peers
+[2026-05-13 12:46:14.574] I (17996) read_data_task: [0xe0] 155
+[2026-05-13 12:46:14.578] I (17997) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1399 status=OK
+[2026-05-13 12:46:14.580] I (17997) CAN_PROC_0: 0x000000e0 batch 1 [155..155] at (17800) -> 1/1 peers
+[2026-05-13 12:46:14.675] I (18097) read_data_task: [0xe0] 156
+[2026-05-13 12:46:14.680] I (18098) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1583 status=OK
+[2026-05-13 12:46:14.682] I (18098) CAN_PROC_0: 0x000000e0 batch 1 [156..156] at (17901) -> 1/1 peers
+[2026-05-13 12:46:14.776] I (18198) read_data_task: [0xe0] 157
+[2026-05-13 12:46:14.780] I (18199) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:14.783] I (18199) CAN_PROC_0: 0x000000e0 batch 1 [157..157] at (18002) -> 1/1 peers
+[2026-05-13 12:46:14.877] I (18299) read_data_task: [0xe0] 158
+[2026-05-13 12:46:14.882] I (18301) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2509 status=OK
+[2026-05-13 12:46:14.884] I (18301) CAN_PROC_0: 0x000000e0 batch 1 [158..158] at (18103) -> 1/1 peers
+[2026-05-13 12:46:14.978] I (18400) read_data_task: [0xe0] 159
+[2026-05-13 12:46:14.983] I (18401) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1448 status=OK
+[2026-05-13 12:46:14.984] I (18401) CAN_PROC_0: 0x000000e0 batch 1 [159..159] at (18204) -> 1/1 peers
+[2026-05-13 12:46:15.079] I (18501) read_data_task: [0xe0] 160
+[2026-05-13 12:46:15.083] I (18502) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1425 status=OK
+[2026-05-13 12:46:15.085] I (18502) CAN_PROC_0: 0x000000e0 batch 1 [160..160] at (18305) -> 1/1 peers
+[2026-05-13 12:46:15.180] I (18602) read_data_task: [0xe0] 161
+[2026-05-13 12:46:15.184] I (18603) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1406 status=OK
+[2026-05-13 12:46:15.186] I (18603) CAN_PROC_0: 0x000000e0 batch 1 [161..161] at (18406) -> 1/1 peers
+[2026-05-13 12:46:15.281] I (18703) read_data_task: [0xe0] 162
+[2026-05-13 12:46:15.285] I (18704) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1403 status=OK
+[2026-05-13 12:46:15.287] I (18704) CAN_PROC_0: 0x000000e0 batch 1 [162..162] at (18507) -> 1/1 peers
+[2026-05-13 12:46:15.382] I (18804) read_data_task: [0xe0] 163
+[2026-05-13 12:46:15.386] I (18805) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1668 status=OK
+[2026-05-13 12:46:15.388] I (18805) CAN_PROC_0: 0x000000e0 batch 1 [163..163] at (18608) -> 1/1 peers
+[2026-05-13 12:46:15.483] I (18905) read_data_task: [0xe0] 164
+[2026-05-13 12:46:15.488] I (18906) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:15.489] I (18906) CAN_PROC_0: 0x000000e0 batch 1 [164..164] at (18709) -> 1/1 peers
+[2026-05-13 12:46:15.586] I (19006) read_data_task: [0xe0] 165
+[2026-05-13 12:46:15.588] I (19007) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1425 status=OK
+[2026-05-13 12:46:15.589] I (19007) CAN_PROC_0: 0x000000e0 batch 1 [165..165] at (18810) -> 1/1 peers
+[2026-05-13 12:46:15.684] I (19107) read_data_task: [0xe0] 166
+[2026-05-13 12:46:15.686] I (19108) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1396 status=OK
+[2026-05-13 12:46:15.687] I (19108) CAN_PROC_0: 0x000000e0 batch 1 [166..166] at (18911) -> 1/1 peers
+[2026-05-13 12:46:15.786] I (19207) read_data_task: [0xe0] 167
+[2026-05-13 12:46:15.792] I (19208) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1391 status=OK
+[2026-05-13 12:46:15.801] I (19209) CAN_PROC_0: 0x000000e0 batch 1 [167..167] at (19012) -> 1/1 peers
+[2026-05-13 12:46:15.887] I (19308) read_data_task: [0xe0] 168
+[2026-05-13 12:46:15.893] I (19310) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1479 status=OK
+[2026-05-13 12:46:15.906] I (19310) CAN_PROC_0: 0x000000e0 batch 1 [168..168] at (19113) -> 1/1 peers
+[2026-05-13 12:46:15.988] I (19410) read_data_task: [0xe0] 169
+[2026-05-13 12:46:15.992] I (19411) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1443 status=OK
+[2026-05-13 12:46:15.993] I (19411) CAN_PROC_0: 0x000000e0 batch 1 [169..169] at (19214) -> 1/1 peers
+[2026-05-13 12:46:16.089] I (19510) read_data_task: [0xe0] 170
+[2026-05-13 12:46:16.092] I (19512) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1570 status=OK
+[2026-05-13 12:46:16.094] I (19512) CAN_PROC_0: 0x000000e0 batch 1 [170..170] at (19315) -> 1/1 peers
+[2026-05-13 12:46:16.190] I (19611) read_data_task: [0xe0] 171
+[2026-05-13 12:46:16.194] I (19612) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1419 status=OK
+[2026-05-13 12:46:16.196] I (19613) CAN_PROC_0: 0x000000e0 batch 1 [171..171] at (19416) -> 1/1 peers
+[2026-05-13 12:46:16.290] I (19712) read_data_task: [0xe0] 172
+[2026-05-13 12:46:16.294] I (19713) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1407 status=OK
+[2026-05-13 12:46:16.296] I (19714) CAN_PROC_0: 0x000000e0 batch 1 [172..172] at (19517) -> 1/1 peers
+[2026-05-13 12:46:16.392] I (19813) read_data_task: [0xe0] 173
+[2026-05-13 12:46:16.413] I (19826) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=12794 status=OK
+[2026-05-13 12:46:16.420] I (19826) CAN_PROC_0: 0x000000e0 batch 1 [173..173] at (19618) -> 1/1 peers
+[2026-05-13 12:46:16.493] I (19914) read_data_task: [0xe0] 174
+[2026-05-13 12:46:16.497] I (19915) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1402 status=OK
+[2026-05-13 12:46:16.499] I (19916) CAN_PROC_0: 0x000000e0 batch 1 [174..174] at (19719) -> 1/1 peers
+[2026-05-13 12:46:16.594] I (20015) read_data_task: [0xe0] 175
+[2026-05-13 12:46:16.616] I (20028) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=12880 status=OK
+[2026-05-13 12:46:16.620] I (20028) CAN_PROC_0: 0x000000e0 batch 1 [175..175] at (19820) -> 1/1 peers
+[2026-05-13 12:46:16.694] I (20116) read_data_task: [0xe0] 176
+[2026-05-13 12:46:16.696] I (20117) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1473 status=OK
+[2026-05-13 12:46:16.696] I (20118) CAN_PROC_0: 0x000000e0 batch 1 [176..176] at (19921) -> 1/1 peers
+[2026-05-13 12:46:16.796] I (20217) read_data_task: [0xe0] 177
+[2026-05-13 12:46:16.800] I (20218) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1421 status=OK
+[2026-05-13 12:46:16.802] I (20219) CAN_PROC_0: 0x000000e0 batch 1 [177..177] at (20022) -> 1/1 peers
+[2026-05-13 12:46:16.896] I (20318) read_data_task: [0xe0] 178
+[2026-05-13 12:46:16.903] I (20319) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1472 status=OK
+[2026-05-13 12:46:16.913] I (20320) CAN_PROC_0: 0x000000e0 batch 1 [178..178] at (20123) -> 1/1 peers
+[2026-05-13 12:46:16.998] I (20419) read_data_task: [0xe0] 179
+[2026-05-13 12:46:17.002] I (20420) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1423 status=OK
+[2026-05-13 12:46:17.004] I (20421) CAN_PROC_0: 0x000000e0 batch 1 [179..179] at (20224) -> 1/1 peers
+[2026-05-13 12:46:17.098] I (20520) read_data_task: [0xe0] 180
+[2026-05-13 12:46:17.103] I (20521) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:17.105] I (20522) CAN_PROC_0: 0x000000e0 batch 1 [180..180] at (20325) -> 1/1 peers
+[2026-05-13 12:46:17.199] I (20621) read_data_task: [0xe0] 181
+[2026-05-13 12:46:17.205] I (20622) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1410 status=OK
+[2026-05-13 12:46:17.206] I (20623) CAN_PROC_0: 0x000000e0 batch 1 [181..181] at (20426) -> 1/1 peers
+[2026-05-13 12:46:17.300] I (20722) read_data_task: [0xe0] 182
+[2026-05-13 12:46:17.304] I (20723) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1400 status=OK
+[2026-05-13 12:46:17.305] I (20724) CAN_PROC_0: 0x000000e0 batch 1 [182..182] at (20527) -> 1/1 peers
+[2026-05-13 12:46:17.401] I (20823) read_data_task: [0xe0] 183
+[2026-05-13 12:46:17.402] I (20824) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1436 status=OK
+[2026-05-13 12:46:17.403] I (20825) CAN_PROC_0: 0x000000e0 batch 1 [183..183] at (20628) -> 1/1 peers
+[2026-05-13 12:46:17.510] I (20924) read_data_task: [0xe0] 184
+[2026-05-13 12:46:17.527] I (20925) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:17.548] I (20926) CAN_PROC_0: 0x000000e0 batch 1 [184..184] at (20729) -> 1/1 peers
+[2026-05-13 12:46:17.603] I (21025) read_data_task: [0xe0] 185
+[2026-05-13 12:46:17.606] I (21026) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1410 status=OK
+[2026-05-13 12:46:17.607] I (21026) CAN_PROC_0: 0x000000e0 batch 1 [185..185] at (20830) -> 1/1 peers
+[2026-05-13 12:46:17.704] I (21126) read_data_task: [0xe0] 186
+[2026-05-13 12:46:17.709] I (21127) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1396 status=OK
+[2026-05-13 12:46:17.710] I (21127) CAN_PROC_0: 0x000000e0 batch 1 [186..186] at (20931) -> 1/1 peers
+[2026-05-13 12:46:17.805] I (21227) read_data_task: [0xe0] 187
+[2026-05-13 12:46:17.810] I (21228) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1419 status=OK
+[2026-05-13 12:46:17.812] I (21228) CAN_PROC_0: 0x000000e0 batch 1 [187..187] at (21032) -> 1/1 peers
+[2026-05-13 12:46:17.906] I (21328) read_data_task: [0xe0] 188
+[2026-05-13 12:46:17.910] I (21329) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1686 status=OK
+[2026-05-13 12:46:17.915] I (21330) CAN_PROC_0: 0x000000e0 batch 1 [188..188] at (21132) -> 1/1 peers
+[2026-05-13 12:46:18.012] I (21429) read_data_task: [0xe0] 189
+[2026-05-13 12:46:18.019] I (21430) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1545 status=OK
+[2026-05-13 12:46:18.024] I (21431) CAN_PROC_0: 0x000000e0 batch 1 [189..189] at (21233) -> 1/1 peers
+[2026-05-13 12:46:18.108] I (21530) read_data_task: [0xe0] 190
+[2026-05-13 12:46:18.113] I (21531) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1838 status=OK
+[2026-05-13 12:46:18.115] I (21532) CAN_PROC_0: 0x000000e0 batch 1 [190..190] at (21335) -> 1/1 peers
+[2026-05-13 12:46:18.209] I (21631) read_data_task: [0xe0] 191
+[2026-05-13 12:46:18.214] I (21632) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1407 status=OK
+[2026-05-13 12:46:18.216] I (21632) CAN_PROC_0: 0x000000e0 batch 1 [191..191] at (21435) -> 1/1 peers
+[2026-05-13 12:46:18.310] I (21732) read_data_task: [0xe0] 192
+[2026-05-13 12:46:18.314] I (21733) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1423 status=OK
+[2026-05-13 12:46:18.316] I (21733) CAN_PROC_0: 0x000000e0 batch 1 [192..192] at (21536) -> 1/1 peers
+[2026-05-13 12:46:18.412] I (21833) read_data_task: [0xe0] 193
+[2026-05-13 12:46:18.417] I (21834) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1455 status=OK
+[2026-05-13 12:46:18.424] I (21834) CAN_PROC_0: 0x000000e0 batch 1 [193..193] at (21637) -> 1/1 peers
+[2026-05-13 12:46:18.512] I (21934) read_data_task: [0xe0] 194
+[2026-05-13 12:46:18.519] I (21937) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=3078 status=OK
+[2026-05-13 12:46:18.527] I (21937) CAN_PROC_0: 0x000000e0 batch 1 [194..194] at (21738) -> 1/1 peers
+[2026-05-13 12:46:18.613] I (22035) read_data_task: [0xe0] 195
+[2026-05-13 12:46:18.618] I (22036) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1391 status=OK
+[2026-05-13 12:46:18.619] I (22036) CAN_PROC_0: 0x000000e0 batch 1 [195..195] at (21839) -> 1/1 peers
+[2026-05-13 12:46:18.714] I (22136) read_data_task: [0xe0] 196
+[2026-05-13 12:46:18.718] I (22137) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1423 status=OK
+[2026-05-13 12:46:18.720] I (22137) CAN_PROC_0: 0x000000e0 batch 1 [196..196] at (21940) -> 1/1 peers
+[2026-05-13 12:46:18.815] I (22237) read_data_task: [0xe0] 197
+[2026-05-13 12:46:18.819] I (22238) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1416 status=OK
+[2026-05-13 12:46:18.821] I (22238) CAN_PROC_0: 0x000000e0 batch 1 [197..197] at (22041) -> 1/1 peers
+[2026-05-13 12:46:18.916] I (22338) read_data_task: [0xe0] 198
+[2026-05-13 12:46:18.920] I (22339) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1459 status=OK
+[2026-05-13 12:46:18.922] I (22339) CAN_PROC_0: 0x000000e0 batch 1 [198..198] at (22142) -> 1/1 peers
+[2026-05-13 12:46:18.924] I (22345) SUBS: 1 alive subscribers
+[2026-05-13 12:46:18.934] I (22345) SUBS:   [0] 28:05:a5:31:c9:78 age=6ms ALIVE ids=[*] fails=0
+[2026-05-13 12:46:18.939] I (22345) HEAP: free=176792 min_free=171944 largest=114688
+[2026-05-13 12:46:18.962] I (22382) MEASURE: airtime_us_total=3383 packets_total=199 d_airtime_us=850 d_packets=50 util_per_mille=0
+[2026-05-13 12:46:18.964] I (22383) TASK: name=measure prio=1 state=0 hwm_bytes=1220 runtime=39605 total_runtime=22192873
+[2026-05-13 12:46:18.965] I (22383) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=21396563 total_runtime=22192873
+[2026-05-13 12:46:18.966] I (22384) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=5351 total_runtime=22192873
+[2026-05-13 12:46:18.967] I (22385) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=1980 total_runtime=22192873
+[2026-05-13 12:46:18.968] I (22386) TASK: name=subs_log prio=1 state=2 hwm_bytes=176 runtime=1264 total_runtime=22192873
+[2026-05-13 12:46:18.969] I (22387) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2348 runtime=374865 total_runtime=22192873
+[2026-05-13 12:46:18.970] I (22388) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=47184 total_runtime=22192873
+[2026-05-13 12:46:18.971] I (22390) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2204 runtime=109839 total_runtime=22192873
+[2026-05-13 12:46:18.972] I (22391) TASK: name=wifi prio=23 state=2 hwm_bytes=4336 runtime=174986 total_runtime=22192873
+[2026-05-13 12:46:18.973] I (22392) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=23031 total_runtime=22192873
+[2026-05-13 12:46:18.974] I (22393) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=22192873
+[2026-05-13 12:46:18.975] I (22394) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=22192873
+[2026-05-13 12:46:19.017] I (22439) read_data_task: [0xe0] 199
+[2026-05-13 12:46:19.019] I (22440) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1469 status=OK
+[2026-05-13 12:46:19.020] I (22440) CAN_PROC_0: 0x000000e0 batch 1 [199..199] at (22243) -> 1/1 peers
+[2026-05-13 12:46:19.118] I (22540) read_data_task: [0xe0] 200
+[2026-05-13 12:46:19.123] I (22541) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1400 status=OK
+[2026-05-13 12:46:19.125] I (22541) CAN_PROC_0: 0x000000e0 batch 1 [200..200] at (22344) -> 1/1 peers
+[2026-05-13 12:46:19.219] I (22641) read_data_task: [0xe0] 201
+[2026-05-13 12:46:19.224] I (22642) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1420 status=OK
+[2026-05-13 12:46:19.226] I (22642) CAN_PROC_0: 0x000000e0 batch 1 [201..201] at (22445) -> 1/1 peers
+[2026-05-13 12:46:19.320] I (22742) read_data_task: [0xe0] 202
+[2026-05-13 12:46:19.324] I (22743) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1416 status=OK
+[2026-05-13 12:46:19.326] I (22743) CAN_PROC_0: 0x000000e0 batch 1 [202..202] at (22546) -> 1/1 peers
+[2026-05-13 12:46:19.421] I (22843) read_data_task: [0xe0] 203
+[2026-05-13 12:46:19.426] I (22844) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1470 status=OK
+[2026-05-13 12:46:19.428] I (22844) CAN_PROC_0: 0x000000e0 batch 1 [203..203] at (22647) -> 1/1 peers
+[2026-05-13 12:46:19.522] I (22944) read_data_task: [0xe0] 204
+[2026-05-13 12:46:19.527] I (22945) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:19.529] I (22945) CAN_PROC_0: 0x000000e0 batch 1 [204..204] at (22748) -> 1/1 peers
+[2026-05-13 12:46:19.623] I (23045) read_data_task: [0xe0] 205
+[2026-05-13 12:46:19.627] I (23046) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1400 status=OK
+[2026-05-13 12:46:19.630] I (23046) CAN_PROC_0: 0x000000e0 batch 1 [205..205] at (22849) -> 1/1 peers
+[2026-05-13 12:46:19.724] I (23146) read_data_task: [0xe0] 206
+[2026-05-13 12:46:19.728] I (23147) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1405 status=OK
+[2026-05-13 12:46:19.730] I (23147) CAN_PROC_0: 0x000000e0 batch 1 [206..206] at (22950) -> 1/1 peers
+[2026-05-13 12:46:19.825] I (23246) read_data_task: [0xe0] 207
+[2026-05-13 12:46:19.829] I (23248) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1430 status=OK
+[2026-05-13 12:46:19.831] I (23248) CAN_PROC_0: 0x000000e0 batch 1 [207..207] at (23051) -> 1/1 peers
+[2026-05-13 12:46:19.926] I (23348) read_data_task: [0xe0] 208
+[2026-05-13 12:46:19.931] I (23349) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1497 status=OK
+[2026-05-13 12:46:19.932] I (23349) CAN_PROC_0: 0x000000e0 batch 1 [208..208] at (23152) -> 1/1 peers
+[2026-05-13 12:46:20.027] I (23449) read_data_task: [0xe0] 209
+[2026-05-13 12:46:20.031] I (23450) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1431 status=OK
+[2026-05-13 12:46:20.036] I (23450) CAN_PROC_0: 0x000000e0 batch 1 [209..209] at (23253) -> 1/1 peers
+[2026-05-13 12:46:20.128] I (23549) read_data_task: [0xe0] 210
+[2026-05-13 12:46:20.132] I (23550) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1415 status=OK
+[2026-05-13 12:46:20.134] I (23551) CAN_PROC_0: 0x000000e0 batch 1 [210..210] at (23354) -> 1/1 peers
+[2026-05-13 12:46:20.229] I (23650) read_data_task: [0xe0] 211
+[2026-05-13 12:46:20.233] I (23651) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1404 status=OK
+[2026-05-13 12:46:20.235] I (23652) CAN_PROC_0: 0x000000e0 batch 1 [211..211] at (23455) -> 1/1 peers
+[2026-05-13 12:46:20.330] I (23751) read_data_task: [0xe0] 212
+[2026-05-13 12:46:20.334] I (23752) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1414 status=OK
+[2026-05-13 12:46:20.336] I (23753) CAN_PROC_0: 0x000000e0 batch 1 [212..212] at (23556) -> 1/1 peers
+[2026-05-13 12:46:20.431] I (23852) read_data_task: [0xe0] 213
+[2026-05-13 12:46:20.435] I (23853) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1468 status=OK
+[2026-05-13 12:46:20.437] I (23854) CAN_PROC_0: 0x000000e0 batch 1 [213..213] at (23657) -> 1/1 peers
+[2026-05-13 12:46:20.532] I (23953) read_data_task: [0xe0] 214
+[2026-05-13 12:46:20.536] I (23954) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1430 status=OK
+[2026-05-13 12:46:20.539] I (23955) CAN_PROC_0: 0x000000e0 batch 1 [214..214] at (23758) -> 1/1 peers
+[2026-05-13 12:46:20.633] I (24054) read_data_task: [0xe0] 215
+[2026-05-13 12:46:20.637] I (24055) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1407 status=OK
+[2026-05-13 12:46:20.639] I (24056) CAN_PROC_0: 0x000000e0 batch 1 [215..215] at (23859) -> 1/1 peers
+[2026-05-13 12:46:20.733] I (24155) read_data_task: [0xe0] 216
+[2026-05-13 12:46:20.738] I (24156) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1408 status=OK
+[2026-05-13 12:46:20.740] I (24157) CAN_PROC_0: 0x000000e0 batch 1 [216..216] at (23960) -> 1/1 peers
+[2026-05-13 12:46:20.835] I (24256) read_data_task: [0xe0] 217
+[2026-05-13 12:46:20.839] I (24257) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1392 status=OK
+[2026-05-13 12:46:20.841] I (24258) CAN_PROC_0: 0x000000e0 batch 1 [217..217] at (24061) -> 1/1 peers
+[2026-05-13 12:46:20.936] I (24357) read_data_task: [0xe0] 218
+[2026-05-13 12:46:20.940] I (24358) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1492 status=OK
+[2026-05-13 12:46:20.941] I (24359) CAN_PROC_0: 0x000000e0 batch 1 [218..218] at (24162) -> 1/1 peers
+[2026-05-13 12:46:21.037] I (24458) read_data_task: [0xe0] 219
+[2026-05-13 12:46:21.041] I (24459) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1428 status=OK
+[2026-05-13 12:46:21.043] I (24460) CAN_PROC_0: 0x000000e0 batch 1 [219..219] at (24263) -> 1/1 peers
+[2026-05-13 12:46:21.138] I (24559) read_data_task: [0xe0] 220
+[2026-05-13 12:46:21.142] I (24560) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1401 status=OK
+[2026-05-13 12:46:21.144] I (24561) CAN_PROC_0: 0x000000e0 batch 1 [220..220] at (24364) -> 1/1 peers
+[2026-05-13 12:46:21.238] I (24660) read_data_task: [0xe0] 221
+[2026-05-13 12:46:21.242] I (24661) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1399 status=OK
+[2026-05-13 12:46:21.244] I (24661) CAN_PROC_0: 0x000000e0 batch 1 [221..221] at (24465) -> 1/1 peers
+[2026-05-13 12:46:21.339] I (24761) read_data_task: [0xe0] 222
+[2026-05-13 12:46:21.343] I (24762) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1412 status=OK
+[2026-05-13 12:46:21.345] I (24762) CAN_PROC_0: 0x000000e0 batch 1 [222..222] at (24566) -> 1/1 peers
+[2026-05-13 12:46:21.441] I (24862) read_data_task: [0xe0] 223
+[2026-05-13 12:46:21.445] I (24863) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1454 status=OK
+[2026-05-13 12:46:21.447] I (24863) CAN_PROC_0: 0x000000e0 batch 1 [223..223] at (24667) -> 1/1 peers
+[2026-05-13 12:46:21.542] I (24963) read_data_task: [0xe0] 224
+[2026-05-13 12:46:21.546] I (24964) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1406 status=OK
+[2026-05-13 12:46:21.548] I (24964) CAN_PROC_0: 0x000000e0 batch 1 [224..224] at (24768) -> 1/1 peers
+[2026-05-13 12:46:21.642] I (25064) read_data_task: [0xe0] 225
+[2026-05-13 12:46:21.647] I (25065) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1411 status=OK
+[2026-05-13 12:46:21.649] I (25065) CAN_PROC_0: 0x000000e0 batch 1 [225..225] at (24869) -> 1/1 peers
+[2026-05-13 12:46:21.743] I (25165) read_data_task: [0xe0] 226
+[2026-05-13 12:46:21.744] I (25166) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1420 status=OK
+[2026-05-13 12:46:21.745] I (25166) CAN_PROC_0: 0x000000e0 batch 1 [226..226] at (24969) -> 1/1 peers
+[2026-05-13 12:46:21.844] I (25266) read_data_task: [0xe0] 227
+[2026-05-13 12:46:21.849] I (25267) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1411 status=OK
+[2026-05-13 12:46:21.857] I (25267) CAN_PROC_0: 0x000000e0 batch 1 [227..227] at (25070) -> 1/1 peers
+[2026-05-13 12:46:21.946] I (25367) read_data_task: [0xe0] 228
+[2026-05-13 12:46:21.950] I (25368) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1499 status=OK
+[2026-05-13 12:46:21.952] I (25368) CAN_PROC_0: 0x000000e0 batch 1 [228..228] at (25171) -> 1/1 peers
+[2026-05-13 12:46:22.047] I (25468) read_data_task: [0xe0] 229
+[2026-05-13 12:46:22.052] I (25469) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1433 status=OK
+[2026-05-13 12:46:22.064] I (25469) CAN_PROC_0: 0x000000e0 batch 1 [229..229] at (25272) -> 1/1 peers
+[2026-05-13 12:46:22.146] I (25569) read_data_task: [0xe0] 230
+[2026-05-13 12:46:22.149] I (25570) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1394 status=OK
+[2026-05-13 12:46:22.149] I (25570) CAN_PROC_0: 0x000000e0 batch 1 [230..230] at (25373) -> 1/1 peers
+[2026-05-13 12:46:22.247] I (25670) read_data_task: [0xe0] 231
+[2026-05-13 12:46:22.250] I (25671) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1418 status=OK
+[2026-05-13 12:46:22.251] I (25671) CAN_PROC_0: 0x000000e0 batch 1 [231..231] at (25474) -> 1/1 peers
+[2026-05-13 12:46:22.348] I (25771) read_data_task: [0xe0] 232
+[2026-05-13 12:46:22.350] I (25772) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1426 status=OK
+[2026-05-13 12:46:22.351] I (25772) CAN_PROC_0: 0x000000e0 batch 1 [232..232] at (25575) -> 1/1 peers
+[2026-05-13 12:46:22.449] I (25872) read_data_task: [0xe0] 233
+[2026-05-13 12:46:22.452] I (25873) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1456 status=OK
+[2026-05-13 12:46:22.453] I (25873) CAN_PROC_0: 0x000000e0 batch 1 [233..233] at (25676) -> 1/1 peers
+[2026-05-13 12:46:22.550] I (25973) read_data_task: [0xe0] 234
+[2026-05-13 12:46:22.552] I (25974) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1427 status=OK
+[2026-05-13 12:46:22.553] I (25974) CAN_PROC_0: 0x000000e0 batch 1 [234..234] at (25777) -> 1/1 peers
+[2026-05-13 12:46:22.652] I (26074) read_data_task: [0xe0] 235
+[2026-05-13 12:46:22.656] I (26075) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1407 status=OK
+[2026-05-13 12:46:22.658] I (26075) CAN_PROC_0: 0x000000e0 batch 1 [235..235] at (25878) -> 1/1 peers
+[2026-05-13 12:46:22.753] I (26175) read_data_task: [0xe0] 236
+[2026-05-13 12:46:22.756] I (26176) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1406 status=OK
+[2026-05-13 12:46:22.758] I (26176) CAN_PROC_0: 0x000000e0 batch 1 [236..236] at (25979) -> 1/1 peers
+[2026-05-13 12:46:22.854] I (26276) read_data_task: [0xe0] 237
+[2026-05-13 12:46:22.858] I (26277) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1472 status=OK
+[2026-05-13 12:46:22.860] I (26277) CAN_PROC_0: 0x000000e0 batch 1 [237..237] at (26080) -> 1/1 peers
+[2026-05-13 12:46:22.955] I (26377) read_data_task: [0xe0] 238
+[2026-05-13 12:46:22.959] I (26378) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1446 status=OK
+[2026-05-13 12:46:22.960] I (26378) CAN_PROC_0: 0x000000e0 batch 1 [238..238] at (26181) -> 1/1 peers
+[2026-05-13 12:46:23.055] I (26478) read_data_task: [0xe0] 239
+[2026-05-13 12:46:23.058] I (26479) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1428 status=OK
+[2026-05-13 12:46:23.059] I (26479) CAN_PROC_0: 0x000000e0 batch 1 [239..239] at (26282) -> 1/1 peers
+[2026-05-13 12:46:23.157] I (26579) read_data_task: [0xe0] 240
+[2026-05-13 12:46:23.161] I (26580) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1400 status=OK
+[2026-05-13 12:46:23.163] I (26580) CAN_PROC_0: 0x000000e0 batch 1 [240..240] at (26383) -> 1/1 peers
+[2026-05-13 12:46:23.258] I (26680) read_data_task: [0xe0] 241
+[2026-05-13 12:46:23.262] I (26681) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1407 status=OK
+[2026-05-13 12:46:23.264] I (26681) CAN_PROC_0: 0x000000e0 batch 1 [241..241] at (26484) -> 1/1 peers
+[2026-05-13 12:46:23.359] I (26781) read_data_task: [0xe0] 242
+[2026-05-13 12:46:23.363] I (26782) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1425 status=OK
+[2026-05-13 12:46:23.365] I (26782) CAN_PROC_0: 0x000000e0 batch 1 [242..242] at (26585) -> 1/1 peers
+[2026-05-13 12:46:23.460] I (26882) read_data_task: [0xe0] 243
+[2026-05-13 12:46:23.479] I (26892) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=10746 status=OK
+[2026-05-13 12:46:23.488] I (26892) CAN_PROC_0: 0x000000e0 batch 1 [243..243] at (26686) -> 1/1 peers
+[2026-05-13 12:46:23.561] I (26983) read_data_task: [0xe0] 244
+[2026-05-13 12:46:23.565] I (26984) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1420 status=OK
+[2026-05-13 12:46:23.567] I (26984) CAN_PROC_0: 0x000000e0 batch 1 [244..244] at (26787) -> 1/1 peers
+[2026-05-13 12:46:23.662] I (27083) read_data_task: [0xe0] 245
+[2026-05-13 12:46:23.666] I (27084) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1402 status=OK
+[2026-05-13 12:46:23.669] I (27085) CAN_PROC_0: 0x000000e0 batch 1 [245..245] at (26888) -> 1/1 peers
+[2026-05-13 12:46:23.763] I (27184) read_data_task: [0xe0] 246
+[2026-05-13 12:46:23.767] I (27185) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1408 status=OK
+[2026-05-13 12:46:23.769] I (27186) CAN_PROC_0: 0x000000e0 batch 1 [246..246] at (26989) -> 1/1 peers
+[2026-05-13 12:46:23.864] I (27285) read_data_task: [0xe0] 247
+[2026-05-13 12:46:23.868] I (27287) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1532 status=OK
+[2026-05-13 12:46:23.870] I (27287) CAN_PROC_0: 0x000000e0 batch 1 [247..247] at (27090) -> 1/1 peers
+[2026-05-13 12:46:23.923] I (27345) HEAP: free=176792 min_free=171944 largest=114688
+[2026-05-13 12:46:23.965] I (27386) read_data_task: [0xe0] 248
+[2026-05-13 12:46:23.969] I (27388) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1485 status=OK
+[2026-05-13 12:46:23.971] I (27388) CAN_PROC_0: 0x000000e0 batch 1 [248..248] at (27191) -> 1/1 peers
+[2026-05-13 12:46:23.984] I (27395) MEASURE: airtime_us_total=4233 packets_total=249 d_airtime_us=850 d_packets=50 util_per_mille=0
+[2026-05-13 12:46:23.989] I (27396) TASK: name=measure prio=1 state=0 hwm_bytes=1220 runtime=52835 total_runtime=27205940
+[2026-05-13 12:46:23.990] I (27397) TASK: name=IDLE prio=0 state=1 hwm_bytes=1248 runtime=26223784 total_runtime=27205940
+[2026-05-13 12:46:23.992] I (27397) TASK: name=tiT prio=18 state=2 hwm_bytes=3020 runtime=6401 total_runtime=27205940
+[2026-05-13 12:46:23.998] I (27398) TASK: name=subs_log prio=1 state=2 hwm_bytes=176 runtime=1264 total_runtime=27205940
+[2026-05-13 12:46:24.026] I (27399) TASK: name=heap_monitor prio=1 state=2 hwm_bytes=344 runtime=2407 total_runtime=27205940
+[2026-05-13 12:46:24.030] I (27400) TASK: name=read_data_task prio=3 state=2 hwm_bytes=2348 runtime=470302 total_runtime=27205940
+[2026-05-13 12:46:24.031] I (27401) TASK: name=send_processing prio=6 state=2 hwm_bytes=2344 runtime=58967 total_runtime=27205940
+[2026-05-13 12:46:24.032] I (27403) TASK: name=can_proc_0 prio=5 state=2 hwm_bytes=2204 runtime=137357 total_runtime=27205940
+[2026-05-13 12:46:24.033] I (27404) TASK: name=wifi prio=23 state=2 hwm_bytes=4336 runtime=206751 total_runtime=27205940
+[2026-05-13 12:46:24.034] I (27405) TASK: name=esp_timer prio=22 state=3 hwm_bytes=3632 runtime=27600 total_runtime=27205940
+[2026-05-13 12:46:24.035] I (27406) TASK: name=sys_evt prio=20 state=2 hwm_bytes=2460 runtime=59 total_runtime=27205940
+[2026-05-13 12:46:24.036] I (27407) TASK: name=Tmr Svc prio=1 state=2 hwm_bytes=2808 runtime=9 total_runtime=27205940
+[2026-05-13 12:46:24.065] I (27487) read_data_task: [0xe0] 249
+[2026-05-13 12:46:24.067] I (27488) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1437 status=OK
+[2026-05-13 12:46:24.068] I (27489) CAN_PROC_0: 0x000000e0 batch 1 [249..249] at (27292) -> 1/1 peers
+[2026-05-13 12:46:24.167] I (27588) read_data_task: [0xe0] 250
+[2026-05-13 12:46:24.171] I (27589) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1395 status=OK
+[2026-05-13 12:46:24.173] I (27590) CAN_PROC_0: 0x000000e0 batch 1 [250..250] at (27393) -> 1/1 peers
+[2026-05-13 12:46:24.268] I (27689) read_data_task: [0xe0] 251
+[2026-05-13 12:46:24.272] I (27691) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1797 status=OK
+[2026-05-13 12:46:24.277] I (27691) CAN_PROC_0: 0x000000e0 batch 1 [251..251] at (27494) -> 1/1 peers
+[2026-05-13 12:46:24.368] I (27790) read_data_task: [0xe0] 252
+[2026-05-13 12:46:24.372] I (27791) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1416 status=OK
+[2026-05-13 12:46:24.374] I (27792) CAN_PROC_0: 0x000000e0 batch 1 [252..252] at (27595) -> 1/1 peers
+[2026-05-13 12:46:24.470] I (27891) read_data_task: [0xe0] 253
+[2026-05-13 12:46:24.476] I (27892) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1454 status=OK
+[2026-05-13 12:46:24.484] I (27893) CAN_PROC_0: 0x000000e0 batch 1 [253..253] at (27696) -> 1/1 peers
+[2026-05-13 12:46:24.570] I (27992) read_data_task: [0xe0] 254
+[2026-05-13 12:46:24.575] I (27993) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1410 status=OK
+[2026-05-13 12:46:24.577] I (27994) CAN_PROC_0: 0x000000e0 batch 1 [254..254] at (27797) -> 1/1 peers
+[2026-05-13 12:46:24.671] I (28093) read_data_task: [0xe0] 255
+[2026-05-13 12:46:24.675] I (28094) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1544 status=OK
+[2026-05-13 12:46:24.678] I (28095) CAN_PROC_0: 0x000000e0 batch 1 [255..255] at (27898) -> 1/1 peers
+[2026-05-13 12:46:24.772] I (28194) read_data_task: [0xe0] 256
+[2026-05-13 12:46:24.776] I (28195) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1413 status=OK
+[2026-05-13 12:46:24.778] I (28195) CAN_PROC_0: 0x000000e0 batch 1 [256..256] at (27999) -> 1/1 peers
+[2026-05-13 12:46:24.873] I (28295) read_data_task: [0xe0] 257
+[2026-05-13 12:46:24.877] I (28297) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=2454 status=OK
+[2026-05-13 12:46:24.879] I (28297) CAN_PROC_0: 0x000000e0 batch 1 [257..257] at (28099) -> 1/1 peers
+[2026-05-13 12:46:24.974] I (28396) read_data_task: [0xe0] 258
+[2026-05-13 12:46:24.979] I (28397) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1483 status=OK
+[2026-05-13 12:46:24.981] I (28398) CAN_PROC_0: 0x000000e0 batch 1 [258..258] at (28201) -> 1/1 peers
+[2026-05-13 12:46:25.075] I (28497) read_data_task: [0xe0] 259
+[2026-05-13 12:46:25.080] I (28498) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1416 status=OK
+[2026-05-13 12:46:25.082] I (28498) CAN_PROC_0: 0x000000e0 batch 1 [259..259] at (28302) -> 1/1 peers
+[2026-05-13 12:46:25.176] I (28598) read_data_task: [0xe0] 260
+[2026-05-13 12:46:25.183] I (28599) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1399 status=OK
+[2026-05-13 12:46:25.186] I (28599) CAN_PROC_0: 0x000000e0 batch 1 [260..260] at (28402) -> 1/1 peers
+[2026-05-13 12:46:25.278] I (28699) read_data_task: [0xe0] 261
+[2026-05-13 12:46:25.285] I (28700) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1393 status=OK
+[2026-05-13 12:46:25.293] I (28700) CAN_PROC_0: 0x000000e0 batch 1 [261..261] at (28503) -> 1/1 peers
+[2026-05-13 12:46:25.378] I (28800) read_data_task: [0xe0] 262
+[2026-05-13 12:46:25.386] I (28801) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:25.395] I (28801) CAN_PROC_0: 0x000000e0 batch 1 [262..262] at (28604) -> 1/1 peers
+[2026-05-13 12:46:25.479] I (28901) read_data_task: [0xe0] 263
+[2026-05-13 12:46:25.487] I (28902) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1471 status=OK
+[2026-05-13 12:46:25.493] I (28902) CAN_PROC_0: 0x000000e0 batch 1 [263..263] at (28705) -> 1/1 peers
+[2026-05-13 12:46:25.581] I (29002) read_data_task: [0xe0] 264
+[2026-05-13 12:46:25.587] I (29003) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1463 status=OK
+[2026-05-13 12:46:25.594] I (29003) CAN_PROC_0: 0x000000e0 batch 1 [264..264] at (28806) -> 1/1 peers
+[2026-05-13 12:46:25.681] I (29103) read_data_task: [0xe0] 265
+[2026-05-13 12:46:25.688] I (29104) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1410 status=OK
+[2026-05-13 12:46:25.696] I (29104) CAN_PROC_0: 0x000000e0 batch 1 [265..265] at (28907) -> 1/1 peers
+[2026-05-13 12:46:25.782] I (29204) read_data_task: [0xe0] 266
+[2026-05-13 12:46:25.786] I (29205) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1423 status=OK
+[2026-05-13 12:46:25.788] I (29205) CAN_PROC_0: 0x000000e0 batch 1 [266..266] at (29008) -> 1/1 peers
+[2026-05-13 12:46:25.883] I (29305) read_data_task: [0xe0] 267
+[2026-05-13 12:46:25.887] I (29306) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1484 status=OK
+[2026-05-13 12:46:25.890] I (29306) CAN_PROC_0: 0x000000e0 batch 1 [267..267] at (29109) -> 1/1 peers
+[2026-05-13 12:46:25.984] I (29406) read_data_task: [0xe0] 268
+[2026-05-13 12:46:25.988] I (29407) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1455 status=OK
+[2026-05-13 12:46:25.991] I (29407) CAN_PROC_0: 0x000000e0 batch 1 [268..268] at (29210) -> 1/1 peers
+[2026-05-13 12:46:26.085] I (29507) read_data_task: [0xe0] 269
+[2026-05-13 12:46:26.091] I (29508) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1419 status=OK
+[2026-05-13 12:46:26.102] I (29508) CAN_PROC_0: 0x000000e0 batch 1 [269..269] at (29311) -> 1/1 peers
+[2026-05-13 12:46:26.186] I (29608) read_data_task: [0xe0] 270
+[2026-05-13 12:46:26.193] I (29609) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1398 status=OK
+[2026-05-13 12:46:26.197] I (29609) CAN_PROC_0: 0x000000e0 batch 1 [270..270] at (29412) -> 1/1 peers
+[2026-05-13 12:46:26.287] I (29709) read_data_task: [0xe0] 271
+[2026-05-13 12:46:26.294] I (29710) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1427 status=OK
+[2026-05-13 12:46:26.300] I (29710) CAN_PROC_0: 0x000000e0 batch 1 [271..271] at (29513) -> 1/1 peers
+[2026-05-13 12:46:26.388] I (29810) read_data_task: [0xe0] 272
+[2026-05-13 12:46:26.395] I (29811) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1476 status=OK
+[2026-05-13 12:46:26.404] I (29811) CAN_PROC_0: 0x000000e0 batch 1 [272..272] at (29614) -> 1/1 peers
+[2026-05-13 12:46:26.489] I (29911) read_data_task: [0xe0] 273
+[2026-05-13 12:46:26.496] I (29912) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1427 status=OK
+[2026-05-13 12:46:26.505] I (29912) CAN_PROC_0: 0x000000e0 batch 1 [273..273] at (29715) -> 1/1 peers
+[2026-05-13 12:46:26.590] I (30012) read_data_task: [0xe0] 274
+[2026-05-13 12:46:26.594] I (30013) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1401 status=OK
+[2026-05-13 12:46:26.600] I (30013) CAN_PROC_0: 0x000000e0 batch 1 [274..274] at (29816) -> 1/1 peers
+[2026-05-13 12:46:26.694] I (30112) read_data_task: [0xe0] 275
+[2026-05-13 12:46:26.703] I (30113) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1405 status=OK
+[2026-05-13 12:46:26.708] I (30114) CAN_PROC_0: 0x000000e0 batch 1 [275..275] at (29917) -> 1/1 peers
+[2026-05-13 12:46:26.791] I (30213) read_data_task: [0xe0] 276
+[2026-05-13 12:46:26.793] I (30214) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1420 status=OK
+[2026-05-13 12:46:26.794] I (30215) CAN_PROC_0: 0x000000e0 batch 1 [276..276] at (30018) -> 1/1 peers
+[2026-05-13 12:46:26.893] I (30314) read_data_task: [0xe0] 277
+[2026-05-13 12:46:26.897] I (30315) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1456 status=OK
+[2026-05-13 12:46:26.899] I (30316) CAN_PROC_0: 0x000000e0 batch 1 [277..277] at (30119) -> 1/1 peers
+[2026-05-13 12:46:26.994] I (30415) read_data_task: [0xe0] 278
+[2026-05-13 12:46:26.998] I (30416) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1447 status=OK
+[2026-05-13 12:46:27.000] I (30417) CAN_PROC_0: 0x000000e0 batch 1 [278..278] at (30220) -> 1/1 peers
+[2026-05-13 12:46:27.095] I (30516) read_data_task: [0xe0] 279
+[2026-05-13 12:46:27.099] I (30517) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1409 status=OK
+[2026-05-13 12:46:27.100] I (30518) CAN_PROC_0: 0x000000e0 batch 1 [279..279] at (30321) -> 1/1 peers
+[2026-05-13 12:46:27.196] I (30617) read_data_task: [0xe0] 280
+[2026-05-13 12:46:27.200] I (30618) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1424 status=OK
+[2026-05-13 12:46:27.202] I (30619) CAN_PROC_0: 0x000000e0 batch 1 [280..280] at (30422) -> 1/1 peers
+[2026-05-13 12:46:27.297] I (30718) read_data_task: [0xe0] 281
+[2026-05-13 12:46:27.300] I (30719) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1398 status=OK
+[2026-05-13 12:46:27.302] I (30720) CAN_PROC_0: 0x000000e0 batch 1 [281..281] at (30523) -> 1/1 peers
+[2026-05-13 12:46:27.398] I (30819) read_data_task: [0xe0] 282
+[2026-05-13 12:46:27.402] I (30820) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1450 status=OK
+[2026-05-13 12:46:27.404] I (30821) CAN_PROC_0: 0x000000e0 batch 1 [282..282] at (30624) -> 1/1 peers
+[2026-05-13 12:46:27.499] I (30920) read_data_task: [0xe0] 283
+[2026-05-13 12:46:27.503] I (30921) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1417 status=OK
+[2026-05-13 12:46:27.505] I (30922) CAN_PROC_0: 0x000000e0 batch 1 [283..283] at (30725) -> 1/1 peers
+[2026-05-13 12:46:27.599] I (31021) read_data_task: [0xe0] 284
+[2026-05-13 12:46:27.602] I (31022) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1391 status=OK
+[2026-05-13 12:46:27.603] I (31023) CAN_PROC_0: 0x000000e0 batch 1 [284..284] at (30826) -> 1/1 peers
+[2026-05-13 12:46:27.701] I (31122) read_data_task: [0xe0] 285
+[2026-05-13 12:46:27.704] I (31123) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1415 status=OK
+[2026-05-13 12:46:27.707] I (31124) CAN_PROC_0: 0x000000e0 batch 1 [285..285] at (30927) -> 1/1 peers
+[2026-05-13 12:46:27.802] I (31223) read_data_task: [0xe0] 286
+[2026-05-13 12:46:27.806] I (31224) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1402 status=OK
+[2026-05-13 12:46:27.808] I (31224) CAN_PROC_0: 0x000000e0 batch 1 [286..286] at (31028) -> 1/1 peers
+[2026-05-13 12:46:27.903] I (31324) read_data_task: [0xe0] 287
+[2026-05-13 12:46:27.907] I (31325) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1470 status=OK
+[2026-05-13 12:46:27.909] I (31326) CAN_PROC_0: 0x000000e0 batch 1 [287..287] at (31129) -> 1/1 peers
+[2026-05-13 12:46:28.003] I (31425) read_data_task: [0xe0] 288
+[2026-05-13 12:46:28.007] I (31426) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1439 status=OK
+[2026-05-13 12:46:28.009] I (31427) CAN_PROC_0: 0x000000e0 batch 1 [288..288] at (31230) -> 1/1 peers
+[2026-05-13 12:46:28.104] I (31526) read_data_task: [0xe0] 289
+[2026-05-13 12:46:28.107] I (31527) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1565 status=OK
+[2026-05-13 12:46:28.107] I (31528) CAN_PROC_0: 0x000000e0 batch 1 [289..289] at (31331) -> 1/1 peers
+[2026-05-13 12:46:28.206] I (31627) read_data_task: [0xe0] 290
+[2026-05-13 12:46:28.210] I (31628) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1422 status=OK
+[2026-05-13 12:46:28.212] I (31628) CAN_PROC_0: 0x000000e0 batch 1 [290..290] at (31432) -> 1/1 peers
+[2026-05-13 12:46:28.306] I (31728) read_data_task: [0xe0] 291
+[2026-05-13 12:46:28.310] I (31729) LAT_CB: peer=28:05:a5:31:c9:78 dt_us=1422 status=OK
+[2026-05-13 12:46:28.313] I (31729) CAN_PROC_0: 0x000000e0 batch 1 [291..291] at (31532) -> 1/1 peers
+[2026-05-13 12:46:28.408] I (31829) read_data_task: [0xe0] 292
+
+# Monitor stopped: 2026-05-13T12:46:28.409135

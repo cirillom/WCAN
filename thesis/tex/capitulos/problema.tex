@@ -1,0 +1,46 @@
+\section{Limitações do Sistema Atual}
+
+Embora o sistema de aquisição da equipe seja robusto e consolidado, sua arquitetura
+cabeada impõe restrições estruturais que limitam a capacidade de instrumentação
+do veículo. Essas limitações se manifestam em três cenários distintos, cada um
+com suas próprias implicações práticas. Essa tensão entre robustez de redes
+cabeadas e flexibilidade de sensores sem fio também é discutida em estudos
+sobre redes veiculares e intra-veiculares sem fio
+\cite{blatt2020_aquisicao_formula_sae,tavares2008_wsn_automobiles,rahman2017_intravehicular_wsn,hashemi2014_intracar_multihop_wsn}.
+
+O primeiro cenário envolve componentes rotativos, como o interior das rodas.
+Nesses pontos, a conexão com o chicote elétrico do veículo é tecnicamente
+possível por meio de acopladores rotativos, porém a complexidade de instalação,
+o custo e a fragilidade desses componentes em ambiente de competição tornam
+a solução inviável na prática. Isso dificulta a leitura de sensores como temperatura
+de cubo ou deformação de manga de eixo, informações de alto valor para a dinâmica
+veicular. A manga de eixo é o elemento estrutural que conecta a roda, o cubo e os
+pontos da suspensão e da direção, concentrando esforços mecânicos relevantes e
+acompanhando a rotação do conjunto. Nesse ponto, a instrumentação com strain gauge
+é especialmente interessante, pois permite medir deformações e inferir o comportamento
+da suspensão do carro.
+
+Além da limitação física, há também uma limitação temporal: a equipe trabalha hoje
+com frequências fixas por identificador CAN, em geral na faixa de 200 Hz. Essa prática
+funciona bem para a maioria dos canais, mas no caso específico da manga de eixo seria
+desejável aumentar consideravelmente a frequência de aquisição para capturar sinais de
+maior conteúdo espectral. Pela relação de Nyquist, a taxa de amostragem precisa ser
+compatível com a maior frequência presente no sinal para evitar perda de informação e
+permitir uma análise confiável.
+
+O segundo cenário diz respeito a regiões onde o cabeamento interfere diretamente
+no fenômeno a ser medido ou onde seu custo de instalação não se justifica pela
+frequência de uso. A asa traseira é o exemplo mais crítico: trata-se de um componente
+aerodinâmico cuja performance é sensível a qualquer perturbação no escoamento
+de ar ao redor de sua superfície. Além disso, testes de instrumentação na asa
+são pontuais e pouco frequentes, o que torna ainda menos justificável o
+investimento em um chicote dedicado, tanto em termos de material quanto de
+mão de obra para montagem e desmontagem a cada sessão.
+
+O terceiro cenário extrapola os limites físicos do veículo. Sensores posicionados
+fora do carro, como um sensor de passagem para detecção automática de voltas,
+ou equipamentos de medição estacionários utilizados em testes controlados,
+não têm como se comunicar com o sistema de aquisição embarcado por meios
+cabeados. Essa limitação dificulta a integração de dados externos ao fluxo de aquisição,
+obrigando a equipe a recorrer a registros manuais ou sistemas completamente
+separados, sem sincronização temporal com os demais canais do carro.

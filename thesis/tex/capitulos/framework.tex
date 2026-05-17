@@ -1,0 +1,76 @@
+\section{Microcontrolador}
+
+A escolha do hardware foi condicionada por tamanho, custo, familiaridade da equipe
+e suporte a comunicação sem fio. A primeira opção considerada foi manter a família
+STM32, já presente no sistema de aquisição da equipe. A linha STM32WB oferece
+Bluetooth Low Energy e 802.15.4, mas não possui Wi-Fi nativo \cite{st_stm32wb_series}.
+Outra alternativa seria combinar um STM32 convencional com um módulo Wi-Fi externo,
+porém essa solução exigiria microcontrolador, rádio e circuito de bateria em blocos
+separados, aumentando footprint e complexidade.
+
+Essa opção também era natural do ponto de vista operacional, já que a STM é
+patrocinadora da equipe e fornece microprocessadores e sensores utilizados em
+parte da instrumentação embarcada. Ainda assim, a necessidade de integrar a
+comunicação sem fio de forma compacta e direta acabou favorecendo uma solução
+mais integrada.
+
+O ESP32 foi adotado por integrar rádio, processamento e ampla disponibilidade de
+placas compactas. O Beetle ESP32-C3, por exemplo, mede 25 por 20,5 mm, inclui
+gerenciamento de bateria na própria placa \cite{dfrobot_beetle_esp32c3} e pesa
+apenas 4g (medição própria). Essas características tornam a plataforma compatível
+com sensores instalados em rodas, componentes aerodinâmicos ou pontos de difícil acesso.
+
+Além da escolha do microcontrolador, a alimentação dos nós foi guiada por custo e 
+facilidade de acesso. Aproveitando o circuito de gerenciamento de bateria do Beetle, 
+a equipe optou por usar baterias de lítio recarregáveis, que oferecem boa densidade 
+energética e são amplamente disponíveis.
+
+Infelizmente as opções de mercado não apresentaram um bom balanceamento entre custo, tamanho
+e capacidade, levando a uma solução de reaproveitamento de células. Para testes fora do veículo,
+onde o peso não é um fator crítico, utilizam-se células reaproveitadas de baterias de notebook,
+enquanto para nós em que massa e volume importam, como os instalados em regiões mais compactas,
+reaproveitam-se baterias de cigarros eletrônicos descartados, por serem menores e mais leves. 
+Toda essa ideia de reaproveitamento veio de um vídeo de demonstração \cite{doel_disposable_vapes_power_bank}.
+
+\section{Protocolo de Comunicação Sem Fio}
+
+Foram considerados Bluetooth Low Energy, Wi-Fi convencional e ESP-NOW. O BLE foi
+descartado porque exige descoberta e estado de conexão antes da troca de dados, o
+que contraria o requisito de transmissão imediata. O Wi-Fi convencional oferece boa
+vazão, mas depende de associação a uma rede, configuração de infraestrutura,
+endereçamento IP e estabelecimento de sessão. Comparações experimentais também
+mostram que alcance, latência, consumo e vazão variam bastante entre ESP-NOW,
+Wi-Fi e Bluetooth, tornando a escolha dependente do uso \cite{eridani2021_espnow_wifi_bluetooth}.
+
+O ESP-NOW foi escolhido por permitir comunicação direta entre dispositivos ESP32 sem
+ponto de acesso nem endereço IP. Ele opera sobre a camada física do Wi-Fi, usa
+endereçamento por MAC e permite payload de até 250 bytes na versão clássica usada
+neste trabalho \cite{espressif_espnow_programming_guide,pasic2021_espnow_esp32}.
+Essa combinação atende melhor aos requisitos de início rápido, baixo overhead e
+operação sem infraestrutura.
+
+Assim como em outros protocolos sem fio, o ESP-NOW trabalha com três modos de comunicação:
+\begin{itemize}
+    \item \textbf{Unicast}: comunicação ponto a ponto entre um transmissor e um receptor específico, 
+    usando o endereço MAC do receptor.
+    \item \textbf{Multicast}: comunicação de um transmissor para um grupo de receptores inscritos, 
+    onde cada receptor confirma a recepção individualmente.
+    \item \textbf{Broadcast}: comunicação de um transmissor para todos os dispositivos no alcance, 
+    sem confirmação de recepção.
+\end{itemize}
+Considerando a natureza da nossa aplicação e o o funcionamento de um barramento CAN tradicional, 
+a estratégia de comunicação mais adequada seria o broadcast, pois o objetivo é que os dados sejam 
+recebidos por qualquer nó interessado, sem a necessidade de estabelecer conexões ou gerenciar grupos 
+de receptores. No entanto, a falta de confirmação nativa no modo broadcast do ESP-NOW introduz a
+necessidade de implementar mecanismos de confiabilidade na camada de aplicação, como técnicas de
+confirmação (ACK) e retransmissão, para garantir a entrega dos dados. Entretanto, a implementação
+desse tipo de sistema introduz complexidade adicional e impactar a robustez do sistema. Por outro lado,
+o uso de multicast, permitiria a confirmação de entrega a nível de hardware, eliminando um ponto de
+falha, mas introduzindo a necessidade de gerenciar inscrições, o que quebraria o requisito de transmissão
+instantânea.
+
+Diante dos cenários citados, entender qual das opções é a mais viável tornou-se um dos principais 
+focos de trabalho desta tese. Essa investigação é bem justificada dado que o projeto 
+visa expandir a aquisição de dados, não substituir a rede CAN em controle crítico. Trabalhos 
+de telemetria veicular com Wi-Fi ou ESP32 reforçam que a escolha do protocolo precisa considerar 
+a finalidade do sistema e sua integração com o fluxo de dados do veículo \cite{fernandes2022_formula_sae_wifi_can}.

@@ -1,0 +1,60 @@
+\section{Síntese do Trabalho}
+
+Este trabalho apresentou o desenvolvimento e a avaliação experimental do WCAN, uma
+camada sem fio baseada em ESP-NOW para transportar mensagens com semântica CAN em
+um sistema de aquisição de dados de Fórmula SAE. A motivação foi reduzir a
+dependência de cabeamento em rodas, componentes aerodinâmicos e sensores externos
+ao veículo, sem exigir infraestrutura Wi-Fi, endereçamento IP ou mudanças profundas
+no modelo de dados usado pela equipe.
+
+A solução preserva o CAN ID como identificador lógico do sinal, agrupa amostras em
+pacotes ESP-NOW, usa filas FreeRTOS para desacoplar geração, transmissão e
+recepção, e inclui filtragem, confirmação e retransmissão. A camada CAN física com
+TWAI foi validada em bancada, mas a avaliação final concentrou-se no WCAN porque o
+ponto de incerteza do projeto era o enlace sem fio.
+
+Os resultados mostram que o WCAN funciona bem em bancada quando usado para
+aquisição de dados com frequência conhecida, batching habilitado e latência na
+ordem de milissegundos. A variante broadcast com \texttt{linger\_ms = 100} foi a
+mais robusta, mantendo 100\% de entrega na suíte \texttt{baseline} em topologias e
+frequências de até 1000 Hz. A suíte \texttt{real\_time} mostrou que esse desempenho
+depende do batching, pois o envio amostra a amostra aumenta a quantidade de
+pacotes, callbacks, ACKs e retransmissões.
+
+A comparação entre variantes também delimitou a semântica de confiabilidade. O
+broadcast é adequado quando basta que ao menos um receptor interessado confirme o
+pacote, comportamento próximo ao ACK dominante do CAN. Essa escolha, porém, não
+garante entrega a todos os receptores. Para esse requisito, o caminho natural é
+amadurecer o multicast ou introduzir confirmação explícita por receptor.
+
+\section{Limitações e Melhorias Futuras}
+
+A principal limitação da versão atual está no comportamento do multicast quando não
+há assinantes válidos. Em algumas execuções, sensores permaneceram em descoberta,
+pressionaram filas e heap, e registraram erros como
+\texttt{ESP\_ERR\_ESPNOW\_NO\_MEM}. Uma versão mais robusta deve limitar tentativas
+de descoberta, aplicar backoff, descartar pacotes de forma controlada e continuar
+executando sem reiniciar a placa.
+
+Também é necessário reduzir alocações dinâmicas no caminho crítico de transmissão.
+Buffers pré-alocados, pools de pacotes e filas com capacidade fixa tornariam o pior
+caso de memória conhecido antes da execução. Além disso, os high-water marks baixos
+observados em algumas tasks indicam que pilha e heap devem ser redimensionados antes
+de uma validação embarcada prolongada.
+
+Do ponto de vista experimental, a próxima etapa é repetir topologias críticas com
+maior duração e mais repetições, classificando automaticamente as falhas por causa
+provável. A validação no veículo ainda é indispensável, pois a bancada não reproduz
+vibração, alimentação real, posicionamento de antenas, interferência
+eletromagnética, encapsulamento e integração contínua com o barramento CAN.
+
+\section{Considerações Finais}
+
+A contribuição principal deste trabalho foi demonstrar que uma ponte sem fio com
+semântica CAN é viável para aquisição de dados de Fórmula SAE quando seus limites
+são assumidos explicitamente. O WCAN não substitui o CAN físico em aplicações de
+controle crítico, mas pode reduzir cabeamento e permitir instrumentação modular em
+pontos onde a rede cabeada é difícil ou indesejável. No estado atual, broadcast com
+batching é o candidato mais consistente para uso controlado e futura validação
+embarcada; multicast permanece como evolução necessária para cenários com múltiplos
+receptores independentes.
