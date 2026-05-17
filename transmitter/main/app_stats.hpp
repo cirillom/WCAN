@@ -149,13 +149,14 @@ inline void LogStatsIfDue()
     }
 }
 
-inline void RecordPacketStats(const data_packet_t &recv_packet)
+inline void RecordPacketStats(const wcan::Packet &recv_packet)
 {
-    if (!recv_packet.data || recv_packet.data_count == 0) {
+    const auto& data = recv_packet.get_data();
+    if (data.empty()) {
         return;
     }
 
-    RxStats *stats = FindOrCreateStats(recv_packet.can_id);
+    RxStats *stats = FindOrCreateStats(recv_packet.get_can_id());
     if (stats == nullptr) {
         static bool s_stats_full_warned = false;
         if (!s_stats_full_warned) {
@@ -165,8 +166,8 @@ inline void RecordPacketStats(const data_packet_t &recv_packet)
         return;
     }
 
-    const uint32_t first = recv_packet.data[0];
-    const uint32_t last = recv_packet.data[recv_packet.data_count - 1];
+    const uint32_t first = data.front();
+    const uint32_t last = data.back();
     if (stats->packets > 0 && first > stats->last_counter + 1) {
         stats->gaps += static_cast<uint64_t>(first - stats->last_counter - 1);
     }
@@ -176,7 +177,7 @@ inline void RecordPacketStats(const data_packet_t &recv_packet)
     stats->last_first = first;
     stats->last_last = last;
     stats->packets++;
-    stats->samples += recv_packet.data_count;
+    stats->samples += data.size();
 
     LogStatsIfDue();
 }

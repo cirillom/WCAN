@@ -1,6 +1,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <algorithm>
+#include <memory>
+#include <utility>
+#include <vector>
 
 #include <nvs_flash.h>
 
@@ -12,6 +15,7 @@
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "esp_random.h"
+#include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -24,6 +28,9 @@
 #endif
 
 #define READ_DATA_TASK_PRIORITY 10
+
+#define ESPNOW_WIFI_MODE WIFI_MODE_STA
+#define ESPNOW_MAC_TYPE ESP_MAC_WIFI_STA
 
 static void init_nvs()
 {
@@ -40,7 +47,10 @@ static void init_wifi()
     static const char *TAG = "WIFI";
 
     ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_err_t event_loop_err = esp_event_loop_create_default();
+    if (event_loop_err != ESP_OK && event_loop_err != ESP_ERR_INVALID_STATE) {
+        ESP_ERROR_CHECK(event_loop_err);
+    }
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -48,14 +58,14 @@ static void init_wifi()
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     ESP_ERROR_CHECK(esp_wifi_set_mode(ESPNOW_WIFI_MODE));
     ESP_ERROR_CHECK(esp_wifi_start());
-    ESP_ERROR_CHECK(esp_wifi_set_channel(ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE));
+    ESP_ERROR_CHECK(esp_wifi_set_channel(app_config::kEspNowChannel, WIFI_SECOND_CHAN_NONE));
 
     uint8_t primary_channel = 0;
     wifi_second_chan_t second_channel = WIFI_SECOND_CHAN_NONE;
     ESP_ERROR_CHECK(esp_wifi_get_channel(&primary_channel, &second_channel));
-    if (primary_channel != ESPNOW_CHANNEL || second_channel != WIFI_SECOND_CHAN_NONE) {
+    if (primary_channel != app_config::kEspNowChannel || second_channel != WIFI_SECOND_CHAN_NONE) {
         ESP_LOGW(TAG, "Wi-Fi channel mismatch: expected primary=%u second=%d, got primary=%u second=%d",
-                 static_cast<unsigned>(ESPNOW_CHANNEL),
+                 static_cast<unsigned>(app_config::kEspNowChannel),
                  static_cast<int>(WIFI_SECOND_CHAN_NONE),
                  static_cast<unsigned>(primary_channel),
                  static_cast<int>(second_channel));
@@ -74,28 +84,35 @@ static void log_mac()
     ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
+struct AppContext {
+    std::unique_ptr<wcan::Transceiver> transceiver;
+    int sensor_hz = 0;
+};
+
+static AppContext s_app;
+
 void read_data_task(void *pv_parameter)
 {
     static const char *TAG = "read_data_task";
-    const int hz = static_cast<int>(reinterpret_cast<intptr_t>(pv_parameter));
+    auto* app = static_cast<AppContext*>(pv_parameter);
     uint32_t counter = 0;
 
-    ESP_LOGI(TAG, "read_data_task started at %d Hz", hz);
+    ESP_LOGI(TAG, "read_data_task started at %d Hz", app->sensor_hz);
 
-    const int effective_hz = std::max(1, hz);
+    const int effective_hz = std::max(1, app->sensor_hz);
     const uint32_t period_ms = 1000 / effective_hz;
     TickType_t last_wake_time = xTaskGetTickCount();
 
     while (true) {
-        // Enqueue every sample to all registered CAN ID queues
-        for (size_t i = 0; i < num_can_queues; ++i) {
-            const uint32_t can_id = tx_can_ids[i];
-            if (xQueueSend(can_queues[i], &counter, 0) != pdTRUE) {
-                ESP_LOGV(TAG, "[0x%lx] Send queue full, dropping counter=%lu",
-                         static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
-            } else {
-                std::printf("S:%lu:%lx:%lu\n", (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()), 
-                         static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
+        if (app->transceiver) {
+            for (uint32_t can_id : app->transceiver->get_tx_can_ids()) {
+                if (!app->transceiver->send_data(can_id, counter)) {
+                    ESP_LOGV(TAG, "[0x%lx] Send queue full, dropping counter=%lu",
+                             static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
+                } else {
+                    std::printf("S:%lu:%lx:%lu\n", (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
+                             static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
+                }
             }
         }
 
@@ -104,29 +121,10 @@ void read_data_task(void *pv_parameter)
     }
 }
 
-void SetupSensor(uint32_t base_can_id, size_t active_count, int sensor_hz, uint32_t linger_ms)
+void wcan_recv_callback(const wcan::Packet &recv_packet)
 {
-    static const char *TAG = "SENSOR_APP";
-
-    ESP_LOGI(TAG, "Setting up SENSOR mode - Base ID: 0x%lx, Count: %u, Hz: %d",
-             static_cast<unsigned long>(base_can_id), static_cast<unsigned>(active_count), sensor_hz);
-
-    const uint32_t jitter_ms = esp_random() % 1000;
-    vTaskDelay(pdMS_TO_TICKS(jitter_ms));
-
-    uint32_t tx_ids[app_config::kMaxCanIds];
-    for (size_t i = 0; i < active_count; ++i) {
-        tx_ids[i] = base_can_id + i;
-    }
-    wcan_init(true, nullptr, 0, tx_ids, active_count, linger_ms);
-
-    xTaskCreate(read_data_task, "read_data_task", 4096, reinterpret_cast<void *>(static_cast<intptr_t>(sensor_hz)), 
-                READ_DATA_TASK_PRIORITY, nullptr);
-}
-
-void wcan_recv_callback(const data_packet_t &recv_packet)
-{
-    if (recv_packet.data_count == 0) {
+    const auto& data = recv_packet.get_data();
+    if (data.empty()) {
         return;
     }
 
@@ -137,30 +135,69 @@ void wcan_recv_callback(const data_packet_t &recv_packet)
     if (!s_first_rx_logged) {
         s_first_rx_logged = true;
         ESP_LOGI("FIRST_RX_TS", "us=%lld id=0x%lx", esp_timer_get_time(),
-                 static_cast<unsigned long>(recv_packet.can_id));
+                 static_cast<unsigned long>(recv_packet.get_can_id()));
     }
 #endif
 
     std::printf("R:%lu:%lx:%lu:%lu:%lu:%u\n",
              (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-             static_cast<unsigned long>(recv_packet.can_id),
-             static_cast<unsigned long>(recv_packet.tick_count), 
-             static_cast<unsigned long>(recv_packet.data[0]),
-             static_cast<unsigned long>(recv_packet.data[recv_packet.data_count - 1]), 
-             recv_packet.data_count);
+             static_cast<unsigned long>(recv_packet.get_can_id()),
+             static_cast<unsigned long>(recv_packet.get_sequence_id()),
+             static_cast<unsigned long>(data.front()),
+             static_cast<unsigned long>(data.back()),
+             (unsigned int)data.size());
 }
 
-void SetupReceiver(bool filter_enabled, const uint32_t *filter_ids, size_t filter_count)
+bool SetupSensor(AppContext &app, uint32_t base_can_id, size_t active_count, int sensor_hz, uint32_t linger_ms)
+{
+    static const char *TAG = "SENSOR_APP";
+
+    ESP_LOGI(TAG, "Setting up SENSOR mode - Base ID: 0x%lx, Count: %u, Hz: %d",
+             static_cast<unsigned long>(base_can_id), static_cast<unsigned>(active_count), sensor_hz);
+
+    const uint32_t jitter_ms = esp_random() % 1000;
+    vTaskDelay(pdMS_TO_TICKS(jitter_ms));
+
+    std::vector<uint32_t> tx_ids;
+    for (size_t i = 0; i < active_count; ++i) {
+        tx_ids.push_back(base_can_id + i);
+    }
+
+    auto transceiver = std::make_unique<wcan::Transceiver>(std::vector<uint32_t>{}, std::move(tx_ids), linger_ms);
+    transceiver->set_recv_callback(wcan_recv_callback);
+    if (!transceiver->init()) {
+        ESP_LOGE(TAG, "Failed to initialize Transceiver");
+        return false;
+    }
+
+    app.sensor_hz = sensor_hz;
+    app.transceiver = std::move(transceiver);
+    xTaskCreate(read_data_task, "read_data_task", 4096, &app, READ_DATA_TASK_PRIORITY, nullptr);
+
+    return true;
+}
+
+bool SetupReceiver(AppContext &app, bool filter_enabled, const uint32_t *filter_ids, size_t filter_count)
 {
     static const char *TAG = "RECEIVER_APP";
 
+    std::vector<uint32_t> rx_ids;
     if (filter_enabled) {
         ESP_LOGI(TAG, "Setting up RECEIVER mode - active filter with %u CAN ID(s)", static_cast<unsigned>(filter_count));
-        wcan_init(true, const_cast<uint32_t *>(filter_ids), filter_count, nullptr, 0, 0);
+        for (size_t i = 0; i < filter_count; ++i) rx_ids.push_back(filter_ids[i]);
     } else {
         ESP_LOGI(TAG, "Setting up RECEIVER mode - accepting all CAN IDs");
-        wcan_init(false, nullptr, 0, nullptr, 0, 0);
     }
+
+    auto transceiver = std::make_unique<wcan::Transceiver>(std::move(rx_ids), std::vector<uint32_t>{}, 0);
+    transceiver->set_recv_callback(wcan_recv_callback);
+    if (!transceiver->init()) {
+        ESP_LOGE(TAG, "Failed to initialize Transceiver");
+        return false;
+    }
+
+    app.transceiver = std::move(transceiver);
+    return true;
 }
 
 extern "C" void app_main(void)
@@ -179,10 +216,16 @@ extern "C" void app_main(void)
     init_wifi();
     log_mac();
 
+    bool setup_ok = false;
     if (config.role == runtime_config::Role::kSensor) {
-        SetupSensor(config.sensor_base_can_id, config.sensor_can_id_count, config.sensor_hz, config.linger_ms);
+        setup_ok = SetupSensor(s_app, config.sensor_base_can_id, config.sensor_can_id_count, config.sensor_hz, config.linger_ms);
     } else if (config.role == runtime_config::Role::kReceiver) {
-        SetupReceiver(config.receiver_filter_enabled, config.receiver_filter_ids.data(), config.receiver_filter_count);
+        setup_ok = SetupReceiver(s_app, config.receiver_filter_enabled, config.receiver_filter_ids.data(), config.receiver_filter_count);
+    }
+
+    if (!setup_ok) {
+        ESP_LOGE("MAIN", "Application setup failed");
+        return;
     }
 
     start_app_stats();

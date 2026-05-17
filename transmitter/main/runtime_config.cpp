@@ -156,7 +156,7 @@ bool ParseSize(const char *value, size_t *out)
 
 bool CanIdValid(uint32_t can_id)
 {
-    return can_id <= CAN_ID_MAX;
+    return can_id <= app_config::kMaxCanId;
 }
 
 bool StringEquals(const char *a, const char *b)
@@ -222,7 +222,7 @@ ParseResult ValidateConfig(const RuntimeConfig &config)
             return {false, "sensor-can-id-range"};
         }
         const uint32_t last_offset = static_cast<uint32_t>(config.sensor_can_id_count - 1);
-        if (config.sensor_base_can_id > CAN_ID_MAX - last_offset) {
+        if (config.sensor_base_can_id > app_config::kMaxCanId - last_offset) {
             return {false, "sensor-can-id-range"};
         }
         if (config.linger_ms > app_config::kMaxWcanLingerMs) {

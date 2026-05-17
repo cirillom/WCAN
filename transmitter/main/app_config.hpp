@@ -14,5 +14,7 @@ static constexpr int kMinSensorHz = 1;
 static constexpr int kMaxSensorHz = 10000;
 static constexpr uint32_t kMaxWcanLingerMs = 60000;
 static constexpr int kRuntimeConfigProtocolVersion = 1;
+static constexpr uint32_t kMaxCanId = 0x1FFFFFFF;
+static constexpr uint8_t kEspNowChannel = 1;
 
 } // namespace app_config

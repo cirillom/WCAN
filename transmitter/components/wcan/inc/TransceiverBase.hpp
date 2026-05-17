@@ -30,8 +30,8 @@ class TransceiverBase {
 public:
     virtual ~TransceiverBase();
 
-    TransceiverBase(std::vector<CANId_t> rx_can_ids, 
-                    std::vector<CANId_t> tx_can_ids, 
+    TransceiverBase(std::vector<CANId_t> rx_can_ids,
+                    std::vector<CANId_t> tx_can_ids,
                     uint32_t linger_ms);
 
     bool init();
@@ -41,6 +41,9 @@ public:
 
     /** @brief Enqueues a data point for a specific CAN ID. Thread-safe. */
     bool send_data(CANId_t can_id, DataPoint_t data);
+
+    /** @brief Returns the configured TX CAN IDs. */
+    const std::vector<CANId_t>& get_tx_can_ids() const { return _tx_can_ids; }
 
     /** @brief Helper to find the index of a CAN ID in the TX list. */
     size_t get_can_queue_index(CANId_t can_id) const;
@@ -64,24 +67,24 @@ protected:
     bool _filtering_enabled = false;
 
     // --- The Strategy Contract ---
-    /** 
+    /**
      * @brief Called by the send task to determine the destination MAC just before calling esp_now_send.
      * @return const uint8_t* The destination MAC, or nullptr for hardware multicast blast.
      */
     virtual const uint8_t* prepare_send_mac(const Packet& packet) = 0;
 
     /**
-     * @brief High-level batch dispatch logic (e.g. Broadcast retries). 
+     * @brief High-level batch dispatch logic (e.g. Broadcast retries).
      * Subclass should push to _send_queue and block if necessary.
      */
     virtual void dispatch_packet(const Packet& pkt, size_t queue_index) = 0;
 
     /** @brief Called when a CONTROL_ID packet arrives. */
     virtual void on_control_packet(const Packet& packet) = 0;
-    
+
     /** @brief Called when a DATA packet arrives (for variant-specific side effects). */
     virtual void on_data_packet(const Packet& packet) {}
-    
+
     /** @brief Hook for tracking hardware TX results (Overridden by Multicast). */
     virtual void on_hardware_tx_status(const uint8_t* mac_addr, bool success) {}
 
@@ -98,7 +101,7 @@ private:
     // Task Wrappers
     static void send_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->send_processing_task(); }
     static void recv_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->recv_processing_task(); }
-    static void batch_task_wrapper(void* param) { 
+    static void batch_task_wrapper(void* param) {
         auto* ctx = static_cast<std::pair<TransceiverBase*, size_t>*>(param);
         ctx->first->batch_processing_task(ctx->second);
         delete ctx;
@@ -107,7 +110,7 @@ private:
     void send_processing_task();
     void recv_processing_task();
     void batch_processing_task(size_t queue_index);
-    
+
     static TransceiverBase* s_instance;
     static void esp_now_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);
     static void esp_now_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len);
@@ -121,7 +124,7 @@ public:
     static constexpr size_t QUEUE_SIZE = 100;
     static constexpr uint32_t RADIO_TIMEOUT_MS = 500;
     static constexpr uint32_t CONTROL_ID = 0xE0000000;
-    
+
 #if CONFIG_ESPNOW_WIFI_MODE_STATION
     static constexpr esp_mac_type_t MAC_TYPE = ESP_MAC_WIFI_STA;
 #else
