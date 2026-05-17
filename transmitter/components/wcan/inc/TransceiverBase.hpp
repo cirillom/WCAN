@@ -69,7 +69,7 @@ private:
     void recv_processing_task();
     void can_processing_task(size_t queue_index);
     
-    static TransceiverBase* s_instance;
+    static TransceiverBase* s_instance = nullptr;
     static void esp_now_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);
     static void esp_now_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len);
 
