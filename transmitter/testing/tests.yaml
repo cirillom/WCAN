@@ -11,25 +11,28 @@ defaults:
   measure: true
 
 profiles:
+  full:
+    topologies: full_matrix
+
   fast:
     repeats: 1
     duration_seconds: 15
-    frequency_hz: [200, 1000]
+    frequency_hz: [200]
     topologies:
       - sensors: 4
         receivers: 1
       - sensors: 2
         receivers: 3
 
-  full:
-    topologies: full_matrix
-
-  multicast_multiple:
-    transports: [MULTICAST]
+  quick:
     repeats: 3
     duration_seconds: 30
-    frequency_hz: [10, 100, 200, 750, 1000]
-    topologies: full_matrix
+    frequency_hz: [10, 200, 1000]
+    topologies:
+      - sensors: 4
+        receivers: 1
+      - sensors: 2
+        receivers: 3
 
 suites:
   baseline:
