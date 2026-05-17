@@ -25,8 +25,8 @@ class TransceiverBase {
 public:
     virtual ~TransceiverBase();
 
-    TransceiverBase(std::vector<uint32_t> rx_can_ids, 
-                    std::vector<uint32_t> tx_can_ids, 
+    TransceiverBase(std::vector<CANId_t> rx_can_ids, 
+                    std::vector<CANId_t> tx_can_ids, 
                     uint32_t linger_ms);
 
     bool init();
@@ -47,13 +47,12 @@ protected:
 
     // --- Configuration ---
     std::array<uint8_t, ESP_NOW_ETH_ALEN> _mac_addr{};
-    std::vector<uint32_t> _rx_can_ids;
-    std::vector<uint32_t> _tx_can_ids;
+    std::vector<CANId_t> _rx_can_ids;
+    std::vector<CANId_t> _tx_can_ids;
     uint32_t _linger_ms;
     bool _filtering_enabled = false;
 
     // --- The Strategy Contract ---
-    
     /** 
      * @brief Called by the send task to determine the destination MAC just before calling esp_now_send.
      * @return const uint8_t* The destination MAC, or nullptr for hardware multicast blast.
@@ -84,6 +83,8 @@ protected:
     size_t get_can_queue_index(uint32_t can_id) const;
 
 private:
+    bool should_accept(CANId_t can_id) const;
+
     // Task Wrappers
     static void send_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->send_processing_task(); }
     static void recv_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->recv_processing_task(); }

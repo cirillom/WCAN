@@ -35,7 +35,7 @@ bool TransceiverBase::init() {
     ESP_ERROR_CHECK(esp_read_mac(_mac_addr.data(), MAC_TYPE));
 
     _send_queue = xQueueCreate(QUEUE_SIZE, sizeof(Packet*));
-    _recv_queue = xQueueCreate(QUEUE_SIZE, sizeof(Packet*));
+    _recv_queue = xQueueCreate(QUEUE_SIZE, sizeof(EspNowPacket));
     if (!_send_queue || !_recv_queue) return false;
 
     const size_t tx_count = _tx_can_ids.size();
@@ -102,24 +102,21 @@ void TransceiverBase::send_processing_task() {
 
 void TransceiverBase::recv_processing_task() {
     while (true) {
-        Packet* raw_pkt_ptr = nullptr;
-        if (xQueueReceive(_recv_queue, &raw_pkt_ptr, portMAX_DELAY) == pdTRUE) {
-            std::unique_ptr<Packet> pkt(raw_pkt_ptr);
+        EspNowPacket raw_pkt;
+        if (xQueueReceive(_recv_queue, &raw_pkt, portMAX_DELAY) == pdTRUE) {
+            auto pkt_opt = Packet::from_payload(raw_pkt.src_mac, raw_pkt.payload, raw_pkt.payload_len, raw_pkt.des_mac);
+            
+            if (!pkt_opt) continue;
 
-            if (_deduplicator.check_and_update(*pkt)) continue;
+            const Packet& pkt = *pkt_opt;
 
-            if (pkt->get_can_id() == CONTROL_ID) {
-                on_control_packet(*pkt);
+            if (_deduplicator.check_and_update(pkt)) continue;
+
+            if (pkt.get_can_id() == CONTROL_ID) {
+                on_control_packet(pkt);
             } else {
-                bool accept = !_filtering_enabled;
-                if (!accept) {
-                    accept = std::find(_rx_can_ids.begin(), _rx_can_ids.end(), pkt->get_can_id()) != _rx_can_ids.end();
-                }
-
-                if (accept) {
-                    on_data_packet(*pkt); 
-                    if (_recv_callback) _recv_callback(*pkt);
-                }
+                on_data_packet(pkt); 
+                if (_recv_callback) _recv_callback(pkt);
             }
         }
     }
@@ -160,19 +157,29 @@ void TransceiverBase::esp_now_send_cb(const uint8_t *mac, esp_now_send_status_t 
 }
 
 void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
-    if (!s_instance || !info->src_addr || !data || len <= 0) return;
+    if (!s_instance || !info->src_addr || !data || len <= sizeof(CANId_t)) return;
 
-    // Use des_addr to let Packet::from_payload determine the broadcast context
-    auto pkt_opt = Packet::from_payload(info->src_addr, data, (size_t)len, info->des_addr);
-    if (pkt_opt) {
-        Packet* ptr = new Packet(std::move(*pkt_opt));
-        if (xQueueSend(s_instance->_recv_queue, &ptr, 0) != pdTRUE) delete ptr;
-    }
+    CANId_t can_id = EspNowPacket::extract_can_id(data);
+
+    if (!s_instance->should_accept(can_id)) return;
+
+    EspNowPacket raw_pkt;
+    std::memcpy(raw_pkt.src_mac, info->src_addr, ESP_NOW_ETH_ALEN);
+    std::memcpy(raw_pkt.des_mac, info->des_addr, ESP_NOW_ETH_ALEN);
+    std::memcpy(raw_pkt.payload, data, (size_t)len);
+    raw_pkt.payload_len = (size_t)len;
+
+    xQueueSend(s_instance->_recv_queue, &raw_pkt, 0);
 }
 
 size_t TransceiverBase::get_can_queue_index(uint32_t id) const {
     for (size_t i = 0; i < _tx_can_ids.size(); i++) if (_tx_can_ids[i] == id) return i;
     return SIZE_MAX;
 }
+
+bool TransceiverBase::should_accept(CANId_t can_id) const {
+    if (can_id == CONTROL_ID) return true;
+    if (!_filtering_enabled) return true;
+    return std::find(_rx_can_ids.begin(), _rx_can_ids.end(), can_id) != _rx_can_ids.end();
 
 } // namespace wcan
