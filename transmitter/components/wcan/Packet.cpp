@@ -19,7 +19,7 @@ std::optional<Packet> Packet::from_payload(const uint8_t* src_mac,
     Packet pkt;
 
     // 1. Context and Senders
-    std::memcpy(pkt._mac_addr.data(), src_mac, ESP_NOW_ETH_ALEN);
+    std::memcpy(pkt._source_mac_addr.data(), src_mac, ESP_NOW_ETH_ALEN);
     
     if (des_mac != nullptr && std::memcmp(des_mac, BROADCAST_MAC.data(), ESP_NOW_ETH_ALEN) == 0) {
         pkt._received_via_broadcast = true;
@@ -45,7 +45,7 @@ std::optional<Packet> Packet::from_payload(const uint8_t* src_mac,
     offset += sizeof(uint8_t);
 
     // 3. Validate Payload Length
-    const size_t expected_payload_len = data_count * DATA_POINT_SIZE;
+    const size_t expected_payload_len = data_count * sizeof(uint32_t);
     if (len < HEADER_SIZE + expected_payload_len) {
         ESP_LOGE(TAG, "Payload truncated. Expected %zu bytes, got %zu", 
                  HEADER_SIZE + expected_payload_len, len);

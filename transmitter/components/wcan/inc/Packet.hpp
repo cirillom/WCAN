@@ -4,16 +4,12 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
-#include <memory>
-#include <optional>
 #include <vector>
-
-#include "esp_log.h"
-#include "esp_mac.h"
+#include <optional>
 #include "esp_now.h"
 
-namespace wcan{
+namespace wcan {
+
 class Packet {
 public:
     /** @brief Atomic counter for thread-safe ID generation. */
@@ -24,9 +20,12 @@ public:
     
     Packet() = default;
     
-    /** @brief Constructor for outgoing packets. Auto-generates a sequence ID. */
-    explicit Packet(const std::array<uint8_t, ESP_NOW_ETH_ALEN>& mac, uint32_t can_id)
-        : _mac_addr(mac), _can_id(can_id), _sequence_id(next_sequence_id()) {
+    /** 
+     * @brief Constructor for outgoing packets. 
+     * Auto-generates a sequence ID. The source_mac will typically be filled by the Transceiver.
+     */
+    explicit Packet(const std::array<uint8_t, ESP_NOW_ETH_ALEN>& source_mac, uint32_t can_id)
+        : _source_mac_addr(source_mac), _can_id(can_id), _sequence_id(next_sequence_id()) {
             _data.reserve(MAX_DATA_POINTS);
         }
         
@@ -39,18 +38,18 @@ public:
     /** @brief Encodes for transmission. Returns nullopt if data exceeds ESP-NOW limits. */
     std::optional<std::vector<uint8_t>> encode() const;
 
-    /** @brief Appends a CAN data point. Returns false if packet is full. */
+    /** @brief Appends a CAN data point. Returns false if packet is full (MAX_DATA_POINTS). */
     bool add_data_point(uint32_t data_point);
 
-    // --- Getters (Returning by const reference for performance) ---
-    const std::array<uint8_t, 6>& get_mac_addr() const { return _mac_addr; }
+    // --- Getters ---
+    const std::array<uint8_t, 6>& get_source_mac_addr() const { return _source_mac_addr; }
     uint32_t get_can_id() const { return _can_id; }
     uint32_t get_sequence_id() const { return _sequence_id; }
     const std::vector<uint32_t>& get_data() const { return _data; }
     bool is_received_via_broadcast() const { return _received_via_broadcast; }
 
 private:
-    std::array<uint8_t, ESP_NOW_ETH_ALEN> _mac_addr{};
+    std::array<uint8_t, ESP_NOW_ETH_ALEN> _source_mac_addr{};
     uint32_t _can_id = 0;
     uint32_t _sequence_id = 0;
     std::vector<uint32_t> _data;
