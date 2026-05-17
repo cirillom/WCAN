@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdint>
 
-#include "app_config.hpp"
+#include "runtime_config.hpp"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_system.h"
@@ -106,7 +106,7 @@ struct RxStats {
     uint64_t gaps = 0;
 };
 
-static std::array<RxStats, app_config::kMaxCanIds> s_rx_stats = {};
+static std::array<RxStats, runtime_config::ConfigContext::kMaxCanIds> s_rx_stats = {};
 static TickType_t s_next_stats_log_tick = 0;
 
 inline RxStats *FindOrCreateStats(uint32_t can_id)
@@ -161,7 +161,7 @@ inline void RecordPacketStats(const wcan::Packet &recv_packet)
         static bool s_stats_full_warned = false;
         if (!s_stats_full_warned) {
             s_stats_full_warned = true;
-            ESP_LOGW("RX_STATS", "stats table full; increase app_config::kMaxCanIds");
+            ESP_LOGW("RX_STATS", "stats table full; increase runtime_config::ConfigContext::kMaxCanIds");
         }
         return;
     }

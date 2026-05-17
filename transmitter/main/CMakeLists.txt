@@ -14,7 +14,7 @@ endif()
 
 message(STATUS "Main component using WCAN variant: ${WCAN_COMPONENT_NAME}")
 
-idf_component_register(SRCS "main.cpp" "runtime_config.cpp"
+idf_component_register(SRCS "main.cpp"
                        INCLUDE_DIRS "."
                        REQUIRES
                            ${WCAN_COMPONENT_NAME}
