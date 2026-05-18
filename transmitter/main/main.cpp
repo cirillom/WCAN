@@ -1,6 +1,6 @@
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
-#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -10,11 +10,9 @@
 #include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
-#include "esp_mac.h"
 #include "esp_netif.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
-#include "esp_random.h"
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -26,7 +24,6 @@
 #include "esp_timer.h"
 
 #define ESPNOW_WIFI_MODE WIFI_MODE_STA
-#define ESPNOW_MAC_TYPE ESP_MAC_WIFI_STA
 
 using ConfigContext = runtime_config::ConfigContext;
 
@@ -67,19 +64,7 @@ static void init_wifi()
                  static_cast<int>(WIFI_SECOND_CHAN_NONE),
                  static_cast<unsigned>(primary_channel),
                  static_cast<int>(second_channel));
-    } else {
-        ESP_LOGI(TAG, "Wi-Fi channel locked: primary=%u second=%d",
-                 static_cast<unsigned>(primary_channel),
-                 static_cast<int>(second_channel));
     }
-}
-
-static void log_mac()
-{
-    static const char *TAG = "MAIN";
-    uint8_t mac[6];
-    ESP_ERROR_CHECK(esp_read_mac(mac, ESPNOW_MAC_TYPE));
-    ESP_LOGI(TAG, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
 struct AppContext {
@@ -87,27 +72,25 @@ struct AppContext {
     std::unique_ptr<wcan::Transceiver> transceiver;
     esp_timer_handle_t sensor_timer = nullptr;
     uint32_t generated_data_point = 0;
+    uint64_t test_duration_ms = 0;
 };
 
 static AppContext s_app;
 
 void sensor_timer_callback(void *pv_parameter)
 {
-    static const char *TAG = "sensor_timer";
     auto* app = static_cast<AppContext*>(pv_parameter);
     if (!app->transceiver) {
-        ESP_LOGE(TAG, "Transceiver not initialized");
+        ESP_LOGE("sensor_timer", "Transceiver not initialized");
         return;
     }
 
     const uint32_t counter = app->generated_data_point++;
     for (uint32_t can_id : app->transceiver->get_tx_can_ids()) {
-        if (app->transceiver->send_data(can_id, counter)) {
-            std::printf("S:%lu:%lx:%lu\n", (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-                        static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
-        }else{
+        if (!app->transceiver->send_data(can_id, counter)) {
             std::printf("S(FAIL):%lu:%lx:%lu\n", (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
                         static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
+            std::fflush(stdout);
         }
     }
 }
@@ -122,7 +105,7 @@ bool start_sensor_timer(AppContext &app)
     timer_args.arg = &app;
     timer_args.dispatch_method = ESP_TIMER_TASK;
     timer_args.name = "sensor_timer";
-    timer_args.skip_unhandled_events = false;
+    timer_args.skip_unhandled_events = true;
 
     esp_err_t err = esp_timer_create(&timer_args, &app.sensor_timer);
     if (err != ESP_OK) {
@@ -136,9 +119,17 @@ bool start_sensor_timer(AppContext &app)
         return false;
     }
 
-    ESP_LOGI(TAG, "sensor_timer started at %d Hz (period=%llu us)",
-             effective_hz, static_cast<unsigned long long>(period_us));
     return true;
+}
+
+void stop_sensor_timer(AppContext &app)
+{
+    if (app.sensor_timer == nullptr) {
+        return;
+    }
+    esp_timer_stop(app.sensor_timer);
+    esp_timer_delete(app.sensor_timer);
+    app.sensor_timer = nullptr;
 }
 
 void wcan_recv_callback(const wcan::Packet &recv_packet)
@@ -147,39 +138,11 @@ void wcan_recv_callback(const wcan::Packet &recv_packet)
     if (data.empty()) {
         return;
     }
-
     app_stats_detail::RecordPacketStats(recv_packet);
-
-#ifdef MEASURE_INSTR
-    static bool s_first_rx_logged = false;
-    if (!s_first_rx_logged) {
-        s_first_rx_logged = true;
-        ESP_LOGI("FIRST_RX_TS", "us=%lld id=0x%lx", esp_timer_get_time(),
-                 static_cast<unsigned long>(recv_packet.get_can_id()));
-    }
-#endif
-
-    std::printf("R:%lu:%lx:%lu:%lu:%lu:%u\n",
-             (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-             static_cast<unsigned long>(recv_packet.get_can_id()),
-             static_cast<unsigned long>(recv_packet.get_sequence_id()),
-             static_cast<unsigned long>(data.front()),
-             static_cast<unsigned long>(data.back()),
-             (unsigned int)data.size());
 }
 
 bool SetupSensor(AppContext &app)
 {
-    static const char *TAG = "SENSOR_APP";
-
-    ESP_LOGI(TAG, "Setting up SENSOR mode - Base ID: 0x%lx, Count: %u, Hz: %d",
-             static_cast<unsigned long>(app.config.sensor_base_can_id),
-             static_cast<unsigned>(app.config.sensor_can_id_count),
-             app.config.sensor_hz);
-
-    const uint32_t jitter_ms = esp_random() % 1000;
-    vTaskDelay(pdMS_TO_TICKS(jitter_ms));
-
     std::vector<uint32_t> tx_ids;
     for (size_t i = 0; i < app.config.sensor_can_id_count; ++i) {
         tx_ids.push_back(app.config.sensor_base_can_id + i);
@@ -188,37 +151,27 @@ bool SetupSensor(AppContext &app)
     auto transceiver = std::make_unique<wcan::Transceiver>(std::vector<uint32_t>{}, std::move(tx_ids), app.config.linger_ms, true);
     transceiver->set_recv_callback(wcan_recv_callback);
     if (!transceiver->init()) {
-        ESP_LOGE(TAG, "Failed to initialize Transceiver");
+        ESP_LOGE("SENSOR_APP", "Failed to initialize Transceiver");
         return false;
     }
 
     app.transceiver = std::move(transceiver);
-    if (!start_sensor_timer(app)) {
-        return false;
-    }
-
     return true;
 }
 
 bool SetupReceiver(AppContext &app)
 {
-    static const char *TAG = "RECEIVER_APP";
-
     std::vector<uint32_t> rx_ids;
     if (app.config.receiver_filter_enabled) {
-        ESP_LOGI(TAG, "Setting up RECEIVER mode - active filter with %u CAN ID(s)",
-                 static_cast<unsigned>(app.config.receiver_filter_count));
         for (size_t i = 0; i < app.config.receiver_filter_count; ++i) {
             rx_ids.push_back(app.config.receiver_filter_ids[i]);
         }
-    } else {
-        ESP_LOGI(TAG, "Setting up RECEIVER mode - accepting all CAN IDs");
     }
 
     auto transceiver = std::make_unique<wcan::Transceiver>(std::move(rx_ids), std::vector<uint32_t>{}, 0, app.config.receiver_filter_enabled);
     transceiver->set_recv_callback(wcan_recv_callback);
     if (!transceiver->init()) {
-        ESP_LOGE(TAG, "Failed to initialize Transceiver");
+        ESP_LOGE("RECEIVER_APP", "Failed to initialize Transceiver");
         return false;
     }
 
@@ -226,21 +179,71 @@ bool SetupReceiver(AppContext &app)
     return true;
 }
 
+static uint32_t StopDrainTimeoutMs(const ConfigContext& config)
+{
+    return std::max<uint32_t>(1, std::min<uint32_t>(1000, config.host_wait_time_ms / 2));
+}
+
+static void PrintSensorEnd(const AppContext& app)
+{
+    if (app.config.role != runtime_config::Role::kSensor) {
+        return;
+    }
+
+    const uint32_t generated_count = app.generated_data_point;
+    const double avg_hz = (static_cast<double>(generated_count) * 1000000.0) / static_cast<double>(app.test_duration_ms * 1000.0);
+
+    if (generated_count == 0) {
+        std::printf("WCAN_SENSOR_END generated=none avg_hz=0.00\n");
+    } else {
+        std::printf("WCAN_SENSOR_END generated=%lu avg_hz=%.2f\n",
+                    static_cast<unsigned long>(generated_count - 1), avg_hz);
+    }
+    std::fflush(stdout);
+}
+
+static void RunTimedTest(AppContext& app)
+{
+    runtime_config::WaitForTestStart();
+    start_app_stats();
+    int64_t test_start_us = esp_timer_get_time();
+
+    if (app.config.role == runtime_config::Role::kSensor && !start_sensor_timer(app)) {
+        std::printf("WCAN_TEST_ABORT role=sensor reason=sensor-timer\n");
+        return;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(app.config.test_duration_ms));
+    int64_t test_end_us = esp_timer_get_time();
+    app.test_duration_ms = static_cast<uint64_t>(test_end_us - test_start_us) / 1000;
+
+    stop_sensor_timer(app);
+    if (app.transceiver) {
+        app.transceiver->stop(StopDrainTimeoutMs(app.config));
+    }
+
+    PrintSensorEnd(app);
+    if (app.config.role == runtime_config::Role::kReceiver) {
+        app_stats_detail::PrintRxRanges();
+    }
+    app_stats_detail::PrintMeasures();
+    std::printf("WCAN_TEST_END role=%s\n", runtime_config::RoleName(app.config.role));
+    std::fflush(stdout);
+}
+
 extern "C" void app_main(void)
 {
-#ifdef MEASURE_INSTR
-    ESP_LOGI("BOOT_TS", "us=%lld", esp_timer_get_time());
-#endif
-
     s_app.config = runtime_config::WaitForBootConfig();
+
     if (s_app.config.role == runtime_config::Role::kIdle) {
-        ESP_LOGI("MAIN", "IDLE mode - stopping");
+        std::printf("WCAN_TEST_READY role=%s\n", runtime_config::RoleName(s_app.config.role));
+        std::fflush(stdout);
+        RunTimedTest(s_app);
         return;
     }
 
     init_nvs();
     init_wifi();
-    log_mac();
 
     bool setup_ok = false;
     if (s_app.config.role == runtime_config::Role::kSensor) {
@@ -250,9 +253,12 @@ extern "C" void app_main(void)
     }
 
     if (!setup_ok) {
-        ESP_LOGE("MAIN", "Application setup failed");
+        std::printf("WCAN_TEST_ABORT role=%s reason=setup\n", runtime_config::RoleName(s_app.config.role));
+        std::fflush(stdout);
         return;
     }
 
-    start_app_stats();
+    std::printf("WCAN_TEST_READY role=%s\n", runtime_config::RoleName(s_app.config.role));
+    std::fflush(stdout);
+    RunTimedTest(s_app);
 }

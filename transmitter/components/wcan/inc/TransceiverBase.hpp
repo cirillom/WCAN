@@ -38,6 +38,7 @@ public:
                     bool filtering_enabled = false);
 
     bool init();
+    void stop(uint32_t timeout_ms);
 
     using RecvCallback = std::function<void(const Packet&)>;
     void set_recv_callback(RecvCallback callback) { _recv_callback = std::move(callback); }
@@ -49,12 +50,17 @@ public:
     const std::vector<CANId_t>& get_tx_can_ids() const { return _tx_can_ids; }
 
 protected:
+    bool is_stopping() const { return _stopping; }
+
     // --- Shared RTOS Resources ---
     QueueHandle_t _send_queue = nullptr;
     QueueHandle_t _recv_queue = nullptr;
     QueueHandle_t _tx_result_queue = nullptr;
+    TaskHandle_t _send_task_handle = nullptr;
+    TaskHandle_t _recv_task_handle = nullptr;
     std::unordered_map<CANId_t, QueueHandle_t> _can_data_queues;
     std::unordered_map<CANId_t, TaskHandle_t> _batch_task_handles;
+    std::unordered_map<CANId_t, bool> _batch_task_done;
     std::unordered_map<CANId_t, uint32_t> _pending_ack_seq_ids;
 
     // --- Components ---
@@ -66,6 +72,9 @@ protected:
     std::vector<CANId_t> _tx_can_ids;
     uint32_t _linger_ms;
     bool _filtering_enabled = false;
+    volatile bool _stopping = false;
+    volatile bool _send_task_done = false;
+    volatile bool _recv_task_done = false;
 
     // --- The Strategy Contract ---
     /**
@@ -98,6 +107,8 @@ protected:
 
 private:
     bool should_accept(CANId_t can_id) const;
+    bool queues_drained() const;
+    void delete_queues();
 
     // Task Wrappers
     static void send_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->send_processing_task(); }

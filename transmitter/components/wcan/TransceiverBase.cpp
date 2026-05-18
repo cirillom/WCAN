@@ -17,16 +17,8 @@ static const char* TAG = "WCAN_BASE";
 TransceiverBase* TransceiverBase::s_instance = nullptr;
 
 TransceiverBase::~TransceiverBase() {
-    if (_send_queue) vQueueDelete(_send_queue);
-    if (_recv_queue) vQueueDelete(_recv_queue);
-    for (auto &p : _can_data_queues) if (p.second) vQueueDelete(p.second);
-    if (_tx_result_queue) vQueueDelete(_tx_result_queue);
-    
-    if (s_instance == this) {
-        esp_now_unregister_recv_cb();
-        esp_now_unregister_send_cb();
-        s_instance = nullptr;
-    }
+    stop(100);
+    delete_queues();
 }
 
 TransceiverBase::TransceiverBase(std::vector<uint32_t> rx_can_ids, std::vector<uint32_t> tx_can_ids, uint32_t linger_ms, bool filtering_enabled)
@@ -51,6 +43,7 @@ bool TransceiverBase::init() {
             if (!q) return false;
             _can_data_queues.emplace(_tx_can_ids[i], q);
             _batch_task_handles.emplace(_tx_can_ids[i], (TaskHandle_t)nullptr);
+            _batch_task_done.emplace(_tx_can_ids[i], false);
             _pending_ack_seq_ids.emplace(_tx_can_ids[i], NO_PENDING_ACK_SEQUENCE_ID);
         }
     }
@@ -64,8 +57,9 @@ bool TransceiverBase::init() {
 }
 
 bool TransceiverBase::send_data(CANId_t can_id, DataPoint_t data) {
+    if (_stopping) return false;
     auto it = _can_data_queues.find(can_id);
-    if (it == _can_data_queues.end()) return false;
+    if (it == _can_data_queues.end() || it->second == nullptr) return false;
     return xQueueSend(it->second, &data, 0) == pdTRUE;
 }
 
@@ -80,10 +74,13 @@ bool TransceiverBase::setup_esp_now() {
 }
 
 void TransceiverBase::start_tasks() {
-    xTaskCreate(send_task_wrapper, "wcan_send", 4096, this, SEND_PROCESSING_TASK_PRIORITY, nullptr);
-    xTaskCreate(recv_task_wrapper, "wcan_recv", 4096, this, RECV_PROCESSING_TASK_PRIORITY, nullptr);
+    _send_task_done = false;
+    _recv_task_done = false;
+    xTaskCreate(send_task_wrapper, "wcan_send", 4096, this, SEND_PROCESSING_TASK_PRIORITY, &_send_task_handle);
+    xTaskCreate(recv_task_wrapper, "wcan_recv", 4096, this, RECV_PROCESSING_TASK_PRIORITY, &_recv_task_handle);
 
     for (size_t i = 0; i < _tx_can_ids.size(); i++) {
+        _batch_task_done[_tx_can_ids[i]] = false;
         auto* ctx = new std::pair<TransceiverBase*, CANId_t>(this, _tx_can_ids[i]);
         char name[32]; std::snprintf(name, sizeof(name), "wcan_batch_%lu", (unsigned long)_tx_can_ids[i]);
         xTaskCreate(batch_task_wrapper, name, 4096, ctx, BATCH_PROCESSING_TASK_PRIORITY, &(_batch_task_handles[_tx_can_ids[i]]));
@@ -92,8 +89,18 @@ void TransceiverBase::start_tasks() {
 
 void TransceiverBase::send_processing_task() {
     while (true) {
+        bool batches_done = true;
+        for (const auto& entry : _batch_task_done) {
+            if (!entry.second) {
+                batches_done = false;
+                break;
+            }
+        }
+        if (_stopping && batches_done && _recv_task_done && (_send_queue == nullptr || uxQueueMessagesWaiting(_send_queue) == 0)) {
+            break;
+        }
         Packet* raw_pkt_ptr = nullptr;
-        if (xQueueReceive(_send_queue, &raw_pkt_ptr, portMAX_DELAY) == pdTRUE) {
+        if (_send_queue != nullptr && xQueueReceive(_send_queue, &raw_pkt_ptr, pdMS_TO_TICKS(10)) == pdTRUE) {
             std::unique_ptr<Packet> pkt(raw_pkt_ptr);
             auto encoded = pkt->encode();
             if (!encoded) continue;
@@ -131,12 +138,26 @@ void TransceiverBase::send_processing_task() {
             }
         }
     }
+    _send_task_done = true;
+    vTaskDelete(nullptr);
 }
 
 void TransceiverBase::recv_processing_task() {
     while (true) {
+        bool batches_done = true;
+        for (const auto& entry : _batch_task_done) {
+            if (!entry.second) {
+                batches_done = false;
+                break;
+            }
+        }
+        const bool send_empty = _send_queue == nullptr || uxQueueMessagesWaiting(_send_queue) == 0;
+        const bool recv_empty = _recv_queue == nullptr || uxQueueMessagesWaiting(_recv_queue) == 0;
+        if (_stopping && batches_done && send_empty && recv_empty) {
+            break;
+        }
         EspNowPacket* raw_pkt_ptr = nullptr;
-        if (xQueueReceive(_recv_queue, &raw_pkt_ptr, portMAX_DELAY) == pdTRUE) {
+        if (_recv_queue != nullptr && xQueueReceive(_recv_queue, &raw_pkt_ptr, pdMS_TO_TICKS(10)) == pdTRUE) {
             std::unique_ptr<EspNowPacket> raw_pkt(raw_pkt_ptr);
             auto pkt_opt = Packet::from_payload(raw_pkt->src_mac, raw_pkt->payload, raw_pkt->payload_len, raw_pkt->des_mac);
 
@@ -154,6 +175,8 @@ void TransceiverBase::recv_processing_task() {
             }
         }
     }
+    _recv_task_done = true;
+    vTaskDelete(nullptr);
 }
 
 void TransceiverBase::batch_processing_task(CANId_t can_id) {
@@ -162,8 +185,11 @@ void TransceiverBase::batch_processing_task(CANId_t can_id) {
     QueueHandle_t q = it->second;
 
     while (true) {
+        if (_stopping && uxQueueMessagesWaiting(q) == 0) {
+            break;
+        }
         DataPoint_t data;
-        if (xQueueReceive(q, &data, portMAX_DELAY) != pdTRUE) {
+        if (xQueueReceive(q, &data, pdMS_TO_TICKS(10)) != pdTRUE) {
             continue;
         }
 
@@ -177,7 +203,8 @@ void TransceiverBase::batch_processing_task(CANId_t can_id) {
             const TickType_t now = xTaskGetTickCount();
             if (static_cast<int32_t>(deadline - now) <= 0) break;
 
-            if (xQueueReceive(q, &data, deadline - now) == pdTRUE) {
+            const TickType_t wait_ticks = _stopping ? 0 : (deadline - now);
+            if (xQueueReceive(q, &data, wait_ticks) == pdTRUE) {
                 if (!pkt.add_data_point(data)) {
                     ESP_LOGE(TAG, "Failed to add data point to packet");
                     break;
@@ -189,10 +216,12 @@ void TransceiverBase::batch_processing_task(CANId_t can_id) {
         // Hand the constructed batch to the Strategy to handle retries/dispatch
         dispatch_packet(pkt, can_id);
     }
+    _batch_task_done[can_id] = true;
+    vTaskDelete(nullptr);
 }
 
 void TransceiverBase::esp_now_send_cb(const uint8_t *mac, esp_now_send_status_t status) {
-    if (!s_instance) return;
+    if (!s_instance || s_instance->_tx_result_queue == nullptr) return;
     const bool success = status == ESP_NOW_SEND_SUCCESS;
     s_instance->on_hardware_tx_status(mac, success);
     xQueueSend(s_instance->_tx_result_queue, &success, 0);
@@ -202,6 +231,7 @@ void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uin
     if (!s_instance || !info->src_addr || !data || len < Packet::HEADER_SIZE) return;
 
     CANId_t can_id = EspNowPacket::extract_can_id(data);
+    if (s_instance->_stopping && can_id != CONTROL_ID) return;
 
     if (!s_instance->should_accept(can_id)) return;
 
@@ -216,6 +246,88 @@ void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uin
     if (xQueueSend(s_instance->_recv_queue, &raw_pkt, 0) != pdTRUE) {
         delete raw_pkt;
     }
+}
+
+bool TransceiverBase::queues_drained() const {
+    if (_send_queue != nullptr && uxQueueMessagesWaiting(_send_queue) > 0) return false;
+    if (_recv_queue != nullptr && uxQueueMessagesWaiting(_recv_queue) > 0) return false;
+    for (const auto& entry : _can_data_queues) {
+        if (entry.second != nullptr && uxQueueMessagesWaiting(entry.second) > 0) return false;
+    }
+    if (!_send_task_done || !_recv_task_done) return false;
+    for (const auto& entry : _batch_task_done) {
+        if (!entry.second) return false;
+    }
+    return true;
+}
+
+void TransceiverBase::delete_queues() {
+    if (_send_queue) {
+        Packet* pkt = nullptr;
+        while (xQueueReceive(_send_queue, &pkt, 0) == pdTRUE) {
+            delete pkt;
+        }
+        vQueueDelete(_send_queue);
+        _send_queue = nullptr;
+    }
+    if (_recv_queue) {
+        EspNowPacket* pkt = nullptr;
+        while (xQueueReceive(_recv_queue, &pkt, 0) == pdTRUE) {
+            delete pkt;
+        }
+        vQueueDelete(_recv_queue);
+        _recv_queue = nullptr;
+    }
+    for (auto& entry : _can_data_queues) {
+        if (entry.second) {
+            vQueueDelete(entry.second);
+            entry.second = nullptr;
+        }
+    }
+    if (_tx_result_queue) {
+        vQueueDelete(_tx_result_queue);
+        _tx_result_queue = nullptr;
+    }
+}
+
+void TransceiverBase::stop(uint32_t timeout_ms) {
+    if (_stopping && _send_queue == nullptr && _recv_queue == nullptr) {
+        return;
+    }
+
+    _stopping = true;
+    _recv_callback = nullptr;
+
+    const TickType_t start = xTaskGetTickCount();
+    const TickType_t timeout_ticks = pdMS_TO_TICKS(timeout_ms);
+    while (!queues_drained()) {
+        if (timeout_ms == 0 || static_cast<int32_t>(xTaskGetTickCount() - start) >= static_cast<int32_t>(timeout_ticks)) {
+            break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+
+    if (!_send_task_done && _send_task_handle) {
+        vTaskDelete(_send_task_handle);
+        _send_task_done = true;
+    }
+    if (!_recv_task_done && _recv_task_handle) {
+        vTaskDelete(_recv_task_handle);
+        _recv_task_done = true;
+    }
+    for (auto& entry : _batch_task_handles) {
+        if (!_batch_task_done[entry.first] && entry.second) {
+            vTaskDelete(entry.second);
+            _batch_task_done[entry.first] = true;
+        }
+    }
+
+    if (s_instance == this) {
+        esp_now_unregister_recv_cb();
+        esp_now_unregister_send_cb();
+        s_instance = nullptr;
+    }
+    delete_queues();
 }
 
 bool TransceiverBase::should_accept(CANId_t can_id) const {

@@ -29,16 +29,8 @@ void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
         // Create a new packet on the heap to be owned by the send_task
         Packet* to_send = new Packet(pkt);
 
-        std::printf("P(%i):%lu:%lx:%lu:%lu:%lu:%u\n",
-                    i + 1,
-                    (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-                    static_cast<unsigned long>(to_send->get_can_id()),
-                    static_cast<unsigned long>(to_send->get_sequence_id()),
-                    static_cast<unsigned long>(to_send->get_data().front()),
-                    static_cast<unsigned long>(to_send->get_data().back()),
-                    (unsigned int)to_send->get_data().size());
-        
-        if (xQueueSend(_send_queue, &to_send, portMAX_DELAY) != pdTRUE) {
+        const TickType_t send_wait = is_stopping() ? 0 : portMAX_DELAY;
+        if (_send_queue == nullptr || xQueueSend(_send_queue, &to_send, send_wait) != pdTRUE) {
             delete to_send;
             _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
             ESP_LOGE(TAG, "Failed to push packet to send queue");
@@ -105,7 +97,7 @@ void Transceiver::on_data_packet(const Packet& packet) {
     ack_pkt.add_data_point(mac_part2);
 
     Packet* to_send = new Packet(ack_pkt);
-    if (xQueueSend(_send_queue, &to_send, portMAX_DELAY) != pdTRUE) {
+    if (_send_queue == nullptr || xQueueSend(_send_queue, &to_send, is_stopping() ? 0 : portMAX_DELAY) != pdTRUE) {
         delete to_send;
         ESP_LOGE(TAG, "Failed to send ACK");
     }

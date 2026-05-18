@@ -45,9 +45,13 @@ struct ConfigContext {
     static constexpr uint32_t kDefaultSensorBaseCanId = 0x100;
     static constexpr size_t kDefaultSensorCanIdCount = 1;
     static constexpr uint32_t kDefaultWcanLingerMs = 100;
+    static constexpr uint32_t kDefaultTestDurationMs = 30000;
+    static constexpr uint32_t kDefaultHostWaitTimeMs = 5000;
     static constexpr int kMinSensorHz = 1;
     static constexpr int kMaxSensorHz = 10000;
     static constexpr uint32_t kMaxWcanLingerMs = 60000;
+    static constexpr uint32_t kMaxTestDurationMs = 3600000;
+    static constexpr uint32_t kMaxHostWaitTimeMs = 60000;
     static constexpr int kProtocolVersion = 1;
     static constexpr uint32_t kMaxCanId = 0x1FFFFFFF;
     static constexpr uint8_t kEspNowChannel = 1;
@@ -57,6 +61,8 @@ struct ConfigContext {
     uint32_t sensor_base_can_id = kDefaultSensorBaseCanId;
     size_t sensor_can_id_count = kDefaultSensorCanIdCount;
     uint32_t linger_ms = kDefaultWcanLingerMs;
+    uint32_t test_duration_ms = kDefaultTestDurationMs;
+    uint32_t host_wait_time_ms = kDefaultHostWaitTimeMs;
     bool receiver_filter_enabled = false;
     std::array<uint32_t, kMaxCanIds> receiver_filter_ids = {};
     size_t receiver_filter_count = 0;
@@ -276,6 +282,13 @@ inline ParseResult ValidateConfig(const ConfigContext &config)
         }
     }
 
+    if (config.test_duration_ms == 0 || config.test_duration_ms > ConfigContext::kMaxTestDurationMs) {
+        return {false, "test-duration-range"};
+    }
+    if (config.host_wait_time_ms == 0 || config.host_wait_time_ms > ConfigContext::kMaxHostWaitTimeMs) {
+        return {false, "host-wait-range"};
+    }
+
     if (config.role == Role::kReceiver && config.receiver_filter_count > ConfigContext::kMaxCanIds) {
         return {false, "receiver-filter-count-range"};
     }
@@ -341,6 +354,14 @@ inline ParseResult ParseLine(char *line, ConfigContext *config)
             if (!ParseUint32(value, &config->linger_ms)) {
                 return {false, "bad-linger"};
             }
+        } else if (StringEquals(key, "test_duration_ms")) {
+            if (!ParseUint32(value, &config->test_duration_ms)) {
+                return {false, "bad-test-duration"};
+            }
+        } else if (StringEquals(key, "host_wait_time_ms")) {
+            if (!ParseUint32(value, &config->host_wait_time_ms)) {
+                return {false, "bad-host-wait"};
+            }
         } else if (StringEquals(key, "filter") || StringEquals(key, "filters")) {
             if (!ParseFilterList(value, config)) {
                 return {false, "bad-filter"};
@@ -362,27 +383,12 @@ inline ParseResult ParseLine(char *line, ConfigContext *config)
     return ValidateConfig(*config);
 }
 
-inline void LogConfig(const ConfigContext &config)
-{
-    ESP_LOGI(TAG, "accepted role=%s transport=%s", RoleName(config.role), config.transport);
-    if (config.role == Role::kSensor) {
-        ESP_LOGI(TAG, "sensor base=0x%lx count=%u hz=%d linger=%lu",
-                 static_cast<unsigned long>(config.sensor_base_can_id),
-                 static_cast<unsigned>(config.sensor_can_id_count), config.sensor_hz,
-                 static_cast<unsigned long>(config.linger_ms));
-    } else if (config.role == Role::kReceiver) {
-        ESP_LOGI(TAG, "receiver filter=%s count=%u",
-                 config.receiver_filter_enabled ? "active" : "accept-all",
-                 static_cast<unsigned>(config.receiver_filter_count));
-    }
-}
 
 } // namespace config_detail
 
 inline ConfigContext WaitForBootConfig()
 {
     config_detail::InitUartInput();
-    ESP_LOGI(config_detail::TAG, "waiting for UART config");
     config_detail::PrintHostLine("WCAN_CFG_WAIT v=1");
 
     while (true) {
@@ -404,9 +410,21 @@ inline ConfigContext WaitForBootConfig()
             continue;
         }
 
-        config_detail::LogConfig(config);
         config_detail::PrintHostLine("WCAN_CFG_ACK");
         return config;
+    }
+}
+
+inline void WaitForTestStart()
+{
+    while (true) {
+        char line[config_detail::kLineBufferSize] = {};
+        if (!config_detail::ReadConfigLine(line, sizeof(line))) {
+            continue;
+        }
+        if (config_detail::StringEquals(line, "WCAN_TEST_START")) {
+            return;
+        }
     }
 }
 
