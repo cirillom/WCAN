@@ -23,11 +23,7 @@
 #include "app_stats.hpp"
 #include "wcan.hpp"
 
-#ifdef MEASURE_INSTR
 #include "esp_timer.h"
-#endif
-
-#define READ_DATA_TASK_PRIORITY 10
 
 #define ESPNOW_WIFI_MODE WIFI_MODE_STA
 #define ESPNOW_MAC_TYPE ESP_MAC_WIFI_STA
@@ -89,40 +85,60 @@ static void log_mac()
 struct AppContext {
     ConfigContext config;
     std::unique_ptr<wcan::Transceiver> transceiver;
+    esp_timer_handle_t sensor_timer = nullptr;
+    uint32_t generated_data_point = 0;
 };
 
 static AppContext s_app;
 
-void read_data_task(void *pv_parameter)
+void sensor_timer_callback(void *pv_parameter)
 {
-    static const char *TAG = "read_data_task";
+    static const char *TAG = "sensor_timer";
     auto* app = static_cast<AppContext*>(pv_parameter);
     if (!app->transceiver) {
         ESP_LOGE(TAG, "Transceiver not initialized");
-        vTaskDelete(nullptr);
+        return;
     }
-    uint32_t counter = 0;
 
-    ESP_LOGI(TAG, "read_data_task started at %d Hz", app->config.sensor_hz);
-
-    const int effective_hz = std::max(1, app->config.sensor_hz);
-    const uint32_t period_ms = 1000 / effective_hz;
-    TickType_t last_wake_time = xTaskGetTickCount();
-
-    while (true) {
-        for (uint32_t can_id : app->transceiver->get_tx_can_ids()) {
-            if (!app->transceiver->send_data(can_id, counter)) {
-                ESP_LOGV(TAG, "[0x%lx] Send queue full, dropping counter=%lu",
-                            static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
-            } else {
-                std::printf("S:%lu:%lx:%lu\n", (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-                            static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
-            }
+    const uint32_t counter = app->generated_data_point++;
+    for (uint32_t can_id : app->transceiver->get_tx_can_ids()) {
+        if (app->transceiver->send_data(can_id, counter)) {
+            std::printf("S:%lu:%lx:%lu\n", (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
+                        static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
+        }else{
+            std::printf("S(FAIL):%lu:%lx:%lu\n", (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
+                        static_cast<unsigned long>(can_id), static_cast<unsigned long>(counter));
         }
-
-        counter++;
-        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(period_ms));
     }
+}
+
+bool start_sensor_timer(AppContext &app)
+{
+    static const char *TAG = "sensor_timer";
+    const int effective_hz = std::max(1, app.config.sensor_hz);
+    const uint64_t period_us = std::max<uint64_t>(1, 1000000ULL / static_cast<uint64_t>(effective_hz));
+    esp_timer_create_args_t timer_args = {};
+    timer_args.callback = sensor_timer_callback;
+    timer_args.arg = &app;
+    timer_args.dispatch_method = ESP_TIMER_TASK;
+    timer_args.name = "sensor_timer";
+    timer_args.skip_unhandled_events = false;
+
+    esp_err_t err = esp_timer_create(&timer_args, &app.sensor_timer);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to create sensor timer: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    err = esp_timer_start_periodic(app.sensor_timer, period_us);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start sensor timer: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    ESP_LOGI(TAG, "sensor_timer started at %d Hz (period=%llu us)",
+             effective_hz, static_cast<unsigned long long>(period_us));
+    return true;
 }
 
 void wcan_recv_callback(const wcan::Packet &recv_packet)
@@ -177,7 +193,9 @@ bool SetupSensor(AppContext &app)
     }
 
     app.transceiver = std::move(transceiver);
-    xTaskCreate(read_data_task, "read_data_task", 4096, &app, READ_DATA_TASK_PRIORITY, nullptr);
+    if (!start_sensor_timer(app)) {
+        return false;
+    }
 
     return true;
 }
