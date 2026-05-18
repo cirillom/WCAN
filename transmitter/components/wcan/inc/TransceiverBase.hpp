@@ -8,6 +8,8 @@
 #include <memory>
 #include <optional>
 #include <vector>
+#include <string>
+#include <unordered_map>
 
 #include "esp_log.h"
 #include "esp_mac.h"
@@ -46,17 +48,14 @@ public:
     /** @brief Returns the configured TX CAN IDs. */
     const std::vector<CANId_t>& get_tx_can_ids() const { return _tx_can_ids; }
 
-    /** @brief Helper to find the index of a CAN ID in the TX list. */
-    size_t get_can_queue_index(CANId_t can_id) const;
-
 protected:
     // --- Shared RTOS Resources ---
     QueueHandle_t _send_queue = nullptr;
     QueueHandle_t _recv_queue = nullptr;
-    std::vector<QueueHandle_t> _can_data_queues;
     QueueHandle_t _tx_result_queue = nullptr;
-    std::vector<TaskHandle_t> _batch_task_handles;
-    std::vector<uint32_t> _pending_ack_seq_ids;
+    std::unordered_map<CANId_t, QueueHandle_t> _can_data_queues;
+    std::unordered_map<CANId_t, TaskHandle_t> _batch_task_handles;
+    std::unordered_map<CANId_t, uint32_t> _pending_ack_seq_ids;
 
     // --- Components ---
     Packet::Deduplicator _deduplicator;
@@ -79,7 +78,7 @@ protected:
      * @brief High-level batch dispatch logic (e.g. Broadcast retries).
      * Subclass should push to _send_queue and block if necessary.
      */
-    virtual void dispatch_packet(const Packet& pkt, size_t queue_index) = 0;
+    virtual void dispatch_packet(const Packet& pkt, CANId_t can_id) = 0;
 
     /** @brief Called when a CONTROL_ID packet arrives. */
     virtual void on_control_packet(const Packet& packet) = 0;
@@ -104,14 +103,14 @@ private:
     static void send_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->send_processing_task(); }
     static void recv_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->recv_processing_task(); }
     static void batch_task_wrapper(void* param) {
-        auto* ctx = static_cast<std::pair<TransceiverBase*, size_t>*>(param);
+        auto* ctx = static_cast<std::pair<TransceiverBase*, CANId_t>*>(param);
         ctx->first->batch_processing_task(ctx->second);
         delete ctx;
     }
 
     void send_processing_task();
     void recv_processing_task();
-    void batch_processing_task(size_t queue_index);
+    void batch_processing_task(CANId_t can_id);
 
     static TransceiverBase* s_instance;
     static void esp_now_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);

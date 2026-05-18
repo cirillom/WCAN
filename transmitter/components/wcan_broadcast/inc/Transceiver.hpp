@@ -16,7 +16,7 @@ protected:
      * @brief Pushes to send queue and waits for an application-level ACK. 
      * Retries up to 10 times.
      */
-    void dispatch_packet(const Packet& pkt, size_t queue_index) override;
+    void dispatch_packet(const Packet& pkt, CANId_t can_id) override;
 
     /** @brief Handles incoming ACK packets. */
     void on_control_packet(const Packet& packet) override;

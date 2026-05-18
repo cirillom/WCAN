@@ -21,8 +21,8 @@ const uint8_t* Transceiver::prepare_send_mac(const Packet& packet) {
     return Packet::BROADCAST_MAC.data();
 }
 
-void Transceiver::dispatch_packet(const Packet& pkt, size_t queue_index) {
-    _pending_ack_seq_ids[queue_index] = pkt.get_sequence_id();
+void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
+    _pending_ack_seq_ids[can_id] = pkt.get_sequence_id();
     (void)ulTaskNotifyTake(pdTRUE, 0);
 
     for (int i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
@@ -40,20 +40,20 @@ void Transceiver::dispatch_packet(const Packet& pkt, size_t queue_index) {
         
         if (xQueueSend(_send_queue, &to_send, portMAX_DELAY) != pdTRUE) {
             delete to_send;
-            _pending_ack_seq_ids[queue_index] = NO_PENDING_ACK_SEQUENCE_ID;
+            _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
             ESP_LOGE(TAG, "Failed to push packet to send queue");
             return;
         }
 
         // Wait for ACK semaphore
         if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(PACKET_DELIVERY_TIMEOUT_MS)) > 0) {
-            _pending_ack_seq_ids[queue_index] = NO_PENDING_ACK_SEQUENCE_ID;
+            _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
             // ACK received!
             return;
         }
     }
 
-    _pending_ack_seq_ids[queue_index] = NO_PENDING_ACK_SEQUENCE_ID;
+    _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
     
     std::printf("P(FAIL):%lu:%lx:%lu:%lu:%lu:%u\n",
                 (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
@@ -71,10 +71,10 @@ void Transceiver::on_control_packet(const Packet& packet) {
     uint32_t target_can_id = data[0];
     uint32_t target_seq_id = data[1]; // We could use this for stricter matching if needed
 
-    size_t idx = get_can_queue_index(target_can_id);
-    if (idx != SIZE_MAX && _batch_task_handles[idx] != nullptr &&
-        _pending_ack_seq_ids[idx] == target_seq_id) {
-        xTaskNotifyGive(_batch_task_handles[idx]);
+    auto it = _batch_task_handles.find(target_can_id);
+    if (it != _batch_task_handles.end() && it->second != nullptr &&
+        _pending_ack_seq_ids[target_can_id] == target_seq_id) {
+        xTaskNotifyGive(it->second);
     }
 }
 

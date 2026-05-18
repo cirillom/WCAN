@@ -19,7 +19,7 @@ TransceiverBase* TransceiverBase::s_instance = nullptr;
 TransceiverBase::~TransceiverBase() {
     if (_send_queue) vQueueDelete(_send_queue);
     if (_recv_queue) vQueueDelete(_recv_queue);
-    for (QueueHandle_t q : _can_data_queues) if (q) vQueueDelete(q);
+    for (auto &p : _can_data_queues) if (p.second) vQueueDelete(p.second);
     if (_tx_result_queue) vQueueDelete(_tx_result_queue);
     
     if (s_instance == this) {
@@ -46,12 +46,12 @@ bool TransceiverBase::init() {
 
     const size_t tx_count = _tx_can_ids.size();
     if (tx_count > 0) {
-        _can_data_queues.resize(tx_count);
-        _batch_task_handles.resize(tx_count);
-        _pending_ack_seq_ids.resize(tx_count, NO_PENDING_ACK_SEQUENCE_ID);
         for (size_t i = 0; i < tx_count; i++) {
-            _can_data_queues[i] = xQueueCreate(QUEUE_SIZE, sizeof(DataPoint_t));
-            if (!_can_data_queues[i]) return false;
+            QueueHandle_t q = xQueueCreate(QUEUE_SIZE, sizeof(DataPoint_t));
+            if (!q) return false;
+            _can_data_queues.emplace(_tx_can_ids[i], q);
+            _batch_task_handles.emplace(_tx_can_ids[i], (TaskHandle_t)nullptr);
+            _pending_ack_seq_ids.emplace(_tx_can_ids[i], NO_PENDING_ACK_SEQUENCE_ID);
         }
     }
 
@@ -64,9 +64,9 @@ bool TransceiverBase::init() {
 }
 
 bool TransceiverBase::send_data(CANId_t can_id, DataPoint_t data) {
-    size_t idx = get_can_queue_index(can_id);
-    if (idx == SIZE_MAX) return false;
-    return xQueueSend(_can_data_queues[idx], &data, 0) == pdTRUE;
+    auto it = _can_data_queues.find(can_id);
+    if (it == _can_data_queues.end()) return false;
+    return xQueueSend(it->second, &data, 0) == pdTRUE;
 }
 
 bool TransceiverBase::setup_esp_now() {
@@ -84,9 +84,9 @@ void TransceiverBase::start_tasks() {
     xTaskCreate(recv_task_wrapper, "wcan_recv", 4096, this, RECV_PROCESSING_TASK_PRIORITY, nullptr);
 
     for (size_t i = 0; i < _tx_can_ids.size(); i++) {
-        auto* ctx = new std::pair<TransceiverBase*, size_t>(this, i);
-        char name[22]; std::snprintf(name, sizeof(name), "wcan_batch_%u", (unsigned)i);
-        xTaskCreate(batch_task_wrapper, name, 4096, ctx, BATCH_PROCESSING_TASK_PRIORITY, &_batch_task_handles[i]);
+        auto* ctx = new std::pair<TransceiverBase*, CANId_t>(this, _tx_can_ids[i]);
+        char name[32]; std::snprintf(name, sizeof(name), "wcan_batch_%lu", (unsigned long)_tx_can_ids[i]);
+        xTaskCreate(batch_task_wrapper, name, 4096, ctx, BATCH_PROCESSING_TASK_PRIORITY, &(_batch_task_handles[_tx_can_ids[i]]));
     }
 }
 
@@ -156,9 +156,10 @@ void TransceiverBase::recv_processing_task() {
     }
 }
 
-void TransceiverBase::batch_processing_task(size_t queue_index) {
-    const uint32_t can_id = _tx_can_ids[queue_index];
-    QueueHandle_t q = _can_data_queues[queue_index];
+void TransceiverBase::batch_processing_task(CANId_t can_id) {
+    auto it = _can_data_queues.find(can_id);
+    if (it == _can_data_queues.end()) return;
+    QueueHandle_t q = it->second;
 
     while (true) {
         DataPoint_t data;
@@ -186,7 +187,7 @@ void TransceiverBase::batch_processing_task(size_t queue_index) {
             }
         }
         // Hand the constructed batch to the Strategy to handle retries/dispatch
-        dispatch_packet(pkt, queue_index);
+        dispatch_packet(pkt, can_id);
     }
 }
 
@@ -215,11 +216,6 @@ void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uin
     if (xQueueSend(s_instance->_recv_queue, &raw_pkt, 0) != pdTRUE) {
         delete raw_pkt;
     }
-}
-
-size_t TransceiverBase::get_can_queue_index(uint32_t id) const {
-    for (size_t i = 0; i < _tx_can_ids.size(); i++) if (_tx_can_ids[i] == id) return i;
-    return SIZE_MAX;
 }
 
 bool TransceiverBase::should_accept(CANId_t can_id) const {
