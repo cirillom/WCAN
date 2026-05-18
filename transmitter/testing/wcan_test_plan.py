@@ -18,14 +18,8 @@ from wcan_test_config import (
 @dataclass(frozen=True)
 class BuildSpec:
     chip: str
-    role: str
     transport: str
     measure: bool
-    sensor_freq: int = 200
-    sensor_base_can_id: int = 0x100
-    sensor_can_id_count: int = 1
-    linger_ms: int = 100
-    receiver_filter_ids: tuple[int, ...] | None = None
 
 
 @dataclass
@@ -220,7 +214,7 @@ def choose_boards(boards: list[dict], sensors: int, receivers: int, rng: random.
 def build_specs_for_run(run: RunSpec, measure: bool) -> list[BuildSpec]:
     boards = run.sensor_boards + run.receiver_boards + run.idle_boards
     return [
-        BuildSpec(chip=board["chip"], role="RUNTIME", transport=run.transport, measure=measure)
+        BuildSpec(chip=board["chip"], transport=run.transport, measure=measure)
         for board in boards
     ]
 
@@ -315,7 +309,6 @@ def build_run_plan(
         {spec for run in runs for spec in build_specs_for_run(run, effective_measure)},
         key=lambda spec: (
             spec.chip,
-            spec.role,
             spec.transport,
             spec.measure,
         ),
@@ -349,7 +342,6 @@ def compact_run_dict(run: RunSpec) -> dict:
 def compact_build_dict(spec: BuildSpec) -> dict:
     return {
         "chip": spec.chip,
-        "role": "RUNTIME",
         "transport": spec.transport,
         "measure": spec.measure,
     }

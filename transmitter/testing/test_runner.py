@@ -154,7 +154,6 @@ def _build_plan_variants(plan, skip_build: bool, dry_run: bool) -> bool:
     for spec in tqdm(plan.build_specs, desc="  Builds", unit="build"):
         ok = build_variant(
             spec.chip,
-            "RUNTIME",
             spec.transport,
             spec.measure,
             plan.settings.project_path,
@@ -264,10 +263,15 @@ def _run_one_plan_test(root: Path, plan, run, measure: bool) -> dict:
     log_dir = _run_dir(root, run)
     _write_scenario_metadata(log_dir, run, plan.settings)
 
-    active = [(board, "SENSOR") for board in run.sensor_boards] + [
-        (board, "RECEIVER") for board in run.receiver_boards
-    ]
-    assignments = [(board, role, _assignment_options(run, board, role)) for board, role in active]
+    assignments = []
+    assignments.extend(
+        (board, "SENSOR", _assignment_options(run, board, "SENSOR"))
+        for board in run.sensor_boards
+    )
+    assignments.extend(
+        (board, "RECEIVER", _assignment_options(run, board, "RECEIVER"))
+        for board in run.receiver_boards
+    )
     assignments.extend((board, "IDLE", {}) for board in run.idle_boards)
 
     print(f"\n{'-' * 72}")
@@ -658,8 +662,7 @@ def ensure_assignment_builds(assignments: list, config: dict) -> bool:
             continue
         seen.add(key)
         if not build_variant(
-            board["chip"], "RUNTIME", config["transport"], config["measure"],
-            config["project_path"],
+            board["chip"], config["transport"], config["measure"], config["project_path"]
         ):
             return False
     return True
@@ -936,7 +939,7 @@ def run_pipeline(args, base_config, transport, results_dir_name, test_filter, fr
     # Build phase
     if scenario == "baseline" and not args.skip_build and not args.dry_run:
         if not build_needed(set(b["chip"] for b in config["boards"]),
-                            transport, config["measure"], config["project_path"], freq):
+                            transport, config["measure"], config["project_path"]):
             print(f"\n[ABORT] Build failed for transport={transport}.")
             return 0, None, 0, 0
 

@@ -169,7 +169,7 @@ bool SetupSensor(AppContext &app)
         tx_ids.push_back(app.config.sensor_base_can_id + i);
     }
 
-    auto transceiver = std::make_unique<wcan::Transceiver>(std::vector<uint32_t>{}, std::move(tx_ids), app.config.linger_ms);
+    auto transceiver = std::make_unique<wcan::Transceiver>(std::vector<uint32_t>{}, std::move(tx_ids), app.config.linger_ms, true);
     transceiver->set_recv_callback(wcan_recv_callback);
     if (!transceiver->init()) {
         ESP_LOGE(TAG, "Failed to initialize Transceiver");
@@ -197,7 +197,7 @@ bool SetupReceiver(AppContext &app)
         ESP_LOGI(TAG, "Setting up RECEIVER mode - accepting all CAN IDs");
     }
 
-    auto transceiver = std::make_unique<wcan::Transceiver>(std::move(rx_ids), std::vector<uint32_t>{}, 0);
+    auto transceiver = std::make_unique<wcan::Transceiver>(std::move(rx_ids), std::vector<uint32_t>{}, 0, app.config.receiver_filter_enabled);
     transceiver->set_recv_callback(wcan_recv_callback);
     if (!transceiver->init()) {
         ESP_LOGE(TAG, "Failed to initialize Transceiver");

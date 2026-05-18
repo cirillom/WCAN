@@ -32,7 +32,8 @@ public:
 
     TransceiverBase(std::vector<CANId_t> rx_can_ids,
                     std::vector<CANId_t> tx_can_ids,
-                    uint32_t linger_ms);
+                    uint32_t linger_ms,
+                    bool filtering_enabled = false);
 
     bool init();
 

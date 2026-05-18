@@ -3,6 +3,12 @@
 #include <cstring>
 #include <algorithm>
 
+#ifdef MEASURE_INSTR
+#include "esp_timer.h"
+extern volatile uint64_t g_airtime_total_us;
+extern volatile uint64_t g_packets_sent_total;
+#endif
+
 namespace wcan {
 
 static const char* TAG = "WCAN_BASE";
@@ -23,11 +29,11 @@ TransceiverBase::~TransceiverBase() {
     }
 }
 
-TransceiverBase::TransceiverBase(std::vector<uint32_t> rx_can_ids, std::vector<uint32_t> tx_can_ids, uint32_t linger_ms)
+TransceiverBase::TransceiverBase(std::vector<uint32_t> rx_can_ids, std::vector<uint32_t> tx_can_ids, uint32_t linger_ms, bool filtering_enabled)
     : _rx_can_ids(std::move(rx_can_ids)), 
       _tx_can_ids(std::move(tx_can_ids)), 
       _linger_ms(linger_ms),
-      _filtering_enabled(!_rx_can_ids.empty()) {}
+      _filtering_enabled(filtering_enabled) {}
 
 bool TransceiverBase::init() {
     if (s_instance != nullptr) return false;
@@ -95,10 +101,20 @@ void TransceiverBase::send_processing_task() {
             // Determine destination using the virtual hook
             const uint8_t* dest_mac = prepare_send_mac(*pkt);
             
+#ifdef MEASURE_INSTR
+            const int64_t send_start_us = esp_timer_get_time();
+#endif
             esp_err_t err = esp_now_send(dest_mac, encoded->data(), encoded->size());
             if (err == ESP_OK) {
                 // Wait for hardware callback
                 xSemaphoreTake(_radio_status_sem, pdMS_TO_TICKS(RADIO_TIMEOUT_MS));
+#ifdef MEASURE_INSTR
+                const int64_t send_end_us = esp_timer_get_time();
+                g_packets_sent_total++;
+                if (send_end_us > send_start_us) {
+                    g_airtime_total_us += static_cast<uint64_t>(send_end_us - send_start_us);
+                }
+#endif
             } else {
                 ESP_LOGE(TAG, "esp_now_send fail: %s", esp_err_to_name(err));
             }
@@ -149,7 +165,6 @@ void TransceiverBase::batch_processing_task(size_t queue_index) {
                     break;
                 }
             }
-
             // Hand the constructed batch to the Strategy to handle retries/dispatch
             dispatch_packet(pkt, queue_index); 
         }

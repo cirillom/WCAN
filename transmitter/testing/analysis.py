@@ -41,7 +41,9 @@ class SensorData:
     can_id: str
     can_ids: list = field(default_factory=list)
     generated_counters: list = field(default_factory=list)
+    generated_counters_by_can_id: dict = field(default_factory=dict)
     transport_counters: list = field(default_factory=list)
+    transport_counters_by_can_id: dict = field(default_factory=dict)
     counters: list = field(default_factory=list)
     counter_times: dict = field(default_factory=dict)
     ack_delays: dict = field(default_factory=dict)
@@ -237,6 +239,22 @@ def _receiver_received_for_sent(receiver: ReceiverData, can_id: str, sent) -> se
         last = stats.get("last_last", -1)
         return {counter for counter in sent_set if counter <= last}
     return receiver.received.get(normalized_can_id, set()) & sent_set
+
+def _sensor_generated_for_can_id(sensor: SensorData, can_id: str) -> list:
+    normalized = _normalize_can_id(can_id)
+    values = sensor.generated_counters_by_can_id.get(normalized)
+    if values is not None:
+        return sorted(values)
+    return list(sensor.generated_counters)
+
+
+def _sensor_transport_for_can_id(sensor: SensorData, can_id: str) -> list:
+    normalized = _normalize_can_id(can_id)
+    values = sensor.transport_counters_by_can_id.get(normalized)
+    if values is not None:
+        return sorted(values)
+    return list(sensor.transport_counters)
+
 
 def _receiver_observed_total(receiver: ReceiverData, allowed_can_ids=None) -> int:
     allowed = None
@@ -516,17 +534,24 @@ def parse_sensor_log(path: Path) -> SensorData:
         can_id = _normalize_can_id(can_id_raw)
 
     counter_times = {}
+    generated_by_can_id = {}
     raw_queue_push_count = 0
+    can_ids_seen = []
     for m in RE_SENSOR_COUNTER.finditer(text):
         raw_queue_push_count += 1
         # Group 1,2: old format (ts_str, counter); Group 3,4,5: new format (ms, id, counter)
         if m.group(1):
             ts = _parse_ts(m.group(1))
             counter_val = int(m.group(2))
+            counter_can_id = can_id
         else:
             ts = int(m.group(3)) / 1000.0 # Convert ms to s
+            counter_can_id = _normalize_can_id(m.group(4))
             counter_val = int(m.group(5))
         counter_times[counter_val] = ts
+        generated_by_can_id.setdefault(counter_can_id, set()).add(counter_val)
+        if counter_can_id not in can_ids_seen:
+            can_ids_seen.append(counter_can_id)
     queue_drop_counters = {int(m.group(1)) for m in RE_SENSOR_QUEUE_DROP.finditer(text)}
 
     can_proc_times = {}
@@ -534,9 +559,11 @@ def parse_sensor_log(path: Path) -> SensorData:
     sent_times = {}
     sent_times_by_can_id = {}
     sent_counter_set = set()
+    transport_by_can_id = {}
     can_proc_sample_count = 0
-    can_ids_seen = []
+    saw_can_proc = False
     for m in RE_SENSOR_CAN_PROC.finditer(text):
+        saw_can_proc = True
         ts = _parse_ts(m.group(1))
         proc_can_id = _normalize_can_id(m.group(2))
         first_counter = int(m.group(3))
@@ -547,15 +574,26 @@ def parse_sensor_log(path: Path) -> SensorData:
         packet_counters[tick] = first_counter
         for counter in range(first_counter, last_counter + 1):
             sent_counter_set.add(counter)
+            transport_by_can_id.setdefault(proc_can_id, set()).add(counter)
             sent_times[counter] = ts
             sent_times_by_can_id.setdefault(proc_can_id, {})[counter] = ts
             counter_times.setdefault(counter, ts)
+            generated_by_can_id.setdefault(proc_can_id, set()).add(counter)
         if proc_can_id not in can_ids_seen:
             can_ids_seen.append(proc_can_id)
 
+    # Current firmware emits S:<ms>:<can_id>:<counter> after send_data() succeeds.
+    # If there are no CAN_PROC logs, S: is both the generated sample and the
+    # best available proof that the sample entered WCAN transport.
+    if not saw_can_proc:
+        transport_by_can_id = {cid: set(values) for cid, values in generated_by_can_id.items()}
+        sent_counter_set = {counter for values in transport_by_can_id.values() for counter in values}
+
     counters = sorted(sent_counter_set) if sent_counter_set else sorted(counter_times.keys())
-    generated_counters = sorted(counter_times.keys())
+    generated_counters = sorted({counter for values in generated_by_can_id.values() for counter in values})
     transport_counters = sorted(sent_counter_set)
+    generated_counters_by_can_id = {cid: sorted(values) for cid, values in generated_by_can_id.items()}
+    transport_counters_by_can_id = {cid: sorted(values) for cid, values in transport_by_can_id.items()}
     queue_push_count = can_proc_sample_count if can_proc_sample_count else raw_queue_push_count
     can_ids = can_ids_seen or [can_id]
 
@@ -579,7 +617,9 @@ def parse_sensor_log(path: Path) -> SensorData:
         can_id=can_id,
         can_ids=can_ids,
         generated_counters=generated_counters,
+        generated_counters_by_can_id=generated_counters_by_can_id,
         transport_counters=transport_counters,
+        transport_counters_by_can_id=transport_counters_by_can_id,
         counters=counters,
         counter_times=counter_times,
         ack_delays=ack_delays,
@@ -659,8 +699,10 @@ def compare(sensors, receivers, context: AnalysisContext = None):
     context = context or AnalysisContext()
     results = []
     for sensor in sensors:
-        sent = sensor.counters[:-1] if sensor.counters else []
         for can_id in sensor.can_ids:
+            sent = _sensor_transport_for_can_id(sensor, can_id)
+            if sent:
+                sent = sent[:-1]
             for receiver in receivers:
                 if not _receiver_accepts_can_id(context, receiver, can_id):
                     results.append(
@@ -720,9 +762,11 @@ def sensor_summary(sensors, receivers, context: AnalysisContext = None):
     context = context or AnalysisContext()
     summaries = []
     for sensor in sensors:
-        generated = sensor.generated_counters[:-1] if sensor.generated_counters else []
-        sent = sensor.transport_counters
         for can_id in sensor.can_ids:
+            generated = _sensor_generated_for_can_id(sensor, can_id)
+            if generated:
+                generated = generated[:-1]
+            sent = _sensor_transport_for_can_id(sensor, can_id)
             union = set()
             subscribed = _subscribed_receivers(context, receivers, can_id)
             if context.active_filtering and not subscribed:
@@ -792,9 +836,11 @@ def analyze_delivery(sensors, receivers, test_name, context: AnalysisContext = N
     total_received = sum(len(s.received_by_any) for s in summaries)
     total_misses = sum(len(s.total_misses) for s in summaries)
     
-    # Categorize misses
-    total_producer_drops = sum(len(s.transport_misses) for s in summaries)
-    total_send_queue_drops = sum(s.sensor.send_queue_drop_count for s in summaries)
+    # Categorize misses. Only explicit firmware queue-full logs are called
+    # producer drops; inferred gaps before radio are reported separately.
+    total_producer_drops = sum(sensor.queue_drop_count for sensor in sensors)
+    total_pre_radio_misses = sum(len(s.transport_misses) for s in summaries)
+    total_send_queue_drops = sum(sensor.send_queue_drop_count for sensor in sensors)
     total_network_misses = sum(len(s.network_misses) for s in summaries)
     total_recv_queue_drops = sum(r.queue_drop_count for r in receivers)
     
@@ -804,7 +850,9 @@ def analyze_delivery(sensors, receivers, test_name, context: AnalysisContext = N
     report_lines.append(f"DELIVERY ANALYSIS: {status} ({delivery_pct:.2f}% end-to-end delivery)")
     report_lines.append(f"  Summary: {total_generated} generated, {total_received} received, {total_misses} total misses")
     report_lines.append(f"  Loss Breakdown:")
-    report_lines.append(f"    1. Producer Drops:   {total_producer_drops} (read_data_task -> WCAN queue full)")
+    report_lines.append(f"    1. Producer Drops:   {total_producer_drops} (explicit read_data_task -> WCAN queue full logs)")
+    if total_pre_radio_misses:
+        report_lines.append(f"       Pre-radio Unobserved: {total_pre_radio_misses} (generated but no transport proof in logs)")
     report_lines.append(f"    2. Send Queue Drops: {total_send_queue_drops} (WCAN -> Radio queue full)")
     report_lines.append(f"    3. Radio/ACK Losses: {total_network_misses} (Sent but never seen by any receiver)")
     report_lines.append(f"    4. Receiver Drops:   {total_recv_queue_drops} (Received but app recv_queue full)")
@@ -822,7 +870,7 @@ def analyze_delivery(sensors, receivers, test_name, context: AnalysisContext = N
         )
         report_lines.append(line)
         if s.transport_misses:
-             report_lines.append(f"   - PRODUCER MISSES ({len(s.transport_misses)}): {_format_counter_list(s.transport_misses)}")
+             report_lines.append(f"   - PRE-RADIO UNOBSERVED ({len(s.transport_misses)}): {_format_counter_list(s.transport_misses)}")
         if s.network_misses:
              report_lines.append(f"   - RADIO LOSSES ({len(s.network_misses)}): {_format_counter_list(s.network_misses)}")
         if sensor.send_queue_drop_count > 0:
@@ -1035,7 +1083,9 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
                         f"RECEIVER {receiver.board_id} -> expected {_format_can_id(can_id)} -> no matching sensor log"
                     )
                     continue
-                sent = sensor.counters[:-1] if sensor.counters else []
+                sent = _sensor_transport_for_can_id(sensor, can_id)
+                if sent:
+                    sent = sent[:-1]
                 received = _receiver_received_for_sent(receiver, can_id, sent)
                 trimmed_sent = _trim_tail(sent, received)
                 received_count = len(received & set(trimmed_sent))
@@ -1052,8 +1102,10 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
                     )
 
         for sensor in sensors:
-            sent = sensor.counters[:-1] if sensor.counters else []
             for can_id in sensor.can_ids:
+                sent = _sensor_transport_for_can_id(sensor, can_id)
+                if sent:
+                    sent = sent[:-1]
                 normalized_can_id = _normalize_can_id(can_id)
                 subscriber_ids = [
                     board_id for board_id in expected_receivers.get(normalized_can_id, [])

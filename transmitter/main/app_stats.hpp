@@ -13,8 +13,8 @@
 #include "wcan.hpp"
 
 #ifdef MEASURE_INSTR
-extern volatile uint64_t g_airtime_total_us;
-extern volatile uint64_t g_packets_sent_total;
+volatile uint64_t g_airtime_total_us = 0;
+volatile uint64_t g_packets_sent_total = 0;
 
 #if CONFIG_FREERTOS_USE_TRACE_FACILITY
 inline void log_task_stats(void)

@@ -32,12 +32,12 @@ def get_build_dir(chip: str, transport: str = "BROADCAST",
     """Compute the runtime firmware build directory."""
     chip = chip.lower()
     transport = transport.lower()
+    # Keep the historical default build directory for the common dev build.
+    if chip == "esp32" and transport == "broadcast" and not measure:
+        return "build"
+
     suffix = "_measure" if measure else ""
-    # if chip is esp32, transport is broadcast and there is no measure the build dir should just be build 
-
-    if chip == "esp32" and transport == "broadcast" and not measure: return f"build"
-
-    return f"build_{chip}_{transport}_{suffix}"
+    return f"build_{chip}_{transport}{suffix}"
 
 
 def get_sdkconfig(chip: str, measure: bool = False) -> str:
@@ -51,9 +51,7 @@ def get_sdkconfig(chip: str, measure: bool = False) -> str:
 
 
 def build_variant(chip: str, transport: str = "BROADCAST",
-                  measure: bool = False, project_path: str = "..", sensor_freq: int = 200,
-                  receiver_filter_ids=None, sensor_base_can_id: int = 0x100,
-                  sensor_can_id_count: int = 1, linger_ms: int = 100,
+                  measure: bool = False, project_path: str = "..",
                   quiet: bool = False) -> bool:
     """Build a single firmware variant. Returns True on success."""
     chip = chip.lower()
@@ -112,27 +110,26 @@ def build_variant(chip: str, transport: str = "BROADCAST",
 
 
 def build_needed(chips: set, transport: str = "BROADCAST", measure: bool = False,
-                 project_path: str = "..", sensor_freq: int = 200) -> bool:
+                 project_path: str = "..") -> bool:
     """Build one runtime-configurable firmware per chip for the given transport."""
     for chip in sorted(chips):
-        if not build_variant(chip, transport, measure, project_path, sensor_freq):
+        if not build_variant(chip, transport, measure, project_path):
             return False
     return True
 
 
 def build_all(transport: str = "BROADCAST", measure: bool = False,
               project_path: str = "..") -> bool:
-    """Build all roles × all known chips for the given transport + measure combo."""
+    """Build one runtime firmware per known chip for the given transport + measure combo."""
     return build_needed(set(VALID_CHIPS), transport, measure, project_path)
 
 
 def main():
     parser = argparse.ArgumentParser(description="WCAN Build Script")
     parser.add_argument("chip", nargs="?", choices=VALID_CHIPS, help="Chip to build for")
-    parser.add_argument("role", nargs="?", help=argparse.SUPPRESS)
     parser.add_argument("--transport", default="BROADCAST",
                         choices=VALID_TRANSPORTS,
-                        help="Transport variant (default: BROADCAST). Ignored for IDLE.")
+                        help="Transport variant (default: BROADCAST).")
     parser.add_argument("--measure", action="store_true",
                         help="Enable measurement instrumentation (-DMEASURE=1 + sdkconfig.measure overlay)")
     parser.add_argument("--project-path", default="..", help="Path to ESP-IDF project root")
