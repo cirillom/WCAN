@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <algorithm>
+#include <new>
 
 #ifdef MEASURE_INSTR
 #include "esp_timer.h"
@@ -41,7 +42,7 @@ bool TransceiverBase::init() {
     ESP_ERROR_CHECK(esp_read_mac(_mac_addr.data(), MAC_TYPE));
 
     _send_queue = xQueueCreate(QUEUE_SIZE, sizeof(Packet*));
-    _recv_queue = xQueueCreate(QUEUE_SIZE, sizeof(EspNowPacket));
+    _recv_queue = xQueueCreate(QUEUE_SIZE, sizeof(EspNowPacket*));
     if (!_send_queue || !_recv_queue) return false;
 
     const size_t tx_count = _tx_can_ids.size();
@@ -132,10 +133,11 @@ void TransceiverBase::send_processing_task() {
 
 void TransceiverBase::recv_processing_task() {
     while (true) {
-        EspNowPacket raw_pkt;
-        if (xQueueReceive(_recv_queue, &raw_pkt, portMAX_DELAY) == pdTRUE) {
-            auto pkt_opt = Packet::from_payload(raw_pkt.src_mac, raw_pkt.payload, raw_pkt.payload_len, raw_pkt.des_mac);
-            
+        EspNowPacket* raw_pkt_ptr = nullptr;
+        if (xQueueReceive(_recv_queue, &raw_pkt_ptr, portMAX_DELAY) == pdTRUE) {
+            std::unique_ptr<EspNowPacket> raw_pkt(raw_pkt_ptr);
+            auto pkt_opt = Packet::from_payload(raw_pkt->src_mac, raw_pkt->payload, raw_pkt->payload_len, raw_pkt->des_mac);
+
             if (!pkt_opt) continue;
 
             const Packet& pkt = *pkt_opt;
@@ -200,13 +202,17 @@ void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uin
 
     if (!s_instance->should_accept(can_id)) return;
 
-    EspNowPacket raw_pkt;
-    std::memcpy(raw_pkt.src_mac, info->src_addr, ESP_NOW_ETH_ALEN);
-    std::memcpy(raw_pkt.des_mac, info->des_addr, ESP_NOW_ETH_ALEN);
-    std::memcpy(raw_pkt.payload, data, (size_t)len);
-    raw_pkt.payload_len = (size_t)len;
+    auto* raw_pkt = new (std::nothrow) EspNowPacket;
+    if (!raw_pkt) return;
 
-    xQueueSend(s_instance->_recv_queue, &raw_pkt, 0);
+    std::memcpy(raw_pkt->src_mac, info->src_addr, ESP_NOW_ETH_ALEN);
+    std::memcpy(raw_pkt->des_mac, info->des_addr, ESP_NOW_ETH_ALEN);
+    std::memcpy(raw_pkt->payload, data, (size_t)len);
+    raw_pkt->payload_len = (size_t)len;
+
+    if (xQueueSend(s_instance->_recv_queue, &raw_pkt, 0) != pdTRUE) {
+        delete raw_pkt;
+    }
 }
 
 size_t TransceiverBase::get_can_queue_index(uint32_t id) const {
