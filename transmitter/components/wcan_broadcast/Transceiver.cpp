@@ -8,11 +8,21 @@ namespace wcan {
 static const char* TAG = "WCAN_BCAST";
 
 const uint8_t* Transceiver::prepare_send_mac(const Packet& packet) {
+    if (packet.get_can_id() == CONTROL_ID) {
+        static uint8_t dest_mac[ESP_NOW_ETH_ALEN];
+        const auto& data = packet.get_data();
+        
+        if (data.size() >= 5) {
+            std::memcpy(dest_mac, &data[3], 4);
+            std::memcpy(dest_mac + 4, &data[4], 2);
+            return dest_mac;
+        }
+    }
     return Packet::BROADCAST_MAC.data();
 }
 
 void Transceiver::dispatch_packet(const Packet& pkt, size_t queue_index) {
-    for (int i = 0; i < MAX_RETRIES; ++i) {
+    for (int i = 0; i < ACK_MAX_RETRIES; ++i) {
         // Create a new packet on the heap to be owned by the send_task
         Packet* to_send = new Packet(pkt);
 
@@ -65,6 +75,18 @@ void Transceiver::on_data_packet(const Packet& packet) {
     Packet ack_pkt(_mac_addr, CONTROL_ID);
     ack_pkt.add_data_point(packet.get_can_id());
     ack_pkt.add_data_point(packet.get_sequence_id());
+
+    const auto& dest_mac = packet.get_source_mac_addr();
+    if (!add_peer(dest_mac.data())) {
+        ESP_LOGE(TAG, "Failed to add ACK peer");
+        return;
+    }
+
+    uint32_t mac_part1, mac_part2;
+    std::memcpy(&mac_part1, dest_mac.data(), 4);
+    std::memcpy(&mac_part2, dest_mac.data() + 4, 2);
+    ack_pkt.add_data_point(mac_part1);
+    ack_pkt.add_data_point(mac_part2);
 
     Packet* to_send = new Packet(ack_pkt);
     if (xQueueSend(_send_queue, &to_send, portMAX_DELAY) != pdTRUE) {

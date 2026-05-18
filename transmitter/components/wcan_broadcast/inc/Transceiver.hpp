@@ -28,7 +28,7 @@ protected:
     bool add_peer(const uint8_t* mac_addr) override;
 
 private:
-    static constexpr int MAX_RETRIES = 3;
+    static constexpr size_t ACK_MAX_RETRIES = 3;
     static constexpr uint32_t ACK_TIMEOUT_MS = 100;
 };
 
