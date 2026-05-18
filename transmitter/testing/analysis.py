@@ -236,10 +236,11 @@ def _receiver_received_for_sent(receiver: ReceiverData, can_id: str, sent) -> se
     normalized_can_id = _normalize_can_id(can_id)
     sent_set = set(sent)
     stats = receiver.rx_stats.get(normalized_can_id)
+    logged = receiver.received.get(normalized_can_id, set()) & sent_set
     if stats and stats.get("gaps", 0) == 0:
         last = stats.get("last_last", -1)
-        return {counter for counter in sent_set if counter <= last}
-    return receiver.received.get(normalized_can_id, set()) & sent_set
+        return {counter for counter in sent_set if counter <= last} | logged
+    return logged
 
 def _sensor_generated_for_can_id(sensor: SensorData, can_id: str) -> list:
     normalized = _normalize_can_id(can_id)
@@ -961,11 +962,11 @@ def analyze_crashes(sensors, receivers):
             total_incidents += len(device.crash_details)
             dev_name = f"{device.__class__.__name__} {device.board_id}"
             for line_num, desc in device.crash_details:
-                report_lines.append(f"{dev_name}: {desc} at line {line_num}")
+                report_lines.append(f"  {dev_name}: {desc} at line {line_num}")
             
     passed = total_incidents == 0
     status = "PASS" if passed else "FAIL"
-    report_lines.insert(0, f"  CRASH ANALYSIS: {status} ({total_incidents} total incidents)")
+    report_lines.insert(0, f"CRASH ANALYSIS: {status} ({total_incidents} total incidents)")
     return "\n".join(report_lines), passed
 
 def _format_heap(stats) -> str:
