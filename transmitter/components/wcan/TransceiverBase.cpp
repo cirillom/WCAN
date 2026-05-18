@@ -123,6 +123,9 @@ void TransceiverBase::send_processing_task() {
             #endif
                     if (success) {
                         break; 
+                    }else {
+                        std::printf("Radio send to %02x:%02x:%02x:%02x:%02x:%02x failed on attempt %d\n",
+                            dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5], attempt + 1);
                     }
                 }
             }
