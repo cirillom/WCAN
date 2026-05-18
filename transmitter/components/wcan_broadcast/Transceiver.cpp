@@ -101,6 +101,8 @@ bool Transceiver::add_peer(const uint8_t* mac_addr) {
     peer.channel = 0; // Use current channel
     peer.encrypt = false;
     
+    if (esp_now_is_peer_exist(peer.peer_addr)) return true;
+    
     esp_err_t err = esp_now_add_peer(&peer);
     if (err != ESP_OK && err != ESP_ERR_ESPNOW_EXIST) {
         ESP_LOGE(TAG, "Failed to add peer: %s", esp_err_to_name(err));
