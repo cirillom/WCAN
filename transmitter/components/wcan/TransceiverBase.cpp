@@ -21,7 +21,6 @@ TransceiverBase::~TransceiverBase() {
     if (_recv_queue) vQueueDelete(_recv_queue);
     for (QueueHandle_t q : _can_data_queues) if (q) vQueueDelete(q);
     if (_tx_result_queue) vQueueDelete(_tx_result_queue);
-    for (SemaphoreHandle_t s : _ack_semaphores) if (s) vSemaphoreDelete(s);
     
     if (s_instance == this) {
         esp_now_unregister_recv_cb();
@@ -48,11 +47,11 @@ bool TransceiverBase::init() {
     const size_t tx_count = _tx_can_ids.size();
     if (tx_count > 0) {
         _can_data_queues.resize(tx_count);
-        _ack_semaphores.resize(tx_count);
+        _batch_task_handles.resize(tx_count);
+        _pending_ack_seq_ids.resize(tx_count, NO_PENDING_ACK_SEQUENCE_ID);
         for (size_t i = 0; i < tx_count; i++) {
             _can_data_queues[i] = xQueueCreate(QUEUE_SIZE, sizeof(DataPoint_t));
-            _ack_semaphores[i] = xSemaphoreCreateBinary();
-            if (!_can_data_queues[i] || !_ack_semaphores[i]) return false;
+            if (!_can_data_queues[i]) return false;
         }
     }
 
@@ -87,7 +86,7 @@ void TransceiverBase::start_tasks() {
     for (size_t i = 0; i < _tx_can_ids.size(); i++) {
         auto* ctx = new std::pair<TransceiverBase*, size_t>(this, i);
         char name[22]; std::snprintf(name, sizeof(name), "wcan_batch_%u", (unsigned)i);
-        xTaskCreate(batch_task_wrapper, name, 4096, ctx, BATCH_PROCESSING_TASK_PRIORITY, nullptr);
+        xTaskCreate(batch_task_wrapper, name, 4096, ctx, BATCH_PROCESSING_TASK_PRIORITY, &_batch_task_handles[i]);
     }
 }
 

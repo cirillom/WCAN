@@ -55,7 +55,8 @@ protected:
     QueueHandle_t _recv_queue = nullptr;
     std::vector<QueueHandle_t> _can_data_queues;
     QueueHandle_t _tx_result_queue = nullptr;
-    std::vector<SemaphoreHandle_t> _ack_semaphores;
+    std::vector<TaskHandle_t> _batch_task_handles;
+    std::vector<uint32_t> _pending_ack_seq_ids;
 
     // --- Components ---
     Packet::Deduplicator _deduplicator;
@@ -126,6 +127,7 @@ public:
     static constexpr size_t RADIO_MAX_RETRIES = 3;
     static constexpr uint32_t RADIO_TIMEOUT_MS = 500;
     static constexpr uint32_t CONTROL_ID = 0xE0000000;
+    static constexpr uint32_t NO_PENDING_ACK_SEQUENCE_ID = UINT32_MAX;
 
 #if CONFIG_ESPNOW_WIFI_MODE_STATION
     static constexpr esp_mac_type_t MAC_TYPE = ESP_MAC_WIFI_STA;
