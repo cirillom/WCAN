@@ -41,9 +41,9 @@ std::optional<Packet> Packet::from_payload(const uint8_t* src_mac,
     pkt._sequence_id = network_seq_id;
     offset += sizeof(uint32_t);
 
-    uint8_t data_count = 0;
-    std::memcpy(&data_count, payload + offset, sizeof(uint8_t));
-    offset += sizeof(uint8_t);
+    DataCount_t data_count = 0;
+    std::memcpy(&data_count, payload + offset, sizeof(DataCount_t));
+    offset += sizeof(DataCount_t);
 
     // 3. Validate Payload Length
     const size_t expected_payload_len = data_count * sizeof(uint32_t);
@@ -92,9 +92,9 @@ std::optional<std::vector<uint8_t>> Packet::encode() const {
     std::memcpy(buffer.data() + offset, &network_seq_id, sizeof(uint32_t));
     offset += sizeof(uint32_t);
 
-    uint8_t count_u8 = static_cast<uint8_t>(data_count);
-    std::memcpy(buffer.data() + offset, &count_u8, sizeof(uint8_t));
-    offset += sizeof(uint8_t);
+    DataCount_t count = static_cast<DataCount_t>(data_count);
+    std::memcpy(buffer.data() + offset, &count, sizeof(DataCount_t));
+    offset += sizeof(DataCount_t);
 
     // 2. Encode Data Points (Big-Endian)
     for (uint32_t data_point : _data) {

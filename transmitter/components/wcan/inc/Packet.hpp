@@ -13,11 +13,18 @@ namespace wcan {
 
 typedef uint32_t CANId_t;
 typedef uint32_t DataPoint_t;
+typedef uint16_t DataCount_t;
+
+#ifdef ESP_NOW_MAX_DATA_LEN_V2
+#define ESP_NOW_MAX_DATA_LENGTH ESP_NOW_MAX_DATA_LEN_V2
+#else
+#define ESP_NOW_MAX_DATA_LENGTH ESP_NOW_MAX_DATA_LEN
+#endif
 
 struct EspNowPacket{
     uint8_t src_mac[ESP_NOW_ETH_ALEN];
     uint8_t des_mac[ESP_NOW_ETH_ALEN];
-    uint8_t payload[ESP_NOW_MAX_DATA_LEN];
+    uint8_t payload[ESP_NOW_MAX_DATA_LENGTH];
     size_t payload_len;
 
     static uint32_t extract_can_id(const uint8_t* payload) {
@@ -73,8 +80,8 @@ private:
     bool _received_via_broadcast = false;
 
 public:
-    static constexpr size_t HEADER_SIZE = sizeof(CANId_t) + sizeof(_sequence_id) + sizeof(uint8_t);
-    static constexpr size_t MAX_DATA_POINTS = (ESP_NOW_MAX_DATA_LEN - HEADER_SIZE) / sizeof(DataPoint_t);
+    static constexpr size_t HEADER_SIZE = sizeof(CANId_t) + sizeof(_sequence_id) + sizeof(DataCount_t);
+    static constexpr size_t MAX_DATA_POINTS = (ESP_NOW_MAX_DATA_LENGTH - HEADER_SIZE) / sizeof(DataPoint_t);
     static constexpr std::array<uint8_t, ESP_NOW_ETH_ALEN> BROADCAST_MAC{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 public:
