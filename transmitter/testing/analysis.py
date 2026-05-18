@@ -1231,7 +1231,7 @@ def analyze_scenario(test_dir: Path, sensors, receivers, context: AnalysisContex
             failures += 1
         report_lines.append(
             f"  Sensor {sensor.board_id}: expected {expected:.1f}Hz, observed {observed:.1f}Hz "
-            f"({'OK' if ok else 'FAIL'}, tolerance ±{tolerance * 100:.0f}%"
+            f"({'OK' if ok else 'FAIL'}, tolerance ±{tolerance * 100:.0f}%)"
         )
 
     passed = failures == 0
