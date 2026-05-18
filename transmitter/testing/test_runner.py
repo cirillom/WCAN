@@ -332,7 +332,7 @@ def _run_plan_analysis(root: Path) -> tuple[int, int]:
     import io
 
     try:
-        from analysis import analyze_all
+        from analysis import analyze_all, analysis_run_result, format_topology_summary
     except ImportError as exc:
         print(f"[ANALYZE] Could not import analysis.py: {exc}")
         return 0, 0
@@ -344,6 +344,7 @@ def _run_plan_analysis(root: Path) -> tuple[int, int]:
 
     passed = 0
     reports = []
+    run_results = []
     with contextlib.redirect_stdout(io.StringIO()):
         for folder in folders:
             try:
@@ -351,12 +352,18 @@ def _run_plan_analysis(root: Path) -> tuple[int, int]:
             except Exception as exc:
                 report, ok = f"{folder.name} - FAIL\nfailed: analyze_error\n[ANALYZE ERROR] {exc}\n", False
             reports.append(report)
+            try:
+                run_results.append(analysis_run_result(folder, ok))
+            except Exception:
+                pass
             if ok:
                 passed += 1
 
     summary = root / "analysis_summary.txt"
+    result_line = f"RESULT: {passed}/{len(folders)} tests passed"
+    topology_summary = format_topology_summary(run_results)
     summary.write_text(
-        "\n\n".join(reports) + f"\n\nRESULT: {passed}/{len(folders)} tests passed\n",
+        f"{result_line}\n{topology_summary}\n\n" + "======================\n\n" + "\n\n".join(reports),
         encoding="utf-8",
     )
     print(f"[ANALYZE] {passed}/{len(folders)} tests passed; wrote {summary}")
@@ -381,7 +388,7 @@ def plan_main(argv: list[str] | None = None):
                         help="Run only a specific topology, e.g. --test 4:1. Can be repeated.")
     parser.add_argument("--skip-build", action="store_true", help="Skip building, reuse existing firmware.")
     parser.add_argument("--dry-run", action="store_true", help="Print the run plan without building/flashing.")
-    parser.add_argument("--analyze", action="store_true", help="Run analysis.py after execution.")
+    parser.add_argument("--analyze", "--analysis", dest="analyze", action="store_true", help="Run analysis.py after execution.")
     parser.add_argument("--measure", action="store_true", default=None,
                         help="Override tests.yaml and enable measurement-instrumented firmware builds.")
     parser.add_argument("--no-measure", action="store_false", dest="measure",
@@ -894,12 +901,14 @@ def run_analysis(results_dir: str) -> tuple[int, int]:
 
     n_passed = 0
     all_reports = []
+    run_results = []
 
     with contextlib.redirect_stdout(io.StringIO()):
         for folder in test_folders:
             try:
                 report, passed = analyze_all(folder)
                 all_reports.append(report)
+                run_results.append(analysis_run_result(folder, passed))
                 if passed:
                     n_passed += 1
             except Exception as e:
@@ -909,7 +918,8 @@ def run_analysis(results_dir: str) -> tuple[int, int]:
     if total > 1:
         result_line = f"RESULT: {n_passed}/{total} tests passed"
         summary_path = root / "analysis_summary.txt"
-        combined = "\n".join(all_reports) + "\n" + result_line + "\n"
+        topology_summary = format_topology_summary(run_results)
+        combined = f"{result_line}\n{topology_summary}\n\n======================\n\n" + "\n\n".join(all_reports)
         summary_path.write_text(combined, encoding="utf-8")
 
     return n_passed, total
@@ -967,7 +977,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Print test matrix and assignments without executing")
     parser.add_argument("--test", type=str, action="append", default=None,
                         help="Run only specific S:R tests, e.g. --test 1:4 --test 2:3. Can be repeated.")
-    parser.add_argument("--analyze", action="store_true",
+    parser.add_argument("--analyze", "--analysis", dest="analyze", action="store_true",
                         help="After all tests complete, run analysis on results. Implied by --aggregate.")
     parser.add_argument("--name", type=str, default=None,
                         help="Override the results folder name (always inside results/). "
