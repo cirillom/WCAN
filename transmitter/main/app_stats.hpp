@@ -186,8 +186,8 @@ inline void RecordPacketStats(const wcan::Packet &recv_packet)
 
 inline void start_app_stats(void)
 {
-    xTaskCreate(heap_monitor_task, "heap_monitor", 2048, nullptr, 1, nullptr);
+    xTaskCreate(heap_monitor_task, "heap_monitor", 4096, nullptr, 1, nullptr);
 #ifdef MEASURE_INSTR
-    xTaskCreate(measure_periodic_task, "measure", 3072, nullptr, 1, nullptr);
+    xTaskCreate(measure_periodic_task, "measure", 4096, nullptr, 1, nullptr);
 #endif
 }
