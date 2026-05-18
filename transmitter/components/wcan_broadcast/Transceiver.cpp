@@ -25,9 +25,9 @@ void Transceiver::dispatch_packet(const Packet& pkt, size_t queue_index) {
     _pending_ack_seq_ids[queue_index] = pkt.get_sequence_id();
     (void)ulTaskNotifyTake(pdTRUE, 0);
 
-    Packet* to_send = new Packet(pkt);
     for (int i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
         // Create a new packet on the heap to be owned by the send_task
+        Packet* to_send = new Packet(pkt);
 
         std::printf("P(%i):%lu:%lx:%lu:%lu:%lu:%u\n",
                     i + 1,
