@@ -25,9 +25,9 @@ void Transceiver::dispatch_packet(const Packet& pkt, size_t queue_index) {
     _pending_ack_seq_ids[queue_index] = pkt.get_sequence_id();
     (void)ulTaskNotifyTake(pdTRUE, 0);
 
-    for (int i = 0; i < ACK_MAX_RETRIES; ++i) {
+    Packet* to_send = new Packet(pkt);
+    for (int i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
         // Create a new packet on the heap to be owned by the send_task
-        Packet* to_send = new Packet(pkt);
 
         std::printf("P(%i):%lu:%lx:%lu:%lu:%lu:%u\n",
                     i + 1,
@@ -46,7 +46,7 @@ void Transceiver::dispatch_packet(const Packet& pkt, size_t queue_index) {
         }
 
         // Wait for ACK semaphore
-        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(ACK_TIMEOUT_MS)) > 0) {
+        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(PACKET_DELIVERY_TIMEOUT_MS)) > 0) {
             _pending_ack_seq_ids[queue_index] = NO_PENDING_ACK_SEQUENCE_ID;
             // ACK received!
             return;
