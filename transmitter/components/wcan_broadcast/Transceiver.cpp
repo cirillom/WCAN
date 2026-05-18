@@ -42,6 +42,13 @@ void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
             delete to_send;
             _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
             ESP_LOGE(TAG, "Failed to push packet to send queue");
+            std::printf("P(FULL):%lu:%lx:%lu:%lu:%lu:%u\n",
+                (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
+                static_cast<unsigned long>(pkt.get_can_id()),
+                static_cast<unsigned long>(pkt.get_sequence_id()),
+                static_cast<unsigned long>(pkt.get_data().front()),
+                static_cast<unsigned long>(pkt.get_data().back()),
+                (unsigned int)pkt.get_data().size());
             return;
         }
 
