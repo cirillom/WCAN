@@ -29,7 +29,6 @@ class SensorData:
     can_ids: list = field(default_factory=list)
     generated_last: int | None = None
     avg_hz: float | None = None
-    elapsed_us: int = 0
     generated_counters: list = field(default_factory=list)
     generated_counters_by_can_id: dict = field(default_factory=dict)
     transport_counters: list = field(default_factory=list)
@@ -109,7 +108,7 @@ class AnalysisRunResult:
 
 
 RE_FILENAME = re.compile(r"(sensor|receiver|idle)_([A-Za-z0-9]+)_(.+)\.log")
-RE_SENSOR_END = re.compile(r"WCAN_SENSOR_END\s+generated=(\S+)\s+avg_hz=([0-9.]+)\s+elapsed_us=(\d+)")
+RE_SENSOR_END = re.compile(r"WCAN_SENSOR_END\s+generated=(\S+)\s+avg_hz=([0-9.]+)\s")
 RE_RX_RANGE = re.compile(r"WCAN_RX_RANGE\s+id=0x([0-9a-fA-F]+)\s+ranges=(.*)")
 RE_RANGE_ITEM = re.compile(r"\[(\d+)\.\.(\d+)\]")
 RE_MEASURES = re.compile(r"WCAN_MEASURES\s+(.*)")
@@ -244,7 +243,6 @@ def parse_sensor_log(path: Path) -> SensorData:
         can_ids=can_ids,
         generated_last=generated_last,
         avg_hz=float(m.group(2)),
-        elapsed_us=int(m.group(3)),
         generated_counters=list(generated),
         generated_counters_by_can_id=generated_by_can_id,
         transport_counters=list(generated),
