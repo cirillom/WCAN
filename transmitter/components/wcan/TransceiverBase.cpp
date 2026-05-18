@@ -32,14 +32,14 @@ bool TransceiverBase::init() {
 
     ESP_ERROR_CHECK(esp_read_mac(_mac_addr.data(), MAC_TYPE));
 
-    _send_queue = xQueueCreate(QUEUE_SIZE, sizeof(Packet*));
-    _recv_queue = xQueueCreate(QUEUE_SIZE, sizeof(EspNowPacket*));
+    _send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(Packet*));
+    _recv_queue = xQueueCreate(RECV_QUEUE_SIZE, sizeof(EspNowPacket*));
     if (!_send_queue || !_recv_queue) return false;
 
     const size_t tx_count = _tx_can_ids.size();
     if (tx_count > 0) {
         for (size_t i = 0; i < tx_count; i++) {
-            QueueHandle_t q = xQueueCreate(QUEUE_SIZE, sizeof(DataPoint_t));
+            QueueHandle_t q = xQueueCreate(CAN_DATA_QUEUE_SIZE, sizeof(DataPoint_t));
             if (!q) return false;
             _can_data_queues.emplace(_tx_can_ids[i], q);
             _batch_task_handles.emplace(_tx_can_ids[i], (TaskHandle_t)nullptr);
@@ -48,7 +48,7 @@ bool TransceiverBase::init() {
         }
     }
 
-    _tx_result_queue = xQueueCreate(QUEUE_SIZE, sizeof(bool));
+    _tx_result_queue = xQueueCreate(TX_RESULT_QUEUE_SIZE, sizeof(bool));
     if (!_tx_result_queue) return false;
 
     if (!setup_esp_now()) return false;

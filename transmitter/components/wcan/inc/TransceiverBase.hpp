@@ -133,7 +133,10 @@ public:
     static constexpr uint32_t SEND_PROCESSING_TASK_PRIORITY = 6;
     static constexpr uint32_t RECV_PROCESSING_TASK_PRIORITY = 6;
     static constexpr uint32_t BATCH_PROCESSING_TASK_PRIORITY = 5;
-    static constexpr size_t QUEUE_SIZE = 100;
+    static constexpr size_t SEND_QUEUE_SIZE = 32;
+    static constexpr size_t RECV_QUEUE_SIZE = 256;
+    static constexpr size_t CAN_DATA_QUEUE_SIZE = 512;
+    static constexpr size_t TX_RESULT_QUEUE_SIZE = 16;
     static constexpr size_t RADIO_MAX_RETRIES = 3;
     static constexpr uint32_t RADIO_TIMEOUT_MS = 500;
     static constexpr uint32_t CONTROL_ID = 0xE0000000;
