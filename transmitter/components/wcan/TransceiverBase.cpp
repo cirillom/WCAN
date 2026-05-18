@@ -19,7 +19,7 @@ TransceiverBase::~TransceiverBase() {
     if (_send_queue) vQueueDelete(_send_queue);
     if (_recv_queue) vQueueDelete(_recv_queue);
     for (QueueHandle_t q : _can_data_queues) if (q) vQueueDelete(q);
-    if (_radio_status_sem) vSemaphoreDelete(_radio_status_sem);
+    if (_tx_result_queue) vQueueDelete(_tx_result_queue);
     for (SemaphoreHandle_t s : _ack_semaphores) if (s) vSemaphoreDelete(s);
     
     if (s_instance == this) {
@@ -55,8 +55,8 @@ bool TransceiverBase::init() {
         }
     }
 
-    _radio_status_sem = xSemaphoreCreateBinary();
-    if (!_radio_status_sem) return false;
+    _tx_result_queue = xQueueCreate(QUEUE_SIZE, sizeof(bool));
+    if (!_tx_result_queue) return false;
 
     if (!setup_esp_now()) return false;
     start_tasks();
@@ -101,22 +101,30 @@ void TransceiverBase::send_processing_task() {
             // Determine destination using the virtual hook
             const uint8_t* dest_mac = prepare_send_mac(*pkt);
             
-#ifdef MEASURE_INSTR
-            const int64_t send_start_us = esp_timer_get_time();
-#endif
-            esp_err_t err = esp_now_send(dest_mac, encoded->data(), encoded->size());
-            if (err == ESP_OK) {
-                // Wait for hardware callback
-                xSemaphoreTake(_radio_status_sem, pdMS_TO_TICKS(RADIO_TIMEOUT_MS));
-#ifdef MEASURE_INSTR
-                const int64_t send_end_us = esp_timer_get_time();
-                g_packets_sent_total++;
-                if (send_end_us > send_start_us) {
-                    g_airtime_total_us += static_cast<uint64_t>(send_end_us - send_start_us);
+            for (int attempt = 0; attempt < RADIO_MAX_RETRIES; attempt++) {
+                xQueueReset(_tx_result_queue); 
+
+            #ifdef MEASURE_INSTR
+                const int64_t send_start_us = esp_timer_get_time();
+            #endif
+
+                esp_err_t err = esp_now_send(dest_mac, encoded->data(), encoded->size());
+                if (err != ESP_OK) {
+                    ESP_LOGE(TAG, "esp_now_send fail: %s", esp_err_to_name(err));
+                    continue;
                 }
-#endif
-            } else {
-                ESP_LOGE(TAG, "esp_now_send fail: %s", esp_err_to_name(err));
+
+                bool success = false;
+                if (xQueueReceive(_tx_result_queue, &success, pdMS_TO_TICKS(RADIO_TIMEOUT_MS)) == pdTRUE) {
+            #ifdef MEASURE_INSTR
+                    const int64_t send_end_us = esp_timer_get_time();
+                    g_packets_sent_total++;
+                    g_airtime_total_us += static_cast<uint64_t>(send_end_us - send_start_us);
+            #endif
+                    if (success) {
+                        break; 
+                    }
+                }
             }
         }
     }
@@ -180,8 +188,9 @@ void TransceiverBase::batch_processing_task(size_t queue_index) {
 
 void TransceiverBase::esp_now_send_cb(const uint8_t *mac, esp_now_send_status_t status) {
     if (!s_instance) return;
-    s_instance->on_hardware_tx_status(mac, status == ESP_NOW_SEND_SUCCESS);
-    xSemaphoreGive(s_instance->_radio_status_sem);
+    const bool success = status == ESP_NOW_SEND_SUCCESS;
+    s_instance->on_hardware_tx_status(mac, success);
+    xQueueSend(s_instance->_tx_result_queue, &success, 0);
 }
 
 void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len) {

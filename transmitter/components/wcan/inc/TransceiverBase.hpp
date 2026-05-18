@@ -54,7 +54,7 @@ protected:
     QueueHandle_t _send_queue = nullptr;
     QueueHandle_t _recv_queue = nullptr;
     std::vector<QueueHandle_t> _can_data_queues;
-    SemaphoreHandle_t _radio_status_sem = nullptr;
+    QueueHandle_t _tx_result_queue = nullptr;
     std::vector<SemaphoreHandle_t> _ack_semaphores;
 
     // --- Components ---
@@ -123,6 +123,7 @@ public:
     static constexpr uint32_t RECV_PROCESSING_TASK_PRIORITY = 6;
     static constexpr uint32_t BATCH_PROCESSING_TASK_PRIORITY = 5;
     static constexpr size_t QUEUE_SIZE = 100;
+    static constexpr size_t RADIO_MAX_RETRIES = 3;
     static constexpr uint32_t RADIO_TIMEOUT_MS = 500;
     static constexpr uint32_t CONTROL_ID = 0xE0000000;
 
