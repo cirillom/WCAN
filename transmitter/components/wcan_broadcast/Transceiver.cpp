@@ -46,7 +46,8 @@ void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
         }
 
         // Wait for ACK semaphore
-        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(PACKET_DELIVERY_TIMEOUT_MS)) > 0) {
+        uint32_t timeout_ms = PACKET_DELIVERY_TIMEOUT_MIN_MS + (rand() % (PACKET_DELIVERY_TIMEOUT_MAX_MS - PACKET_DELIVERY_TIMEOUT_MIN_MS));
+        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(timeout_ms)) > 0) {
             _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
             // ACK received!
             return;

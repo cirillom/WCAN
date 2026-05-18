@@ -28,8 +28,9 @@ protected:
     bool add_peer(const uint8_t* mac_addr) override;
 
 private:
-    static constexpr size_t PACKET_DELIVERY_ATTEMPTS = 3;
-    static constexpr uint32_t PACKET_DELIVERY_TIMEOUT_MS = 100;
+    static constexpr size_t PACKET_DELIVERY_ATTEMPTS = 4;
+    static constexpr uint32_t PACKET_DELIVERY_TIMEOUT_MIN_MS = 50;
+    static constexpr uint32_t PACKET_DELIVERY_TIMEOUT_MAX_MS = 120;
 };
 
 } // namespace wcan
