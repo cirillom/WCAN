@@ -86,7 +86,8 @@ def _print_plan(plan, root: Path, dry_run: bool):
     print(f"  Runs:         {len(plan.runs)}")
     print(f"  Build specs:  {len(plan.build_specs)}")
     print(f"  Transports:   {', '.join(plan.settings.transports)}")
-    print(f"  Duration:     {plan.settings.duration}s")
+    print(f"  Test duration: {plan.settings.test_duration_ms}ms")
+    print(f"  Host wait:     {plan.settings.host_wait_time_ms}ms")
     print(f"  Repeats:      {plan.settings.repeats}")
     print(f"  Cooldown:     {plan.settings.cooldown}s")
     print(f"  Measure:      {plan.settings.measure}")
@@ -126,6 +127,8 @@ def _write_plan_files(root: Path, boards_path: Path, tests_path: Path, plan):
     payload = {
         "settings": {
             "duration_seconds": plan.settings.duration,
+            "test_duration_ms": plan.settings.test_duration_ms,
+            "host_wait_time_ms": plan.settings.host_wait_time_ms,
             "repeats": plan.settings.repeats,
             "cooldown_seconds": plan.settings.cooldown,
             "baud_rate": plan.settings.baud,
@@ -197,6 +200,8 @@ def _write_scenario_metadata(log_dir: Path, run, settings: RunSettings):
         "frequency_hz": run.frequency_hz,
         "sensor_frequencies": run.sensor_frequencies,
         "frequency_tolerance": settings.frequency_tolerance,
+        "test_duration_ms": settings.test_duration_ms,
+        "host_wait_time_ms": settings.host_wait_time_ms,
         "linger_ms": run.linger_ms,
         "can_ids_per_sensor": run.can_ids_per_sensor,
         "roles": {
@@ -214,7 +219,11 @@ def _write_scenario_metadata(log_dir: Path, run, settings: RunSettings):
             for board in all_boards
         },
         "uart_boot_config": {
-            board["id"]: boot_config_line(role, options, run.transport)
+            board["id"]: boot_config_line(
+                role,
+                {**options, "test_duration_ms": settings.test_duration_ms, "host_wait_time_ms": settings.host_wait_time_ms},
+                run.transport,
+            )
             for board, role, options in runtime_assignments
         },
     }
@@ -296,8 +305,18 @@ def _run_one_plan_test(root: Path, plan, run, measure: bool) -> dict:
         status = "FLASH_FAIL"
     else:
         time.sleep(1)
-        print(f"  [MONITOR] Sending UART config and capturing {plan.settings.duration}s at {plan.settings.baud} baud...")
-        status = "OK" if monitor_all_boards(assignments, plan.settings.baud, plan.settings.duration, str(log_dir), run.transport) else "MONITOR_ERROR"
+        print(
+            f"  [MONITOR] Sending UART config and waiting "
+            f"{plan.settings.test_duration_ms + plan.settings.host_wait_time_ms}ms after start at {plan.settings.baud} baud..."
+        )
+        status = "OK" if monitor_all_boards(
+            assignments,
+            plan.settings.baud,
+            plan.settings.test_duration_ms,
+            plan.settings.host_wait_time_ms,
+            str(log_dir),
+            run.transport,
+        ) else "MONITOR_ERROR"
 
     print(f"  [RESULT] {status}")
     return _summary_row(root, log_dir, run, status)
@@ -475,6 +494,8 @@ def load_config(config_path: str) -> dict:
     config = {
         "boards": boards,
         "duration": tc.get("duration_seconds", 30),
+        "test_duration_ms": tc.get("test_duration_ms", int(tc.get("duration_seconds", 30) * 1000)),
+        "host_wait_time_ms": tc.get("host_wait_time_ms", 5000),
         "repeats": tc.get("repeats", 3),
         "cooldown": tc.get("cooldown_seconds", 5),
         "baud": tc.get("baud_rate", 921600),
@@ -733,7 +754,14 @@ def run_single_test(
     # Brief pause after flashing before starting monitors
     time.sleep(1)
 
-    ok = monitor_all_boards(all_to_flash, config["baud"], config["duration"], log_dir, config["transport"])
+    ok = monitor_all_boards(
+        all_to_flash,
+        config["baud"],
+        int(config.get("test_duration_ms", int(config["duration"] * 1000))),
+        int(config.get("host_wait_time_ms", 5000)),
+        log_dir,
+        config["transport"],
+    )
 
     return "OK" if ok else "MONITOR_ERROR"
 

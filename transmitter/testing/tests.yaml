@@ -1,5 +1,7 @@
 defaults:
   duration_seconds: 30
+  test_duration_ms: 30000
+  host_wait_time_ms: 5000
   repeats: 3
   cooldown_seconds: 5
   baud_rate: 921600
@@ -17,8 +19,9 @@ profiles:
   fast:
     repeats: 1
     duration_seconds: 15
+    test_duration_ms: 15000
     transports: [BROADCAST]
-    frequency_hz: [200]
+    frequency_hz: [200, 750, 1000]
     topologies:
       - sensors: 4
         receivers: 1
@@ -27,6 +30,11 @@ profiles:
 
   broadcast_only:
     transports: [BROADCAST]
+    duration_seconds: 15
+    test_duration_ms: 15000
+    frequency_hz: [10, 200, 750, 1000]
+
+
 
 suites:
   baseline:

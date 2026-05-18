@@ -58,6 +58,8 @@ class RunSpec:
 @dataclass
 class RunSettings:
     duration: int
+    test_duration_ms: int
+    host_wait_time_ms: int
     repeats: int
     cooldown: int
     baud: int
@@ -238,8 +240,13 @@ def build_run_plan(
 
     transports = resolve_transports(cli_transport, defaults, profile_cfg)
     effective_measure = resolve_measure(measure, defaults, profile_cfg)
+    duration_seconds = int(profile_cfg.get("duration_seconds", defaults.get("duration_seconds", 30)))
+    test_duration_ms = int(profile_cfg.get("test_duration_ms", defaults.get("test_duration_ms", duration_seconds * 1000)))
+    host_wait_time_ms = int(profile_cfg.get("host_wait_time_ms", defaults.get("host_wait_time_ms", 5000)))
     settings = RunSettings(
-        duration=int(profile_cfg.get("duration_seconds", defaults.get("duration_seconds", 30))),
+        duration=duration_seconds,
+        test_duration_ms=test_duration_ms,
+        host_wait_time_ms=host_wait_time_ms,
         repeats=int(profile_cfg.get("repeats", defaults.get("repeats", 3))),
         cooldown=int(profile_cfg.get("cooldown_seconds", defaults.get("cooldown_seconds", 5))),
         baud=int(profile_cfg.get("baud_rate", defaults.get("baud_rate", 921600))),

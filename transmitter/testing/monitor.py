@@ -6,6 +6,7 @@ import time
 import serial
 from datetime import datetime
 
+
 def _normalize_can_id(can_id) -> int:
     if isinstance(can_id, str):
         return int(can_id.lower().removeprefix("0x"), 16)
@@ -16,6 +17,10 @@ def boot_config_line(role: str, options: dict | None = None, transport: str = "B
     options = options or {}
     role = role.lower()
     parts = ["wcan", "v=1", f"role={role}", f"transport={transport.upper()}"]
+    parts.extend([
+        f"test_duration_ms={int(options.get('test_duration_ms', 30000))}",
+        f"host_wait_time_ms={int(options.get('host_wait_time_ms', 5000))}",
+    ])
 
     if role == "sensor":
         base = _normalize_can_id(options.get("sensor_base_can_id", 0x100))
@@ -46,16 +51,17 @@ def _write_serial_line(f, decoded: str):
 
 
 def _reset_board(ser):
-    ser.dtr = False   # IO0 = HIGH
-    ser.rts = True    # EN = LOW
+    ser.dtr = False
+    ser.rts = True
     time.sleep(0.2)
-    ser.rts = False   # EN = HIGH
-    ser.dtr = False   # IO0 HIGH
+    ser.rts = False
+    ser.dtr = False
 
 
-def _send_boot_config(ser, f, config_line: str, timeout: float = 10.0) -> bool:
+def _send_boot_config_and_wait_ready(ser, f, config_line: str, timeout: float = 20.0, progress_step=None) -> bool:
     deadline = time.time() + timeout
     sent = False
+    acked = False
 
     f.write(f"# UART boot config: {config_line}\n")
     f.flush()
@@ -72,15 +78,24 @@ def _send_boot_config(ser, f, config_line: str, timeout: float = 10.0) -> bool:
             ser.flush()
             f.write(f"# UART boot config sent: {config_line}\n")
             f.flush()
+            if progress_step is not None:
+                progress_step()
             sent = True
             continue
 
-        if "WCAN_CFG_ACK" in decoded:
-            return True
         if "WCAN_CFG_NACK" in decoded:
             return False
+        if "WCAN_CFG_ACK" in decoded:
+            acked = True
+            continue
+        if "WCAN_TEST_ABORT" in decoded:
+            return False
+        if acked and "WCAN_TEST_READY" in decoded:
+            if progress_step is not None:
+                progress_step()
+            return True
 
-    f.write("# UART boot config timeout\n")
+    f.write("# UART boot config/ready timeout\n")
     f.flush()
     return False
 
@@ -94,25 +109,23 @@ def _assignment_parts(assignment):
     return board, role, options
 
 
-def monitor_board(port: str, baud: int, duration: float, log_path: str, stop_event: threading.Event,
-                  config_line: str | None = None, ready_event: threading.Event | None = None,
-                  start_event: threading.Event | None = None):
-    """
-    Open serial port, hard-reset the board, capture output to a log file.
-    Runs until duration elapses or stop_event is set.
-    """
+def monitor_board(port: str, baud: int, log_path: str, stop_event: threading.Event,
+                  config_line: str, test_duration_ms: int, host_wait_time_ms: int,
+                  ready_event: threading.Event | None = None,
+                  start_event: threading.Event | None = None,
+                  progress_step=None):
     try:
-        ser = serial.Serial(port, baud, timeout=0.5)
-        time.sleep(0.1)  # let the port settle after opening
-
+        ser = serial.Serial(port, baud, timeout=0.2)
+        time.sleep(0.1)
         ser.reset_input_buffer()
         _reset_board(ser)
 
+        timeout_s = (test_duration_ms + host_wait_time_ms) / 1000.0
         with open(log_path, "w", encoding="utf-8", errors="replace") as f:
             f.write(f"# Monitor started: {datetime.now().isoformat()}\n")
-            f.write(f"# Port: {port}, Baud: {baud}, Duration: {duration}s\n\n")
+            f.write(f"# Port: {port}, Baud: {baud}, Timeout: {timeout_s:.3f}s after WCAN_TEST_START\n\n")
 
-            if config_line is not None and not _send_boot_config(ser, f, config_line):
+            if not _send_boot_config_and_wait_ready(ser, f, config_line, progress_step=progress_step):
                 f.write(f"\n# Monitor stopped: {datetime.now().isoformat()}\n")
                 if ready_event is not None:
                     ready_event.set()
@@ -122,25 +135,52 @@ def monitor_board(port: str, baud: int, duration: float, log_path: str, stop_eve
             if ready_event is not None:
                 ready_event.set()
             if start_event is not None:
-                f.write("# Waiting for coordinated capture start\n")
+                f.write("# Waiting for coordinated test start\n")
                 f.flush()
-                start_event.wait()
+                while not start_event.is_set():
+                    if stop_event.is_set():
+                        f.write("# Monitor stopped before WCAN_TEST_START because not all devices became ready\n")
+                        f.write(f"\n# Monitor stopped: {datetime.now().isoformat()}\n")
+                        ser.close()
+                        return False
+                    time.sleep(0.05)
+
+            if stop_event.is_set():
+                f.write("# Monitor stopped before WCAN_TEST_START\n")
+                f.write(f"\n# Monitor stopped: {datetime.now().isoformat()}\n")
+                ser.close()
+                return False
+
+            ser.write(b"WCAN_TEST_START\n")
+            ser.flush()
+            f.write("# UART test start sent: WCAN_TEST_START\n")
+            f.flush()
 
             start = time.time()
-            while not stop_event.is_set() and (time.time() - start) < duration:
+            ok = False
+            while not stop_event.is_set() and (time.time() - start) < timeout_s:
                 try:
                     line = ser.readline()
-                    if line:
-                        decoded = line.decode("utf-8", errors="replace").rstrip()
-                        _write_serial_line(f, decoded)
+                    if not line:
+                        continue
+                    decoded = line.decode("utf-8", errors="replace").rstrip()
+                    _write_serial_line(f, decoded)
+                    if "WCAN_TEST_ABORT" in decoded:
+                        stop_event.set()
+                        break
+                    if "WCAN_TEST_END" in decoded:
+                        ok = True
+                        break
                 except serial.SerialException as e:
                     f.write(f"[ERROR] Serial exception: {e}\n")
                     break
 
+            if not ok and not stop_event.is_set():
+                f.write("# Monitor timeout waiting for WCAN_TEST_END\n")
             f.write(f"\n# Monitor stopped: {datetime.now().isoformat()}\n")
 
         ser.close()
-        return True
+        return ok
 
     except serial.SerialException as e:
         with open(log_path, "w") as f:
@@ -150,22 +190,29 @@ def monitor_board(port: str, baud: int, duration: float, log_path: str, stop_eve
             ready_event.set()
         return False
 
-def monitor_all_boards(boards_with_roles: list, baud: int, duration: float, log_dir: str,
-                       transport: str = "BROADCAST") -> bool:
-    """
-    Start monitoring all boards in parallel threads.
-    boards_with_roles: list of (board_dict, role_str) or (board_dict, role_str, options_dict)
-    Returns True if all monitors succeeded.
-    """
+
+def monitor_all_boards(boards_with_roles: list, baud: int, test_duration_ms: int, host_wait_time_ms: int,
+                       log_dir: str, transport: str = "BROADCAST") -> bool:
     os.makedirs(log_dir, exist_ok=True)
     stop_event = threading.Event()
     start_event = threading.Event()
     threads = []
     ready_events = {}
     results = {}
+    progress_lock = threading.Lock()
+    progress = None
+
+    def _progress_step():
+        if progress is None:
+            return
+        with progress_lock:
+            progress.update(1)
 
     def _start_assignment(assignment):
         board, role, options = _assignment_parts(assignment)
+        options = dict(options)
+        options["test_duration_ms"] = test_duration_ms
+        options["host_wait_time_ms"] = host_wait_time_ms
         log_filename = f"{role.lower()}_{board['id']}_{board['port'].replace('/', '_')}.log"
         log_path = os.path.join(log_dir, log_filename)
         config_line = boot_config_line(role, options, transport)
@@ -173,7 +220,7 @@ def monitor_all_boards(boards_with_roles: list, baud: int, duration: float, log_
         ready_events[board["id"]] = ready_event
 
         def _monitor(p=board["port"], lp=log_path, bid=board["id"], cfg=config_line, ready=ready_event):
-            ok = monitor_board(p, baud, duration, lp, stop_event, cfg, ready, start_event)
+            ok = monitor_board(p, baud, lp, stop_event, cfg, test_duration_ms, host_wait_time_ms, ready, start_event, _progress_step)
             results[bid] = ok
 
         t = threading.Thread(target=_monitor)
@@ -181,7 +228,7 @@ def monitor_all_boards(boards_with_roles: list, baud: int, duration: float, log_
         t.start()
         return ready_event
 
-    def _wait_ready(events, timeout=15.0):
+    def _wait_ready(events, timeout=30.0):
         deadline = time.time() + timeout
         for event in events:
             remaining = max(0.0, deadline - time.time())
@@ -189,67 +236,58 @@ def monitor_all_boards(boards_with_roles: list, baud: int, duration: float, log_
                 return False
         return True
 
-    def _group_failed(group):
-        for assignment in group:
-            board, _role, _options = _assignment_parts(assignment)
-            if results.get(board["id"]) is False:
-                return True
-        return False
-
     normalized = list(boards_with_roles)
-    receiver_assignments = [
-        assignment for assignment in normalized
-        if _assignment_parts(assignment)[1].upper() == "RECEIVER"
-    ]
-    sensor_assignments = [
-        assignment for assignment in normalized
-        if _assignment_parts(assignment)[1].upper() == "SENSOR"
-    ]
-    other_assignments = [
-        assignment for assignment in normalized
-        if _assignment_parts(assignment)[1].upper() not in ("RECEIVER", "SENSOR")
-    ]
-
-    for group in (receiver_assignments, sensor_assignments, other_assignments):
-        events = [_start_assignment(assignment) for assignment in group]
-        if events and (not _wait_ready(events) or _group_failed(group)):
-            stop_event.set()
-            start_event.set()
-            break
-
-    start_event.set()
 
     from tqdm import tqdm
-    start_t = time.time()
-    with tqdm(total=int(duration), desc="  Monitoring", unit="s", leave=False, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}s") as pbar:
-        while time.time() - start_t < duration:
-            time.sleep(0.5)
-            elapsed = time.time() - start_t
-            pbar.n = min(int(duration), int(elapsed))
-            pbar.refresh()
-        pbar.n = int(duration)
-        pbar.refresh()
+    total_steps = max(1, len(normalized) * 2 + 1)
+    with tqdm(total=total_steps, desc="  Test steps", unit="step", leave=False, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {unit}") as pbar:
+        progress = pbar
+        events = [_start_assignment(assignment) for assignment in normalized]
+
+        all_ready = bool(events) and _wait_ready(events, timeout=30.0)
+        any_failed = any(results.get(_assignment_parts(assignment)[0]["id"]) is False for assignment in normalized)
+
+        if all_ready and not any_failed:
+            start_event.set()
+            while any(t.is_alive() for t in threads) and not stop_event.is_set():
+                time.sleep(0.25)
+        else:
+            stop_event.set()
+            start_event.set()
+
+        _progress_step()
+
+        progress = None
 
     for t in threads:
-        t.join(timeout=5)
+        t.join(timeout=2)
 
     stop_event.set()
     return len(results) == len(threads) and all(results.values())
+
 
 def main():
     parser = argparse.ArgumentParser(description="WCAN Monitor Script")
     parser.add_argument("--port", required=True, help="Serial port to monitor")
     parser.add_argument("--baud", type=int, default=921600, help="Baud rate")
-    parser.add_argument("--duration", type=float, default=30.0, help="Duration in seconds")
+    parser.add_argument("--test-duration-ms", type=int, default=30000, help="Device test duration in ms")
+    parser.add_argument("--host-wait-time-ms", type=int, default=5000, help="Host grace window in ms")
     parser.add_argument("--log-path", required=True, help="Path to save log file")
-    parser.add_argument("--boot-config", default=None, help="Optional UART boot config line to send after reset")
-
+    parser.add_argument("--boot-config", required=True, help="UART boot config line to send after reset")
     args = parser.parse_args()
-    
+
     stop_event = threading.Event()
-    success = monitor_board(args.port, args.baud, args.duration, args.log_path, stop_event, args.boot_config)
-    sys.exit(0 if success else 1)
+    success = monitor_board(
+        args.port,
+        args.baud,
+        args.log_path,
+        stop_event,
+        args.boot_config,
+        args.test_duration_ms,
+        args.host_wait_time_ms,
+    )
+    raise SystemExit(0 if success else 1)
+
 
 if __name__ == "__main__":
-    import sys
     main()
