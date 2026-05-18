@@ -149,25 +149,32 @@ void TransceiverBase::batch_processing_task(size_t queue_index) {
     QueueHandle_t q = _can_data_queues[queue_index];
 
     while (true) {
-        uint32_t data;
-        if (xQueueReceive(q, &data, portMAX_DELAY) == pdTRUE) {
-            Packet pkt(_mac_addr, can_id); 
-            pkt.add_data_point(data);
+        DataPoint_t data;
+        if (xQueueReceive(q, &data, portMAX_DELAY) != pdTRUE) {
+            continue;
+        }
 
-            const TickType_t deadline = xTaskGetTickCount() + pdMS_TO_TICKS(_linger_ms);
-            while (true) {
-                const TickType_t now = xTaskGetTickCount();
-                if (static_cast<int32_t>(deadline - now) <= 0) break;
-                
-                if (xQueueReceive(q, &data, deadline - now) == pdTRUE) {
-                    if (!pkt.add_data_point(data)) break;
-                } else {
+        Packet pkt(_mac_addr, can_id);
+        pkt.add_data_point(data);
+
+        const TickType_t deadline = xTaskGetTickCount() + pdMS_TO_TICKS(_linger_ms);
+        while (true) {
+            if (pkt.get_data().size() >= Packet::MAX_DATA_POINTS) break;
+
+            const TickType_t now = xTaskGetTickCount();
+            if (static_cast<int32_t>(deadline - now) <= 0) break;
+
+            if (xQueueReceive(q, &data, deadline - now) == pdTRUE) {
+                if (!pkt.add_data_point(data)) {
+                    ESP_LOGE(TAG, "Failed to add data point to packet");
                     break;
                 }
+            } else {
+                break;
             }
-            // Hand the constructed batch to the Strategy to handle retries/dispatch
-            dispatch_packet(pkt, queue_index); 
         }
+        // Hand the constructed batch to the Strategy to handle retries/dispatch
+        dispatch_packet(pkt, queue_index);
     }
 }
 
