@@ -12,9 +12,9 @@ const uint8_t* Transceiver::prepare_send_mac(const Packet& packet) {
         static uint8_t dest_mac[ESP_NOW_ETH_ALEN];
         const auto& data = packet.get_data();
         
-        if (data.size() >= 5) {
-            std::memcpy(dest_mac, &data[3], 4);
-            std::memcpy(dest_mac + 4, &data[4], 2);
+        if (data.size() >= 4) {
+            std::memcpy(dest_mac, &data[2], 4);
+            std::memcpy(dest_mac + 4, &data[3], 2);
             return dest_mac;
         }
     }
@@ -62,7 +62,7 @@ void Transceiver::on_control_packet(const Packet& packet) {
     if (data.size() < 2) return;
 
     uint32_t target_can_id = data[0];
-    // uint32_t target_seq_id = data[1]; // We could use this for stricter matching if needed
+    uint32_t target_seq_id = data[1]; // We could use this for stricter matching if needed
 
     size_t idx = get_can_queue_index(target_can_id);
     if (idx != SIZE_MAX) {
@@ -102,7 +102,7 @@ bool Transceiver::add_peer(const uint8_t* mac_addr) {
     peer.encrypt = false;
     
     if (esp_now_is_peer_exist(peer.peer_addr)) return true;
-    
+
     esp_err_t err = esp_now_add_peer(&peer);
     if (err != ESP_OK && err != ESP_ERR_ESPNOW_EXIST) {
         ESP_LOGE(TAG, "Failed to add peer: %s", esp_err_to_name(err));

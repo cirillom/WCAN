@@ -55,7 +55,7 @@ std::optional<Packet> Packet::from_payload(const uint8_t* src_mac,
 
     // 4. Decode Data Points (Big-Endian)
     if (data_count > 0) {
-        pkt._data.reserve(MAX_DATA_POINTS); // Reserve for efficiency, even if not full
+        pkt._data.reserve(data_count);
         for (size_t i = 0; i < data_count; i++) {
             uint32_t network_data_point = 0;
             std::memcpy(&network_data_point, payload + offset, sizeof(DataPoint_t));

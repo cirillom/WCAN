@@ -49,9 +49,7 @@ public:
      * Auto-generates a sequence ID. The source_mac will typically be filled by the Transceiver.
      */
     explicit Packet(const std::array<uint8_t, ESP_NOW_ETH_ALEN>& source_mac, CANId_t can_id)
-        : _source_mac_addr(source_mac), _can_id(can_id), _sequence_id(next_sequence_id()) {
-            _data.reserve(MAX_DATA_POINTS);
-        }
+        : _source_mac_addr(source_mac), _can_id(can_id), _sequence_id(next_sequence_id()) {}
         
     /** @brief Factory to create a Packet from incoming raw ESP-NOW data. */
     static std::optional<Packet> from_payload(const uint8_t* src_mac,
