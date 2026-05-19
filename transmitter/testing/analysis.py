@@ -754,31 +754,19 @@ def analyze_log_counters(sensors, receivers, context: AnalysisContext = None):
         total_p_fail_edge += counts[0]
         total_p_fail_start_edge += counts[1]
         total_p_fail_tail_edge += counts[2]
-    edge_suffix = ""
-    if total_p_fail:
-        total_p_fail_considered = max(0, total_p_fail - total_p_fail_edge)
-        edge_suffix = (
-            f" edge={total_p_fail_edge} (start={total_p_fail_start_edge} tail={total_p_fail_tail_edge})"
-            f" considered={total_p_fail_considered}"
+    # Print total with start/tail edge counts
+    lines.append(
+        f"  Total: P(FAIL)={total_p_fail} (start={total_p_fail_start_edge} tail={total_p_fail_tail_edge}) | "
+        f"P(FULL)={total_p_full} | S(FAIL)={total_s_fail}"
+    )
+
+    # Print per-sensor breakdown
+    for sensor in sensors:
+        edge_count, start_count, tail_count = sensor_edge_counts.get(sensor.board_id, (0, 0, 0))
+        lines.append(
+            f"  Sensor {sensor.board_id}: P(FAIL)={sensor.p_fail_count} (start={start_count} tail={tail_count}) | "
+            f"P(FULL)={sensor.p_full_count} | S(FAIL)={sensor.s_fail_count}"
         )
-    lines.append(f"  Total: P(FAIL)={total_p_fail}{suffix}{edge_suffix} P(FULL)={total_p_full} S(FAIL)={total_s_fail}")
-    for d in devices:
-        kind = "Sensor" if isinstance(d, SensorData) else "Receiver"
-        if d.p_fail_count or d.p_fail_tail_ignored_count or d.p_full_count or d.s_fail_count:
-            ignored = f"[{d.p_fail_tail_ignored_count}]" if d.p_fail_tail_ignored_count else ""
-            extra = ""
-            if isinstance(d, SensorData) and d.s_fail_count and not d.s_fail_counters_by_can_id:
-                extra = " (unlocalized; rebuild firmware to emit WCAN_S_FAIL_RANGE)"
-            edge_suffix = ""
-            if isinstance(d, SensorData):
-                edge_count, start_count, tail_count = sensor_edge_counts.get(d.board_id, (0, 0, 0))
-                if d.p_fail_count:
-                    considered = max(0, d.p_fail_count - edge_count)
-                    edge_suffix = f" edge={edge_count} (start={start_count} tail={tail_count}) considered={considered}"
-            lines.append(
-                f"  {kind} {d.board_id}: "
-                f"P(FAIL)={d.p_fail_count}{ignored}{edge_suffix} P(FULL)={d.p_full_count} S(FAIL)={d.s_fail_count}{extra}"
-            )
     if len(lines) == 2:
         lines.append("  No P(FAIL), P(FULL), or S(FAIL) entries found")
     return "\n".join(lines), passed
