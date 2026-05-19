@@ -22,14 +22,14 @@ const uint8_t* Transceiver::prepare_send_mac(const Packet& packet) {
 }
 
 void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
-    _pending_ack_seq_ids[can_id] = pkt.get_sequence_id();
+    _pending_ack_seq_ids[can_id]->store(pkt.get_sequence_id());
     (void)ulTaskNotifyTake(pdTRUE, 0);
 
     for (int i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
         const TickType_t send_wait = is_stopping() ? 0 : portMAX_DELAY;
         Packet* to_send = acquire_packet(send_wait);
         if (to_send == nullptr) {
-            _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
+            _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
             ESP_LOGE(TAG, "Send packet pool exhausted");
             const auto data = pkt.get_data();
             std::printf("P(FULL):%lu:%lx:%lu:%lu:%lu:%u\n",
@@ -44,7 +44,7 @@ void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
 
         *to_send = pkt;
         if (!enqueue_radio_transmit_packet(to_send, send_wait)) {
-            _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
+            _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
             ESP_LOGE(TAG, "Failed to push packet to radio transmit queue");
             const auto data = pkt.get_data();
             std::printf("P(FULL):%lu:%lx:%lu:%lu:%lu:%u\n",
@@ -60,13 +60,13 @@ void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
         // Wait for ACK semaphore
         uint32_t timeout_ms = PACKET_DELIVERY_TIMEOUT_MIN_MS + (rand() % (PACKET_DELIVERY_TIMEOUT_MAX_MS - PACKET_DELIVERY_TIMEOUT_MIN_MS));
         if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(timeout_ms)) > 0) {
-            _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
+            _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
             // ACK received!
             return;
         }
     }
 
-    _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
+    _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
 
     const auto data = pkt.get_data();
     std::printf("P(FAIL):%lu:%lx:%lu:%lu:%lu:%u\n",
@@ -87,7 +87,7 @@ void Transceiver::on_control_packet(const Packet& packet) {
 
     auto it = _retry_task_handles.find(target_can_id);
     if (it != _retry_task_handles.end() && it->second != nullptr &&
-        _pending_ack_seq_ids[target_can_id] == target_seq_id) {
+        _pending_ack_seq_ids[target_can_id]->load() == target_seq_id) {
         xTaskNotifyGive(it->second);
     }
 }

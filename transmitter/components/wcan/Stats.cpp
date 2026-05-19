@@ -218,8 +218,13 @@ void MeasuredStats::record_sensor_send_failure(CANId_t can_id, uint32_t counter)
         if (it != _slot_index.end()) {
             const size_t idx = it->second;
             if (_slot_mutexes[idx]) xSemaphoreTake(_slot_mutexes[idx], portMAX_DELAY);
-            _sensor_send_failure_ranges_slots[idx].emplace_back(counter, counter);
             _sensor_send_failures_total++;
+            auto& ranges = _sensor_send_failure_ranges_slots[idx];
+            if (!ranges.empty() && counter == ranges.back().second + 1) {
+                ranges.back().second = counter;
+            } else {
+                ranges.emplace_back(counter, counter);
+            }
             if (_slot_mutexes[idx]) xSemaphoreGive(_slot_mutexes[idx]);
             return;
         }

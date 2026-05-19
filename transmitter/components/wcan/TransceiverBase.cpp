@@ -79,7 +79,7 @@ bool TransceiverBase::init() {
             _batch_task_done.emplace(_tx_can_ids[i], false);
             _retry_task_handles.emplace(_tx_can_ids[i], (TaskHandle_t)nullptr);
             _retry_task_done.emplace(_tx_can_ids[i], false);
-            _pending_ack_seq_ids.emplace(_tx_can_ids[i], NO_PENDING_ACK_SEQUENCE_ID);
+            _pending_ack_seq_ids.emplace(_tx_can_ids[i], std::make_shared<std::atomic<uint32_t>>(NO_PENDING_ACK_SEQUENCE_ID));
         }
     }
 

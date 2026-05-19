@@ -73,7 +73,7 @@ protected:
     std::unordered_map<CANId_t, bool> _batch_task_done;
     std::unordered_map<CANId_t, TaskHandle_t> _retry_task_handles;
     std::unordered_map<CANId_t, bool> _retry_task_done;
-    std::unordered_map<CANId_t, uint32_t> _pending_ack_seq_ids;
+    std::unordered_map<CANId_t, std::shared_ptr<std::atomic<uint32_t>>> _pending_ack_seq_ids;
 
     // --- Packet Pools ---
     Packet* _packet_pool = nullptr;
