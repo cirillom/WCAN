@@ -176,7 +176,7 @@ public:
     static constexpr size_t CAN_DATA_QUEUE_SIZE = 768;
     static constexpr size_t TX_RESULT_QUEUE_SIZE = 16;
     static constexpr size_t RADIO_MAX_RETRIES = 3;
-    static constexpr uint32_t RADIO_TIMEOUT_MS = 50;
+    static constexpr uint32_t RADIO_TIMEOUT_MS = 150;
     static constexpr uint32_t CONTROL_ID = 0xE0000000;
     static constexpr uint32_t NO_PENDING_ACK_SEQUENCE_ID = UINT32_MAX;
 

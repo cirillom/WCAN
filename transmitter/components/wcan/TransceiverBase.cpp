@@ -234,42 +234,30 @@ void TransceiverBase::send_processing_task() {
             // Determine destination using the virtual hook
             const uint8_t* dest_mac = prepare_send_mac(*pkt);
 
-            for (int attempt = 0; attempt < RADIO_MAX_RETRIES; attempt++) {
-                xQueueReset(_tx_result_queue);
-                const int64_t send_start_us = stats().now_us();
+            xQueueReset(_tx_result_queue);
+            const int64_t send_start_us = stats().now_us();
 
-                esp_err_t err = esp_now_send(dest_mac, encoded, encoded_size);
-                if (err != ESP_OK) {
-                    ESP_LOGE(TAG, "esp_now_send fail: %s", esp_err_to_name(err));
-                    continue;
-                }
+            esp_err_t err = esp_now_send(dest_mac, encoded, encoded_size);
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "esp_now_send fail: %s", esp_err_to_name(err));
+                continue;
+            }
 
-                bool success = false;
-                if (xQueueReceive(_tx_result_queue, &success, pdMS_TO_TICKS(RADIO_TIMEOUT_MS)) == pdTRUE) {
-                    const int64_t send_end_us = stats().now_us();
-                    stats().record_airtime(static_cast<uint32_t>(std::max<int64_t>(0, send_end_us - send_start_us)));
-                    if (success) {
-                        break;
-                    } else if (dest_mac != nullptr) {
-                        std::printf("Radio send to %02x:%02x:%02x:%02x:%02x:%02x failed on attempt %d\n",
-                            dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5], attempt + 1);
-                    }
-                } else {
-                    std::printf("Radio hardware timeout (50ms) to %02x:%02x:%02x:%02x:%02x:%02x on attempt %d\n",
-                        dest_mac ? dest_mac[0] : 0, dest_mac ? dest_mac[1] : 0, dest_mac ? dest_mac[2] : 0,
-                        dest_mac ? dest_mac[3] : 0, dest_mac ? dest_mac[4] : 0, dest_mac ? dest_mac[5] : 0,
-                        attempt + 1);
-                }
+            bool success = false;
+            if (xQueueReceive(_tx_result_queue, &success, pdMS_TO_TICKS(RADIO_TIMEOUT_MS)) == pdTRUE) {
+                const int64_t send_end_us = stats().now_us();
+                stats().record_airtime(static_cast<uint32_t>(std::max<int64_t>(0, send_end_us - send_start_us)));
+                if (!success && dest_mac != nullptr) {
+                    std::printf("Radio send to %02x:%02x:%02x:%02x:%02x:%02x failed\n",
+                        dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5]);
 
-                if (attempt == RADIO_MAX_RETRIES - 1) {
-                    // All hardware retries failed
-                    if (pkt->get_can_id() == CONTROL_ID) {
-                        const auto data = pkt->get_data();
-                        if (data.size() >= 2) {
-                            _deduplicator.forget(data[0], data[1]);
-                        }
-                    }
+                    const auto data = pkt->get_data();
+                    _deduplicator.forget(data[0], data[1]);
                 }
+            } else {
+                std::printf("Radio hardware timeout (50ms) to %02x:%02x:%02x:%02x:%02x:%02x\n",
+                    dest_mac ? dest_mac[0] : 0, dest_mac ? dest_mac[1] : 0, dest_mac ? dest_mac[2] : 0,
+                    dest_mac ? dest_mac[3] : 0, dest_mac ? dest_mac[4] : 0, dest_mac ? dest_mac[5] : 0);
             }
 
             release_packet(pkt);
