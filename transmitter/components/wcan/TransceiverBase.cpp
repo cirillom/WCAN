@@ -83,6 +83,8 @@ bool TransceiverBase::init() {
         }
     }
 
+    if (_stats) _stats->configure_tx_ids(_tx_can_ids);
+
     _tx_result_queue = xQueueCreate(TX_RESULT_QUEUE_SIZE, sizeof(bool));
     if (!_tx_result_queue) return false;
 
