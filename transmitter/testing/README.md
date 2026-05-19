@@ -46,7 +46,7 @@ test_config:
   project_path: .
 ```
 
-At least 2 boards are required. Supported chips are `esp32` and `esp32c3`.
+At least 2 boards are required. Supported chips are `esp32` and `esp32c3`. The Python test planner treats `esp32c3` as sensor-only hardware; receiver slots are assigned only to `esp32` boards.
 
 ---
 

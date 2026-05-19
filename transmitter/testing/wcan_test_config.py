@@ -7,6 +7,7 @@ from typing import Any
 import yaml
 
 VALID_CHIPS = ("esp32", "esp32c3")
+RECEIVER_CAPABLE_CHIPS = ("esp32",)
 VALID_SUITES = ("baseline", "multiple", "real_time", "active_filter", "mixed_frequency")
 
 
@@ -18,6 +19,10 @@ def normalize_can_id(can_id: Any) -> int:
 
 def format_can_id(can_id: Any) -> str:
     return f"0x{normalize_can_id(can_id):x}"
+
+
+def is_receiver_capable(board: dict) -> bool:
+    return board.get("chip") in RECEIVER_CAPABLE_CHIPS
 
 
 def board_can_ids(board: dict, count: int) -> list[int]:

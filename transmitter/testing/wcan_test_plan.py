@@ -10,6 +10,7 @@ from wcan_test_config import (
     VALID_SUITES,
     board_can_ids,
     format_can_id,
+    is_receiver_capable,
     int_list,
     normalize_can_id,
 )
@@ -204,12 +205,37 @@ def active_filter_allowlists(sensor_boards: list[dict], receiver_boards: list[di
     return allowlists, expected
 
 
+def receiver_capable_count(boards: list[dict]) -> int:
+    return sum(1 for board in boards if is_receiver_capable(board))
+
+
+def filter_receiver_capable_topologies(topologies: list[tuple[int, int]], boards: list[dict]) -> list[tuple[int, int]]:
+    max_receivers = receiver_capable_count(boards)
+    valid = []
+    for sensors, receivers in topologies:
+        if receivers > max_receivers:
+            print(
+                f"[WARNING] Skipping topology {sensors}S-{receivers}R: "
+                f"only {max_receivers} ESP32 receiver-capable board(s) available."
+            )
+            continue
+        valid.append((sensors, receivers))
+    return valid
+
+
 def choose_boards(boards: list[dict], sensors: int, receivers: int, rng: random.Random) -> tuple[list[dict], list[dict], list[dict]]:
-    shuffled = boards.copy()
-    rng.shuffle(shuffled)
-    sensor_boards = shuffled[:sensors]
-    receiver_boards = shuffled[sensors : sensors + receivers]
-    idle_boards = shuffled[sensors + receivers :]
+    receiver_candidates = [board for board in boards if is_receiver_capable(board)]
+    if receivers > len(receiver_candidates):
+        raise ValueError(f"Need {receivers} receiver-capable board(s), found {len(receiver_candidates)}")
+
+    rng.shuffle(receiver_candidates)
+    receiver_boards = receiver_candidates[:receivers]
+    receiver_ids = {board["id"] for board in receiver_boards}
+
+    sensor_candidates = [board for board in boards if board["id"] not in receiver_ids]
+    rng.shuffle(sensor_candidates)
+    sensor_boards = sensor_candidates[:sensors]
+    idle_boards = sensor_candidates[sensors:]
     return sensor_boards, receiver_boards, idle_boards
 
 
@@ -268,6 +294,7 @@ def build_run_plan(
         topologies = resolve_topologies(suite_config.get("topologies"), len(boards))
         if test_filter is not None:
             topologies = [topology for topology in topologies if topology in test_filter]
+        topologies = filter_receiver_capable_topologies(topologies, boards)
 
         min_sensors = int(suite_config.get("requires_min_sensors", 1))
         topologies = [topology for topology in topologies if topology[0] >= min_sensors]
