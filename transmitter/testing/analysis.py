@@ -531,7 +531,19 @@ def analyze_measure(sensors, receivers):
         if not d.measure.values:
             continue
         kind = "Sensor" if isinstance(d, SensorData) else "Receiver"
-        rendered = " ".join(f"{k}={v}" for k, v in sorted(d.measure.values.items()))
+        airtime_pct = None
+        try:
+            if "airtime_us_total" in d.measure.values and "elapsed_ms" in d.measure.values:
+                elapsed_ms = int(d.measure.values["elapsed_ms"])
+                if elapsed_ms > 0:
+                    airtime_pct = 100.0 * int(d.measure.values["airtime_us_total"]) / (elapsed_ms * 1000.0)
+        except (TypeError, ValueError):
+            airtime_pct = None
+        tokens = []
+        if airtime_pct is not None:
+            tokens.append(f"airtime_pct={airtime_pct:.2f}")
+        tokens.extend(f"{k}={v}" for k, v in sorted(d.measure.values.items()))
+        rendered = " ".join(tokens)
         lines.append(f"  {kind} {d.board_id}: {rendered}")
     return "\n".join(lines), True
 
