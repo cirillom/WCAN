@@ -191,6 +191,65 @@ def monitor_board(port: str, baud: int, log_path: str, stop_event: threading.Eve
         return False
 
 
+def idle_board(port: str, baud: int, config_line: str, timeout: float = 10.0) -> bool:
+    try:
+        ser = serial.Serial(port, baud, timeout=0.2)
+        time.sleep(0.1)
+        ser.reset_input_buffer()
+        _reset_board(ser)
+
+        with open(os.devnull, "w", encoding="utf-8") as f:
+            ok = _send_boot_config_and_wait_ready(ser, f, config_line, timeout=timeout)
+
+        ser.close()
+        return ok
+    except serial.SerialException as e:
+        print(f"  [IDLE] Could not open {port}: {e}")
+        return False
+
+
+def idle_all_boards(boards_with_roles: list, baud: int, transport: str = "BROADCAST",
+                    test_duration_ms: int = 30000, host_wait_time_ms: int = 5000,
+                    timeout: float = 10.0) -> bool:
+    normalized = list(boards_with_roles)
+    if not normalized:
+        return True
+
+    results = {}
+    threads = []
+    options = {
+        "test_duration_ms": test_duration_ms,
+        "host_wait_time_ms": host_wait_time_ms,
+    }
+    config_line = boot_config_line("IDLE", options, transport)
+
+    print("  [IDLE] Resetting boards into IDLE...")
+
+    def _idle_assignment(assignment):
+        board, _, _ = _assignment_parts(assignment)
+        results[board["id"]] = idle_board(board["port"], baud, config_line, timeout=timeout)
+
+    for assignment in normalized:
+        t = threading.Thread(target=_idle_assignment, args=(assignment,))
+        threads.append(t)
+        t.start()
+
+    for t in threads:
+        t.join(timeout=timeout + 2.0)
+
+    ok = len(results) == len(normalized) and all(results.values())
+    if not ok:
+        failed = [
+            _assignment_parts(assignment)[0]["id"]
+            for assignment in normalized
+            if not results.get(_assignment_parts(assignment)[0]["id"], False)
+        ]
+        print(f"  [IDLE] Warning: idle setup failed for {', '.join(failed)}")
+    else:
+        print(f"  [IDLE] ok {len(results)}/{len(normalized)}")
+    return ok
+
+
 def monitor_all_boards(boards_with_roles: list, baud: int, test_duration_ms: int, host_wait_time_ms: int,
                        log_dir: str, transport: str = "BROADCAST") -> bool:
     os.makedirs(log_dir, exist_ok=True)

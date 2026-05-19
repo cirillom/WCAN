@@ -35,7 +35,7 @@ import yaml
 from idf_env import check_idf
 from build import build_needed, build_variant, VALID_TRANSPORTS
 from flash import flash_all
-from monitor import boot_config_line, monitor_all_boards
+from monitor import boot_config_line, monitor_all_boards, idle_all_boards
 from wcan_test_config import board_can_ids, format_can_id, load_boards, load_tests
 from wcan_test_plan import (
     build_run_plan,
@@ -53,6 +53,42 @@ LEGACY_SCENARIO_TO_SUITE = {
     "frequency_mixing": "mixed_frequency",
     "advanced": "all",
 }
+
+_FLASHED_FIRMWARE = {}
+
+
+def _assignment_board(assignment):
+    if isinstance(assignment, dict):
+        return assignment
+    return assignment[0]
+
+
+def _firmware_signature(board: dict, transport: str, measure: bool) -> tuple:
+    return (board.get("chip", "esp32"), transport.upper(), bool(measure))
+
+
+def flash_assignments_if_needed(assignments: list, transport: str, measure: bool,
+                                project_path: str, flashed_state: dict | None = None) -> bool:
+    flashed_state = _FLASHED_FIRMWARE if flashed_state is None else flashed_state
+    to_flash = []
+    for assignment in assignments:
+        board = _assignment_board(assignment)
+        desired = _firmware_signature(board, transport, measure)
+        if flashed_state.get(board["id"]) != desired:
+            to_flash.append(assignment)
+
+    if not to_flash:
+        print("  [FLASH] Reusing flashed firmware for all boards.")
+        return True
+
+    print(f"  [FLASH] Flashing {len(to_flash)}/{len(assignments)} boards for {transport.upper()} firmware...")
+    if not flash_all(to_flash, transport, measure, project_path):
+        return False
+
+    for assignment in to_flash:
+        board = _assignment_board(assignment)
+        flashed_state[board["id"]] = _firmware_signature(board, transport, measure)
+    return True
 
 
 # ─── Plan-based Runner (current entrypoint) ─────────────────────────────────
@@ -268,7 +304,7 @@ def _summary_row(root: Path, log_dir: Path, run, status: str) -> dict:
     }
 
 
-def _run_one_plan_test(root: Path, plan, run, measure: bool) -> dict:
+def _run_one_plan_test(root: Path, plan, run, measure: bool, flashed_state: dict | None = None) -> dict:
     log_dir = _run_dir(root, run)
     _write_scenario_metadata(log_dir, run, plan.settings)
 
@@ -300,23 +336,31 @@ def _run_one_plan_test(root: Path, plan, run, measure: bool) -> dict:
             print(f"  Receiver {board_id} allowlist: {', '.join(format_can_id(can_id) for can_id in ids) or '(empty)'}")
     print(f"  Logs: {log_dir}")
 
-    print("  [FLASH] Flashing boards...")
-    if not flash_all(assignments, run.transport, measure, plan.settings.project_path):
+    if not flash_assignments_if_needed(assignments, run.transport, measure, plan.settings.project_path, flashed_state):
         status = "FLASH_FAIL"
     else:
         time.sleep(1)
-        print(
-            f"  [MONITOR] Sending UART config and waiting "
-            f"{plan.settings.test_duration_ms + plan.settings.host_wait_time_ms}ms after start at {plan.settings.baud} baud..."
-        )
-        status = "OK" if monitor_all_boards(
-            assignments,
-            plan.settings.baud,
-            plan.settings.test_duration_ms,
-            plan.settings.host_wait_time_ms,
-            str(log_dir),
-            run.transport,
-        ) else "MONITOR_ERROR"
+        try:
+            print(
+                f"  [MONITOR] Sending UART config and waiting "
+                f"{plan.settings.test_duration_ms + plan.settings.host_wait_time_ms}ms after start at {plan.settings.baud} baud..."
+            )
+            status = "OK" if monitor_all_boards(
+                assignments,
+                plan.settings.baud,
+                plan.settings.test_duration_ms,
+                plan.settings.host_wait_time_ms,
+                str(log_dir),
+                run.transport,
+            ) else "MONITOR_ERROR"
+        finally:
+            idle_all_boards(
+                assignments,
+                plan.settings.baud,
+                run.transport,
+                plan.settings.test_duration_ms,
+                plan.settings.host_wait_time_ms,
+            )
 
     print(f"  [RESULT] {status}")
     return _summary_row(root, log_dir, run, status)
@@ -453,8 +497,9 @@ def plan_main(argv: list[str] | None = None):
         sys.exit(1)
 
     rows = []
+    flashed_state = {}
     for run in plan.runs:
-        rows.append(_run_one_plan_test(root, plan, run, plan.settings.measure))
+        rows.append(_run_one_plan_test(root, plan, run, plan.settings.measure, flashed_state))
         if run.index < len(plan.runs):
             print(f"[COOLDOWN] {plan.settings.cooldown}s")
             time.sleep(plan.settings.cooldown)
@@ -708,7 +753,7 @@ def run_single_test(
 ) -> str:
     """
     Run one test case: flash, monitor, save logs.
-    Idle boards are flashed with IDLE firmware (no WiFi, no WCAN — completely silent).
+    Roles are assigned at boot over UART; idle boards use the same runtime firmware.
     Returns status string: "OK", "FLASH_FAIL", or "MONITOR_ERROR".
     """
     s_count = len(sensor_boards)
@@ -716,7 +761,7 @@ def run_single_test(
 
     # Active boards: sensors + receivers (these get monitored)
     active_boards = [(b, "SENSOR") for b in sensor_boards] + [(b, "RECEIVER") for b in receiver_boards]
-    # All boards to flash: active + idle (idle get IDLE firmware — completely off the network)
+    # All boards use the same runtime firmware; UART config assigns active/idle roles.
     all_to_flash = []
     for b, role in active_boards:
         options = assignment_options(b, role, scenario_state)
@@ -746,22 +791,36 @@ def run_single_test(
         if not ensure_assignment_builds(all_to_flash, config):
             return "BUILD_FAIL"
 
-    # Flash ALL boards (active + idle)
-    print(f"  Flashing {len(all_to_flash)} boards ({len(active_boards)} active + {len(idle_boards)} idle)...")
-    if not flash_all(all_to_flash, config["transport"], config["measure"], config["project_path"]):
+    if not flash_assignments_if_needed(
+        all_to_flash,
+        config["transport"],
+        config["measure"],
+        config["project_path"],
+    ):
         return "FLASH_FAIL"
 
     # Brief pause after flashing before starting monitors
     time.sleep(1)
 
-    ok = monitor_all_boards(
-        all_to_flash,
-        config["baud"],
-        int(config.get("test_duration_ms", int(config["duration"] * 1000))),
-        int(config.get("host_wait_time_ms", 5000)),
-        log_dir,
-        config["transport"],
-    )
+    test_duration_ms = int(config.get("test_duration_ms", int(config["duration"] * 1000)))
+    host_wait_time_ms = int(config.get("host_wait_time_ms", 5000))
+    try:
+        ok = monitor_all_boards(
+            all_to_flash,
+            config["baud"],
+            test_duration_ms,
+            host_wait_time_ms,
+            log_dir,
+            config["transport"],
+        )
+    finally:
+        idle_all_boards(
+            all_to_flash,
+            config["baud"],
+            config["transport"],
+            test_duration_ms,
+            host_wait_time_ms,
+        )
 
     return "OK" if ok else "MONITOR_ERROR"
 
