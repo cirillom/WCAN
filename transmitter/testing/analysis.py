@@ -48,6 +48,8 @@ class SensorData:
     retry_count_by_can_id: dict = field(default_factory=dict)
     max_retry_chain_by_can_id: dict = field(default_factory=dict)
     failed_packets_by_can_id: dict = field(default_factory=dict)
+    p_fail_counters_by_can_id: dict = field(default_factory=dict)
+    s_fail_counters_by_can_id: dict = field(default_factory=dict)
     p_fail_count: int = 0
     p_fail_tail_ignored_count: int = 0
     p_full_count: int = 0
@@ -81,6 +83,9 @@ class ComparisonResult:
     sent: list
     received: set
     missed: list
+    edge: list = field(default_factory=list)
+    start_edge: list = field(default_factory=list)
+    tail_edge: list = field(default_factory=list)
 
 
 @dataclass
@@ -91,6 +96,9 @@ class SensorSummary:
     sent: list
     received_by_any: set
     total_misses: list
+    edge_misses: list
+    start_edge_misses: list
+    tail_edge_misses: list
     transport_misses: list
     network_misses: list
     delivery_expected: bool = True
@@ -128,6 +136,7 @@ RE_P_FAIL = re.compile(r"\bP\(FAIL\)")
 RE_P_FAIL_DETAIL = re.compile(r"\bP\(FAIL\):\d+:([0-9a-fA-F]+):\d+:(\d+):(\d+):(\d+)")
 RE_P_FULL = re.compile(r"\bP\(FULL\)")
 RE_S_FAIL = re.compile(r"\bS\(FAIL\)")
+RE_S_FAIL_RANGE = re.compile(r"WCAN_S_FAIL_RANGE\s+id=0x([0-9a-fA-F]+)\s+ranges=(.*)")
 
 
 def _normalize_can_id(can_id) -> str:
@@ -253,11 +262,7 @@ def _merge_counter_ranges(ranges: list[tuple[int, int]]) -> list[tuple[int, int]
     return merged
 
 
-def _count_sensor_p_failures(text: str, generated_last: int | None) -> tuple[int, int]:
-    total = len(RE_P_FAIL.findall(text))
-    if generated_last is None:
-        return total, 0
-
+def _sensor_p_fail_details(text: str):
     detailed = []
     ranges_by_can_id = {}
     for m in RE_P_FAIL_DETAIL.finditer(text):
@@ -268,6 +273,22 @@ def _count_sensor_p_failures(text: str, generated_last: int | None) -> tuple[int
             first, last = last, first
         detailed.append((can_id, first, last))
         ranges_by_can_id.setdefault(can_id, []).append((first, last))
+    return detailed, ranges_by_can_id
+
+
+def _expand_counter_ranges_by_can_id(ranges_by_can_id: dict) -> dict:
+    return {
+        can_id: _expand_ranges(_merge_counter_ranges(ranges))
+        for can_id, ranges in ranges_by_can_id.items()
+    }
+
+
+def _count_sensor_p_failures(text: str, generated_last: int | None) -> tuple[int, int]:
+    total = len(RE_P_FAIL.findall(text))
+    if generated_last is None:
+        return total, 0
+
+    detailed, ranges_by_can_id = _sensor_p_fail_details(text)
 
     tail_start_by_can_id = {}
     for can_id, ranges in ranges_by_can_id.items():
@@ -315,6 +336,9 @@ def parse_sensor_log(path: Path) -> SensorData:
     generated_by_can_id = {can_id: list(generated) for can_id in can_ids}
 
     p_fail_count, p_fail_tail_ignored_count = _count_sensor_p_failures(text, generated_last)
+    _p_fail_details, p_fail_ranges_by_can_id = _sensor_p_fail_details(text)
+    p_fail_counters_by_can_id = _expand_counter_ranges_by_can_id(p_fail_ranges_by_can_id)
+    s_fail_counters_by_can_id = parse_s_fail_ranges(text)
 
     measure = parse_measures(text)
 
@@ -334,6 +358,8 @@ def parse_sensor_log(path: Path) -> SensorData:
         panic_detected=bool(RE_PANIC.search(text)),
         measure=measure,
         batch_stats=parse_batch_stats(text),
+        p_fail_counters_by_can_id=p_fail_counters_by_can_id,
+        s_fail_counters_by_can_id=s_fail_counters_by_can_id,
         p_fail_count=p_fail_count,
         p_fail_tail_ignored_count=p_fail_tail_ignored_count,
         p_full_count=len(RE_P_FULL.findall(text)),
@@ -347,6 +373,15 @@ def _expand_ranges(ranges: list[tuple[int, int]]) -> set[int]:
         if end >= start:
             values.update(range(start, end + 1))
     return values
+
+
+def parse_s_fail_ranges(text: str) -> dict:
+    ranges_by_id = {}
+    for m in RE_S_FAIL_RANGE.finditer(text):
+        can_id = _normalize_can_id(m.group(1))
+        ranges = [(int(a), int(b)) for a, b in RE_RANGE_ITEM.findall(m.group(2))]
+        ranges_by_id.setdefault(can_id, []).extend(ranges)
+    return _expand_counter_ranges_by_can_id(ranges_by_id)
 
 
 def parse_receiver_log(path: Path) -> ReceiverData:
@@ -437,11 +472,43 @@ def compare(sensors, receivers, context: AnalysisContext = None):
                     results.append(ComparisonResult(sensor, receiver, can_id, [], set(), []))
                     continue
                 received = receiver.received.get(_normalize_can_id(can_id), set()) & set(sent)
-                trimmed_sent = _trim_tail(sent, received)
-                received = received & set(trimmed_sent)
-                missed = sorted(set(trimmed_sent) - received)
-                results.append(ComparisonResult(sensor, receiver, can_id, trimmed_sent, received, missed))
+                p_fail_counters = sensor.p_fail_counters_by_can_id.get(_normalize_can_id(can_id), set())
+                s_fail_counters = sensor.s_fail_counters_by_can_id.get(_normalize_can_id(can_id), set())
+                missed, edge, start_edge, tail_edge = _classified_misses(sent, received, p_fail_counters, s_fail_counters)
+                scored_sent = [counter for counter in sent if counter not in set(edge)]
+                scored_received = received & set(scored_sent)
+                results.append(ComparisonResult(sensor, receiver, can_id, scored_sent, scored_received, missed, edge, start_edge, tail_edge))
     return results
+
+
+def _classified_misses(generated: list, received: set, p_fail_counters: set, s_fail_counters: set = None) -> tuple[list, list, list, list]:
+    s_fail_counters = s_fail_counters or set()
+    missed = set(generated) - received
+    if not missed:
+        return [], [], [], []
+
+    start_edge = []
+    for counter in generated:
+        if counter not in missed:
+            break
+        start_edge.append(counter)
+
+    start_edge_set = set(start_edge)
+    tail_edge = []
+    for counter in reversed(generated):
+        if counter not in missed or counter in start_edge_set:
+            break
+        tail_edge.append(counter)
+    tail_edge = sorted(tail_edge)
+
+    tail_edge_set = set(tail_edge)
+    p_fail_start = start_edge_set & p_fail_counters
+    s_fail_edge = (start_edge_set | tail_edge_set) & s_fail_counters
+    start_edge_set -= p_fail_start | s_fail_edge
+    tail_edge_set -= s_fail_edge
+    edge = start_edge_set | tail_edge_set
+    normal = missed - edge
+    return sorted(normal), sorted(edge), sorted(start_edge_set), sorted(tail_edge_set)
 
 
 def sensor_summary(sensors, receivers, context: AnalysisContext = None):
@@ -456,52 +523,92 @@ def sensor_summary(sensors, receivers, context: AnalysisContext = None):
             delivery_expected = not (context.active_filtering and expected is not None and not expected)
             if not delivery_expected:
                 summaries.append(SensorSummary(
-                    sensor, can_id, generated, sent, set(), [], [], [], False,
-                    "no expected receivers; excluded from delivery scoring",
+                    sensor=sensor,
+                    can_id=can_id,
+                    generated=generated,
+                    sent=sent,
+                    received_by_any=set(),
+                    total_misses=[],
+                    edge_misses=[],
+                    start_edge_misses=[],
+                    tail_edge_misses=[],
+                    transport_misses=[],
+                    network_misses=[],
+                    delivery_expected=False,
+                    note="no expected receivers; excluded from delivery scoring",
                 ))
                 continue
             union = set()
             for receiver in subscribed:
                 union |= receiver.received.get(_normalize_can_id(can_id), set())
             union &= set(generated)
-            trimmed_generated = _trim_tail(generated, union)
-            trimmed_generated_set = set(trimmed_generated)
-            trimmed_union = union & trimmed_generated_set
-            trimmed_sent = [counter for counter in sent if counter in trimmed_generated_set]
-            total_misses = sorted(trimmed_generated_set - trimmed_union)
-            network_misses = sorted(set(trimmed_sent) - trimmed_union)
-            summaries.append(SensorSummary(sensor, can_id, trimmed_generated, trimmed_sent, trimmed_union, total_misses, [], network_misses))
+            p_fail_counters = sensor.p_fail_counters_by_can_id.get(_normalize_can_id(can_id), set())
+            s_fail_counters = sensor.s_fail_counters_by_can_id.get(_normalize_can_id(can_id), set())
+            total_misses, edge_misses, start_edge_misses, tail_edge_misses = _classified_misses(
+                generated, union, p_fail_counters, s_fail_counters
+            )
+            network_misses = sorted(set(sent) - union)
+            summaries.append(SensorSummary(
+                sensor=sensor,
+                can_id=can_id,
+                generated=generated,
+                sent=sent,
+                received_by_any=union,
+                total_misses=total_misses,
+                edge_misses=edge_misses,
+                start_edge_misses=start_edge_misses,
+                tail_edge_misses=tail_edge_misses,
+                transport_misses=[],
+                network_misses=network_misses,
+            ))
     return summaries
 
 
 def analyze_delivery(sensors, receivers, test_name, context: AnalysisContext = None):
     summaries = sensor_summary(sensors, receivers, context)
     scored = [s for s in summaries if s.delivery_expected]
-    total_generated = sum(len(s.generated) for s in scored)
+    total_generated = sum(len(s.generated) - len(s.edge_misses) for s in scored)
     total_received = sum(len(s.received_by_any) for s in scored)
     total_misses = sum(len(s.total_misses) for s in scored)
+    total_edge_misses = sum(len(s.edge_misses) for s in scored)
     delivery_pct = (100.0 * total_received / total_generated) if total_generated else 100.0
     passed = total_misses == 0
-    lines = [f"DELIVERY ANALYSIS: {'PASS' if passed else 'FAIL'} ({delivery_pct:.2f}% end-to-end delivery)"]
-    lines.append(f"  Summary: {total_generated} scored generated, {total_received} received, {total_misses} total misses")
+    attention = f", attention: {total_edge_misses} edge" if total_edge_misses else ""
+    status = "PASS" if passed else "FAIL"
+    lines = [f"DELIVERY ANALYSIS: {status} ({delivery_pct:.2f}% end-to-end delivery{attention})"]
+    lines.append(
+        f"  Summary: {total_generated} scored generated, {total_received} received, "
+        f"{total_misses} misses, {total_edge_misses} edge"
+    )
     excluded = sum(1 for s in summaries if not s.delivery_expected)
     if excluded:
         lines.append(f"  Excluded: {excluded} sensor/CAN streams with no expected receivers")
     for s in summaries:
-        suffix = f", {len(s.total_misses)} misses" if s.delivery_expected else f", {s.note}"
+        if s.delivery_expected:
+            suffix = f", {len(s.total_misses)} misses, {len(s.edge_misses)} edge"
+        else:
+            suffix = f", {s.note}"
         lines.append(
             f"  Sensor {s.sensor.board_id} ({_format_can_id(s.can_id)} | {s.sensor.port}): "
-            f"{len(s.generated)} generated, {len(s.received_by_any)} received{suffix}"
+            f"{len(s.generated) - len(s.edge_misses)} generated, {len(s.received_by_any)} received{suffix}"
         )
         if s.total_misses:
             lines.append(f"   - MISSES ({len(s.total_misses)}): {_format_counter_list(s.total_misses)}")
+        if s.edge_misses:
+            edge_parts = []
+            if s.start_edge_misses:
+                edge_parts.append(f"start={_format_counter_list(s.start_edge_misses)}")
+            if s.tail_edge_misses:
+                edge_parts.append(f"tail={_format_counter_list(s.tail_edge_misses)}")
+            detail = " " + " ".join(edge_parts) if edge_parts else ""
+            lines.append(f"   - EDGE ({len(s.edge_misses)}):{detail}")
     return "\n".join(lines), passed
 
 
 def analyze_pair_delivery_info(sensors, receivers, context: AnalysisContext = None):
     results = compare(sensors, receivers, context)
     lines = ["PAIR DELIVERY INFO (informational only; does not affect pass/fail)"]
-    visible = [r for r in results if r.sent or r.received or r.missed]
+    visible = [r for r in results if r.sent or r.received or r.missed or r.edge]
     if not visible:
         lines.append("  no subscribed sensor/receiver pairs with transport data")
         return "\n".join(lines)
@@ -509,6 +616,14 @@ def analyze_pair_delivery_info(sensors, receivers, context: AnalysisContext = No
         line = f"  Sensor {r.sensor.board_id} {_format_can_id(r.can_id)} -> Receiver {r.receiver.board_id}: {len(r.received)}/{len(r.sent)} received"
         if r.missed:
             line += f", missed {len(r.missed)} {_format_counter_list(r.missed)}"
+        if r.edge:
+            edge_parts = []
+            if r.start_edge:
+                edge_parts.append(f"start={_format_counter_list(r.start_edge)}")
+            if r.tail_edge:
+                edge_parts.append(f"tail={_format_counter_list(r.tail_edge)}")
+            detail = " " + " ".join(edge_parts) if edge_parts else ""
+            line += f", edge {len(r.edge)}{detail}"
         lines.append(line)
     return "\n".join(lines)
 
@@ -598,20 +713,25 @@ def analyze_log_counters(sensors, receivers):
     total_p_fail_tail_ignored = sum(d.p_fail_tail_ignored_count for d in devices)
     total_p_full = sum(d.p_full_count for d in devices)
     total_s_fail = sum(d.s_fail_count for d in devices)
-    lines = ["LOG COUNTERS:"]
+    passed = total_s_fail == 0 and total_p_full == 0
+    status = "PASS" if passed else "FAIL"
+    lines = [f"LOG COUNTERS: {status}"]
     suffix = f"[{total_p_fail_tail_ignored}]" if total_p_fail_tail_ignored else ""
     lines.append(f"  Total: P(FAIL)={total_p_fail}{suffix} P(FULL)={total_p_full} S(FAIL)={total_s_fail}")
     for d in devices:
         kind = "Sensor" if isinstance(d, SensorData) else "Receiver"
         if d.p_fail_count or d.p_fail_tail_ignored_count or d.p_full_count or d.s_fail_count:
             ignored = f"[{d.p_fail_tail_ignored_count}]" if d.p_fail_tail_ignored_count else ""
+            extra = ""
+            if isinstance(d, SensorData) and d.s_fail_count and not d.s_fail_counters_by_can_id:
+                extra = " (unlocalized; rebuild firmware to emit WCAN_S_FAIL_RANGE)"
             lines.append(
                 f"  {kind} {d.board_id}: "
-                f"P(FAIL)={d.p_fail_count}{ignored} P(FULL)={d.p_full_count} S(FAIL)={d.s_fail_count}"
+                f"P(FAIL)={d.p_fail_count}{ignored} P(FULL)={d.p_full_count} S(FAIL)={d.s_fail_count}{extra}"
             )
     if len(lines) == 2:
         lines.append("  No P(FAIL), P(FULL), or S(FAIL) entries found")
-    return "\n".join(lines), True
+    return "\n".join(lines), passed
 
 
 def _indent_block(text: str, spaces: int = 4) -> str:
@@ -761,12 +881,13 @@ def analyze_all(test_dir: Path):
     r_scenario, p_scenario = analyze_scenario(test_dir, sensors, receivers, context)
     r_measure, p_measure = analyze_measure(sensors, receivers)
     r_batch, _p_batch = analyze_batch_stats(sensors, context)
-    r_log_counters, _p_log_counters = analyze_log_counters(sensors, receivers)
+    r_log_counters, p_log_counters = analyze_log_counters(sensors, receivers)
     checks = [
         ("delivery", p_delivery),
         ("crash", p_crash),
         ("scenario", p_scenario),
         ("measure", p_measure),
+        ("log_counters", p_log_counters),
     ]
     failed_parts = [name for name, ok in checks if not ok]
     passed = not failed_parts

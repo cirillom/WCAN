@@ -26,7 +26,7 @@ public:
     void record_airtime(uint32_t duration_us) override;
     void record_batch(const Packet& packet, int64_t ready_us) override;
     void record_batch_dispatch(const Packet& packet, int64_t dispatch_start_us, uint32_t dispatch_us) override;
-    void record_sensor_send_failure() override;
+    void record_sensor_send_failure(CANId_t can_id, uint32_t counter) override;
     void finish_test() override;
     void print_sensor_end(uint32_t generated_count) const override;
     void print_rx_ranges() const override;
@@ -58,6 +58,7 @@ private:
 
     std::unordered_map<CANId_t, std::vector<CounterRange>> _rx_ranges;
     std::unordered_map<CANId_t, BatchStats> _batch_stats;
+    std::unordered_map<CANId_t, std::vector<CounterRange>> _sensor_send_failure_ranges;
     std::unordered_map<uint64_t, int64_t> _batch_ready_us_by_key;
     uint32_t _heap_start_free = 0;
     uint32_t _heap_start_min_free = 0;
@@ -72,6 +73,7 @@ private:
 void MeasuredStats::reset() {
     _rx_ranges.clear();
     _batch_stats.clear();
+    _sensor_send_failure_ranges.clear();
     _batch_ready_us_by_key.clear();
     _heap_start_free = static_cast<uint32_t>(esp_get_free_heap_size());
     _heap_start_min_free = static_cast<uint32_t>(esp_get_minimum_free_heap_size());
@@ -116,8 +118,14 @@ void MeasuredStats::record_airtime(uint32_t duration_us) {
     _packets_sent_total++;
 }
 
-void MeasuredStats::record_sensor_send_failure() {
+void MeasuredStats::record_sensor_send_failure(CANId_t can_id, uint32_t counter) {
     _sensor_send_failures_total++;
+    auto& ranges = _sensor_send_failure_ranges[can_id];
+    if (!ranges.empty() && counter == ranges.back().second + 1) {
+        ranges.back().second = counter;
+        return;
+    }
+    ranges.emplace_back(counter, counter);
 }
 
 void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
@@ -239,6 +247,25 @@ void MeasuredStats::print_batch_stats() const {
 }
 
 void MeasuredStats::print_measures() const {
+    std::vector<CANId_t> fail_ids;
+    fail_ids.reserve(_sensor_send_failure_ranges.size());
+    for (const auto& entry : _sensor_send_failure_ranges) fail_ids.push_back(entry.first);
+    std::sort(fail_ids.begin(), fail_ids.end());
+    for (CANId_t can_id : fail_ids) {
+        const auto& ranges = _sensor_send_failure_ranges.at(can_id);
+        std::printf("WCAN_S_FAIL_RANGE id=0x%lx ranges=", static_cast<unsigned long>(can_id));
+        if (ranges.empty()) {
+            std::printf("[]");
+        } else {
+            for (size_t i = 0; i < ranges.size(); ++i) {
+                if (i > 0) std::printf(",");
+                std::printf("[%lu..%lu]",
+                            static_cast<unsigned long>(ranges[i].first),
+                            static_cast<unsigned long>(ranges[i].second));
+            }
+        }
+        std::printf("\n");
+    }
     const uint32_t heap_end_free = static_cast<uint32_t>(esp_get_free_heap_size());
     const uint32_t heap_end_min_free = static_cast<uint32_t>(esp_get_minimum_free_heap_size());
     const uint32_t heap_end_largest = static_cast<uint32_t>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
