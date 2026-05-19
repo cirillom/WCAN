@@ -49,6 +49,7 @@ class SensorData:
     max_retry_chain_by_can_id: dict = field(default_factory=dict)
     failed_packets_by_can_id: dict = field(default_factory=dict)
     p_fail_count: int = 0
+    p_fail_tail_ignored_count: int = 0
     p_full_count: int = 0
     s_fail_count: int = 0
     batch_stats: dict = field(default_factory=dict)
@@ -66,6 +67,7 @@ class ReceiverData:
     queue_drop_count: int = 0
     dedup_drop_count: int = 0
     p_fail_count: int = 0
+    p_fail_tail_ignored_count: int = 0
     p_full_count: int = 0
     s_fail_count: int = 0
     batch_stats: dict = field(default_factory=dict)
@@ -123,6 +125,7 @@ RE_BATCH = re.compile(r"WCAN_BATCH\s+id=0x([0-9a-fA-F]+)\s+(.*)")
 RE_ABORT = re.compile(r"WCAN_TEST_ABORT(?:\s+(.+))?")
 RE_PANIC = re.compile(r"(Guru Meditation Error|abort\(\) was called|assert failed|Backtrace:)", re.IGNORECASE)
 RE_P_FAIL = re.compile(r"\bP\(FAIL\)")
+RE_P_FAIL_DETAIL = re.compile(r"\bP\(FAIL\):\d+:([0-9a-fA-F]+):\d+:(\d+):(\d+):(\d+)")
 RE_P_FULL = re.compile(r"\bP\(FULL\)")
 RE_S_FAIL = re.compile(r"\bS\(FAIL\)")
 
@@ -229,6 +232,53 @@ def parse_batch_stats(text: str) -> dict:
     return stats
 
 
+def _merge_counter_ranges(ranges: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    if not ranges:
+        return []
+    merged = []
+    for start, end in sorted(ranges):
+        if end < start:
+            start, end = end, start
+        if merged and start <= merged[-1][1] + 1:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    return merged
+
+
+def _count_sensor_p_failures(text: str, generated_last: int | None) -> tuple[int, int]:
+    total = len(RE_P_FAIL.findall(text))
+    if generated_last is None:
+        return total, 0
+
+    detailed = []
+    ranges_by_can_id = {}
+    for m in RE_P_FAIL_DETAIL.finditer(text):
+        can_id = _normalize_can_id(m.group(1))
+        first = int(m.group(2))
+        last = int(m.group(3))
+        if last < first:
+            first, last = last, first
+        detailed.append((can_id, first, last))
+        ranges_by_can_id.setdefault(can_id, []).append((first, last))
+
+    tail_start_by_can_id = {}
+    for can_id, ranges in ranges_by_can_id.items():
+        for start, end in _merge_counter_ranges(ranges):
+            if start <= generated_last <= end:
+                tail_start_by_can_id[can_id] = start
+                break
+
+    ignored = 0
+    for can_id, first, last in detailed:
+        tail_start = tail_start_by_can_id.get(can_id)
+        if tail_start is not None and first >= tail_start and last <= generated_last:
+            ignored += 1
+
+    malformed = total - len(detailed)
+    return malformed + len(detailed) - ignored, ignored
+
+
 def _find_crash_locations(text: str) -> list:
     locations = []
     for i, line in enumerate(text.splitlines(), 1):
@@ -257,6 +307,8 @@ def parse_sensor_log(path: Path) -> SensorData:
     generated = [] if generated_last is None else list(range(0, generated_last + 1))
     generated_by_can_id = {can_id: list(generated) for can_id in can_ids}
 
+    p_fail_count, p_fail_tail_ignored_count = _count_sensor_p_failures(text, generated_last)
+
     return SensorData(
         board_id=board_id,
         port=port,
@@ -273,7 +325,8 @@ def parse_sensor_log(path: Path) -> SensorData:
         panic_detected=bool(RE_PANIC.search(text)),
         measure=parse_measures(text),
         batch_stats=parse_batch_stats(text),
-        p_fail_count=len(RE_P_FAIL.findall(text)),
+        p_fail_count=p_fail_count,
+        p_fail_tail_ignored_count=p_fail_tail_ignored_count,
         p_full_count=len(RE_P_FULL.findall(text)),
         s_fail_count=len(RE_S_FAIL.findall(text)),
     )
@@ -518,16 +571,19 @@ def analyze_batch_stats(sensors, context: AnalysisContext = None):
 def analyze_log_counters(sensors, receivers):
     devices = sensors + receivers
     total_p_fail = sum(d.p_fail_count for d in devices)
+    total_p_fail_tail_ignored = sum(d.p_fail_tail_ignored_count for d in devices)
     total_p_full = sum(d.p_full_count for d in devices)
     total_s_fail = sum(d.s_fail_count for d in devices)
     lines = ["LOG COUNTERS:"]
-    lines.append(f"  Total: P(FAIL)={total_p_fail} P(FULL)={total_p_full} S(FAIL)={total_s_fail}")
+    suffix = f"[{total_p_fail_tail_ignored}]" if total_p_fail_tail_ignored else ""
+    lines.append(f"  Total: P(FAIL)={total_p_fail}{suffix} P(FULL)={total_p_full} S(FAIL)={total_s_fail}")
     for d in devices:
         kind = "Sensor" if isinstance(d, SensorData) else "Receiver"
-        if d.p_fail_count or d.p_full_count or d.s_fail_count:
+        if d.p_fail_count or d.p_fail_tail_ignored_count or d.p_full_count or d.s_fail_count:
+            ignored = f"[{d.p_fail_tail_ignored_count}]" if d.p_fail_tail_ignored_count else ""
             lines.append(
                 f"  {kind} {d.board_id}: "
-                f"P(FAIL)={d.p_fail_count} P(FULL)={d.p_full_count} S(FAIL)={d.s_fail_count}"
+                f"P(FAIL)={d.p_fail_count}{ignored} P(FULL)={d.p_full_count} S(FAIL)={d.s_fail_count}"
             )
     if len(lines) == 2:
         lines.append("  No P(FAIL), P(FULL), or S(FAIL) entries found")

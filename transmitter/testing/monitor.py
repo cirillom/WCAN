@@ -113,6 +113,7 @@ def monitor_board(port: str, baud: int, log_path: str, stop_event: threading.Eve
                   config_line: str, test_duration_ms: int, host_wait_time_ms: int,
                   ready_event: threading.Event | None = None,
                   start_event: threading.Event | None = None,
+                  start_signal: threading.Event | None = None,
                   progress_step=None):
     try:
         ser = serial.Serial(port, baud, timeout=0.2)
@@ -134,7 +135,17 @@ def monitor_board(port: str, baud: int, log_path: str, stop_event: threading.Eve
 
             if ready_event is not None:
                 ready_event.set()
-            if start_event is not None:
+            if start_signal is not None:
+                f.write("# Waiting for phased test start\n")
+                f.flush()
+                while not start_signal.is_set():
+                    if stop_event.is_set():
+                        f.write("# Monitor stopped before WCAN_TEST_START because not all devices became ready\n")
+                        f.write(f"\n# Monitor stopped: {datetime.now().isoformat()}\n")
+                        ser.close()
+                        return False
+                    time.sleep(0.001)
+            elif start_event is not None:
                 f.write("# Waiting for coordinated test start\n")
                 f.flush()
                 while not start_event.is_set():
@@ -143,7 +154,7 @@ def monitor_board(port: str, baud: int, log_path: str, stop_event: threading.Eve
                         f.write(f"\n# Monitor stopped: {datetime.now().isoformat()}\n")
                         ser.close()
                         return False
-                    time.sleep(0.05)
+                    time.sleep(0.005)
 
             if stop_event.is_set():
                 f.write("# Monitor stopped before WCAN_TEST_START\n")
@@ -153,10 +164,10 @@ def monitor_board(port: str, baud: int, log_path: str, stop_event: threading.Eve
 
             ser.write(b"WCAN_TEST_START\n")
             ser.flush()
-            f.write("# UART test start sent: WCAN_TEST_START\n")
+            start = time.time()
+            f.write(f"# UART test start sent: WCAN_TEST_START at {datetime.now().isoformat()}\n")
             f.flush()
 
-            start = time.time()
             ok = False
             while not stop_event.is_set() and (time.time() - start) < timeout_s:
                 try:
@@ -255,6 +266,7 @@ def monitor_all_boards(boards_with_roles: list, baud: int, test_duration_ms: int
     os.makedirs(log_dir, exist_ok=True)
     stop_event = threading.Event()
     start_event = threading.Event()
+    start_signals = {}
     threads = []
     ready_events = {}
     results = {}
@@ -276,10 +288,12 @@ def monitor_all_boards(boards_with_roles: list, baud: int, test_duration_ms: int
         log_path = os.path.join(log_dir, log_filename)
         config_line = boot_config_line(role, options, transport)
         ready_event = threading.Event()
+        start_signal = threading.Event()
         ready_events[board["id"]] = ready_event
+        start_signals[board["id"]] = start_signal
 
-        def _monitor(p=board["port"], lp=log_path, bid=board["id"], cfg=config_line, ready=ready_event):
-            ok = monitor_board(p, baud, lp, stop_event, cfg, test_duration_ms, host_wait_time_ms, ready, start_event, _progress_step)
+        def _monitor(p=board["port"], lp=log_path, bid=board["id"], cfg=config_line, ready=ready_event, signal=start_signal):
+            ok = monitor_board(p, baud, lp, stop_event, cfg, test_duration_ms, host_wait_time_ms, ready, start_event, signal, _progress_step)
             results[bid] = ok
 
         t = threading.Thread(target=_monitor)
@@ -297,6 +311,14 @@ def monitor_all_boards(boards_with_roles: list, baud: int, test_duration_ms: int
 
     normalized = list(boards_with_roles)
 
+    def _release_role(role_name: str):
+        for assignment in normalized:
+            board, role, _ = _assignment_parts(assignment)
+            if role.lower() == role_name:
+                signal = start_signals.get(board["id"])
+                if signal is not None:
+                    signal.set()
+
     from tqdm import tqdm
     total_steps = max(1, len(normalized) * 2 + 1)
     with tqdm(total=total_steps, desc="  Test steps", unit="step", leave=False, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {unit}") as pbar:
@@ -308,11 +330,18 @@ def monitor_all_boards(boards_with_roles: list, baud: int, test_duration_ms: int
 
         if all_ready and not any_failed:
             start_event.set()
+            _release_role("receiver")
+            time.sleep(0.010)
+            _release_role("sensor")
+            time.sleep(0.010)
+            _release_role("idle")
             while any(t.is_alive() for t in threads) and not stop_event.is_set():
                 time.sleep(0.25)
         else:
             stop_event.set()
             start_event.set()
+            for signal in start_signals.values():
+                signal.set()
 
         _progress_step()
 
