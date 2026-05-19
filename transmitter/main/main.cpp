@@ -238,7 +238,7 @@ extern "C" void app_main(void)
     if (s_app.config.role == runtime_config::Role::kIdle) {
         std::printf("WCAN_TEST_READY role=%s\n", runtime_config::RoleName(s_app.config.role));
         std::fflush(stdout);
-        RunTimedTest(s_app);
+        runtime_config::WaitForTestStart();
         return;
     }
 
