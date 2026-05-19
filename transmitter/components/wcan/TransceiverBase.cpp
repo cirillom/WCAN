@@ -2,13 +2,8 @@
 
 #include <cstring>
 #include <algorithm>
+#include <cstdio>
 #include <new>
-
-#ifdef MEASURE_INSTR
-#include "esp_timer.h"
-extern volatile uint64_t g_airtime_total_us;
-extern volatile uint64_t g_packets_sent_total;
-#endif
 
 namespace wcan {
 
@@ -22,7 +17,8 @@ TransceiverBase::~TransceiverBase() {
 }
 
 TransceiverBase::TransceiverBase(std::vector<uint32_t> rx_can_ids, std::vector<uint32_t> tx_can_ids, uint32_t linger_ms, bool filtering_enabled)
-    : _rx_can_ids(std::move(rx_can_ids)),
+    : _stats(make_stats()),
+      _rx_can_ids(std::move(rx_can_ids)),
       _tx_can_ids(std::move(tx_can_ids)),
       _linger_ms(linger_ms),
       _filtering_enabled(filtering_enabled) {}
@@ -192,10 +188,7 @@ void TransceiverBase::send_processing_task() {
 
             for (int attempt = 0; attempt < RADIO_MAX_RETRIES; attempt++) {
                 xQueueReset(_tx_result_queue);
-
-            #ifdef MEASURE_INSTR
-                const int64_t send_start_us = esp_timer_get_time();
-            #endif
+                const int64_t send_start_us = stats().now_us();
 
                 esp_err_t err = esp_now_send(dest_mac, encoded, encoded_size);
                 if (err != ESP_OK) {
@@ -205,11 +198,8 @@ void TransceiverBase::send_processing_task() {
 
                 bool success = false;
                 if (xQueueReceive(_tx_result_queue, &success, pdMS_TO_TICKS(RADIO_TIMEOUT_MS)) == pdTRUE) {
-            #ifdef MEASURE_INSTR
-                    const int64_t send_end_us = esp_timer_get_time();
-                    g_packets_sent_total++;
-                    g_airtime_total_us += static_cast<uint64_t>(send_end_us - send_start_us);
-            #endif
+                    const int64_t send_end_us = stats().now_us();
+                    stats().record_airtime(static_cast<uint32_t>(std::max<int64_t>(0, send_end_us - send_start_us)));
                     if (success) {
                         break;
                     } else if (dest_mac != nullptr) {
@@ -257,6 +247,7 @@ void TransceiverBase::recv_processing_task() {
                 on_control_packet(pkt);
             } else {
                 on_data_packet(pkt);
+                stats().record_rx_packet(pkt);
                 if (_recv_callback) _recv_callback(pkt);
             }
         }
@@ -299,8 +290,11 @@ void TransceiverBase::batch_processing_task(CANId_t can_id) {
                 break;
             }
         }
+        const int64_t ready_us = stats().now_us();
         // Hand the constructed batch to the Strategy to handle retries/dispatch
         dispatch_packet(pkt, can_id);
+        const uint32_t dispatch_us = static_cast<uint32_t>(std::max<int64_t>(0, stats().now_us() - ready_us));
+        stats().record_batch(can_id, static_cast<uint32_t>(pkt.get_data().size()), ready_us, dispatch_us);
     }
     _batch_task_done[can_id] = true;
     vTaskDelete(nullptr);

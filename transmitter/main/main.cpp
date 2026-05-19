@@ -18,7 +18,6 @@
 #include "freertos/task.h"
 
 #include "runtime_config.hpp"
-#include "app_stats.hpp"
 #include "wcan.hpp"
 
 #include "esp_timer.h"
@@ -72,7 +71,6 @@ struct AppContext {
     std::unique_ptr<wcan::Transceiver> transceiver;
     esp_timer_handle_t sensor_timer = nullptr;
     uint32_t generated_data_point = 0;
-    uint64_t test_duration_ms = 0;
 };
 
 static AppContext s_app;
@@ -132,14 +130,6 @@ void stop_sensor_timer(AppContext &app)
     app.sensor_timer = nullptr;
 }
 
-void wcan_recv_callback(const wcan::Packet &recv_packet)
-{
-    const auto& data = recv_packet.get_data();
-    if (data.empty()) {
-        return;
-    }
-    app_stats_detail::RecordPacketStats(recv_packet);
-}
 
 bool SetupSensor(AppContext &app)
 {
@@ -149,7 +139,6 @@ bool SetupSensor(AppContext &app)
     }
 
     auto transceiver = std::make_unique<wcan::Transceiver>(std::vector<uint32_t>{}, std::move(tx_ids), app.config.linger_ms, true);
-    transceiver->set_recv_callback(wcan_recv_callback);
     if (!transceiver->init()) {
         ESP_LOGE("SENSOR_APP", "Failed to initialize Transceiver");
         return false;
@@ -169,7 +158,6 @@ bool SetupReceiver(AppContext &app)
     }
 
     auto transceiver = std::make_unique<wcan::Transceiver>(std::move(rx_ids), std::vector<uint32_t>{}, 0, app.config.receiver_filter_enabled);
-    transceiver->set_recv_callback(wcan_recv_callback);
     if (!transceiver->init()) {
         ESP_LOGE("RECEIVER_APP", "Failed to initialize Transceiver");
         return false;
@@ -184,49 +172,38 @@ static uint32_t StopDrainTimeoutMs(const ConfigContext& config)
     return std::max<uint32_t>(1, std::min<uint32_t>(1000, config.host_wait_time_ms / 2));
 }
 
-static void PrintSensorEnd(const AppContext& app)
-{
-    if (app.config.role != runtime_config::Role::kSensor) {
-        return;
-    }
-
-    const uint32_t generated_count = app.generated_data_point;
-    const double avg_hz = (static_cast<double>(generated_count) * 1000000.0) / static_cast<double>(app.test_duration_ms * 1000.0);
-
-    if (generated_count == 0) {
-        std::printf("WCAN_SENSOR_END generated=none avg_hz=0.00\n");
-    } else {
-        std::printf("WCAN_SENSOR_END generated=%lu avg_hz=%.2f\n",
-                    static_cast<unsigned long>(generated_count - 1), avg_hz);
-    }
-    std::fflush(stdout);
-}
 
 static void RunTimedTest(AppContext& app)
 {
     runtime_config::WaitForTestStart();
-    start_app_stats();
-    int64_t test_start_us = esp_timer_get_time();
-
+    if (app.transceiver) {
+        app.transceiver->stats().reset();
+    }
     if (app.config.role == runtime_config::Role::kSensor && !start_sensor_timer(app)) {
         std::printf("WCAN_TEST_ABORT role=sensor reason=sensor-timer\n");
         return;
     }
 
     vTaskDelay(pdMS_TO_TICKS(app.config.test_duration_ms));
-    int64_t test_end_us = esp_timer_get_time();
-    app.test_duration_ms = static_cast<uint64_t>(test_end_us - test_start_us) / 1000;
+    if (app.transceiver) {
+        app.transceiver->stats().finish_test();
+    }
 
     stop_sensor_timer(app);
     if (app.transceiver) {
         app.transceiver->stop(StopDrainTimeoutMs(app.config));
+        app.transceiver->stats().print_batch_stats();
     }
 
-    PrintSensorEnd(app);
-    if (app.config.role == runtime_config::Role::kReceiver) {
-        app_stats_detail::PrintRxRanges();
+    if (app.config.role == runtime_config::Role::kSensor && app.transceiver) {
+        app.transceiver->stats().print_sensor_end(app.generated_data_point);
     }
-    app_stats_detail::PrintMeasures();
+    if (app.config.role == runtime_config::Role::kReceiver && app.transceiver) {
+        app.transceiver->stats().print_rx_ranges();
+    }
+    if (app.transceiver) {
+        app.transceiver->stats().print_measures();
+    }
     std::printf("WCAN_TEST_END role=%s\n", runtime_config::RoleName(app.config.role));
     std::fflush(stdout);
 }

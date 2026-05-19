@@ -25,6 +25,7 @@
 #include "freertos/task.h"
 
 #include "Packet.hpp"
+#include "Stats.hpp"
 
 namespace wcan {
 
@@ -48,6 +49,9 @@ public:
 
     /** @brief Returns the configured TX CAN IDs. */
     const std::vector<CANId_t>& get_tx_can_ids() const { return _tx_can_ids; }
+
+    Stats& stats() { return *_stats; }
+    const Stats& stats() const { return *_stats; }
 
 protected:
     bool is_stopping() const { return _stopping; }
@@ -73,6 +77,7 @@ protected:
     EspNowPacket* _rx_packet_pool = nullptr;
 
     // --- Components ---
+    std::unique_ptr<Stats> _stats;
     Packet::Deduplicator _deduplicator;
 
     // --- Configuration ---

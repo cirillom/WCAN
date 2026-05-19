@@ -22,6 +22,11 @@ class MeasureStats:
 
 
 @dataclass
+class BatchStats:
+    values: dict = field(default_factory=dict)
+
+
+@dataclass
 class SensorData:
     board_id: str
     port: str
@@ -46,6 +51,7 @@ class SensorData:
     p_fail_count: int = 0
     p_full_count: int = 0
     s_fail_count: int = 0
+    batch_stats: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -62,6 +68,7 @@ class ReceiverData:
     p_fail_count: int = 0
     p_full_count: int = 0
     s_fail_count: int = 0
+    batch_stats: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -112,6 +119,7 @@ RE_SENSOR_END = re.compile(r"WCAN_SENSOR_END\s+generated=(\S+)\s+avg_hz=([0-9.]+
 RE_RX_RANGE = re.compile(r"WCAN_RX_RANGE\s+id=0x([0-9a-fA-F]+)\s+ranges=(.*)")
 RE_RANGE_ITEM = re.compile(r"\[(\d+)\.\.(\d+)\]")
 RE_MEASURES = re.compile(r"WCAN_MEASURES\s+(.*)")
+RE_BATCH = re.compile(r"WCAN_BATCH\s+id=0x([0-9a-fA-F]+)\s+(.*)")
 RE_ABORT = re.compile(r"WCAN_TEST_ABORT(?:\s+(.+))?")
 RE_PANIC = re.compile(r"(Guru Meditation Error|abort\(\) was called|assert failed|Backtrace:)", re.IGNORECASE)
 RE_P_FAIL = re.compile(r"\bP\(FAIL\)")
@@ -208,6 +216,19 @@ def parse_measures(text: str) -> MeasureStats:
     return stats
 
 
+def parse_batch_stats(text: str) -> dict:
+    stats = {}
+    for m in RE_BATCH.finditer(text):
+        values = {}
+        for token in m.group(2).split():
+            if "=" not in token:
+                continue
+            key, value = token.split("=", 1)
+            values[key] = value
+        stats[_normalize_can_id(m.group(1))] = BatchStats(values)
+    return stats
+
+
 def _find_crash_locations(text: str) -> list:
     locations = []
     for i, line in enumerate(text.splitlines(), 1):
@@ -251,6 +272,7 @@ def parse_sensor_log(path: Path) -> SensorData:
         crash_details=_find_crash_locations(text),
         panic_detected=bool(RE_PANIC.search(text)),
         measure=parse_measures(text),
+        batch_stats=parse_batch_stats(text),
         p_fail_count=len(RE_P_FAIL.findall(text)),
         p_full_count=len(RE_P_FULL.findall(text)),
         s_fail_count=len(RE_S_FAIL.findall(text)),
@@ -284,6 +306,7 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         crash_details=_find_crash_locations(text),
         panic_detected=bool(RE_PANIC.search(text)),
         measure=parse_measures(text),
+        batch_stats=parse_batch_stats(text),
         p_fail_count=len(RE_P_FAIL.findall(text)),
         p_full_count=len(RE_P_FULL.findall(text)),
         s_fail_count=len(RE_S_FAIL.findall(text)),
@@ -446,6 +469,49 @@ def analyze_measure(sensors, receivers):
         kind = "Sensor" if isinstance(d, SensorData) else "Receiver"
         rendered = " ".join(f"{k}={v}" for k, v in sorted(d.measure.values.items()))
         lines.append(f"  {kind} {d.board_id}: {rendered}")
+    return "\n".join(lines), True
+
+
+def analyze_batch_stats(sensors, context: AnalysisContext = None):
+    context = context or AnalysisContext()
+    devices = [s for s in sensors if s.batch_stats]
+    if not devices:
+        return "BATCH STATS: no final batch stats", True
+
+    expected_points = None
+    expected_hz = None
+    metadata = context.metadata
+    if metadata.get("frequency_hz") is not None and metadata.get("linger_ms") is not None:
+        expected_points = float(metadata["frequency_hz"]) * float(metadata["linger_ms"]) / 1000.0
+        expected_hz = 1000.0 / float(metadata["linger_ms"]) if float(metadata["linger_ms"]) > 0 else None
+
+    lines = ["BATCH STATS:"]
+    if expected_hz is not None and expected_points is not None:
+        lines.append(f"  Expected: avg_hz~{expected_hz:.2f} avg_points~{expected_points:.1f}")
+
+    ordered_keys = [
+        "count", "avg_hz", "avg_points", "min_points", "max_points",
+        "avg_interval_ms", "min_interval_ms", "max_interval_ms",
+        "avg_dispatch_ms", "max_dispatch_ms",
+    ]
+    for sensor in devices:
+        for can_id in sorted(sensor.batch_stats):
+            values = sensor.batch_stats[can_id].values
+            rendered = " ".join(f"{k}={values[k]}" for k in ordered_keys if k in values)
+            notes = []
+            if expected_hz is not None and "avg_hz" in values:
+                avg_hz = float(values["avg_hz"])
+                notes.append("rate=OK" if avg_hz >= expected_hz * 0.95 else "rate=SLOW")
+            if expected_points is not None and "avg_points" in values:
+                avg_points = float(values["avg_points"])
+                if avg_points > expected_points * 1.5:
+                    notes.append("points=LARGE")
+                elif avg_points < expected_points * 0.5:
+                    notes.append("points=SMALL")
+                else:
+                    notes.append("points=OK")
+            suffix = f" ({', '.join(notes)})" if notes else ""
+            lines.append(f"  Sensor {sensor.board_id} {_format_can_id(can_id)}: {rendered}{suffix}")
     return "\n".join(lines), True
 
 
@@ -614,6 +680,7 @@ def analyze_all(test_dir: Path):
     r_crash, p_crash = analyze_crashes(sensors, receivers)
     r_scenario, p_scenario = analyze_scenario(test_dir, sensors, receivers, context)
     r_measure, p_measure = analyze_measure(sensors, receivers)
+    r_batch, _p_batch = analyze_batch_stats(sensors, context)
     r_log_counters, _p_log_counters = analyze_log_counters(sensors, receivers)
     checks = [
         ("delivery", p_delivery),
@@ -625,7 +692,7 @@ def analyze_all(test_dir: Path):
     passed = not failed_parts
     status = "PASS" if passed else "FAIL"
     header = f"{header_base} | {status}"
-    report = _format_test_report(header, [r_delivery, r_pair, r_crash, r_scenario, r_measure, r_log_counters], failed_parts)
+    report = _format_test_report(header, [r_delivery, r_pair, r_crash, r_scenario, r_measure, r_batch, r_log_counters], failed_parts)
     return report, passed
 
 
