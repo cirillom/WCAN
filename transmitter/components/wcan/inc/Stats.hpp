@@ -17,6 +17,7 @@ public:
     virtual void record_rx_packet(const Packet&) {}
     virtual void record_airtime(uint32_t) {}
     virtual void record_batch(CANId_t, uint32_t, int64_t, uint32_t) {}
+    virtual void record_sensor_send_failure() {}
     virtual void finish_test() {}
     virtual void print_sensor_end(uint32_t generated_count) const {
         if (generated_count == 0) {

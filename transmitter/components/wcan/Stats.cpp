@@ -25,6 +25,7 @@ public:
     void record_rx_packet(const Packet& packet) override;
     void record_airtime(uint32_t duration_us) override;
     void record_batch(CANId_t can_id, uint32_t points, int64_t ready_us, uint32_t dispatch_us) override;
+    void record_sensor_send_failure() override;
     void finish_test() override;
     void print_sensor_end(uint32_t generated_count) const override;
     void print_rx_ranges() const override;
@@ -59,6 +60,7 @@ private:
     int64_t _end_us = 0;
     uint64_t _airtime_total_us = 0;
     uint64_t _packets_sent_total = 0;
+    uint64_t _sensor_send_failures_total = 0;
 };
 
 void MeasuredStats::reset() {
@@ -71,6 +73,7 @@ void MeasuredStats::reset() {
     _end_us = 0;
     _airtime_total_us = 0;
     _packets_sent_total = 0;
+    _sensor_send_failures_total = 0;
 }
 
 uint32_t MeasuredStats::elapsed_ms() const {
@@ -100,6 +103,10 @@ void MeasuredStats::record_rx_packet(const Packet& packet) {
 void MeasuredStats::record_airtime(uint32_t duration_us) {
     _airtime_total_us += duration_us;
     _packets_sent_total++;
+}
+
+void MeasuredStats::record_sensor_send_failure() {
+    _sensor_send_failures_total++;
 }
 
 void MeasuredStats::record_batch(CANId_t can_id, uint32_t points, int64_t ready_us, uint32_t dispatch_us) {
@@ -200,7 +207,7 @@ void MeasuredStats::print_measures() const {
     const uint32_t heap_end_min_free = static_cast<uint32_t>(esp_get_minimum_free_heap_size());
     const uint32_t heap_end_largest = static_cast<uint32_t>(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
     std::printf(
-        "WCAN_MEASURES elapsed_ms=%lu heap_start_free=%lu heap_end_free=%lu heap_start_min_free=%lu heap_end_min_free=%lu heap_start_largest=%lu heap_end_largest=%lu airtime_us_total=%llu packets_sent_total=%llu\n",
+        "WCAN_MEASURES elapsed_ms=%lu heap_start_free=%lu heap_end_free=%lu heap_start_min_free=%lu heap_end_min_free=%lu heap_start_largest=%lu heap_end_largest=%lu airtime_us_total=%llu packets_sent_total=%llu sensor_send_failures_total=%llu\n",
         static_cast<unsigned long>(elapsed_ms()),
         static_cast<unsigned long>(_heap_start_free),
         static_cast<unsigned long>(heap_end_free),
@@ -209,7 +216,8 @@ void MeasuredStats::print_measures() const {
         static_cast<unsigned long>(_heap_start_largest),
         static_cast<unsigned long>(heap_end_largest),
         static_cast<unsigned long long>(_airtime_total_us),
-        static_cast<unsigned long long>(_packets_sent_total));
+        static_cast<unsigned long long>(_packets_sent_total),
+        static_cast<unsigned long long>(_sensor_send_failures_total));
     std::fflush(stdout);
 }
 

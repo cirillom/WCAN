@@ -426,12 +426,8 @@ void WcanTestSession::run(wcan::TransceiverBase& transceiver, wcan_sensor::RampC
     transceiver.stats().reset();
 
     if (sensor != nullptr) {
-        sensor->set_send_failure_callback([](uint32_t can_id, uint32_t counter) {
-            std::printf("S(FAIL):%lu:%lx:%lu\n",
-                        static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
-                        static_cast<unsigned long>(can_id),
-                        static_cast<unsigned long>(counter));
-            std::fflush(stdout);
+        sensor->set_send_failure_callback([&transceiver](uint32_t, uint32_t) {
+            transceiver.stats().record_sensor_send_failure();
         });
         if (!sensor->start(static_cast<uint32_t>(_config.sensor_hz))) {
             abort("sensor-timer");
