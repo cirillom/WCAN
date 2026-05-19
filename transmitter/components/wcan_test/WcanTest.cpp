@@ -1,18 +1,16 @@
-#pragma once
+#include "WcanTest.hpp"
 
-#include <array>
+#include <algorithm>
 #include <cerrno>
-#include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <string.h>
 
 #include "driver/uart.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "sdkconfig.h"
 
 #if CONFIG_SOC_USB_SERIAL_JTAG_SUPPORTED && CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG_ENABLED
@@ -31,46 +29,21 @@
 #define WCAN_TRANSPORT_NAME "UNKNOWN"
 #endif
 
-namespace runtime_config {
+namespace wcan_test {
 
-enum class Role {
-    kIdle,
-    kSensor,
-    kReceiver,
+namespace {
+
+static const char* TAG = "WCAN_TEST";
+static constexpr size_t kLineBufferSize = 256;
+static constexpr uart_port_t kUartPort = static_cast<uart_port_t>(CONFIG_ESP_CONSOLE_UART_NUM);
+static constexpr TickType_t kInputPollTicks = pdMS_TO_TICKS(20);
+
+struct ParseResult {
+    bool ok;
+    const char* error;
 };
 
-struct ConfigContext {
-    static constexpr size_t kMaxCanIds = 16;
-    static constexpr int kDefaultSensorHz = 200;
-    static constexpr uint32_t kDefaultSensorBaseCanId = 0x100;
-    static constexpr size_t kDefaultSensorCanIdCount = 1;
-    static constexpr uint32_t kDefaultWcanLingerMs = 100;
-    static constexpr uint32_t kDefaultTestDurationMs = 30000;
-    static constexpr uint32_t kDefaultHostWaitTimeMs = 5000;
-    static constexpr int kMinSensorHz = 1;
-    static constexpr int kMaxSensorHz = 10000;
-    static constexpr uint32_t kMaxWcanLingerMs = 60000;
-    static constexpr uint32_t kMaxTestDurationMs = 3600000;
-    static constexpr uint32_t kMaxHostWaitTimeMs = 60000;
-    static constexpr int kProtocolVersion = 1;
-    static constexpr uint32_t kMaxCanId = 0x1FFFFFFF;
-    static constexpr uint8_t kEspNowChannel = 1;
-
-    Role role = Role::kIdle;
-    int sensor_hz = kDefaultSensorHz;
-    uint32_t sensor_base_can_id = kDefaultSensorBaseCanId;
-    size_t sensor_can_id_count = kDefaultSensorCanIdCount;
-    uint32_t linger_ms = kDefaultWcanLingerMs;
-    uint32_t test_duration_ms = kDefaultTestDurationMs;
-    uint32_t host_wait_time_ms = kDefaultHostWaitTimeMs;
-    bool receiver_filter_enabled = false;
-    std::array<uint32_t, kMaxCanIds> receiver_filter_ids = {};
-    size_t receiver_filter_count = 0;
-    char transport[16] = {};
-};
-
-inline const char *RoleName(Role role)
-{
+const char* RoleName(Role role) {
     switch (role) {
     case Role::kSensor:
         return "sensor";
@@ -82,20 +55,7 @@ inline const char *RoleName(Role role)
     return "unknown";
 }
 
-namespace config_detail {
-
-static const char *TAG = "BOOT_CONFIG";
-static constexpr size_t kLineBufferSize = 256;
-static constexpr uart_port_t kUartPort = static_cast<uart_port_t>(CONFIG_ESP_CONSOLE_UART_NUM);
-static constexpr TickType_t kInputPollTicks = pdMS_TO_TICKS(20);
-
-struct ParseResult {
-    bool ok;
-    const char *error;
-};
-
-inline void PrintHostLine(const char *line)
-{
+void PrintHostLine(const char* line) {
     std::printf("%s\n", line);
     std::fflush(stdout);
 
@@ -108,8 +68,7 @@ inline void PrintHostLine(const char *line)
 #endif
 }
 
-inline void InitUartInput()
-{
+void InitUartInput() {
     uart_config_t uart_config = {};
     uart_config.baud_rate = CONFIG_ESP_CONSOLE_UART_BAUDRATE;
     uart_config.data_bits = UART_DATA_8_BITS;
@@ -139,8 +98,7 @@ inline void InitUartInput()
 #endif
 }
 
-inline bool ReadInputByte(uint8_t *ch)
-{
+bool ReadInputByte(uint8_t* ch) {
     if (uart_read_bytes(kUartPort, ch, 1, kInputPollTicks) > 0) {
         return true;
     }
@@ -155,8 +113,7 @@ inline bool ReadInputByte(uint8_t *ch)
     return false;
 }
 
-inline bool ReadConfigLine(char *line, size_t line_size)
-{
+bool ReadConfigLine(char* line, size_t line_size) {
     size_t len = 0;
     while (true) {
         uint8_t ch = 0;
@@ -181,13 +138,12 @@ inline bool ReadConfigLine(char *line, size_t line_size)
     }
 }
 
-inline bool ParseUint32(const char *value, uint32_t *out)
-{
+bool ParseUint32(const char* value, uint32_t* out) {
     if (value == nullptr || value[0] == '\0') {
         return false;
     }
     errno = 0;
-    char *end = nullptr;
+    char* end = nullptr;
     const unsigned long parsed = std::strtoul(value, &end, 0);
     if (errno != 0 || end == value || *end != '\0' || parsed > UINT32_MAX) {
         return false;
@@ -196,8 +152,7 @@ inline bool ParseUint32(const char *value, uint32_t *out)
     return true;
 }
 
-inline bool ParseSize(const char *value, size_t *out)
-{
+bool ParseSize(const char* value, size_t* out) {
     uint32_t parsed = 0;
     if (!ParseUint32(value, &parsed)) {
         return false;
@@ -206,24 +161,20 @@ inline bool ParseSize(const char *value, size_t *out)
     return true;
 }
 
-inline bool CanIdValid(uint32_t can_id)
-{
-    return can_id <= ConfigContext::kMaxCanId;
+bool CanIdValid(uint32_t can_id) {
+    return can_id <= TestConfig::kMaxCanId;
 }
 
-inline bool StringEquals(const char *a, const char *b)
-{
+bool StringEquals(const char* a, const char* b) {
     return std::strcmp(a, b) == 0;
 }
 
-inline void CopyTransport(ConfigContext *config, const char *value)
-{
+void CopyTransport(TestConfig* config, const char* value) {
     std::strncpy(config->transport, value, sizeof(config->transport) - 1);
     config->transport[sizeof(config->transport) - 1] = '\0';
 }
 
-inline bool ParseFilterList(const char *value, ConfigContext *config)
-{
+bool ParseFilterList(const char* value, TestConfig* config) {
     if (StringEquals(value, "all") || StringEquals(value, "accept-all")) {
         config->receiver_filter_enabled = false;
         config->receiver_filter_count = 0;
@@ -239,10 +190,10 @@ inline bool ParseFilterList(const char *value, ConfigContext *config)
     std::strncpy(scratch, value, sizeof(scratch) - 1);
 
     size_t count = 0;
-    char *saveptr = nullptr;
-    for (char *part = strtok_r(scratch, ",", &saveptr); part != nullptr;
+    char* saveptr = nullptr;
+    for (char* part = strtok_r(scratch, ",", &saveptr); part != nullptr;
          part = strtok_r(nullptr, ",", &saveptr)) {
-        if (count >= ConfigContext::kMaxCanIds) {
+        if (count >= TestConfig::kMaxCanIds) {
             return false;
         }
         uint32_t can_id = 0;
@@ -257,71 +208,69 @@ inline bool ParseFilterList(const char *value, ConfigContext *config)
     return count > 0;
 }
 
-inline ParseResult ValidateConfig(const ConfigContext &config)
-{
+ParseResult ValidateConfig(const TestConfig& config) {
     if (config.transport[0] != '\0' && !StringEquals(config.transport, WCAN_TRANSPORT_NAME)) {
         return {false, "transport-mismatch"};
     }
 
     if (config.role == Role::kSensor) {
-        if (config.sensor_hz < ConfigContext::kMinSensorHz || config.sensor_hz > ConfigContext::kMaxSensorHz) {
+        if (config.sensor_hz < TestConfig::kMinSensorHz || config.sensor_hz > TestConfig::kMaxSensorHz) {
             return {false, "sensor-hz-range"};
         }
-        if (config.sensor_can_id_count < 1 || config.sensor_can_id_count > ConfigContext::kMaxCanIds) {
+        if (config.sensor_can_id_count < 1 || config.sensor_can_id_count > TestConfig::kMaxCanIds) {
             return {false, "sensor-count-range"};
         }
         if (!CanIdValid(config.sensor_base_can_id)) {
             return {false, "sensor-can-id-range"};
         }
         const uint32_t last_offset = static_cast<uint32_t>(config.sensor_can_id_count - 1);
-        if (config.sensor_base_can_id > ConfigContext::kMaxCanId - last_offset) {
+        if (config.sensor_base_can_id > TestConfig::kMaxCanId - last_offset) {
             return {false, "sensor-can-id-range"};
         }
-        if (config.linger_ms > ConfigContext::kMaxWcanLingerMs) {
+        if (config.linger_ms > TestConfig::kMaxWcanLingerMs) {
             return {false, "linger-range"};
         }
     }
 
-    if (config.test_duration_ms == 0 || config.test_duration_ms > ConfigContext::kMaxTestDurationMs) {
+    if (config.test_duration_ms == 0 || config.test_duration_ms > TestConfig::kMaxTestDurationMs) {
         return {false, "test-duration-range"};
     }
-    if (config.host_wait_time_ms == 0 || config.host_wait_time_ms > ConfigContext::kMaxHostWaitTimeMs) {
+    if (config.host_wait_time_ms == 0 || config.host_wait_time_ms > TestConfig::kMaxHostWaitTimeMs) {
         return {false, "host-wait-range"};
     }
 
-    if (config.role == Role::kReceiver && config.receiver_filter_count > ConfigContext::kMaxCanIds) {
+    if (config.role == Role::kReceiver && config.receiver_filter_count > TestConfig::kMaxCanIds) {
         return {false, "receiver-filter-count-range"};
     }
 
     return {true, nullptr};
 }
 
-inline ParseResult ParseLine(char *line, ConfigContext *config)
-{
-    *config = ConfigContext{};
+ParseResult ParseLine(char* line, TestConfig* config) {
+    *config = TestConfig{};
     CopyTransport(config, WCAN_TRANSPORT_NAME);
 
     bool saw_role = false;
     bool saw_version = false;
 
-    char *saveptr = nullptr;
-    for (char *token = strtok_r(line, " \t", &saveptr); token != nullptr;
+    char* saveptr = nullptr;
+    for (char* token = strtok_r(line, " \t", &saveptr); token != nullptr;
          token = strtok_r(nullptr, " \t", &saveptr)) {
         if (StringEquals(token, "wcan")) {
             continue;
         }
 
-        char *equals = std::strchr(token, '=');
+        char* equals = std::strchr(token, '=');
         if (equals == nullptr) {
             return {false, "expected-key-value"};
         }
         *equals = '\0';
-        const char *key = token;
-        const char *value = equals + 1;
+        const char* key = token;
+        const char* value = equals + 1;
 
         if (StringEquals(key, "v")) {
             uint32_t version = 0;
-            if (!ParseUint32(value, &version) || version != ConfigContext::kProtocolVersion) {
+            if (!ParseUint32(value, &version) || version != TestConfig::kProtocolVersion) {
                 return {false, "bad-version"};
             }
             saw_version = true;
@@ -383,49 +332,136 @@ inline ParseResult ParseLine(char *line, ConfigContext *config)
     return ValidateConfig(*config);
 }
 
+} // namespace
 
-} // namespace config_detail
+const char* TestConfig::role_name() const {
+    return RoleName(role);
+}
 
-inline ConfigContext WaitForBootConfig()
-{
-    config_detail::InitUartInput();
-    config_detail::PrintHostLine("WCAN_CFG_WAIT v=1");
+std::vector<wcan::CANId_t> TestConfig::sensor_tx_ids() const {
+    std::vector<wcan::CANId_t> ids;
+    ids.reserve(sensor_can_id_count);
+    for (size_t i = 0; i < sensor_can_id_count; ++i) {
+        ids.push_back(sensor_base_can_id + static_cast<uint32_t>(i));
+    }
+    return ids;
+}
+
+std::vector<wcan::CANId_t> TestConfig::receiver_rx_ids() const {
+    std::vector<wcan::CANId_t> ids;
+    if (!receiver_filter_enabled) {
+        return ids;
+    }
+    ids.reserve(receiver_filter_count);
+    for (size_t i = 0; i < receiver_filter_count; ++i) {
+        ids.push_back(receiver_filter_ids[i]);
+    }
+    return ids;
+}
+
+TestConfig UartTestProtocol::wait_for_boot_config() {
+    InitUartInput();
+    PrintHostLine("WCAN_CFG_WAIT v=1");
 
     while (true) {
-        char line[config_detail::kLineBufferSize] = {};
-        if (!config_detail::ReadConfigLine(line, sizeof(line))) {
-            config_detail::PrintHostLine("WCAN_CFG_NACK line-too-long");
+        char line[kLineBufferSize] = {};
+        if (!ReadConfigLine(line, sizeof(line))) {
+            PrintHostLine("WCAN_CFG_NACK line-too-long");
             continue;
         }
 
-        ConfigContext config = {};
-        char parse_line[config_detail::kLineBufferSize] = {};
+        TestConfig config = {};
+        char parse_line[kLineBufferSize] = {};
         std::strncpy(parse_line, line, sizeof(parse_line) - 1);
-        const config_detail::ParseResult result = config_detail::ParseLine(parse_line, &config);
+        const ParseResult result = ParseLine(parse_line, &config);
         if (!result.ok) {
             char response[80] = {};
             std::snprintf(response, sizeof(response), "WCAN_CFG_NACK %s", result.error);
-            config_detail::PrintHostLine(response);
-            ESP_LOGW(config_detail::TAG, "rejected config: %s (%s)", result.error, line);
+            PrintHostLine(response);
+            ESP_LOGW(TAG, "rejected config: %s (%s)", result.error, line);
             continue;
         }
 
-        config_detail::PrintHostLine("WCAN_CFG_ACK");
+        PrintHostLine("WCAN_CFG_ACK");
         return config;
     }
 }
 
-inline void WaitForTestStart()
-{
+void UartTestProtocol::wait_for_test_start() {
     while (true) {
-        char line[config_detail::kLineBufferSize] = {};
-        if (!config_detail::ReadConfigLine(line, sizeof(line))) {
+        char line[kLineBufferSize] = {};
+        if (!ReadConfigLine(line, sizeof(line))) {
             continue;
         }
-        if (config_detail::StringEquals(line, "WCAN_TEST_START")) {
+        if (StringEquals(line, "WCAN_TEST_START")) {
             return;
         }
     }
 }
 
-} // namespace runtime_config
+void UartTestProtocol::print_ready(Role role) {
+    std::printf("WCAN_TEST_READY role=%s\n", RoleName(role));
+    std::fflush(stdout);
+}
+
+void UartTestProtocol::print_abort(Role role, const char* reason) {
+    std::printf("WCAN_TEST_ABORT role=%s reason=%s\n", RoleName(role), reason);
+    std::fflush(stdout);
+}
+
+void WcanTestSession::ready() const {
+    UartTestProtocol::print_ready(_config.role);
+}
+
+void WcanTestSession::abort(const char* reason) const {
+    UartTestProtocol::print_abort(_config.role, reason);
+}
+
+void WcanTestSession::wait_idle_start() const {
+    UartTestProtocol::wait_for_test_start();
+}
+
+void WcanTestSession::run(wcan::TransceiverBase& transceiver, wcan_sensor::RampCanSensor* sensor) const {
+    UartTestProtocol::wait_for_test_start();
+    transceiver.stats().reset();
+
+    if (sensor != nullptr) {
+        sensor->set_send_failure_callback([](uint32_t can_id, uint32_t counter) {
+            std::printf("S(FAIL):%lu:%lx:%lu\n",
+                        static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                        static_cast<unsigned long>(can_id),
+                        static_cast<unsigned long>(counter));
+            std::fflush(stdout);
+        });
+        if (!sensor->start(static_cast<uint32_t>(_config.sensor_hz))) {
+            abort("sensor-timer");
+            return;
+        }
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(_config.test_duration_ms));
+    transceiver.stats().finish_test();
+
+    if (sensor != nullptr) {
+        sensor->stop();
+    }
+
+    transceiver.stop(stop_drain_timeout_ms());
+    transceiver.stats().print_batch_stats();
+
+    if (_config.role == Role::kSensor && sensor != nullptr) {
+        transceiver.stats().print_sensor_end(sensor->generated_count());
+    }
+    if (_config.role == Role::kReceiver) {
+        transceiver.stats().print_rx_ranges();
+    }
+    transceiver.stats().print_measures();
+    std::printf("WCAN_TEST_END role=%s\n", _config.role_name());
+    std::fflush(stdout);
+}
+
+uint32_t WcanTestSession::stop_drain_timeout_ms() const {
+    return std::max<uint32_t>(1, std::min<uint32_t>(1000, _config.host_wait_time_ms / 2));
+}
+
+} // namespace wcan_test

@@ -18,16 +18,13 @@ idf_component_register(SRCS "main.cpp"
                        INCLUDE_DIRS "."
                        REQUIRES
                            ${WCAN_COMPONENT_NAME}
+                           wcan_sensor
+                           wcan_test
                        PRIV_REQUIRES
                            wcan
-                           driver
                            esp_event
-                           esp_hw_support
                            esp_netif
-                           esp_rom
-                           esp_timer
                            esp_wifi
-                           esp_driver_usb_serial_jtag
                            nvs_flash)
 
 target_compile_definitions(${COMPONENT_LIB} PRIVATE WCAN_TRANSPORT_NAME=\"${TRANSPORT}\")
