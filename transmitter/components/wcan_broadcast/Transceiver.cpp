@@ -119,6 +119,7 @@ void Transceiver::on_data_packet(const Packet& packet) {
     *to_send = ack_pkt;
     if (!enqueue_radio_transmit_packet(to_send, 0)) {
         ESP_LOGE(TAG, "Failed to send ACK");
+        _deduplicator.forget(packet.get_can_id(), packet.get_sequence_id());
     }
 }
 

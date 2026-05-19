@@ -94,6 +94,9 @@ public:
         /** @brief Checks if a packet is a duplicate and updates the history. */
         bool check_and_update(const Packet& packet);
 
+        /** @brief Forgets a packet's sequence ID history, allowing retries to pass. */
+        void forget(CANId_t can_id, uint32_t sequence_id);
+
     private:
         struct Entry {
             CANId_t can_id;

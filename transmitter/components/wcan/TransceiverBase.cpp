@@ -24,7 +24,7 @@ TransceiverBase::TransceiverBase(std::vector<uint32_t> rx_can_ids, std::vector<u
       _filtering_enabled(filtering_enabled) {}
 
 bool TransceiverBase::init_pools() {
-    _packet_pool_size = RADIO_TRANSMIT_QUEUE_SIZE + (BATCH_QUEUE_SIZE * _tx_can_ids.size());
+    _packet_pool_size = RADIO_TRANSMIT_QUEUE_SIZE + (BATCH_QUEUE_SIZE * std::max(_tx_can_ids.size(), _rx_can_ids.size()));
     _packet_pool = new (std::nothrow) Packet[_packet_pool_size];
     _rx_packet_pool = new (std::nothrow) EspNowPacket[RX_PACKET_POOL_SIZE];
     if (_packet_pool == nullptr || _rx_packet_pool == nullptr) {
@@ -253,6 +253,21 @@ void TransceiverBase::send_processing_task() {
                     } else if (dest_mac != nullptr) {
                         std::printf("Radio send to %02x:%02x:%02x:%02x:%02x:%02x failed on attempt %d\n",
                             dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5], attempt + 1);
+                    }
+                } else {
+                    std::printf("Radio hardware timeout (50ms) to %02x:%02x:%02x:%02x:%02x:%02x on attempt %d\n",
+                        dest_mac ? dest_mac[0] : 0, dest_mac ? dest_mac[1] : 0, dest_mac ? dest_mac[2] : 0,
+                        dest_mac ? dest_mac[3] : 0, dest_mac ? dest_mac[4] : 0, dest_mac ? dest_mac[5] : 0,
+                        attempt + 1);
+                }
+
+                if (attempt == RADIO_MAX_RETRIES - 1) {
+                    // All hardware retries failed
+                    if (pkt->get_can_id() == CONTROL_ID) {
+                        const auto data = pkt->get_data();
+                        if (data.size() >= 2) {
+                            _deduplicator.forget(data[0], data[1]);
+                        }
                     }
                 }
             }

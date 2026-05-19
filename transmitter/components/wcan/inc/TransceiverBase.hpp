@@ -169,14 +169,14 @@ public:
     static constexpr uint32_t RECV_PROCESSING_TASK_STACK_SIZE = 6148;
     static constexpr uint32_t BATCH_PROCESSING_TASK_STACK_SIZE = 3072;
     static constexpr uint32_t RETRY_PROCESSING_TASK_STACK_SIZE = 3072;
-    static constexpr size_t RADIO_TRANSMIT_QUEUE_SIZE = 8;
+    static constexpr size_t RADIO_TRANSMIT_QUEUE_SIZE = 20;
     static constexpr size_t BATCH_QUEUE_SIZE = 10;
-    static constexpr size_t RX_PACKET_POOL_SIZE = 8;
+    static constexpr size_t RX_PACKET_POOL_SIZE = 20;
     static constexpr size_t RECV_QUEUE_SIZE = RX_PACKET_POOL_SIZE;
     static constexpr size_t CAN_DATA_QUEUE_SIZE = 768;
     static constexpr size_t TX_RESULT_QUEUE_SIZE = 16;
     static constexpr size_t RADIO_MAX_RETRIES = 3;
-    static constexpr uint32_t RADIO_TIMEOUT_MS = 500;
+    static constexpr uint32_t RADIO_TIMEOUT_MS = 50;
     static constexpr uint32_t CONTROL_ID = 0xE0000000;
     static constexpr uint32_t NO_PENDING_ACK_SEQUENCE_ID = UINT32_MAX;
 

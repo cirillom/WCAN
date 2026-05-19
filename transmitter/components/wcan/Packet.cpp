@@ -163,4 +163,13 @@ bool Packet::Deduplicator::check_and_update(const Packet& packet) {
     return false;
 }
 
+void Packet::Deduplicator::forget(CANId_t can_id, uint32_t sequence_id) {
+    for (auto& entry : _history) {
+        if (entry.can_id == can_id && entry.sequence_id == sequence_id) {
+            entry.sequence_id = 0xFFFFFFFF; // Reset to an impossible value
+            break;
+        }
+    }
+}
+
 } // namespace wcan
