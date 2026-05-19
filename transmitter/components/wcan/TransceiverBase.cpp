@@ -22,19 +22,53 @@ TransceiverBase::~TransceiverBase() {
 }
 
 TransceiverBase::TransceiverBase(std::vector<uint32_t> rx_can_ids, std::vector<uint32_t> tx_can_ids, uint32_t linger_ms, bool filtering_enabled)
-    : _rx_can_ids(std::move(rx_can_ids)), 
-      _tx_can_ids(std::move(tx_can_ids)), 
+    : _rx_can_ids(std::move(rx_can_ids)),
+      _tx_can_ids(std::move(tx_can_ids)),
       _linger_ms(linger_ms),
       _filtering_enabled(filtering_enabled) {}
+
+bool TransceiverBase::init_pools() {
+    _send_packet_pool = new (std::nothrow) Packet[SEND_PACKET_POOL_SIZE];
+    _rx_packet_pool = new (std::nothrow) EspNowPacket[RX_PACKET_POOL_SIZE];
+    if (_send_packet_pool == nullptr || _rx_packet_pool == nullptr) {
+        ESP_LOGE(TAG, "Failed to allocate packet pools");
+        return false;
+    }
+
+    _free_send_packets = xQueueCreate(SEND_PACKET_POOL_SIZE, sizeof(Packet*));
+    _send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(Packet*));
+    _free_rx_packets = xQueueCreate(RX_PACKET_POOL_SIZE, sizeof(EspNowPacket*));
+    _recv_queue = xQueueCreate(RECV_QUEUE_SIZE, sizeof(EspNowPacket*));
+    if (!_free_send_packets || !_send_queue || !_free_rx_packets || !_recv_queue) {
+        ESP_LOGE(TAG, "Failed to create packet pool queues");
+        return false;
+    }
+
+    for (size_t i = 0; i < SEND_PACKET_POOL_SIZE; ++i) {
+        Packet* packet = &_send_packet_pool[i];
+        packet->clear();
+        if (xQueueSend(_free_send_packets, &packet, 0) != pdTRUE) {
+            return false;
+        }
+    }
+
+    for (size_t i = 0; i < RX_PACKET_POOL_SIZE; ++i) {
+        EspNowPacket* packet = &_rx_packet_pool[i];
+        packet->payload_len = 0;
+        if (xQueueSend(_free_rx_packets, &packet, 0) != pdTRUE) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 bool TransceiverBase::init() {
     if (s_instance != nullptr) return false;
 
     ESP_ERROR_CHECK(esp_read_mac(_mac_addr.data(), MAC_TYPE));
 
-    _send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(Packet*));
-    _recv_queue = xQueueCreate(RECV_QUEUE_SIZE, sizeof(EspNowPacket*));
-    if (!_send_queue || !_recv_queue) return false;
+    if (!init_pools()) return false;
 
     const size_t tx_count = _tx_can_ids.size();
     if (tx_count > 0) {
@@ -56,6 +90,47 @@ bool TransceiverBase::init() {
     return true;
 }
 
+Packet* TransceiverBase::acquire_send_packet(TickType_t wait_ticks) {
+    if (_free_send_packets == nullptr) return nullptr;
+    Packet* packet = nullptr;
+    if (xQueueReceive(_free_send_packets, &packet, wait_ticks) != pdTRUE || packet == nullptr) {
+        return nullptr;
+    }
+    packet->clear();
+    return packet;
+}
+
+bool TransceiverBase::enqueue_send_packet(Packet* packet, TickType_t wait_ticks) {
+    if (packet == nullptr) return false;
+    if (_send_queue != nullptr && xQueueSend(_send_queue, &packet, wait_ticks) == pdTRUE) {
+        return true;
+    }
+    release_send_packet(packet);
+    return false;
+}
+
+void TransceiverBase::release_send_packet(Packet* packet) {
+    if (packet == nullptr || _free_send_packets == nullptr) return;
+    packet->clear();
+    (void)xQueueSend(_free_send_packets, &packet, 0);
+}
+
+EspNowPacket* TransceiverBase::acquire_rx_packet() {
+    if (_free_rx_packets == nullptr) return nullptr;
+    EspNowPacket* packet = nullptr;
+    if (xQueueReceive(_free_rx_packets, &packet, 0) != pdTRUE || packet == nullptr) {
+        return nullptr;
+    }
+    packet->payload_len = 0;
+    return packet;
+}
+
+void TransceiverBase::release_rx_packet(EspNowPacket* packet) {
+    if (packet == nullptr || _free_rx_packets == nullptr) return;
+    packet->payload_len = 0;
+    (void)xQueueSend(_free_rx_packets, &packet, 0);
+}
+
 bool TransceiverBase::send_data(CANId_t can_id, DataPoint_t data) {
     if (_stopping) return false;
     auto it = _can_data_queues.find(can_id);
@@ -65,7 +140,7 @@ bool TransceiverBase::send_data(CANId_t can_id, DataPoint_t data) {
 
 bool TransceiverBase::setup_esp_now() {
     if (esp_now_init() != ESP_OK) return false;
-    
+
     s_instance = this;
     esp_now_register_send_cb(esp_now_send_cb);
     esp_now_register_recv_cb(esp_now_recv_cb);
@@ -76,18 +151,20 @@ bool TransceiverBase::setup_esp_now() {
 void TransceiverBase::start_tasks() {
     _send_task_done = false;
     _recv_task_done = false;
-    xTaskCreate(send_task_wrapper, "wcan_send", 4096, this, SEND_PROCESSING_TASK_PRIORITY, &_send_task_handle);
-    xTaskCreate(recv_task_wrapper, "wcan_recv", 4096, this, RECV_PROCESSING_TASK_PRIORITY, &_recv_task_handle);
+    xTaskCreate(send_task_wrapper, "wcan_send", SEND_PROCESSING_TASK_STACK_SIZE, this, SEND_PROCESSING_TASK_PRIORITY, &_send_task_handle);
+    xTaskCreate(recv_task_wrapper, "wcan_recv", RECV_PROCESSING_TASK_STACK_SIZE, this, RECV_PROCESSING_TASK_PRIORITY, &_recv_task_handle);
 
     for (size_t i = 0; i < _tx_can_ids.size(); i++) {
         _batch_task_done[_tx_can_ids[i]] = false;
         auto* ctx = new std::pair<TransceiverBase*, CANId_t>(this, _tx_can_ids[i]);
         char name[32]; std::snprintf(name, sizeof(name), "wcan_batch_%lu", (unsigned long)_tx_can_ids[i]);
-        xTaskCreate(batch_task_wrapper, name, 4096, ctx, BATCH_PROCESSING_TASK_PRIORITY, &(_batch_task_handles[_tx_can_ids[i]]));
+        xTaskCreate(batch_task_wrapper, name, BATCH_PROCESSING_TASK_STACK_SIZE, ctx, BATCH_PROCESSING_TASK_PRIORITY, &(_batch_task_handles[_tx_can_ids[i]]));
     }
 }
 
 void TransceiverBase::send_processing_task() {
+    uint8_t encoded[ESP_NOW_MAX_DATA_LENGTH];
+
     while (true) {
         bool batches_done = true;
         for (const auto& entry : _batch_task_done) {
@@ -99,23 +176,28 @@ void TransceiverBase::send_processing_task() {
         if (_stopping && batches_done && _recv_task_done && (_send_queue == nullptr || uxQueueMessagesWaiting(_send_queue) == 0)) {
             break;
         }
-        Packet* raw_pkt_ptr = nullptr;
-        if (_send_queue != nullptr && xQueueReceive(_send_queue, &raw_pkt_ptr, pdMS_TO_TICKS(10)) == pdTRUE) {
-            std::unique_ptr<Packet> pkt(raw_pkt_ptr);
-            auto encoded = pkt->encode();
-            if (!encoded) continue;
+
+        Packet* pkt = nullptr;
+        if (_send_queue != nullptr && xQueueReceive(_send_queue, &pkt, pdMS_TO_TICKS(10)) == pdTRUE) {
+            if (pkt == nullptr) continue;
+
+            size_t encoded_size = 0;
+            if (!pkt->encode(encoded, sizeof(encoded), &encoded_size)) {
+                release_send_packet(pkt);
+                continue;
+            }
 
             // Determine destination using the virtual hook
             const uint8_t* dest_mac = prepare_send_mac(*pkt);
-            
+
             for (int attempt = 0; attempt < RADIO_MAX_RETRIES; attempt++) {
-                xQueueReset(_tx_result_queue); 
+                xQueueReset(_tx_result_queue);
 
             #ifdef MEASURE_INSTR
                 const int64_t send_start_us = esp_timer_get_time();
             #endif
 
-                esp_err_t err = esp_now_send(dest_mac, encoded->data(), encoded->size());
+                esp_err_t err = esp_now_send(dest_mac, encoded, encoded_size);
                 if (err != ESP_OK) {
                     ESP_LOGE(TAG, "esp_now_send fail: %s", esp_err_to_name(err));
                     continue;
@@ -129,13 +211,15 @@ void TransceiverBase::send_processing_task() {
                     g_airtime_total_us += static_cast<uint64_t>(send_end_us - send_start_us);
             #endif
                     if (success) {
-                        break; 
-                    }else {
+                        break;
+                    } else if (dest_mac != nullptr) {
                         std::printf("Radio send to %02x:%02x:%02x:%02x:%02x:%02x failed on attempt %d\n",
                             dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5], attempt + 1);
                     }
                 }
             }
+
+            release_send_packet(pkt);
         }
     }
     _send_task_done = true;
@@ -156,21 +240,23 @@ void TransceiverBase::recv_processing_task() {
         if (_stopping && batches_done && send_empty && recv_empty) {
             break;
         }
-        EspNowPacket* raw_pkt_ptr = nullptr;
-        if (_recv_queue != nullptr && xQueueReceive(_recv_queue, &raw_pkt_ptr, pdMS_TO_TICKS(10)) == pdTRUE) {
-            std::unique_ptr<EspNowPacket> raw_pkt(raw_pkt_ptr);
-            auto pkt_opt = Packet::from_payload(raw_pkt->src_mac, raw_pkt->payload, raw_pkt->payload_len, raw_pkt->des_mac);
 
-            if (!pkt_opt) continue;
+        EspNowPacket* raw_pkt = nullptr;
+        if (_recv_queue != nullptr && xQueueReceive(_recv_queue, &raw_pkt, pdMS_TO_TICKS(10)) == pdTRUE) {
+            if (raw_pkt == nullptr) continue;
 
-            const Packet& pkt = *pkt_opt;
+            Packet pkt;
+            const bool decoded = Packet::from_payload(raw_pkt->src_mac, raw_pkt->payload, raw_pkt->payload_len, pkt, raw_pkt->des_mac);
+            release_rx_packet(raw_pkt);
+
+            if (!decoded) continue;
 
             if (_deduplicator.check_and_update(pkt)) continue;
 
             if (pkt.get_can_id() == CONTROL_ID) {
                 on_control_packet(pkt);
             } else {
-                on_data_packet(pkt); 
+                on_data_packet(pkt);
                 if (_recv_callback) _recv_callback(pkt);
             }
         }
@@ -229,22 +315,23 @@ void TransceiverBase::esp_now_send_cb(const uint8_t *mac, esp_now_send_status_t 
 
 void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
     if (!s_instance || !info->src_addr || !data || len < Packet::HEADER_SIZE) return;
+    if (len > ESP_NOW_MAX_DATA_LENGTH) return;
 
     CANId_t can_id = EspNowPacket::extract_can_id(data);
     if (s_instance->_stopping && can_id != CONTROL_ID) return;
 
     if (!s_instance->should_accept(can_id)) return;
 
-    auto* raw_pkt = new (std::nothrow) EspNowPacket;
+    EspNowPacket* raw_pkt = s_instance->acquire_rx_packet();
     if (!raw_pkt) return;
 
     std::memcpy(raw_pkt->src_mac, info->src_addr, ESP_NOW_ETH_ALEN);
     std::memcpy(raw_pkt->des_mac, info->des_addr, ESP_NOW_ETH_ALEN);
-    std::memcpy(raw_pkt->payload, data, (size_t)len);
-    raw_pkt->payload_len = (size_t)len;
+    std::memcpy(raw_pkt->payload, data, static_cast<size_t>(len));
+    raw_pkt->payload_len = static_cast<size_t>(len);
 
-    if (xQueueSend(s_instance->_recv_queue, &raw_pkt, 0) != pdTRUE) {
-        delete raw_pkt;
+    if (s_instance->_recv_queue == nullptr || xQueueSend(s_instance->_recv_queue, &raw_pkt, 0) != pdTRUE) {
+        s_instance->release_rx_packet(raw_pkt);
     }
 }
 
@@ -263,21 +350,26 @@ bool TransceiverBase::queues_drained() const {
 
 void TransceiverBase::delete_queues() {
     if (_send_queue) {
-        Packet* pkt = nullptr;
-        while (xQueueReceive(_send_queue, &pkt, 0) == pdTRUE) {
-            delete pkt;
-        }
         vQueueDelete(_send_queue);
         _send_queue = nullptr;
     }
     if (_recv_queue) {
-        EspNowPacket* pkt = nullptr;
-        while (xQueueReceive(_recv_queue, &pkt, 0) == pdTRUE) {
-            delete pkt;
-        }
         vQueueDelete(_recv_queue);
         _recv_queue = nullptr;
     }
+    if (_free_send_packets) {
+        vQueueDelete(_free_send_packets);
+        _free_send_packets = nullptr;
+    }
+    if (_free_rx_packets) {
+        vQueueDelete(_free_rx_packets);
+        _free_rx_packets = nullptr;
+    }
+    delete[] _send_packet_pool;
+    _send_packet_pool = nullptr;
+    delete[] _rx_packet_pool;
+    _rx_packet_pool = nullptr;
+
     for (auto& entry : _can_data_queues) {
         if (entry.second) {
             vQueueDelete(entry.second);

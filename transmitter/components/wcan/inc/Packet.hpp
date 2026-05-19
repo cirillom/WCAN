@@ -5,8 +5,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <span>
 #include <vector>
-#include <optional>
 #include "esp_now.h"
 
 namespace wcan {
@@ -36,51 +36,54 @@ struct EspNowPacket{
 
 class Packet {
 public:
+    static constexpr size_t HEADER_SIZE = sizeof(CANId_t) + sizeof(uint32_t) + sizeof(DataCount_t);
+    static constexpr size_t MAX_DATA_POINTS = (ESP_NOW_MAX_DATA_LENGTH - HEADER_SIZE) / sizeof(DataPoint_t);
+    static constexpr std::array<uint8_t, ESP_NOW_ETH_ALEN> BROADCAST_MAC{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
     /** @brief Atomic counter for thread-safe ID generation. */
     static uint32_t next_sequence_id() {
         static std::atomic<uint32_t> sequence_id{0};
         return sequence_id.fetch_add(1, std::memory_order_relaxed);
     }
-    
+
     Packet() = default;
-    
-    /** 
-     * @brief Constructor for outgoing packets. 
+
+    /**
+     * @brief Constructor for outgoing packets.
      * Auto-generates a sequence ID. The source_mac will typically be filled by the Transceiver.
      */
     explicit Packet(const std::array<uint8_t, ESP_NOW_ETH_ALEN>& source_mac, CANId_t can_id)
         : _source_mac_addr(source_mac), _can_id(can_id), _sequence_id(next_sequence_id()) {}
-        
-    /** @brief Factory to create a Packet from incoming raw ESP-NOW data. */
-    static std::optional<Packet> from_payload(const uint8_t* src_mac,
-                                                const uint8_t* payload,
-                                                size_t len,
-                                                const uint8_t* des_mac = nullptr);
 
-    /** @brief Encodes for transmission. Returns nullopt if data exceeds ESP-NOW limits. */
-    std::optional<std::vector<uint8_t>> encode() const;
+    void clear();
+
+    /** @brief Decodes raw ESP-NOW payload into an existing Packet without heap allocation. */
+    static bool from_payload(const uint8_t* src_mac,
+                             const uint8_t* payload,
+                             size_t len,
+                             Packet& out,
+                             const uint8_t* des_mac = nullptr);
+
+    /** @brief Encodes for transmission into caller-owned storage. */
+    bool encode(uint8_t* buffer, size_t capacity, size_t* written) const;
 
     /** @brief Appends a CAN data point. Returns false if packet is full (MAX_DATA_POINTS). */
     bool add_data_point(DataPoint_t data_point);
 
     // --- Getters ---
-    const std::array<uint8_t, 6>& get_source_mac_addr() const { return _source_mac_addr; }
+    const std::array<uint8_t, ESP_NOW_ETH_ALEN>& get_source_mac_addr() const { return _source_mac_addr; }
     CANId_t get_can_id() const { return _can_id; }
     uint32_t get_sequence_id() const { return _sequence_id; }
-    const std::vector<DataPoint_t>& get_data() const { return _data; }
+    std::span<const DataPoint_t> get_data() const { return {_data.data(), _data_count}; }
     bool is_received_via_broadcast() const { return _received_via_broadcast; }
 
 private:
     std::array<uint8_t, ESP_NOW_ETH_ALEN> _source_mac_addr{};
     CANId_t _can_id = 0;
     uint32_t _sequence_id = 0;
-    std::vector<DataPoint_t> _data;
+    std::array<DataPoint_t, MAX_DATA_POINTS> _data{};
+    DataCount_t _data_count = 0;
     bool _received_via_broadcast = false;
-
-public:
-    static constexpr size_t HEADER_SIZE = sizeof(CANId_t) + sizeof(_sequence_id) + sizeof(DataCount_t);
-    static constexpr size_t MAX_DATA_POINTS = (ESP_NOW_MAX_DATA_LENGTH - HEADER_SIZE) / sizeof(DataPoint_t);
-    static constexpr std::array<uint8_t, ESP_NOW_ETH_ALEN> BROADCAST_MAC{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 public:
     class Deduplicator{
@@ -101,4 +104,4 @@ public:
         static constexpr size_t HISTORY_SIZE = 32;
     };
 };
-}
+} // namespace wcan
