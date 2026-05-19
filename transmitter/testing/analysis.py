@@ -49,6 +49,7 @@ class SensorData:
     max_retry_chain_by_can_id: dict = field(default_factory=dict)
     failed_packets_by_can_id: dict = field(default_factory=dict)
     p_fail_counters_by_can_id: dict = field(default_factory=dict)
+    p_fail_ranges_by_can_id: dict = field(default_factory=dict)
     s_fail_counters_by_can_id: dict = field(default_factory=dict)
     p_fail_count: int = 0
     p_fail_tail_ignored_count: int = 0
@@ -359,6 +360,7 @@ def parse_sensor_log(path: Path) -> SensorData:
         measure=measure,
         batch_stats=parse_batch_stats(text),
         p_fail_counters_by_can_id=p_fail_counters_by_can_id,
+        p_fail_ranges_by_can_id=p_fail_ranges_by_can_id,
         s_fail_counters_by_can_id=s_fail_counters_by_can_id,
         p_fail_count=p_fail_count,
         p_fail_tail_ignored_count=p_fail_tail_ignored_count,
@@ -496,16 +498,14 @@ def _classified_misses(generated: list, received: set, p_fail_counters: set, s_f
     start_edge_set = set(start_edge)
     tail_edge = []
     for counter in reversed(generated):
-        if counter not in missed or counter in start_edge_set:
+        if counter not in missed or counter in start_edge_set or counter in s_fail_counters:
             break
         tail_edge.append(counter)
-    tail_edge = sorted(tail_edge)
 
     tail_edge_set = set(tail_edge)
     p_fail_start = start_edge_set & p_fail_counters
-    s_fail_edge = (start_edge_set | tail_edge_set) & s_fail_counters
-    start_edge_set -= p_fail_start | s_fail_edge
-    tail_edge_set -= s_fail_edge
+    s_fail_start = start_edge_set & s_fail_counters
+    start_edge_set -= p_fail_start | s_fail_start
     edge = start_edge_set | tail_edge_set
     normal = missed - edge
     return sorted(normal), sorted(edge), sorted(start_edge_set), sorted(tail_edge_set)
@@ -707,8 +707,37 @@ def analyze_batch_stats(sensors, context: AnalysisContext = None):
     return "\n".join(lines), True
 
 
-def analyze_log_counters(sensors, receivers):
+def _p_fail_edge_packet_counts(sensor: SensorData, summaries_by_stream: dict) -> tuple[int, int, int]:
+    edge_packets = 0
+    start_packets = 0
+    tail_packets = 0
+    for can_id, ranges in sensor.p_fail_ranges_by_can_id.items():
+        summary = summaries_by_stream.get((sensor.board_id, _normalize_can_id(can_id)))
+        if summary is None:
+            continue
+        edge = set(summary.edge_misses)
+        start_edge = set(summary.start_edge_misses)
+        tail_edge = set(summary.tail_edge_misses)
+        for first, last in ranges:
+            packet = set(range(first, last + 1))
+            if not packet or not packet <= edge:
+                continue
+            edge_packets += 1
+            if packet <= start_edge:
+                start_packets += 1
+            elif packet <= tail_edge:
+                tail_packets += 1
+    return edge_packets, start_packets, tail_packets
+
+
+def analyze_log_counters(sensors, receivers, context: AnalysisContext = None):
+    context = context or AnalysisContext()
     devices = sensors + receivers
+    summaries = sensor_summary(sensors, receivers, context)
+    summaries_by_stream = {
+        (summary.sensor.board_id, _normalize_can_id(summary.can_id)): summary
+        for summary in summaries
+    }
     total_p_fail = sum(d.p_fail_count for d in devices)
     total_p_fail_tail_ignored = sum(d.p_fail_tail_ignored_count for d in devices)
     total_p_full = sum(d.p_full_count for d in devices)
@@ -717,7 +746,22 @@ def analyze_log_counters(sensors, receivers):
     status = "PASS" if passed else "FAIL"
     lines = [f"LOG COUNTERS: {status}"]
     suffix = f"[{total_p_fail_tail_ignored}]" if total_p_fail_tail_ignored else ""
-    lines.append(f"  Total: P(FAIL)={total_p_fail}{suffix} P(FULL)={total_p_full} S(FAIL)={total_s_fail}")
+    total_p_fail_edge, total_p_fail_start_edge, total_p_fail_tail_edge = (0, 0, 0)
+    sensor_edge_counts = {}
+    for sensor in sensors:
+        counts = _p_fail_edge_packet_counts(sensor, summaries_by_stream)
+        sensor_edge_counts[sensor.board_id] = counts
+        total_p_fail_edge += counts[0]
+        total_p_fail_start_edge += counts[1]
+        total_p_fail_tail_edge += counts[2]
+    edge_suffix = ""
+    if total_p_fail:
+        total_p_fail_considered = max(0, total_p_fail - total_p_fail_edge)
+        edge_suffix = (
+            f" edge={total_p_fail_edge} (start={total_p_fail_start_edge} tail={total_p_fail_tail_edge})"
+            f" considered={total_p_fail_considered}"
+        )
+    lines.append(f"  Total: P(FAIL)={total_p_fail}{suffix}{edge_suffix} P(FULL)={total_p_full} S(FAIL)={total_s_fail}")
     for d in devices:
         kind = "Sensor" if isinstance(d, SensorData) else "Receiver"
         if d.p_fail_count or d.p_fail_tail_ignored_count or d.p_full_count or d.s_fail_count:
@@ -725,9 +769,15 @@ def analyze_log_counters(sensors, receivers):
             extra = ""
             if isinstance(d, SensorData) and d.s_fail_count and not d.s_fail_counters_by_can_id:
                 extra = " (unlocalized; rebuild firmware to emit WCAN_S_FAIL_RANGE)"
+            edge_suffix = ""
+            if isinstance(d, SensorData):
+                edge_count, start_count, tail_count = sensor_edge_counts.get(d.board_id, (0, 0, 0))
+                if d.p_fail_count:
+                    considered = max(0, d.p_fail_count - edge_count)
+                    edge_suffix = f" edge={edge_count} (start={start_count} tail={tail_count}) considered={considered}"
             lines.append(
                 f"  {kind} {d.board_id}: "
-                f"P(FAIL)={d.p_fail_count}{ignored} P(FULL)={d.p_full_count} S(FAIL)={d.s_fail_count}{extra}"
+                f"P(FAIL)={d.p_fail_count}{ignored}{edge_suffix} P(FULL)={d.p_full_count} S(FAIL)={d.s_fail_count}{extra}"
             )
     if len(lines) == 2:
         lines.append("  No P(FAIL), P(FULL), or S(FAIL) entries found")
@@ -881,7 +931,7 @@ def analyze_all(test_dir: Path):
     r_scenario, p_scenario = analyze_scenario(test_dir, sensors, receivers, context)
     r_measure, p_measure = analyze_measure(sensors, receivers)
     r_batch, _p_batch = analyze_batch_stats(sensors, context)
-    r_log_counters, p_log_counters = analyze_log_counters(sensors, receivers)
+    r_log_counters, p_log_counters = analyze_log_counters(sensors, receivers, context)
     checks = [
         ("delivery", p_delivery),
         ("crash", p_crash),
