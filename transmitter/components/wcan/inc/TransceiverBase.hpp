@@ -60,20 +60,24 @@ protected:
     // Pool ownership is intentionally simple:
     // free_* queues own unused slots, work queues own in-flight slots, and
     // processing tasks return slots to free_* when done. No packet owns heap data.
-    QueueHandle_t _send_queue = nullptr;
+    QueueHandle_t _radio_transmit_queue = nullptr;
     QueueHandle_t _recv_queue = nullptr;
     QueueHandle_t _tx_result_queue = nullptr;
-    QueueHandle_t _free_send_packets = nullptr;
+    QueueHandle_t _free_packets = nullptr;
     QueueHandle_t _free_rx_packets = nullptr;
     TaskHandle_t _send_task_handle = nullptr;
     TaskHandle_t _recv_task_handle = nullptr;
     std::unordered_map<CANId_t, QueueHandle_t> _can_data_queues;
+    std::unordered_map<CANId_t, QueueHandle_t> _batch_queues;
     std::unordered_map<CANId_t, TaskHandle_t> _batch_task_handles;
     std::unordered_map<CANId_t, bool> _batch_task_done;
+    std::unordered_map<CANId_t, TaskHandle_t> _retry_task_handles;
+    std::unordered_map<CANId_t, bool> _retry_task_done;
     std::unordered_map<CANId_t, uint32_t> _pending_ack_seq_ids;
 
     // --- Packet Pools ---
-    Packet* _send_packet_pool = nullptr;
+    Packet* _packet_pool = nullptr;
+    size_t _packet_pool_size = 0;
     EspNowPacket* _rx_packet_pool = nullptr;
 
     // --- Components ---
@@ -90,9 +94,9 @@ protected:
     volatile bool _send_task_done = false;
     volatile bool _recv_task_done = false;
 
-    Packet* acquire_send_packet(TickType_t wait_ticks);
-    bool enqueue_send_packet(Packet* packet, TickType_t wait_ticks);
-    void release_send_packet(Packet* packet);
+    Packet* acquire_packet(TickType_t wait_ticks);
+    bool enqueue_radio_transmit_packet(Packet* packet, TickType_t wait_ticks);
+    void release_packet(Packet* packet);
 
     // --- The Strategy Contract ---
     /**
@@ -103,7 +107,7 @@ protected:
 
     /**
      * @brief High-level batch dispatch logic (e.g. Broadcast retries).
-     * Subclass should push to _send_queue and block if necessary.
+     * Subclass should push to _radio_transmit_queue and block if necessary.
      */
     virtual void dispatch_packet(const Packet& pkt, CANId_t can_id) = 0;
 
@@ -120,7 +124,7 @@ protected:
     virtual bool add_peer(const uint8_t* mac_addr) = 0;
 
     // --- Helpers ---
-    void start_tasks();
+    bool start_tasks();
     bool setup_esp_now();
 
 private:
@@ -140,10 +144,16 @@ private:
         ctx->first->batch_processing_task(ctx->second);
         delete ctx;
     }
+    static void retry_task_wrapper(void* param) {
+        auto* ctx = static_cast<std::pair<TransceiverBase*, CANId_t>*>(param);
+        ctx->first->retry_processing_task(ctx->second);
+        delete ctx;
+    }
 
     void send_processing_task();
     void recv_processing_task();
     void batch_processing_task(CANId_t can_id);
+    void retry_processing_task(CANId_t can_id);
 
     static TransceiverBase* s_instance;
     static void esp_now_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);
@@ -155,12 +165,13 @@ public:
     static constexpr uint32_t SEND_PROCESSING_TASK_PRIORITY = 6;
     static constexpr uint32_t RECV_PROCESSING_TASK_PRIORITY = 6;
     static constexpr uint32_t BATCH_PROCESSING_TASK_PRIORITY = 5;
-    static constexpr uint32_t SEND_PROCESSING_TASK_STACK_SIZE = 6144;
-    static constexpr uint32_t RECV_PROCESSING_TASK_STACK_SIZE = 6144;
-    static constexpr uint32_t BATCH_PROCESSING_TASK_STACK_SIZE = 6144;
-    static constexpr size_t SEND_PACKET_POOL_SIZE = 24;
-    static constexpr size_t RX_PACKET_POOL_SIZE = 32;
-    static constexpr size_t SEND_QUEUE_SIZE = SEND_PACKET_POOL_SIZE;
+    static constexpr uint32_t SEND_PROCESSING_TASK_STACK_SIZE = 4096;
+    static constexpr uint32_t RECV_PROCESSING_TASK_STACK_SIZE = 6148;
+    static constexpr uint32_t BATCH_PROCESSING_TASK_STACK_SIZE = 3072;
+    static constexpr uint32_t RETRY_PROCESSING_TASK_STACK_SIZE = 3072;
+    static constexpr size_t RADIO_TRANSMIT_QUEUE_SIZE = 8;
+    static constexpr size_t BATCH_QUEUE_SIZE = 10;
+    static constexpr size_t RX_PACKET_POOL_SIZE = 8;
     static constexpr size_t RECV_QUEUE_SIZE = RX_PACKET_POOL_SIZE;
     static constexpr size_t CAN_DATA_QUEUE_SIZE = 768;
     static constexpr size_t TX_RESULT_QUEUE_SIZE = 16;

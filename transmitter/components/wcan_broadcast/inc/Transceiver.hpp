@@ -13,7 +13,7 @@ protected:
     const uint8_t* prepare_send_mac(const Packet& packet) override;
 
     /** 
-     * @brief Pushes to send queue and waits for an application-level ACK. 
+     * @brief Pushes to the radio transmit queue and waits for an application-level ACK.
      * Retries up to 10 times.
      */
     void dispatch_packet(const Packet& pkt, CANId_t can_id) override;

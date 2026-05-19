@@ -219,6 +219,13 @@ def parse_measures(text: str) -> MeasureStats:
     return stats
 
 
+
+def _measure_int(measure: MeasureStats, key: str) -> int:
+    try:
+        return int(measure.values.get(key, 0))
+    except (TypeError, ValueError):
+        return 0
+
 def parse_batch_stats(text: str) -> dict:
     stats = {}
     for m in RE_BATCH.finditer(text):
@@ -309,6 +316,8 @@ def parse_sensor_log(path: Path) -> SensorData:
 
     p_fail_count, p_fail_tail_ignored_count = _count_sensor_p_failures(text, generated_last)
 
+    measure = parse_measures(text)
+
     return SensorData(
         board_id=board_id,
         port=port,
@@ -323,12 +332,12 @@ def parse_sensor_log(path: Path) -> SensorData:
         counters=list(generated),
         crash_details=_find_crash_locations(text),
         panic_detected=bool(RE_PANIC.search(text)),
-        measure=parse_measures(text),
+        measure=measure,
         batch_stats=parse_batch_stats(text),
         p_fail_count=p_fail_count,
         p_fail_tail_ignored_count=p_fail_tail_ignored_count,
         p_full_count=len(RE_P_FULL.findall(text)),
-        s_fail_count=len(RE_S_FAIL.findall(text)),
+        s_fail_count=len(RE_S_FAIL.findall(text)) + _measure_int(measure, "sensor_send_failures_total"),
     )
 
 
@@ -351,6 +360,8 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         ranges_by_id.setdefault(can_id, []).extend(ranges)
         received.setdefault(can_id, set()).update(_expand_ranges(ranges))
 
+    measure = parse_measures(text)
+
     return ReceiverData(
         board_id=board_id,
         port=port,
@@ -358,11 +369,11 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         ranges=ranges_by_id,
         crash_details=_find_crash_locations(text),
         panic_detected=bool(RE_PANIC.search(text)),
-        measure=parse_measures(text),
+        measure=measure,
         batch_stats=parse_batch_stats(text),
         p_fail_count=len(RE_P_FAIL.findall(text)),
         p_full_count=len(RE_P_FULL.findall(text)),
-        s_fail_count=len(RE_S_FAIL.findall(text)),
+        s_fail_count=len(RE_S_FAIL.findall(text)) + _measure_int(measure, "sensor_send_failures_total"),
     )
 
 
@@ -543,8 +554,9 @@ def analyze_batch_stats(sensors, context: AnalysisContext = None):
         lines.append(f"  Expected: avg_hz~{expected_hz:.2f} avg_points~{expected_points:.1f}")
 
     ordered_keys = [
-        "count", "avg_hz", "avg_points", "min_points", "max_points",
+        "count", "dispatched_count", "avg_hz", "avg_points", "min_points", "max_points",
         "avg_interval_ms", "min_interval_ms", "max_interval_ms",
+        "avg_queue_wait_ms", "max_queue_wait_ms",
         "avg_dispatch_ms", "max_dispatch_ms",
     ]
     for sensor in devices:

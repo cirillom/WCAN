@@ -27,7 +27,7 @@ void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
 
     for (int i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
         const TickType_t send_wait = is_stopping() ? 0 : portMAX_DELAY;
-        Packet* to_send = acquire_send_packet(send_wait);
+        Packet* to_send = acquire_packet(send_wait);
         if (to_send == nullptr) {
             _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
             ESP_LOGE(TAG, "Send packet pool exhausted");
@@ -43,9 +43,9 @@ void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
         }
 
         *to_send = pkt;
-        if (!enqueue_send_packet(to_send, send_wait)) {
+        if (!enqueue_radio_transmit_packet(to_send, send_wait)) {
             _pending_ack_seq_ids[can_id] = NO_PENDING_ACK_SEQUENCE_ID;
-            ESP_LOGE(TAG, "Failed to push packet to send queue");
+            ESP_LOGE(TAG, "Failed to push packet to radio transmit queue");
             const auto data = pkt.get_data();
             std::printf("P(FULL):%lu:%lx:%lu:%lu:%lu:%u\n",
                 (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
@@ -85,8 +85,8 @@ void Transceiver::on_control_packet(const Packet& packet) {
     uint32_t target_can_id = data[0];
     uint32_t target_seq_id = data[1]; // We could use this for stricter matching if needed
 
-    auto it = _batch_task_handles.find(target_can_id);
-    if (it != _batch_task_handles.end() && it->second != nullptr &&
+    auto it = _retry_task_handles.find(target_can_id);
+    if (it != _retry_task_handles.end() && it->second != nullptr &&
         _pending_ack_seq_ids[target_can_id] == target_seq_id) {
         xTaskNotifyGive(it->second);
     }
@@ -110,14 +110,14 @@ void Transceiver::on_data_packet(const Packet& packet) {
     ack_pkt.add_data_point(mac_part1);
     ack_pkt.add_data_point(mac_part2);
 
-    Packet* to_send = acquire_send_packet(0);
+    Packet* to_send = acquire_packet(0);
     if (to_send == nullptr) {
         ESP_LOGE(TAG, "Failed to send ACK: send packet pool exhausted");
         return;
     }
 
     *to_send = ack_pkt;
-    if (!enqueue_send_packet(to_send, 0)) {
+    if (!enqueue_radio_transmit_packet(to_send, 0)) {
         ESP_LOGE(TAG, "Failed to send ACK");
     }
 }

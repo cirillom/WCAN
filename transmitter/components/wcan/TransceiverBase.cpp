@@ -24,26 +24,27 @@ TransceiverBase::TransceiverBase(std::vector<uint32_t> rx_can_ids, std::vector<u
       _filtering_enabled(filtering_enabled) {}
 
 bool TransceiverBase::init_pools() {
-    _send_packet_pool = new (std::nothrow) Packet[SEND_PACKET_POOL_SIZE];
+    _packet_pool_size = RADIO_TRANSMIT_QUEUE_SIZE + (BATCH_QUEUE_SIZE * _tx_can_ids.size());
+    _packet_pool = new (std::nothrow) Packet[_packet_pool_size];
     _rx_packet_pool = new (std::nothrow) EspNowPacket[RX_PACKET_POOL_SIZE];
-    if (_send_packet_pool == nullptr || _rx_packet_pool == nullptr) {
+    if (_packet_pool == nullptr || _rx_packet_pool == nullptr) {
         ESP_LOGE(TAG, "Failed to allocate packet pools");
         return false;
     }
 
-    _free_send_packets = xQueueCreate(SEND_PACKET_POOL_SIZE, sizeof(Packet*));
-    _send_queue = xQueueCreate(SEND_QUEUE_SIZE, sizeof(Packet*));
+    _free_packets = xQueueCreate(_packet_pool_size, sizeof(Packet*));
+    _radio_transmit_queue = xQueueCreate(RADIO_TRANSMIT_QUEUE_SIZE, sizeof(Packet*));
     _free_rx_packets = xQueueCreate(RX_PACKET_POOL_SIZE, sizeof(EspNowPacket*));
     _recv_queue = xQueueCreate(RECV_QUEUE_SIZE, sizeof(EspNowPacket*));
-    if (!_free_send_packets || !_send_queue || !_free_rx_packets || !_recv_queue) {
+    if (!_free_packets || !_radio_transmit_queue || !_free_rx_packets || !_recv_queue) {
         ESP_LOGE(TAG, "Failed to create packet pool queues");
         return false;
     }
 
-    for (size_t i = 0; i < SEND_PACKET_POOL_SIZE; ++i) {
-        Packet* packet = &_send_packet_pool[i];
+    for (size_t i = 0; i < _packet_pool_size; ++i) {
+        Packet* packet = &_packet_pool[i];
         packet->clear();
-        if (xQueueSend(_free_send_packets, &packet, 0) != pdTRUE) {
+        if (xQueueSend(_free_packets, &packet, 0) != pdTRUE) {
             return false;
         }
     }
@@ -70,10 +71,14 @@ bool TransceiverBase::init() {
     if (tx_count > 0) {
         for (size_t i = 0; i < tx_count; i++) {
             QueueHandle_t q = xQueueCreate(CAN_DATA_QUEUE_SIZE, sizeof(DataPoint_t));
-            if (!q) return false;
+            QueueHandle_t batch_q = xQueueCreate(BATCH_QUEUE_SIZE, sizeof(Packet*));
+            if (!q || !batch_q) return false;
             _can_data_queues.emplace(_tx_can_ids[i], q);
+            _batch_queues.emplace(_tx_can_ids[i], batch_q);
             _batch_task_handles.emplace(_tx_can_ids[i], (TaskHandle_t)nullptr);
             _batch_task_done.emplace(_tx_can_ids[i], false);
+            _retry_task_handles.emplace(_tx_can_ids[i], (TaskHandle_t)nullptr);
+            _retry_task_done.emplace(_tx_can_ids[i], false);
             _pending_ack_seq_ids.emplace(_tx_can_ids[i], NO_PENDING_ACK_SEQUENCE_ID);
         }
     }
@@ -82,33 +87,36 @@ bool TransceiverBase::init() {
     if (!_tx_result_queue) return false;
 
     if (!setup_esp_now()) return false;
-    start_tasks();
+    if (!start_tasks()) {
+        stop(0);
+        return false;
+    }
     return true;
 }
 
-Packet* TransceiverBase::acquire_send_packet(TickType_t wait_ticks) {
-    if (_free_send_packets == nullptr) return nullptr;
+Packet* TransceiverBase::acquire_packet(TickType_t wait_ticks) {
+    if (_free_packets == nullptr) return nullptr;
     Packet* packet = nullptr;
-    if (xQueueReceive(_free_send_packets, &packet, wait_ticks) != pdTRUE || packet == nullptr) {
+    if (xQueueReceive(_free_packets, &packet, wait_ticks) != pdTRUE || packet == nullptr) {
         return nullptr;
     }
     packet->clear();
     return packet;
 }
 
-bool TransceiverBase::enqueue_send_packet(Packet* packet, TickType_t wait_ticks) {
+bool TransceiverBase::enqueue_radio_transmit_packet(Packet* packet, TickType_t wait_ticks) {
     if (packet == nullptr) return false;
-    if (_send_queue != nullptr && xQueueSend(_send_queue, &packet, wait_ticks) == pdTRUE) {
+    if (_radio_transmit_queue != nullptr && xQueueSend(_radio_transmit_queue, &packet, wait_ticks) == pdTRUE) {
         return true;
     }
-    release_send_packet(packet);
+    release_packet(packet);
     return false;
 }
 
-void TransceiverBase::release_send_packet(Packet* packet) {
-    if (packet == nullptr || _free_send_packets == nullptr) return;
+void TransceiverBase::release_packet(Packet* packet) {
+    if (packet == nullptr || _free_packets == nullptr) return;
     packet->clear();
-    (void)xQueueSend(_free_send_packets, &packet, 0);
+    (void)xQueueSend(_free_packets, &packet, 0);
 }
 
 EspNowPacket* TransceiverBase::acquire_rx_packet() {
@@ -144,42 +152,80 @@ bool TransceiverBase::setup_esp_now() {
     return this->add_peer(Packet::BROADCAST_MAC.data());
 }
 
-void TransceiverBase::start_tasks() {
+bool TransceiverBase::start_tasks() {
     _send_task_done = false;
     _recv_task_done = false;
-    xTaskCreate(send_task_wrapper, "wcan_send", SEND_PROCESSING_TASK_STACK_SIZE, this, SEND_PROCESSING_TASK_PRIORITY, &_send_task_handle);
-    xTaskCreate(recv_task_wrapper, "wcan_recv", RECV_PROCESSING_TASK_STACK_SIZE, this, RECV_PROCESSING_TASK_PRIORITY, &_recv_task_handle);
+
+    if (xTaskCreate(send_task_wrapper, "wcan_send", SEND_PROCESSING_TASK_STACK_SIZE, this, SEND_PROCESSING_TASK_PRIORITY, &_send_task_handle) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create send task");
+        _send_task_done = true;
+        return false;
+    }
+    if (xTaskCreate(recv_task_wrapper, "wcan_recv", RECV_PROCESSING_TASK_STACK_SIZE, this, RECV_PROCESSING_TASK_PRIORITY, &_recv_task_handle) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create receive task");
+        _recv_task_done = true;
+        return false;
+    }
 
     for (size_t i = 0; i < _tx_can_ids.size(); i++) {
-        _batch_task_done[_tx_can_ids[i]] = false;
-        auto* ctx = new std::pair<TransceiverBase*, CANId_t>(this, _tx_can_ids[i]);
-        char name[32]; std::snprintf(name, sizeof(name), "wcan_batch_%lu", (unsigned long)_tx_can_ids[i]);
-        xTaskCreate(batch_task_wrapper, name, BATCH_PROCESSING_TASK_STACK_SIZE, ctx, BATCH_PROCESSING_TASK_PRIORITY, &(_batch_task_handles[_tx_can_ids[i]]));
+        const CANId_t can_id = _tx_can_ids[i];
+        _batch_task_done[can_id] = false;
+        _retry_task_done[can_id] = false;
+
+        auto* retry_ctx = new (std::nothrow) std::pair<TransceiverBase*, CANId_t>(this, can_id);
+        if (retry_ctx == nullptr) {
+            ESP_LOGE(TAG, "Failed to allocate retry task context for CAN ID 0x%lx", static_cast<unsigned long>(can_id));
+            _retry_task_done[can_id] = true;
+            return false;
+        }
+        char retry_name[32]; std::snprintf(retry_name, sizeof(retry_name), "wcan_retry_%lu", static_cast<unsigned long>(can_id));
+        if (xTaskCreate(retry_task_wrapper, retry_name, RETRY_PROCESSING_TASK_STACK_SIZE, retry_ctx, BATCH_PROCESSING_TASK_PRIORITY, &(_retry_task_handles[can_id])) != pdPASS) {
+            ESP_LOGE(TAG, "Failed to create retry task for CAN ID 0x%lx", static_cast<unsigned long>(can_id));
+            delete retry_ctx;
+            _retry_task_done[can_id] = true;
+            return false;
+        }
+
+        auto* batch_ctx = new (std::nothrow) std::pair<TransceiverBase*, CANId_t>(this, can_id);
+        if (batch_ctx == nullptr) {
+            ESP_LOGE(TAG, "Failed to allocate batch task context for CAN ID 0x%lx", static_cast<unsigned long>(can_id));
+            _batch_task_done[can_id] = true;
+            return false;
+        }
+        char batch_name[32]; std::snprintf(batch_name, sizeof(batch_name), "wcan_batch_%lu", static_cast<unsigned long>(can_id));
+        if (xTaskCreate(batch_task_wrapper, batch_name, BATCH_PROCESSING_TASK_STACK_SIZE, batch_ctx, BATCH_PROCESSING_TASK_PRIORITY, &(_batch_task_handles[can_id])) != pdPASS) {
+            ESP_LOGE(TAG, "Failed to create batch task for CAN ID 0x%lx", static_cast<unsigned long>(can_id));
+            delete batch_ctx;
+            _batch_task_done[can_id] = true;
+            return false;
+        }
     }
+
+    return true;
 }
 
 void TransceiverBase::send_processing_task() {
     uint8_t encoded[ESP_NOW_MAX_DATA_LENGTH];
 
     while (true) {
-        bool batches_done = true;
-        for (const auto& entry : _batch_task_done) {
+        bool retries_done = true;
+        for (const auto& entry : _retry_task_done) {
             if (!entry.second) {
-                batches_done = false;
+                retries_done = false;
                 break;
             }
         }
-        if (_stopping && batches_done && _recv_task_done && (_send_queue == nullptr || uxQueueMessagesWaiting(_send_queue) == 0)) {
+        if (_stopping && retries_done && _recv_task_done && (_radio_transmit_queue == nullptr || uxQueueMessagesWaiting(_radio_transmit_queue) == 0)) {
             break;
         }
 
         Packet* pkt = nullptr;
-        if (_send_queue != nullptr && xQueueReceive(_send_queue, &pkt, pdMS_TO_TICKS(10)) == pdTRUE) {
+        if (_radio_transmit_queue != nullptr && xQueueReceive(_radio_transmit_queue, &pkt, pdMS_TO_TICKS(10)) == pdTRUE) {
             if (pkt == nullptr) continue;
 
             size_t encoded_size = 0;
             if (!pkt->encode(encoded, sizeof(encoded), &encoded_size)) {
-                release_send_packet(pkt);
+                release_packet(pkt);
                 continue;
             }
 
@@ -209,7 +255,7 @@ void TransceiverBase::send_processing_task() {
                 }
             }
 
-            release_send_packet(pkt);
+            release_packet(pkt);
         }
     }
     _send_task_done = true;
@@ -218,16 +264,16 @@ void TransceiverBase::send_processing_task() {
 
 void TransceiverBase::recv_processing_task() {
     while (true) {
-        bool batches_done = true;
-        for (const auto& entry : _batch_task_done) {
+        bool retries_done = true;
+        for (const auto& entry : _retry_task_done) {
             if (!entry.second) {
-                batches_done = false;
+                retries_done = false;
                 break;
             }
         }
-        const bool send_empty = _send_queue == nullptr || uxQueueMessagesWaiting(_send_queue) == 0;
+        const bool send_empty = _radio_transmit_queue == nullptr || uxQueueMessagesWaiting(_radio_transmit_queue) == 0;
         const bool recv_empty = _recv_queue == nullptr || uxQueueMessagesWaiting(_recv_queue) == 0;
-        if (_stopping && batches_done && send_empty && recv_empty) {
+        if (_stopping && retries_done && send_empty && recv_empty) {
             break;
         }
 
@@ -258,8 +304,14 @@ void TransceiverBase::recv_processing_task() {
 
 void TransceiverBase::batch_processing_task(CANId_t can_id) {
     auto it = _can_data_queues.find(can_id);
-    if (it == _can_data_queues.end()) return;
+    auto batch_it = _batch_queues.find(can_id);
+    if (it == _can_data_queues.end() || batch_it == _batch_queues.end()) {
+        _batch_task_done[can_id] = true;
+        vTaskDelete(nullptr);
+        return;
+    }
     QueueHandle_t q = it->second;
+    QueueHandle_t batch_q = batch_it->second;
 
     while (true) {
         if (_stopping && uxQueueMessagesWaiting(q) == 0) {
@@ -290,13 +342,68 @@ void TransceiverBase::batch_processing_task(CANId_t can_id) {
                 break;
             }
         }
+
         const int64_t ready_us = stats().now_us();
-        // Hand the constructed batch to the Strategy to handle retries/dispatch
-        dispatch_packet(pkt, can_id);
-        const uint32_t dispatch_us = static_cast<uint32_t>(std::max<int64_t>(0, stats().now_us() - ready_us));
-        stats().record_batch(can_id, static_cast<uint32_t>(pkt.get_data().size()), ready_us, dispatch_us);
+        Packet* batch_pkt = nullptr;
+        while (!_stopping) {
+            batch_pkt = acquire_packet(pdMS_TO_TICKS(10));
+            if (batch_pkt != nullptr) break;
+        }
+        if (batch_pkt == nullptr) {
+            continue;
+        }
+
+        *batch_pkt = pkt;
+        stats().record_batch(*batch_pkt, ready_us);
+
+        bool enqueued = false;
+        while (!_stopping) {
+            if (batch_q != nullptr && xQueueSend(batch_q, &batch_pkt, pdMS_TO_TICKS(10)) == pdTRUE) {
+                enqueued = true;
+                break;
+            }
+        }
+
+        if (!enqueued) {
+            release_packet(batch_pkt);
+            continue;
+        }
+
     }
     _batch_task_done[can_id] = true;
+    vTaskDelete(nullptr);
+}
+
+void TransceiverBase::retry_processing_task(CANId_t can_id) {
+    auto it = _batch_queues.find(can_id);
+    if (it == _batch_queues.end()) {
+        _retry_task_done[can_id] = true;
+        vTaskDelete(nullptr);
+        return;
+    }
+    QueueHandle_t q = it->second;
+
+    while (true) {
+        const bool batch_done = _batch_task_done[can_id];
+        const bool batch_empty = q == nullptr || uxQueueMessagesWaiting(q) == 0;
+        if (_stopping && batch_done && batch_empty) {
+            break;
+        }
+
+        Packet* pkt = nullptr;
+        if (q != nullptr && xQueueReceive(q, &pkt, pdMS_TO_TICKS(10)) == pdTRUE) {
+            if (pkt == nullptr) continue;
+
+            const int64_t dispatch_start_us = stats().now_us();
+            dispatch_packet(*pkt, can_id);
+            const int64_t dispatch_end_us = stats().now_us();
+            const uint32_t dispatch_us = static_cast<uint32_t>(std::max<int64_t>(0, dispatch_end_us - dispatch_start_us));
+            stats().record_batch_dispatch(*pkt, dispatch_start_us, dispatch_us);
+            release_packet(pkt);
+        }
+    }
+
+    _retry_task_done[can_id] = true;
     vTaskDelete(nullptr);
 }
 
@@ -330,37 +437,58 @@ void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uin
 }
 
 bool TransceiverBase::queues_drained() const {
-    if (_send_queue != nullptr && uxQueueMessagesWaiting(_send_queue) > 0) return false;
+    if (_radio_transmit_queue != nullptr && uxQueueMessagesWaiting(_radio_transmit_queue) > 0) return false;
     if (_recv_queue != nullptr && uxQueueMessagesWaiting(_recv_queue) > 0) return false;
     for (const auto& entry : _can_data_queues) {
+        if (entry.second != nullptr && uxQueueMessagesWaiting(entry.second) > 0) return false;
+    }
+    for (const auto& entry : _batch_queues) {
         if (entry.second != nullptr && uxQueueMessagesWaiting(entry.second) > 0) return false;
     }
     if (!_send_task_done || !_recv_task_done) return false;
     for (const auto& entry : _batch_task_done) {
         if (!entry.second) return false;
     }
+    for (const auto& entry : _retry_task_done) {
+        if (!entry.second) return false;
+    }
     return true;
 }
 
 void TransceiverBase::delete_queues() {
-    if (_send_queue) {
-        vQueueDelete(_send_queue);
-        _send_queue = nullptr;
+    if (_radio_transmit_queue) {
+        Packet* packet = nullptr;
+        while (xQueueReceive(_radio_transmit_queue, &packet, 0) == pdTRUE) {
+            release_packet(packet);
+        }
+        vQueueDelete(_radio_transmit_queue);
+        _radio_transmit_queue = nullptr;
     }
     if (_recv_queue) {
         vQueueDelete(_recv_queue);
         _recv_queue = nullptr;
     }
-    if (_free_send_packets) {
-        vQueueDelete(_free_send_packets);
-        _free_send_packets = nullptr;
+    for (auto& entry : _batch_queues) {
+        if (entry.second) {
+            Packet* packet = nullptr;
+            while (xQueueReceive(entry.second, &packet, 0) == pdTRUE) {
+                release_packet(packet);
+            }
+            vQueueDelete(entry.second);
+            entry.second = nullptr;
+        }
+    }
+    if (_free_packets) {
+        vQueueDelete(_free_packets);
+        _free_packets = nullptr;
     }
     if (_free_rx_packets) {
         vQueueDelete(_free_rx_packets);
         _free_rx_packets = nullptr;
     }
-    delete[] _send_packet_pool;
-    _send_packet_pool = nullptr;
+    delete[] _packet_pool;
+    _packet_pool = nullptr;
+    _packet_pool_size = 0;
     delete[] _rx_packet_pool;
     _rx_packet_pool = nullptr;
 
@@ -377,7 +505,7 @@ void TransceiverBase::delete_queues() {
 }
 
 void TransceiverBase::stop(uint32_t timeout_ms) {
-    if (_stopping && _send_queue == nullptr && _recv_queue == nullptr) {
+    if (_stopping && _radio_transmit_queue == nullptr && _recv_queue == nullptr) {
         return;
     }
 
@@ -405,6 +533,12 @@ void TransceiverBase::stop(uint32_t timeout_ms) {
         if (!_batch_task_done[entry.first] && entry.second) {
             vTaskDelete(entry.second);
             _batch_task_done[entry.first] = true;
+        }
+    }
+    for (auto& entry : _retry_task_handles) {
+        if (!_retry_task_done[entry.first] && entry.second) {
+            vTaskDelete(entry.second);
+            _retry_task_done[entry.first] = true;
         }
     }
 
