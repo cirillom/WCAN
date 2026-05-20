@@ -64,6 +64,8 @@ extern "C" void app_main(void)
     if (config.role == wcan_test::Role::kIdle) {
         test_session.ready();
         test_session.wait_idle_start();
+        std::printf("WCAN_TEST_END role=%s\n", config.role_name());
+        std::fflush(stdout);
         return;
     }
 
