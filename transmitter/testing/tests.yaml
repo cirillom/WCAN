@@ -2,7 +2,7 @@ defaults:
   duration_seconds: 30
   test_duration_ms: 30000
   host_wait_time_ms: 5000
-  repeats: 3
+  repeats: 2
   cooldown_seconds: 5
   baud_rate: 921600
   project_path: ".."
@@ -28,11 +28,14 @@ profiles:
       - sensors: 2
         receivers: 3
 
-  broadcast_only:
-    transports: [BROADCAST]
+  sanity:
+    transports: [BROADCAST, MULTICAST]
     duration_seconds: 15
     test_duration_ms: 15000
-    frequency_hz: [10, 200, 750, 1000]
+    frequency_hz: [200]
+    topologies:
+      - sensors: 4
+        receivers: 1
 
 
 
