@@ -120,6 +120,9 @@ protected:
     /** @brief Hook for tracking hardware TX results (Overridden by Multicast). */
     virtual void on_hardware_tx_status(const uint8_t* mac_addr, bool success) {}
 
+    /** @brief Called after a radio send reports failure. */
+    virtual void on_radio_send_failure(const Packet& packet, const uint8_t* dest_mac) {}
+
     /** @brief Variant-specific peer setup. */
     virtual bool add_peer(const uint8_t* mac_addr) = 0;
 

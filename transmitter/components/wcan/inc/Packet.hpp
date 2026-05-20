@@ -99,6 +99,7 @@ public:
 
     private:
         struct Entry {
+            std::array<uint8_t, ESP_NOW_ETH_ALEN> source_mac_addr{};
             CANId_t can_id;
             uint32_t sequence_id;
         };

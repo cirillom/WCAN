@@ -91,6 +91,7 @@ def build_variant(chip: str, transport: str = "BROADCAST",
     cmd.extend(["reconfigure", "build"])
 
     env = get_idf_env()
+    env["IDF_TARGET"] = chip
     result = subprocess.run(cmd, cwd=project_path, shell=False, env=env, capture_output=quiet, text=quiet)
     if result.returncode != 0:
         print(f"[FAIL] Build failed: {chip}/runtime transport={transport} measure={measure}")

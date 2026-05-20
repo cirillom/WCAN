@@ -15,17 +15,31 @@ if(NOT DEFINED TRANSPORT)
 endif()
 
 if(TRANSPORT STREQUAL "BROADCAST")
-    set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE INTERNAL "")
-    list(APPEND EXCLUDE_COMPONENTS wcan_multicast)
+    set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE INTERNAL "" FORCE)
+    set(WCAN_EXCLUDED_COMPONENT_NAME "wcan_multicast")
+    add_compile_definitions(WCAN_TRANSPORT_BROADCAST)
 elseif(TRANSPORT STREQUAL "MULTICAST")
-    set(WCAN_COMPONENT_NAME "wcan_multicast" CACHE INTERNAL "")
-    list(APPEND EXCLUDE_COMPONENTS wcan_broadcast)
+    set(WCAN_COMPONENT_NAME "wcan_multicast" CACHE INTERNAL "" FORCE)
+    set(WCAN_EXCLUDED_COMPONENT_NAME "wcan_broadcast")
+    add_compile_definitions(WCAN_TRANSPORT_MULTICAST)
 elseif(TRANSPORT STREQUAL "UNICAST")
-    set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE INTERNAL "") # Uses broadcast implementation for now
-    list(APPEND EXCLUDE_COMPONENTS wcan_multicast)
+    set(WCAN_COMPONENT_NAME "wcan_broadcast" CACHE INTERNAL "" FORCE) # Uses broadcast implementation for now
+    set(WCAN_EXCLUDED_COMPONENT_NAME "wcan_multicast")
+    add_compile_definitions(WCAN_TRANSPORT_BROADCAST)
 else()
     message(FATAL_ERROR "TRANSPORT must be BROADCAST, MULTICAST or UNICAST; got: ${TRANSPORT}")
 endif()
+
+list(APPEND EXCLUDE_COMPONENTS ${WCAN_EXCLUDED_COMPONENT_NAME})
+list(REMOVE_DUPLICATES EXCLUDE_COMPONENTS)
+
+if(COMPONENTS)
+    list(APPEND COMPONENTS main wcan wcan_sensor wcan_test ${WCAN_COMPONENT_NAME})
+    list(REMOVE_ITEM COMPONENTS ${WCAN_EXCLUDED_COMPONENT_NAME})
+else()
+    set(COMPONENTS main wcan wcan_sensor wcan_test ${WCAN_COMPONENT_NAME})
+endif()
+list(REMOVE_DUPLICATES COMPONENTS)
 
 message(STATUS "Building with TRANSPORT=${TRANSPORT}, component=${WCAN_COMPONENT_NAME}")
 

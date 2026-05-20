@@ -138,26 +138,24 @@ bool Packet::add_data_point(DataPoint_t data_point) {
 // -----------------------------------------------------------------------------
 
 bool Packet::Deduplicator::check_and_update(const Packet& packet) {
+    const auto& source = packet.get_source_mac_addr();
     const uint32_t id = packet.get_can_id();
     const uint32_t seq = packet.get_sequence_id();
 
-    // 1. Check existing entries
     for (auto& entry : _history) {
-        if (entry.can_id == id) {
+        if (entry.can_id == id && entry.source_mac_addr == source) {
             if (entry.sequence_id == seq) {
-                return true; // Match found -> Duplicate
+                return true;
             }
-            entry.sequence_id = seq; // New sequence for this ID -> Update
+            entry.sequence_id = seq;
             return false;
         }
     }
 
-    // 2. New CAN ID we haven't seen yet
     if (_history.size() < HISTORY_SIZE) {
-        _history.push_back({id, seq});
+        _history.push_back({source, id, seq});
     } else {
-        ESP_LOGW(TAG, "Deduplication table full! Cannot track new CAN ID 0x%08lx", static_cast<unsigned long>(id));
-        // We let the packet through, but we can't track it for future deduplication
+        ESP_LOGW(TAG, "Deduplication table full! Cannot track CAN ID 0x%08lx from source", static_cast<unsigned long>(id));
     }
 
     return false;

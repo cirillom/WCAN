@@ -24,6 +24,9 @@ protected:
     /** @brief Sends an ACK for received data packets. */
     void on_data_packet(const Packet& packet) override;
 
+    /** @brief Restores receive dedup state when an ACK could not be sent. */
+    void on_radio_send_failure(const Packet& packet, const uint8_t* dest_mac) override;
+
     /** @brief Broadcast doesn't need specific peer management beyond the initial setup. */
     bool add_peer(const uint8_t* mac_addr) override;
 

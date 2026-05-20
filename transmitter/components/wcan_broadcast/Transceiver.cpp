@@ -123,6 +123,17 @@ void Transceiver::on_data_packet(const Packet& packet) {
     }
 }
 
+
+void Transceiver::on_radio_send_failure(const Packet& packet, const uint8_t* dest_mac) {
+    (void)dest_mac;
+    if (packet.get_can_id() != CONTROL_ID) return;
+
+    const auto data = packet.get_data();
+    if (data.size() < 2) return;
+
+    _deduplicator.forget(data[0], data[1]);
+}
+
 bool Transceiver::add_peer(const uint8_t* mac_addr) {
     esp_now_peer_info_t peer = {};
     std::memcpy(peer.peer_addr, mac_addr, ESP_NOW_ETH_ALEN);

@@ -248,12 +248,12 @@ void TransceiverBase::send_processing_task() {
             if (xQueueReceive(_tx_result_queue, &success, pdMS_TO_TICKS(RADIO_TIMEOUT_MS)) == pdTRUE) {
                 const int64_t send_end_us = stats().now_us();
                 stats().record_airtime(static_cast<uint32_t>(std::max<int64_t>(0, send_end_us - send_start_us)));
-                if (!success && dest_mac != nullptr) {
-                    std::printf("Radio send to %02x:%02x:%02x:%02x:%02x:%02x failed\n",
-                        dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5]);
-
-                    const auto data = pkt->get_data();
-                    _deduplicator.forget(data[0], data[1]);
+                if (!success) {
+                    if (dest_mac != nullptr) {
+                        std::printf("Radio send to %02x:%02x:%02x:%02x:%02x:%02x failed\n",
+                            dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5]);
+                    }
+                    on_radio_send_failure(*pkt, dest_mac);
                 }
             } else {
                 std::printf("Radio hardware timeout (50ms) to %02x:%02x:%02x:%02x:%02x:%02x\n",
