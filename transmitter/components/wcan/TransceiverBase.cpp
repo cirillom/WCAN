@@ -240,6 +240,7 @@ void TransceiverBase::send_processing_task() {
             esp_err_t err = esp_now_send(dest_mac, encoded, encoded_size);
             if (err != ESP_OK) {
                 ESP_LOGE(TAG, "esp_now_send fail: %s", esp_err_to_name(err));
+                release_packet(pkt);
                 continue;
             }
 
@@ -416,7 +417,9 @@ void TransceiverBase::esp_now_send_cb(const uint8_t *mac, esp_now_send_status_t 
     if (!s_instance || s_instance->_tx_result_queue == nullptr) return;
     const bool success = status == ESP_NOW_SEND_SUCCESS;
     s_instance->on_hardware_tx_status(mac, success);
-    xQueueSend(s_instance->_tx_result_queue, &success, 0);
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    (void)xQueueSendFromISR(s_instance->_tx_result_queue, &success, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
@@ -428,17 +431,25 @@ void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uin
 
     if (!s_instance->should_accept(can_id)) return;
 
-    EspNowPacket* raw_pkt = s_instance->acquire_rx_packet();
-    if (!raw_pkt) return;
+    /* Use ISR-safe queue APIs: these callbacks may run in ISR/context
+       where standard xQueue* calls are not allowed. */
+    if (s_instance->_free_rx_packets == nullptr) return;
+    EspNowPacket* raw_pkt = nullptr;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    if (xQueueReceiveFromISR(s_instance->_free_rx_packets, &raw_pkt, &xHigherPriorityTaskWoken) != pdTRUE || raw_pkt == nullptr) {
+        return;
+    }
 
     std::memcpy(raw_pkt->src_mac, info->src_addr, ESP_NOW_ETH_ALEN);
     std::memcpy(raw_pkt->des_mac, info->des_addr, ESP_NOW_ETH_ALEN);
     std::memcpy(raw_pkt->payload, data, static_cast<size_t>(len));
     raw_pkt->payload_len = static_cast<size_t>(len);
 
-    if (s_instance->_recv_queue == nullptr || xQueueSend(s_instance->_recv_queue, &raw_pkt, 0) != pdTRUE) {
-        s_instance->release_rx_packet(raw_pkt);
+    if (s_instance->_recv_queue == nullptr || xQueueSendFromISR(s_instance->_recv_queue, &raw_pkt, &xHigherPriorityTaskWoken) != pdTRUE) {
+        /* return packet to free pool */
+        (void)xQueueSendFromISR(s_instance->_free_rx_packets, &raw_pkt, &xHigherPriorityTaskWoken);
     }
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 bool TransceiverBase::queues_drained() const {
