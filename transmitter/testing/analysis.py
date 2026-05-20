@@ -901,7 +901,11 @@ def format_topology_summary(results: list[AnalysisRunResult], min_successful_rep
 def analyze_all(test_dir: Path):
     context = load_analysis_context(test_dir)
     metadata = context.metadata
-    header_base = f"{metadata.get('suite', metadata.get('scenario', 'unknown'))} | {metadata.get('transport', 'unknown')} | {_frequency_label(metadata)} | {metadata.get('topology', test_dir.name)}"
+    topology = metadata.get('topology', test_dir.name)
+    repeat = metadata.get('repeat')
+    if repeat is not None:
+        topology = f"{topology}_rep{int(repeat)}"
+    header_base = f"{metadata.get('suite', metadata.get('scenario', 'unknown'))} | {metadata.get('transport', 'unknown')} | {_frequency_label(metadata)} | {topology}"
     try:
         sensors = sorted((parse_sensor_log(p) for p in test_dir.glob("sensor_*.log")), key=lambda s: s.board_id)
         receivers = sorted((parse_receiver_log(p) for p in test_dir.glob("receiver_*.log")), key=lambda r: r.board_id)
