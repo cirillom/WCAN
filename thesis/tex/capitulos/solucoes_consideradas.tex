@@ -1,35 +1,9 @@
 Diante das limitações identificadas, três abordagens foram consideradas para
-expandir a capacidade de instrumentação do veículo. A literatura sobre sensores
-sem fio em veículos destaca justamente a redução de cabeamento, massa e custo de
-instalação como motivações recorrentes, embora a confiabilidade do enlace passe
-a ser uma restrição central de projeto
+expandir a capacidade de instrumentação do veículo, comparadas na Tabela~\ref{tab:solucoes-consideradas}.
+A literatura sobre sensores sem fio em veículos destaca justamente a redução de
+cabeamento, massa e custo de instalação como motivações recorrentes, embora a
+confiabilidade do enlace passe a ser uma restrição central de projeto
 \cite{tavares2008_wsn_automobiles,rahman2017_intravehicular_wsn,hashemi2014_intracar_multihop_wsn}.
-
-\begin{table}[htbp]
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.18}
-\begin{tabular}{p{0.22\linewidth}|p{0.34\linewidth}|p{0.34\linewidth}}
-\hline
-Solução & Vantagens & Desvantagens \\
-\hline
-Cabeamento dedicado &
-Mantém a arquitetura atual, preserva a confiabilidade física do barramento e exige pouca mudança no sistema embarcado. &
-Aumenta massa, custo e complexidade de montagem; exige soluções mecânicas específicas para partes móveis; não resolve sensores externos ao veículo. \\
-\hline
-Aquisição independente &
-Elimina chicotes até o ponto de medição e permite instalar módulos em regiões de difícil acesso. &
-Exige sincronização temporal entre sistemas, dificulta análise durante a sessão e cria um fluxo operacional separado para recuperar e combinar os dados. \\
-\hline
-Ponte sem fio &
-Remove restrições físicas de cabeamento, mantém integração com o CAN existente e permite dados disponíveis durante o teste. &
-Exige desenvolvimento de protocolo, tratamento de perdas, controle de latência, descoberta de nós e validação de confiabilidade do enlace. \\
-\hline
-\end{tabular}
-\caption{Comparação das soluções consideradas para expandir a instrumentação do veículo.}
-\label{tab:solucoes-consideradas}
-\end{table}
 
 \section{Cabeamento Dedicado}
 
@@ -75,3 +49,29 @@ aerodinâmicas sensíveis e sensores externos ao veículo. A principal restriç�
 a ser endereçada no desenvolvimento é a garantia de confiabilidade na entrega
 dos dados, uma vez que protocolos de comunicação sem fio, por natureza, não
 oferecem as mesmas garantias de integridade que uma conexão física.
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{p{0.22\linewidth}|p{0.34\linewidth}|p{0.34\linewidth}}
+\hline
+Solução & Vantagens & Desvantagens \\
+\hline
+Cabeamento dedicado &
+Mantém a arquitetura atual, preserva a confiabilidade física do barramento e exige pouca mudança no sistema embarcado. &
+Aumenta massa, custo e complexidade de montagem; exige soluções mecânicas específicas para partes móveis; não resolve sensores externos ao veículo. \\
+\hline
+Aquisição independente &
+Elimina chicotes até o ponto de medição e permite instalar módulos em regiões de difícil acesso. &
+Exige sincronização temporal entre sistemas, dificulta análise durante a sessão e cria um fluxo operacional separado para recuperar e combinar os dados. \\
+\hline
+Ponte sem fio &
+Remove restrições físicas de cabeamento, mantém integração com o CAN existente e permite dados disponíveis durante o teste. &
+Exige desenvolvimento de protocolo, tratamento de perdas, controle de latência, descoberta de nós e validação de confiabilidade do enlace. \\
+\hline
+\end{tabular}
+\caption{Comparação das soluções consideradas para expandir a instrumentação do veículo.}
+\label{tab:solucoes-consideradas}
+\end{table}
