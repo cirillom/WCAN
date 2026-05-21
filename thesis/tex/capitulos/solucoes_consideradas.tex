@@ -33,14 +33,22 @@ seu uso durante a sessão de testes.
 
 A terceira opção, adotada neste projeto, é o desenvolvimento de uma
 ponte de comunicação sem fio entre os pontos de medição e o sistema de
-aquisição existente. Nessa abordagem, um nó sensor captura os dados
-localmente e os transmite por rádio para um nó receptor conectado ao
-barramento CAN do veículo. O receptor injeta os dados na rede como se fossem
-provenientes de qualquer outro nó cabeado, tornando a comunicação sem fio
-completamente transparente para o restante do sistema. Trabalhos de telemetria
-em Fórmula SAE mostram soluções semelhantes em espírito, combinando aquisição
-embarcada, comunicação sem fio e integração com redes ou ferramentas de análise
-do veículo \cite{zanetti2013_formula_sae_wireless,visconti2019_formula_sae_telemetry,fernandes2022_formula_sae_wifi_can}.
+aquisição existente, conforme esquematizado na Figura~\ref{fig:wcan-semfio}.
+Nessa abordagem, um nó sensor captura os dados localmente e os transmite por
+rádio para um nó receptor conectado ao barramento CAN do veículo. O receptor
+injeta os dados na rede como se fossem provenientes de qualquer outro nó
+cabeado, tornando a comunicação sem fio completamente transparente para o
+restante do sistema. Trabalhos de telemetria em Fórmula SAE mostram soluções
+semelhantes em espírito, combinando aquisição embarcada, comunicação sem fio
+e integração com redes ou ferramentas de análise do veículo
+\cite{zanetti2013_formula_sae_wireless,visconti2019_formula_sae_telemetry,fernandes2022_formula_sae_wifi_can}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{images/wcan}
+\caption{Arquitetura da solução sem fio proposta (WCAN) com transmissão via rádio para receptor central.}
+\label{fig:wcan-semfio}
+\end{figure}
 
 Essa solução elimina as restrições de cabeamento, preserva o fluxo de dados existente
 sem alterações na arquitetura do sistema principal e abre espaço para instrumentação
