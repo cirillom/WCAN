@@ -14,6 +14,7 @@ public:
     ~Transceiver() override;
 
     bool init();
+    void stop(uint32_t timeout_ms) override;
 
 protected:
     /** @brief Always returns the broadcast MAC address. */

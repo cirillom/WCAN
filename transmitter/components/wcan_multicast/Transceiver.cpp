@@ -9,8 +9,13 @@ namespace wcan {
 static const char* TAG = "WCAN_MCAST";
 
 Transceiver::~Transceiver() {
-    TransceiverBase::stop(100);
-    stop_management_task(100);
+    stop(100);
+}
+
+void Transceiver::stop(uint32_t timeout_ms) {
+    _stopping = true;
+    stop_management_task(timeout_ms);
+    TransceiverBase::stop(timeout_ms);
     cleanup_multicast_resources();
 }
 
@@ -98,8 +103,9 @@ void Transceiver::dispatch_batch(CANId_t can_id) {
         if (xQueueSend(_radio_transmit_queue, &pkt_ptr, 0) != pdTRUE) {
             ESP_LOGE(TAG, "Failed to send subscription control packet");
             forget_pending_control_destination(pkt_ptr->get_sequence_id());
+            ring.read_head().clear();
+            ring.pop();
         }
-        ring.pop();
         return;
     }
 
@@ -152,7 +158,17 @@ void Transceiver::on_hardware_tx_status(const uint8_t* mac_addr, bool success) {
 }
 
 void Transceiver::on_radio_send(CANId_t can_id, bool success) {
-    if (can_id == CONTROL_ID) return;
+    if (can_id == CONTROL_ID) {
+        auto it = _tx_rings.find(CONTROL_ID);
+        if (it != _tx_rings.end()) {
+            auto& ring = it->second;
+            if (!ring.is_empty()) {
+                ring.read_head().clear();
+                ring.pop();
+            }
+        }
+        return;
+    }
 
     auto it = _tx_rings.find(can_id);
     if (it == _tx_rings.end()) return;
@@ -166,6 +182,7 @@ void Transceiver::on_radio_send(CANId_t can_id, bool success) {
         }
     }
     if (!ring.is_empty()) {
+        ring.read_head().clear();
         ring.pop();
     }
 }
@@ -226,7 +243,6 @@ bool Transceiver::send_subscription(const uint8_t* unicast_mac) {
     }
 
     ring.push();
-    ring.write_head().clear();
 
     dispatch_batch(CONTROL_ID);
     return true;

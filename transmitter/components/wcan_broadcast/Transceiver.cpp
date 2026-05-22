@@ -10,8 +10,13 @@ namespace wcan {
 static const char* TAG = "WCAN_BCAST";
 
 Transceiver::~Transceiver() {
-    TransceiverBase::stop(100);
-    stop_retry_tasks(100);
+    stop(100);
+}
+
+void Transceiver::stop(uint32_t timeout_ms) {
+    _stopping = true;
+    stop_retry_tasks(timeout_ms);
+    TransceiverBase::stop(timeout_ms);
     delete_ack_queues();
 }
 
@@ -81,8 +86,9 @@ void Transceiver::dispatch_batch(CANId_t can_id) {
             if (data.size() >= 2) {
                 _deduplicator.forget(data[0], data[1]);
             }
+            ring.read_head().clear();
+            ring.pop();
         }
-        ring.pop();
         return;
     }
 
@@ -140,6 +146,7 @@ void Transceiver::retry_processing_task(CANId_t can_id) {
                     static_cast<unsigned long>(data.empty() ? 0 : data.back()),
                     (unsigned int)data.size());
             }
+            ring.read_head().clear();
             ring.pop();
         }
     }
@@ -166,9 +173,20 @@ void Transceiver::on_control_packet(const Packet& packet) {
 }
 
 void Transceiver::on_data_packet(const Packet& packet) {
+    if (is_stopping()) return;
+
     const auto& dest_mac = packet.get_source_mac_addr();
     if (!add_peer(dest_mac.data())) {
         ESP_LOGE(TAG, "Failed to add ACK peer");
+        return;
+    }
+
+    auto ring_it = _tx_rings.find(CONTROL_ID);
+    if (ring_it == _tx_rings.end()) return;
+    auto& ring = ring_it->second;
+
+    if (ring.is_full()) {
+        ESP_LOGE(TAG, "Failed to send ACK: CONTROL ring full");
         return;
     }
 
@@ -176,15 +194,30 @@ void Transceiver::on_data_packet(const Packet& packet) {
     std::memcpy(&mac_part1, dest_mac.data(), 4);
     std::memcpy(&mac_part2, dest_mac.data() + 4, 2);
 
-    send_data(CONTROL_ID, packet.get_can_id());
-    send_data(CONTROL_ID, packet.get_sequence_id());
-    send_data(CONTROL_ID, mac_part1);
-    send_data(CONTROL_ID, mac_part2);
+    auto& pkt = ring.write_head();
+    pkt.clear();
+    pkt.add_data_point(packet.get_can_id());
+    pkt.add_data_point(packet.get_sequence_id());
+    pkt.add_data_point(mac_part1);
+    pkt.add_data_point(mac_part2);
+
+    //ideally we would also use send_data(CONTROL_ID, ...) here, but that would start a linger timer which we don't want for ACKs
+
     finish_batch(CONTROL_ID);
 }
 
 void Transceiver::on_radio_send(CANId_t can_id, bool success) {
-    if (can_id == CONTROL_ID) return;
+    if (can_id == CONTROL_ID) {
+        auto it = _tx_rings.find(CONTROL_ID);
+        if (it != _tx_rings.end()) {
+            auto& ring = it->second;
+            if (!ring.is_empty()) {
+                ring.read_head().clear();
+                ring.pop();
+            }
+        }
+        return;
+    }
 
     if (!success) {
         auto it = _ack_result_queues.find(can_id);

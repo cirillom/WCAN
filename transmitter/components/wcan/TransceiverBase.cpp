@@ -111,10 +111,10 @@ void TransceiverBase::finish_batch(CANId_t can_id) {
     ring.write_head().assign_new_sequence_id();
 
     const int64_t ready_us = stats().now_us();
+    ring.write_head().set_ready_us(ready_us);
     stats().record_batch(ring.write_head(), ready_us);
 
     ring.push();
-    ring.write_head().clear();
     dispatch_batch(can_id);
 }
 

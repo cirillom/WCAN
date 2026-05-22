@@ -87,6 +87,9 @@ public:
         _can_id = can_id;
     }
 
+    void set_ready_us(int64_t ready_us) { _ready_us = ready_us; }
+    int64_t get_ready_us() const { return _ready_us; }
+
 private:
     std::array<uint8_t, ESP_NOW_ETH_ALEN> _source_mac_addr{};
     CANId_t _can_id = 0;
@@ -94,6 +97,7 @@ private:
     std::array<DataPoint_t, MAX_DATA_POINTS> _data{};
     DataCount_t _data_count = 0;
     bool _received_via_broadcast = false;
+    int64_t _ready_us = 0;
 
 public:
     class Deduplicator{

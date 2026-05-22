@@ -60,7 +60,7 @@ public:
                     bool filtering_enabled = false);
 
     bool init();
-    void stop(uint32_t timeout_ms);
+    virtual void stop(uint32_t timeout_ms);
 
     using RecvCallback = std::function<void(const Packet&)>;
     void set_recv_callback(RecvCallback callback) { _recv_callback = std::move(callback); }

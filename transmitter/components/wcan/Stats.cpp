@@ -65,12 +65,10 @@ private:
     };
 
     uint32_t elapsed_ms() const;
-    static uint64_t batch_key(CANId_t can_id, uint32_t sequence_id);
-
+ 
     std::unordered_map<CANId_t, std::vector<CounterRange>> _rx_ranges;
     std::unordered_map<CANId_t, BatchStats> _batch_stats;
     std::unordered_map<CANId_t, std::vector<CounterRange>> _sensor_send_failure_ranges;
-    std::unordered_map<uint64_t, int64_t> _batch_ready_us_by_key;
     uint32_t _heap_start_free = 0;
     uint32_t _heap_start_min_free = 0;
     uint32_t _heap_start_largest = 0;
@@ -87,7 +85,6 @@ private:
     std::vector<std::vector<CounterRange>> _rx_ranges_slots;
     std::vector<BatchStats> _batch_stats_slots;
     std::vector<std::vector<CounterRange>> _sensor_send_failure_ranges_slots;
-    std::vector<std::unordered_map<uint32_t, int64_t>> _batch_ready_by_slot;
     std::vector<SemaphoreHandle_t> _slot_mutexes;
 };
 
@@ -97,12 +94,10 @@ void MeasuredStats::reset() {
         for (auto &v : _rx_ranges_slots) v.clear();
         for (auto &s : _batch_stats_slots) s = BatchStats();
         for (auto &v : _sensor_send_failure_ranges_slots) v.clear();
-        for (auto &m : _batch_ready_by_slot) m.clear();
     } else {
         _rx_ranges.clear();
         _batch_stats.clear();
         _sensor_send_failure_ranges.clear();
-        _batch_ready_us_by_key.clear();
     }
     _heap_start_free = static_cast<uint32_t>(esp_get_free_heap_size());
     _heap_start_min_free = static_cast<uint32_t>(esp_get_minimum_free_heap_size());
@@ -122,7 +117,6 @@ void MeasuredStats::configure_tx_ids(const std::vector<CANId_t>& tx_ids) {
     _rx_ranges_slots.clear();
     _batch_stats_slots.clear();
     _sensor_send_failure_ranges_slots.clear();
-    _batch_ready_by_slot.clear();
     for (auto s : _slot_mutexes) { if (s) vSemaphoreDelete(s); }
     _slot_mutexes.clear();
 
@@ -137,7 +131,6 @@ void MeasuredStats::configure_tx_ids(const std::vector<CANId_t>& tx_ids) {
     _rx_ranges_slots.resize(n);
     _batch_stats_slots.resize(n);
     _sensor_send_failure_ranges_slots.resize(n);
-    _batch_ready_by_slot.resize(n);
     _slot_mutexes.resize(n);
 
     for (size_t i = 0; i < n; ++i) {
@@ -147,15 +140,10 @@ void MeasuredStats::configure_tx_ids(const std::vector<CANId_t>& tx_ids) {
         _rx_ranges_slots[i] = std::vector<CounterRange>();
         _batch_stats_slots[i] = BatchStats();
         _sensor_send_failure_ranges_slots[i] = std::vector<CounterRange>();
-        _batch_ready_by_slot[i] = std::unordered_map<uint32_t, int64_t>();
         _slot_mutexes[i] = xSemaphoreCreateMutex();
     }
     _slots_configured = true;
     if (_mutex) xSemaphoreGive(_mutex);
-}
-
-uint64_t MeasuredStats::batch_key(CANId_t can_id, uint32_t sequence_id) {
-    return (static_cast<uint64_t>(can_id) << 32) | static_cast<uint64_t>(sequence_id);
 }
 
 uint32_t MeasuredStats::elapsed_ms() const {
@@ -245,7 +233,6 @@ void MeasuredStats::record_sensor_send_failure(CANId_t can_id, uint32_t counter)
 void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
     const CANId_t can_id = packet.get_can_id();
     const uint32_t points = static_cast<uint32_t>(packet.get_data().size());
-    const uint32_t seq = packet.get_sequence_id();
 
     if (_slots_configured) {
         auto it = _slot_index.find(can_id);
@@ -257,7 +244,6 @@ void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
             stats.points_total += points;
             stats.min_points = std::min(stats.min_points, points);
             stats.max_points = std::max(stats.max_points, points);
-            _batch_ready_by_slot[idx][seq] = ready_us;
 
             if (stats.last_ready_us > 0 && ready_us > stats.last_ready_us) {
                 const uint32_t interval_us = static_cast<uint32_t>(ready_us - stats.last_ready_us);
@@ -278,7 +264,6 @@ void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
     stats.points_total += points;
     stats.min_points = std::min(stats.min_points, points);
     stats.max_points = std::max(stats.max_points, points);
-    _batch_ready_us_by_key[batch_key(can_id, seq)] = ready_us;
 
     if (stats.last_ready_us > 0 && ready_us > stats.last_ready_us) {
         const uint32_t interval_us = static_cast<uint32_t>(ready_us - stats.last_ready_us);
@@ -294,18 +279,16 @@ void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
 void MeasuredStats::record_batch_dispatch(const Packet& packet, int64_t dispatch_start_us, uint32_t dispatch_us) {
     const CANId_t can_id = packet.get_can_id();
     uint32_t queue_wait_us = 0;
-    const uint32_t seq = packet.get_sequence_id();
+    const int64_t ready_us = packet.get_ready_us();
+    if (ready_us > 0) {
+        queue_wait_us = static_cast<uint32_t>(std::max<int64_t>(0, dispatch_start_us - ready_us));
+    }
 
     if (_slots_configured) {
         auto it = _slot_index.find(can_id);
         if (it != _slot_index.end()) {
             const size_t idx = it->second;
             if (_slot_mutexes[idx]) xSemaphoreTake(_slot_mutexes[idx], portMAX_DELAY);
-            auto ready_it = _batch_ready_by_slot[idx].find(seq);
-            if (ready_it != _batch_ready_by_slot[idx].end()) {
-                queue_wait_us = static_cast<uint32_t>(std::max<int64_t>(0, dispatch_start_us - ready_it->second));
-                _batch_ready_by_slot[idx].erase(ready_it);
-            }
             auto& stats = _batch_stats_slots[idx];
             stats.dispatched_count++;
             stats.queue_wait_total_us += queue_wait_us;
@@ -318,13 +301,6 @@ void MeasuredStats::record_batch_dispatch(const Packet& packet, int64_t dispatch
     }
 
     if (_mutex) xSemaphoreTake(_mutex, portMAX_DELAY);
-    const uint64_t key = batch_key(can_id, seq);
-    auto ready_it = _batch_ready_us_by_key.find(key);
-    if (ready_it != _batch_ready_us_by_key.end()) {
-        queue_wait_us = static_cast<uint32_t>(std::max<int64_t>(0, dispatch_start_us - ready_it->second));
-        _batch_ready_us_by_key.erase(ready_it);
-    }
-
     auto& stats = _batch_stats[can_id];
     stats.dispatched_count++;
     stats.queue_wait_total_us += queue_wait_us;

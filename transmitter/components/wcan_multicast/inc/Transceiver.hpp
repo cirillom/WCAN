@@ -17,6 +17,7 @@ public:
     ~Transceiver() override;
 
     bool init();
+    void stop(uint32_t timeout_ms) override;
 
 protected:
     const uint8_t* prepare_send_mac(const Packet& packet) override;
