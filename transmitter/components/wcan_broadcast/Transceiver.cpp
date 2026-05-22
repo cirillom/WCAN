@@ -2,10 +2,58 @@
 
 #include <cstring>
 #include <algorithm>
+#include <cstdio>
+#include <new>
 
 namespace wcan {
 
 static const char* TAG = "WCAN_BCAST";
+
+Transceiver::~Transceiver() {
+    TransceiverBase::stop(100);
+    stop_retry_tasks(100);
+    delete_ack_queues();
+}
+
+bool Transceiver::init() {
+    if (!TransceiverBase::init()) return false;
+
+    // Create CONTROL_ID ring for ACK packets
+    auto& ctrl_ring = _tx_rings[CONTROL_ID];
+    for (auto& slot : ctrl_ring.data) {
+        slot.init_for_ring(_mac_addr, CONTROL_ID);
+        slot.clear();
+    }
+
+    for (CANId_t can_id : _tx_can_ids) {
+        _ack_result_queues[can_id] = xQueueCreate(ACK_RESULT_QUEUE_SIZE, sizeof(bool));
+        if (!_ack_result_queues[can_id]) {
+            ESP_LOGE(TAG, "Failed to create ACK result queue for CAN ID 0x%lx", static_cast<unsigned long>(can_id));
+            return false;
+        }
+
+        _pending_ack_seq_ids[can_id] = std::make_shared<std::atomic<uint32_t>>(NO_PENDING_ACK_SEQUENCE_ID);
+        _retry_task_done[can_id] = false;
+
+        auto* ctx = new (std::nothrow) std::pair<Transceiver*, CANId_t>(this, can_id);
+        if (ctx == nullptr) {
+            ESP_LOGE(TAG, "Failed to allocate retry task context for CAN ID 0x%lx", static_cast<unsigned long>(can_id));
+            _retry_task_done[can_id] = true;
+            return false;
+        }
+
+        char name[32];
+        std::snprintf(name, sizeof(name), "wcan_retry_%lu", static_cast<unsigned long>(can_id));
+        if (xTaskCreate(retry_task_wrapper, name, RETRY_PROCESSING_TASK_STACK_SIZE, ctx, RETRY_PROCESSING_TASK_PRIORITY, &(_retry_task_handles[can_id])) != pdPASS) {
+            ESP_LOGE(TAG, "Failed to create retry task for CAN ID 0x%lx", static_cast<unsigned long>(can_id));
+            delete ctx;
+            _retry_task_done[can_id] = true;
+            return false;
+        }
+    }
+
+    return true;
+}
 
 const uint8_t* Transceiver::prepare_send_mac(const Packet& packet) {
     if (packet.get_can_id() == CONTROL_ID) {
@@ -21,61 +69,83 @@ const uint8_t* Transceiver::prepare_send_mac(const Packet& packet) {
     return Packet::BROADCAST_MAC.data();
 }
 
-void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
-    _pending_ack_seq_ids[can_id]->store(pkt.get_sequence_id());
-    (void)ulTaskNotifyTake(pdTRUE, 0);
-
-    for (int i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
-        const TickType_t send_wait = is_stopping() ? 0 : portMAX_DELAY;
-        Packet* to_send = acquire_packet(send_wait);
-        if (to_send == nullptr) {
-            _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
-            ESP_LOGE(TAG, "Send packet pool exhausted");
-            const auto data = pkt.get_data();
-            std::printf("P(FULL):%lu:%lx:%lu:%lu:%lu:%u\n",
-                (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-                static_cast<unsigned long>(pkt.get_can_id()),
-                static_cast<unsigned long>(pkt.get_sequence_id()),
-                static_cast<unsigned long>(data.empty() ? 0 : data.front()),
-                static_cast<unsigned long>(data.empty() ? 0 : data.back()),
-                (unsigned int)data.size());
-            return;
+void Transceiver::dispatch_batch(CANId_t can_id) {
+    if (can_id == CONTROL_ID) {
+        auto it = _tx_rings.find(CONTROL_ID);
+        if (it == _tx_rings.end()) return;
+        auto& ring = it->second;
+        Packet* pkt_ptr = &ring.read_head();
+        if (xQueueSend(_radio_transmit_queue, &pkt_ptr, 0) != pdTRUE) {
+            ESP_LOGE(TAG, "Failed to send ACK");
+            const auto data = pkt_ptr->get_data();
+            if (data.size() >= 2) {
+                _deduplicator.forget(data[0], data[1]);
+            }
         }
+        ring.pop();
+        return;
+    }
 
-        *to_send = pkt;
-        if (!enqueue_radio_transmit_packet(to_send, send_wait)) {
-            _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
-            ESP_LOGE(TAG, "Failed to push packet to radio transmit queue");
-            const auto data = pkt.get_data();
-            std::printf("P(FULL):%lu:%lx:%lu:%lu:%lu:%u\n",
-                (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-                static_cast<unsigned long>(pkt.get_can_id()),
-                static_cast<unsigned long>(pkt.get_sequence_id()),
-                static_cast<unsigned long>(data.empty() ? 0 : data.front()),
-                static_cast<unsigned long>(data.empty() ? 0 : data.back()),
-                (unsigned int)data.size());
-            return;
-        }
+    auto it = _retry_task_handles.find(can_id);
+    if (it != _retry_task_handles.end() && it->second != nullptr) {
+        xTaskNotify(it->second, NOTIFY_BIT_NEW_DATA, eSetBits);
+    }
+}
 
-        // Wait for ACK semaphore
-        uint32_t timeout_ms = PACKET_DELIVERY_TIMEOUT_MIN_MS + (rand() % (PACKET_DELIVERY_TIMEOUT_MAX_MS - PACKET_DELIVERY_TIMEOUT_MIN_MS));
-        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(timeout_ms)) > 0) {
+void Transceiver::retry_processing_task(CANId_t can_id) {
+    auto ring_it = _tx_rings.find(can_id);
+    if (ring_it == _tx_rings.end()) {
+        _retry_task_done[can_id] = true;
+        vTaskDelete(nullptr);
+        return;
+    }
+    auto& ring = ring_it->second;
+
+    while (true) {
+        if (is_stopping() && ring.is_empty()) break;
+
+        uint32_t notified = 0;
+        xTaskNotifyWait(0x00, NOTIFY_BIT_NEW_DATA, &notified, pdMS_TO_TICKS(10));
+        if ((notified & NOTIFY_BIT_NEW_DATA) == 0 && ring.is_empty()) continue;
+
+        while (!ring.is_empty()) {
+            Packet& pkt = ring.read_head();
+            _pending_ack_seq_ids[can_id]->store(pkt.get_sequence_id());
+            bool delivered = false;
+
+            for (size_t i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
+                Packet* pkt_ptr = &pkt;
+                if (xQueueSend(_radio_transmit_queue, &pkt_ptr, is_stopping() ? 0 : portMAX_DELAY) != pdTRUE) {
+                    break;
+                }
+
+                bool success = false;
+                uint32_t timeout_ms = PACKET_DELIVERY_TIMEOUT_MIN_MS +
+                    (rand() % (PACKET_DELIVERY_TIMEOUT_MAX_MS - PACKET_DELIVERY_TIMEOUT_MIN_MS));
+                if (xQueueReceive(_ack_result_queues[can_id], &success,
+                                  pdMS_TO_TICKS(timeout_ms)) == pdTRUE && success) {
+                    delivered = true;
+                    break;
+                }
+            }
+
             _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
-            // ACK received!
-            return;
+            if (!delivered) {
+                const auto data = pkt.get_data();
+                std::printf("P(FAIL):%lu:%lx:%lu:%lu:%lu:%u\n",
+                    (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
+                    static_cast<unsigned long>(pkt.get_can_id()),
+                    static_cast<unsigned long>(pkt.get_sequence_id()),
+                    static_cast<unsigned long>(data.empty() ? 0 : data.front()),
+                    static_cast<unsigned long>(data.empty() ? 0 : data.back()),
+                    (unsigned int)data.size());
+            }
+            ring.pop();
         }
     }
 
-    _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
-
-    const auto data = pkt.get_data();
-    std::printf("P(FAIL):%lu:%lx:%lu:%lu:%lu:%u\n",
-                (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-                static_cast<unsigned long>(pkt.get_can_id()),
-                static_cast<unsigned long>(pkt.get_sequence_id()),
-                static_cast<unsigned long>(data.empty() ? 0 : data.front()),
-                static_cast<unsigned long>(data.empty() ? 0 : data.back()),
-                (unsigned int)data.size());
+    _retry_task_done[can_id] = true;
+    vTaskDelete(nullptr);
 }
 
 void Transceiver::on_control_packet(const Packet& packet) {
@@ -83,21 +153,19 @@ void Transceiver::on_control_packet(const Packet& packet) {
     if (data.size() < 2) return;
 
     uint32_t target_can_id = data[0];
-    uint32_t target_seq_id = data[1]; // We could use this for stricter matching if needed
+    uint32_t target_seq_id = data[1];
 
-    auto it = _retry_task_handles.find(target_can_id);
-    if (it != _retry_task_handles.end() && it->second != nullptr &&
-        _pending_ack_seq_ids[target_can_id]->load() == target_seq_id) {
-        xTaskNotifyGive(it->second);
+    auto it = _pending_ack_seq_ids.find(target_can_id);
+    if (it != _pending_ack_seq_ids.end() && it->second->load() == target_seq_id) {
+        bool success = true;
+        auto q_it = _ack_result_queues.find(target_can_id);
+        if (q_it != _ack_result_queues.end()) {
+            xQueueSend(q_it->second, &success, 0);
+        }
     }
 }
 
 void Transceiver::on_data_packet(const Packet& packet) {
-    // Send ACK back to sender
-    Packet ack_pkt(_mac_addr, CONTROL_ID);
-    ack_pkt.add_data_point(packet.get_can_id());
-    ack_pkt.add_data_point(packet.get_sequence_id());
-
     const auto& dest_mac = packet.get_source_mac_addr();
     if (!add_peer(dest_mac.data())) {
         ESP_LOGE(TAG, "Failed to add ACK peer");
@@ -107,37 +175,67 @@ void Transceiver::on_data_packet(const Packet& packet) {
     uint32_t mac_part1, mac_part2;
     std::memcpy(&mac_part1, dest_mac.data(), 4);
     std::memcpy(&mac_part2, dest_mac.data() + 4, 2);
-    ack_pkt.add_data_point(mac_part1);
-    ack_pkt.add_data_point(mac_part2);
 
-    Packet* to_send = acquire_packet(0);
-    if (to_send == nullptr) {
-        ESP_LOGE(TAG, "Failed to send ACK: send packet pool exhausted");
-        return;
-    }
+    send_data(CONTROL_ID, packet.get_can_id());
+    send_data(CONTROL_ID, packet.get_sequence_id());
+    send_data(CONTROL_ID, mac_part1);
+    send_data(CONTROL_ID, mac_part2);
+    finish_batch(CONTROL_ID);
+}
 
-    *to_send = ack_pkt;
-    if (!enqueue_radio_transmit_packet(to_send, 0)) {
-        ESP_LOGE(TAG, "Failed to send ACK");
-        _deduplicator.forget(packet.get_can_id(), packet.get_sequence_id());
+void Transceiver::on_radio_send(CANId_t can_id, bool success) {
+    if (can_id == CONTROL_ID) return;
+
+    if (!success) {
+        auto it = _ack_result_queues.find(can_id);
+        if (it != _ack_result_queues.end()) {
+            bool result = false;
+            xQueueSend(it->second, &result, 0);
+        }
     }
 }
 
+void Transceiver::stop_retry_tasks(uint32_t timeout_ms) {
+    const TickType_t start = xTaskGetTickCount();
+    const TickType_t timeout_ticks = pdMS_TO_TICKS(timeout_ms);
 
-void Transceiver::on_radio_send_failure(const Packet& packet, const uint8_t* dest_mac) {
-    (void)dest_mac;
-    if (packet.get_can_id() != CONTROL_ID) return;
+    bool all_done = false;
+    while (!all_done) {
+        all_done = true;
+        for (const auto& entry : _retry_task_done) {
+            if (!entry.second) {
+                all_done = false;
+                break;
+            }
+        }
+        if (all_done) break;
+        if (timeout_ms == 0 || static_cast<int32_t>(xTaskGetTickCount() - start) >= static_cast<int32_t>(timeout_ticks)) {
+            break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
 
-    const auto data = packet.get_data();
-    if (data.size() < 2) return;
+    for (auto& entry : _retry_task_handles) {
+        if (!_retry_task_done[entry.first] && entry.second) {
+            vTaskDelete(entry.second);
+            _retry_task_done[entry.first] = true;
+        }
+    }
+}
 
-    _deduplicator.forget(data[0], data[1]);
+void Transceiver::delete_ack_queues() {
+    for (auto& entry : _ack_result_queues) {
+        if (entry.second) {
+            vQueueDelete(entry.second);
+            entry.second = nullptr;
+        }
+    }
 }
 
 bool Transceiver::add_peer(const uint8_t* mac_addr) {
     esp_now_peer_info_t peer = {};
     std::memcpy(peer.peer_addr, mac_addr, ESP_NOW_ETH_ALEN);
-    peer.channel = 0; // Use current channel
+    peer.channel = 0;
     peer.encrypt = false;
 
     if (esp_now_is_peer_exist(peer.peer_addr)) return true;

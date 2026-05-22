@@ -20,11 +20,11 @@ public:
 
 protected:
     const uint8_t* prepare_send_mac(const Packet& packet) override;
-    void dispatch_packet(const Packet& pkt, CANId_t can_id) override;
+    void dispatch_batch(CANId_t can_id) override;
     void on_control_packet(const Packet& packet) override;
     void on_data_packet(const Packet& packet) override;
     void on_hardware_tx_status(const uint8_t* mac_addr, bool success) override;
-    void on_radio_send_failure(const Packet& packet, const uint8_t* dest_mac) override;
+    void on_radio_send(CANId_t can_id, bool success) override;
     bool add_peer(const uint8_t* mac_addr) override;
 
 private:

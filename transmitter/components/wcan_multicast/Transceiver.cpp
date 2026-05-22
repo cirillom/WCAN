@@ -37,6 +37,13 @@ bool Transceiver::init() {
         return false;
     }
 
+    // Create CONTROL_ID ring for subscriptions/control packets
+    auto& ctrl_ring = _tx_rings[CONTROL_ID];
+    for (auto& slot : ctrl_ring.data) {
+        slot.init_for_ring(_mac_addr, CONTROL_ID);
+        slot.clear();
+    }
+
     _management_task_done = false;
     if (xTaskCreate(management_task_wrapper,
                     "wcan_mcast",
@@ -82,35 +89,27 @@ const uint8_t* Transceiver::prepare_send_mac(const Packet& packet) {
     return broadcast_ready ? Packet::BROADCAST_MAC.data() : nullptr;
 }
 
-void Transceiver::dispatch_packet(const Packet& pkt, CANId_t can_id) {
-    (void)can_id;
-    const TickType_t send_wait = is_stopping() ? 0 : portMAX_DELAY;
-    Packet* to_send = acquire_packet(send_wait);
-    if (to_send == nullptr) {
-        ESP_LOGE(TAG, "Send packet pool exhausted");
-        const auto data = pkt.get_data();
-        std::printf("P(FULL):%lu:%lx:%lu:%lu:%lu:%u\n",
-            (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-            static_cast<unsigned long>(pkt.get_can_id()),
-            static_cast<unsigned long>(pkt.get_sequence_id()),
-            static_cast<unsigned long>(data.empty() ? 0 : data.front()),
-            static_cast<unsigned long>(data.empty() ? 0 : data.back()),
-            (unsigned int)data.size());
+void Transceiver::dispatch_batch(CANId_t can_id) {
+    if (can_id == CONTROL_ID) {
+        auto it = _tx_rings.find(CONTROL_ID);
+        if (it == _tx_rings.end()) return;
+        auto& ring = it->second;
+        Packet* pkt_ptr = &ring.read_head();
+        if (xQueueSend(_radio_transmit_queue, &pkt_ptr, 0) != pdTRUE) {
+            ESP_LOGE(TAG, "Failed to send subscription control packet");
+            forget_pending_control_destination(pkt_ptr->get_sequence_id());
+        }
+        ring.pop();
         return;
     }
 
-    *to_send = pkt;
-    if (!enqueue_radio_transmit_packet(to_send, send_wait)) {
-        release_packet(to_send);
-        ESP_LOGE(TAG, "Failed to push packet to radio transmit queue");
-        const auto data = pkt.get_data();
-        std::printf("P(FULL):%lu:%lx:%lu:%lu:%lu:%u\n",
-            (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-            static_cast<unsigned long>(pkt.get_can_id()),
-            static_cast<unsigned long>(pkt.get_sequence_id()),
-            static_cast<unsigned long>(data.empty() ? 0 : data.front()),
-            static_cast<unsigned long>(data.empty() ? 0 : data.back()),
-            (unsigned int)data.size());
+    auto it = _tx_rings.find(can_id);
+    if (it == _tx_rings.end()) return;
+    auto& ring = it->second;
+
+    Packet* pkt_ptr = &ring.read_head();
+    if (xQueueSend(_radio_transmit_queue, &pkt_ptr, is_stopping() ? 0 : portMAX_DELAY) != pdTRUE) {
+        on_radio_send(can_id, false);
     }
 }
 
@@ -152,18 +151,23 @@ void Transceiver::on_hardware_tx_status(const uint8_t* mac_addr, bool success) {
     portYIELD_FROM_ISR(higher_priority_task_woken);
 }
 
-void Transceiver::on_radio_send_failure(const Packet& packet, const uint8_t* dest_mac) {
-    if (packet.get_can_id() == CONTROL_ID) return;
+void Transceiver::on_radio_send(CANId_t can_id, bool success) {
+    if (can_id == CONTROL_ID) return;
 
-    if (dest_mac == nullptr) {
-        ESP_LOGW(TAG, "Multicast radio send reported failure for CAN ID 0x%08lx",
-                 static_cast<unsigned long>(packet.get_can_id()));
-        return;
+    auto it = _tx_rings.find(can_id);
+    if (it == _tx_rings.end()) return;
+    auto& ring = it->second;
+
+    if (!success) {
+        if (!ring.is_empty()) {
+            stats().record_sensor_send_failure(can_id, ring.read_head().get_sequence_id());
+            ESP_LOGW(TAG, "Multicast radio send reported failure for CAN ID 0x%08lx",
+                     static_cast<unsigned long>(can_id));
+        }
     }
-
-    ESP_LOGW(TAG, "Radio send failed for CAN ID 0x%08lx to %02x:%02x:%02x:%02x:%02x:%02x",
-             static_cast<unsigned long>(packet.get_can_id()),
-             dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5]);
+    if (!ring.is_empty()) {
+        ring.pop();
+    }
 }
 
 bool Transceiver::add_peer(const uint8_t* mac_addr) {
@@ -198,28 +202,33 @@ bool Transceiver::fill_subscription_packet(Packet& packet) const {
 bool Transceiver::send_subscription(const uint8_t* unicast_mac) {
     if (is_stopping()) return false;
 
-    Packet subscription(_mac_addr, CONTROL_ID);
-    if (!fill_subscription_packet(subscription)) return true;
+    auto it = _tx_rings.find(CONTROL_ID);
+    if (it == _tx_rings.end()) return false;
+    auto& ring = it->second;
+
+    if (ring.is_full()) {
+        ESP_LOGW(TAG, "Failed to queue subscription: CONTROL ring full");
+        return false;
+    }
+
+    auto& pkt = ring.write_head();
+    pkt.clear();
+
+    if (!fill_subscription_packet(pkt)) {
+        return true;
+    }
+
+    pkt.assign_new_sequence_id();
+    const uint32_t seq_id = pkt.get_sequence_id();
 
     if (unicast_mac != nullptr) {
-        remember_pending_control_destination(subscription.get_sequence_id(), unicast_mac);
+        remember_pending_control_destination(seq_id, unicast_mac);
     }
 
-    Packet* to_send = acquire_packet(0);
-    if (to_send == nullptr) {
-        if (unicast_mac != nullptr) forget_pending_control_destination(subscription.get_sequence_id());
-        ESP_LOGW(TAG, "Failed to queue subscription: packet pool exhausted");
-        return false;
-    }
+    ring.push();
+    ring.write_head().clear();
 
-    *to_send = subscription;
-    if (!enqueue_radio_transmit_packet(to_send, 0)) {
-        release_packet(to_send);
-        if (unicast_mac != nullptr) forget_pending_control_destination(subscription.get_sequence_id());
-        ESP_LOGW(TAG, "Failed to queue subscription: radio queue full");
-        return false;
-    }
-
+    dispatch_batch(CONTROL_ID);
     return true;
 }
 

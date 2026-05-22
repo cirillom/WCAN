@@ -5,15 +5,16 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <memory>
 #include <optional>
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_now.h"
+#include "esp_timer.h"
 #include "sdkconfig.h"
 
 #ifndef CONFIG_ESPNOW_WIFI_MODE_STATION
@@ -25,12 +26,32 @@
 #include "freertos/task.h"
 
 #include "Packet.hpp"
+#include "RingBuffer.hpp"
 #include "Stats.hpp"
 
 namespace wcan {
 
 class TransceiverBase {
 public:
+    static constexpr size_t TX_RING_SIZE = 10;
+    static constexpr size_t RX_RING_SIZE = 20;
+    static constexpr uint32_t NOTIFY_BIT_NEW_DATA = (1 << 0);
+    static constexpr uint32_t SEND_PROCESSING_TASK_PRIORITY = 6;
+    static constexpr uint32_t RECV_PROCESSING_TASK_PRIORITY = 6;
+    static constexpr uint32_t SEND_PROCESSING_TASK_STACK_SIZE = 4096;
+    static constexpr uint32_t RECV_PROCESSING_TASK_STACK_SIZE = 6148;
+    static constexpr size_t RADIO_TRANSMIT_QUEUE_SIZE = 20;
+    static constexpr size_t TX_RESULT_QUEUE_SIZE = 16;
+    static constexpr size_t RADIO_MAX_RETRIES = 3;
+    static constexpr uint32_t RADIO_TIMEOUT_MS = 150;
+    static constexpr uint32_t CONTROL_ID = 0xE0000000;
+
+#if CONFIG_ESPNOW_WIFI_MODE_STATION
+    static constexpr esp_mac_type_t MAC_TYPE = ESP_MAC_WIFI_STA;
+#else
+    static constexpr esp_mac_type_t MAC_TYPE = ESP_MAC_WIFI_SOFTAP;
+#endif
+
     virtual ~TransceiverBase();
 
     TransceiverBase(std::vector<CANId_t> rx_can_ids,
@@ -47,6 +68,9 @@ public:
     /** @brief Enqueues a data point for a specific CAN ID. Thread-safe. */
     bool send_data(CANId_t can_id, DataPoint_t data);
 
+    /** @brief Seals the current write-head batch and dispatches it. */
+    void finish_batch(CANId_t can_id);
+
     /** @brief Returns the configured TX CAN IDs. */
     const std::vector<CANId_t>& get_tx_can_ids() const { return _tx_can_ids; }
 
@@ -57,28 +81,19 @@ protected:
     bool is_stopping() const { return _stopping; }
 
     // --- Shared RTOS Resources ---
-    // Pool ownership is intentionally simple:
-    // free_* queues own unused slots, work queues own in-flight slots, and
-    // processing tasks return slots to free_* when done. No packet owns heap data.
     QueueHandle_t _radio_transmit_queue = nullptr;
-    QueueHandle_t _recv_queue = nullptr;
     QueueHandle_t _tx_result_queue = nullptr;
-    QueueHandle_t _free_packets = nullptr;
-    QueueHandle_t _free_rx_packets = nullptr;
     TaskHandle_t _send_task_handle = nullptr;
     TaskHandle_t _recv_task_handle = nullptr;
-    std::unordered_map<CANId_t, QueueHandle_t> _can_data_queues;
-    std::unordered_map<CANId_t, QueueHandle_t> _batch_queues;
-    std::unordered_map<CANId_t, TaskHandle_t> _batch_task_handles;
-    std::unordered_map<CANId_t, bool> _batch_task_done;
-    std::unordered_map<CANId_t, TaskHandle_t> _retry_task_handles;
-    std::unordered_map<CANId_t, bool> _retry_task_done;
-    std::unordered_map<CANId_t, std::shared_ptr<std::atomic<uint32_t>>> _pending_ack_seq_ids;
 
-    // --- Packet Pools ---
-    Packet* _packet_pool = nullptr;
-    size_t _packet_pool_size = 0;
-    EspNowPacket* _rx_packet_pool = nullptr;
+    // --- Ring Buffers ---
+    std::unordered_map<CANId_t, RingBuffer<Packet, TX_RING_SIZE>> _tx_rings;
+    RingBuffer<EspNowPacket, RX_RING_SIZE> _rx_packets;
+
+    // --- Linger Timers (one-shot, per CAN ID) ---
+    std::unordered_map<CANId_t, esp_timer_handle_t> _linger_timers;
+    // Context structs kept alive for timer callbacks
+    std::vector<std::pair<TransceiverBase*, CANId_t>> _linger_timer_contexts;
 
     // --- Components ---
     std::unique_ptr<Stats> _stats;
@@ -94,10 +109,6 @@ protected:
     volatile bool _send_task_done = false;
     volatile bool _recv_task_done = false;
 
-    Packet* acquire_packet(TickType_t wait_ticks);
-    bool enqueue_radio_transmit_packet(Packet* packet, TickType_t wait_ticks);
-    void release_packet(Packet* packet);
-
     // --- The Strategy Contract ---
     /**
      * @brief Called by the send task to determine the destination MAC just before calling esp_now_send.
@@ -106,10 +117,10 @@ protected:
     virtual const uint8_t* prepare_send_mac(const Packet& packet) = 0;
 
     /**
-     * @brief High-level batch dispatch logic (e.g. Broadcast retries).
-     * Subclass should push to _radio_transmit_queue and block if necessary.
+     * @brief High-level batch dispatch logic.
+     * Broadcast: notifies retry task. Multicast: enqueues to radio_transmit_queue.
      */
-    virtual void dispatch_packet(const Packet& pkt, CANId_t can_id) = 0;
+    virtual void dispatch_batch(CANId_t can_id) = 0;
 
     /** @brief Called when a CONTROL_ID packet arrives. */
     virtual void on_control_packet(const Packet& packet) = 0;
@@ -120,8 +131,8 @@ protected:
     /** @brief Hook for tracking hardware TX results (Overridden by Multicast). */
     virtual void on_hardware_tx_status(const uint8_t* mac_addr, bool success) {}
 
-    /** @brief Called after a radio send reports failure. */
-    virtual void on_radio_send_failure(const Packet& packet, const uint8_t* dest_mac) {}
+    /** @brief Called after a radio send completes (success or failure). */
+    virtual void on_radio_send(CANId_t can_id, bool success) = 0;
 
     /** @brief Variant-specific peer setup. */
     virtual bool add_peer(const uint8_t* mac_addr) = 0;
@@ -131,63 +142,22 @@ protected:
     bool setup_esp_now();
 
 private:
-    bool init_pools();
-    EspNowPacket* acquire_rx_packet();
-    void release_rx_packet(EspNowPacket* packet);
-    
     bool should_accept(CANId_t can_id) const;
-    bool queues_drained() const;
-    void delete_queues();
 
     // Task Wrappers
     static void send_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->send_processing_task(); }
     static void recv_task_wrapper(void* param) { static_cast<TransceiverBase*>(param)->recv_processing_task(); }
-    static void batch_task_wrapper(void* param) {
-        auto* ctx = static_cast<std::pair<TransceiverBase*, CANId_t>*>(param);
-        ctx->first->batch_processing_task(ctx->second);
-        delete ctx;
-    }
-    static void retry_task_wrapper(void* param) {
-        auto* ctx = static_cast<std::pair<TransceiverBase*, CANId_t>*>(param);
-        ctx->first->retry_processing_task(ctx->second);
-        delete ctx;
-    }
 
     void send_processing_task();
     void recv_processing_task();
-    void batch_processing_task(CANId_t can_id);
-    void retry_processing_task(CANId_t can_id);
+
+    static void linger_timer_callback(void* arg);
 
     static TransceiverBase* s_instance;
     static void esp_now_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);
     static void esp_now_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len);
 
     RecvCallback _recv_callback = nullptr;
-
-public:
-    static constexpr uint32_t SEND_PROCESSING_TASK_PRIORITY = 6;
-    static constexpr uint32_t RECV_PROCESSING_TASK_PRIORITY = 6;
-    static constexpr uint32_t BATCH_PROCESSING_TASK_PRIORITY = 5;
-    static constexpr uint32_t SEND_PROCESSING_TASK_STACK_SIZE = 4096;
-    static constexpr uint32_t RECV_PROCESSING_TASK_STACK_SIZE = 6148;
-    static constexpr uint32_t BATCH_PROCESSING_TASK_STACK_SIZE = 3072;
-    static constexpr uint32_t RETRY_PROCESSING_TASK_STACK_SIZE = 3072;
-    static constexpr size_t RADIO_TRANSMIT_QUEUE_SIZE = 20;
-    static constexpr size_t BATCH_QUEUE_SIZE = 10;
-    static constexpr size_t RX_PACKET_POOL_SIZE = 20;
-    static constexpr size_t RECV_QUEUE_SIZE = RX_PACKET_POOL_SIZE;
-    static constexpr size_t CAN_DATA_QUEUE_SIZE = 768;
-    static constexpr size_t TX_RESULT_QUEUE_SIZE = 16;
-    static constexpr size_t RADIO_MAX_RETRIES = 3;
-    static constexpr uint32_t RADIO_TIMEOUT_MS = 150;
-    static constexpr uint32_t CONTROL_ID = 0xE0000000;
-    static constexpr uint32_t NO_PENDING_ACK_SEQUENCE_ID = UINT32_MAX;
-
-#if CONFIG_ESPNOW_WIFI_MODE_STATION
-    static constexpr esp_mac_type_t MAC_TYPE = ESP_MAC_WIFI_STA;
-#else
-    static constexpr esp_mac_type_t MAC_TYPE = ESP_MAC_WIFI_SOFTAP;
-#endif
 };
 
 } // namespace wcan
