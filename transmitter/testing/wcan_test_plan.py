@@ -288,21 +288,21 @@ def build_run_plan(
     runs: list[RunSpec] = []
     run_index = 0
 
-    for suite in suites:
-        suite_cfg = tests_cfg["suites"][suite]
-        suite_config = merged_suite_config(defaults, suite_cfg, profile_cfg)
-        topologies = resolve_topologies(suite_config.get("topologies"), len(boards))
-        if test_filter is not None:
-            topologies = [topology for topology in topologies if topology in test_filter]
-        topologies = filter_receiver_capable_topologies(topologies, boards)
+    for transport in transports:
+        for suite in suites:
+            suite_cfg = tests_cfg["suites"][suite]
+            suite_config = merged_suite_config(defaults, suite_cfg, profile_cfg)
+            topologies = resolve_topologies(suite_config.get("topologies"), len(boards))
+            if test_filter is not None:
+                topologies = [topology for topology in topologies if topology in test_filter]
+            topologies = filter_receiver_capable_topologies(topologies, boards)
 
-        min_sensors = int(suite_config.get("requires_min_sensors", 1))
-        topologies = [topology for topology in topologies if topology[0] >= min_sensors]
-        if not topologies:
-            print(f"[WARNING] No valid topologies for suite={suite} profile={profile_name}.")
-            continue
+            min_sensors = int(suite_config.get("requires_min_sensors", 1))
+            topologies = [topology for topology in topologies if topology[0] >= min_sensors]
+            if not topologies:
+                print(f"[WARNING] No valid topologies for suite={suite} profile={profile_name}.")
+                continue
 
-        for transport in transports:
             for frequency in frequency_runs(suite, suite_config):
                 for sensors, receivers in topologies:
                     for repeat in range(settings.repeats):

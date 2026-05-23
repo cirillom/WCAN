@@ -106,7 +106,7 @@ def _format_filter(ids) -> str:
 
 
 def _run_dir(root: Path, run) -> Path:
-    return root / run.suite / run.transport.lower() / run.frequency_label / run.test_folder_name
+    return root / run.transport.lower() / run.suite / run.frequency_label / run.test_folder_name
 
 
 def _print_plan(plan, root: Path, dry_run: bool):
