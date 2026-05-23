@@ -67,6 +67,8 @@ private:
     static constexpr uint32_t RETRY_PROCESSING_TASK_PRIORITY = 5;
     static constexpr uint32_t NO_PENDING_ACK_SEQUENCE_ID = UINT32_MAX;
     static constexpr size_t ACK_RESULT_QUEUE_SIZE = 1;
+    static constexpr uint32_t NOTIFY_BIT_TX_DONE = (1 << 1);
+    static constexpr uint32_t NOTIFY_BIT_TX_SUCCESS = (1 << 2);
 };
 
 } // namespace wcan

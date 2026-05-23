@@ -110,45 +110,72 @@ void Transceiver::retry_processing_task(CANId_t can_id) {
     while (true) {
         if (is_stopping() && ring.is_empty()) break;
 
-        uint32_t notified = 0;
-        xTaskNotifyWait(0x00, NOTIFY_BIT_NEW_DATA, &notified, pdMS_TO_TICKS(10));
-        if ((notified & NOTIFY_BIT_NEW_DATA) == 0 && ring.is_empty()) continue;
-
-        while (!ring.is_empty()) {
-            Packet& pkt = ring.read_head();
-            _pending_ack_seq_ids[can_id]->store(pkt.get_sequence_id());
-            bool delivered = false;
-
-            for (size_t i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
-                Packet* pkt_ptr = &pkt;
-                if (xQueueSend(_radio_transmit_queue, &pkt_ptr, is_stopping() ? 0 : portMAX_DELAY) != pdTRUE) {
-                    break;
-                }
-
-                bool success = false;
-                uint32_t timeout_ms = PACKET_DELIVERY_TIMEOUT_MIN_MS +
-                    (rand() % (PACKET_DELIVERY_TIMEOUT_MAX_MS - PACKET_DELIVERY_TIMEOUT_MIN_MS));
-                if (xQueueReceive(_ack_result_queues[can_id], &success,
-                                  pdMS_TO_TICKS(timeout_ms)) == pdTRUE && success) {
-                    delivered = true;
-                    break;
-                }
-            }
-
-            _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
-            if (!delivered) {
-                const auto data = pkt.get_data();
-                std::printf("P(FAIL):%lu:%lx:%lu:%lu:%lu:%u\n",
-                    (unsigned long)pdTICKS_TO_MS(xTaskGetTickCount()),
-                    static_cast<unsigned long>(pkt.get_can_id()),
-                    static_cast<unsigned long>(pkt.get_sequence_id()),
-                    static_cast<unsigned long>(data.empty() ? 0 : data.front()),
-                    static_cast<unsigned long>(data.empty() ? 0 : data.back()),
-                    (unsigned int)data.size());
-            }
-            ring.read_head().clear();
-            ring.pop();
+        if (ring.is_empty()) {
+            xTaskNotifyWait(~NOTIFY_BIT_NEW_DATA, ULONG_MAX, NULL, pdMS_TO_TICKS(10)); //anything can trigger, but it'll only matter if the !ring.is_empty()
+            continue; 
         }
+
+        Packet& pkt = ring.read_head();
+        _pending_ack_seq_ids[can_id]->store(pkt.get_sequence_id());
+        bool delivered = false;
+
+        xQueueReset(_ack_result_queues[can_id]);
+
+        for (size_t i = 0; i < PACKET_DELIVERY_ATTEMPTS; ++i) {
+            xTaskNotifyWait(NOTIFY_BIT_TX_DONE | NOTIFY_BIT_TX_SUCCESS, 0, NULL, 0);
+
+            Packet* pkt_ptr = &pkt;
+            if (xQueueSend(_radio_transmit_queue, &pkt_ptr, is_stopping() ? 0 : portMAX_DELAY) != pdTRUE) {
+                break;
+            }
+
+            bool tx_success = false;
+            
+            TickType_t ticks_to_wait = pdMS_TO_TICKS(RADIO_TIMEOUT_MS + 50);
+            TimeOut_t timeout_state;
+            vTaskSetTimeOutState(&timeout_state);
+
+            while (true) {
+                uint32_t tx_notified = 0;
+                if (xTaskNotifyWait(0, NOTIFY_BIT_TX_DONE | NOTIFY_BIT_TX_SUCCESS, &tx_notified, ticks_to_wait) == pdTRUE) {
+                    if (tx_notified & NOTIFY_BIT_TX_DONE) {
+                        tx_success = (tx_notified & NOTIFY_BIT_TX_SUCCESS) != 0;
+                        break;
+                    }
+                }
+                
+                //because NOTIFY_BIT_NEW_DATA can cause the task to unblock and reset the timeout, we need to check if we're actually out of time here instead of just assuming a timeout occurred
+                if (xTaskCheckForTimeOut(&timeout_state, &ticks_to_wait) != pdFALSE)
+                    break;
+            }
+
+            if (tx_success) {
+                bool ack_success = false;
+                uint32_t timeout_ms = PACKET_DELIVERY_TIMEOUT_MIN_MS + 
+                    (rand() % (PACKET_DELIVERY_TIMEOUT_MAX_MS - PACKET_DELIVERY_TIMEOUT_MIN_MS));
+                
+                if (xQueueReceive(_ack_result_queues[can_id], &ack_success, pdMS_TO_TICKS(timeout_ms)) == pdTRUE && ack_success) {
+                    delivered = true;
+                    break; // Successfully delivered, exit retry loop
+                }
+            }
+        }
+
+        _pending_ack_seq_ids[can_id]->store(NO_PENDING_ACK_SEQUENCE_ID);
+        
+        if (!delivered) {
+            const auto data = pkt.get_data();
+            std::printf("P(FAIL):%lu:%lx:%lu:%lu:%lu:%u\n",
+                static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                static_cast<unsigned long>(pkt.get_can_id()),
+                static_cast<unsigned long>(pkt.get_sequence_id()),
+                static_cast<unsigned long>(data.empty() ? 0 : data.front()),
+                static_cast<unsigned long>(data.empty() ? 0 : data.back()),
+                static_cast<unsigned int>(data.size()));
+        }
+        
+        ring.read_head().clear();
+        ring.pop();
     }
 
     _retry_task_done[can_id] = true;
@@ -219,12 +246,13 @@ void Transceiver::on_radio_send(CANId_t can_id, bool success) {
         return;
     }
 
-    if (!success) {
-        auto it = _ack_result_queues.find(can_id);
-        if (it != _ack_result_queues.end()) {
-            bool result = false;
-            xQueueSend(it->second, &result, 0);
+    auto it = _retry_task_handles.find(can_id);
+    if (it != _retry_task_handles.end() && it->second != nullptr) {
+        uint32_t bits = NOTIFY_BIT_TX_DONE;
+        if (success) {
+            bits |= NOTIFY_BIT_TX_SUCCESS;
         }
+        xTaskNotify(it->second, bits, eSetBits);
     }
 }
 
