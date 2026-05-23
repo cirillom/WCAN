@@ -76,7 +76,6 @@ bool TransceiverBase::send_data(CANId_t can_id, DataPoint_t data) {
     if (it == _tx_rings.end()) return false;
     auto& ring = it->second;
     if (ring.is_full()) {
-        stats().record_sensor_send_failure(can_id, data);
         return false;
     }
 
@@ -259,10 +258,12 @@ void TransceiverBase::esp_now_recv_cb(const esp_now_recv_info_t *info, const uin
     slot.payload_len = static_cast<size_t>(len);
     s_instance->_rx_packets.push();
 
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xTaskNotifyFromISR(s_instance->_recv_task_handle, NOTIFY_BIT_NEW_DATA,
-                       eSetBits, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    if (s_instance->_recv_task_handle != nullptr) {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        xTaskNotifyFromISR(s_instance->_recv_task_handle, NOTIFY_BIT_NEW_DATA,
+                           eSetBits, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
 }
 
 void TransceiverBase::stop(uint32_t timeout_ms) {

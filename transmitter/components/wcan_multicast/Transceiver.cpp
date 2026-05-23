@@ -176,7 +176,10 @@ void Transceiver::on_radio_send(CANId_t can_id, bool success) {
 
     if (!success) {
         if (!ring.is_empty()) {
-            stats().record_sensor_send_failure(can_id, ring.read_head().get_sequence_id());
+            const auto& data = ring.read_head().get_data();
+            if (!data.empty()) {
+                stats().record_sensor_send_failure(can_id, data.front(), data.back());
+            }
             ESP_LOGW(TAG, "Multicast radio send reported failure for CAN ID 0x%08lx",
                      static_cast<unsigned long>(can_id));
         }

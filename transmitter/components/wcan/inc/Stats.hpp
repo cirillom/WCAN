@@ -19,7 +19,7 @@ public:
     virtual void record_airtime(uint32_t) {}
     virtual void record_batch(const Packet&, int64_t) {}
     virtual void record_batch_dispatch(const Packet&, int64_t, uint32_t) {}
-    virtual void record_sensor_send_failure(CANId_t, uint32_t) {}
+    virtual void record_sensor_send_failure(CANId_t can_id, uint32_t first, uint32_t last) {}
     virtual void finish_test() {}
     // Optional hook to provide configured TX CAN IDs so implementations may
     // pre-allocate per-CAN slots to avoid concurrent unordered_map mutations.

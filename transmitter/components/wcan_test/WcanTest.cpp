@@ -427,7 +427,7 @@ void WcanTestSession::run(wcan::TransceiverBase& transceiver, wcan_sensor::RampC
 
     if (sensor != nullptr) {
         sensor->set_send_failure_callback([&transceiver](uint32_t can_id, uint32_t counter) {
-            transceiver.stats().record_sensor_send_failure(can_id, counter);
+            transceiver.stats().record_sensor_send_failure(can_id, counter, counter);
         });
         if (!sensor->start(static_cast<uint32_t>(_config.sensor_hz))) {
             abort("sensor-timer");
