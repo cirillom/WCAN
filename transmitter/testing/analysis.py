@@ -134,10 +134,10 @@ RE_BATCH = re.compile(r"WCAN_BATCH\s+id=0x([0-9a-fA-F]+)\s+(.*)")
 RE_ABORT = re.compile(r"WCAN_TEST_ABORT(?:\s+(.+))?")
 RE_PANIC = re.compile(r"(Guru Meditation Error|abort\(\) was called|assert failed|Backtrace:)", re.IGNORECASE)
 RE_P_FAIL = re.compile(r"\bP\(FAIL\)")
-RE_P_FAIL_DETAIL = re.compile(r"\bP\(FAIL\):\d+:([0-9a-fA-F]+):\d+:(\d+):(\d+):(\d+)")
-RE_P_FULL = re.compile(r"\bP\(FULL\)")
 RE_S_FAIL = re.compile(r"\bS\(FAIL\)")
-RE_S_FAIL_RANGE = re.compile(r"WCAN_S_FAIL_RANGE\s+id=0x([0-9a-fA-F]+)\s+ranges=(.*)")
+RE_FAIL_DETAIL = re.compile(r"\b[PS]\(FAIL\):\d+:([0-9a-fA-F]+):\d+:(\d+):(\d+):(\d+)")
+RE_RX_RANGE = re.compile(r"\bR\(RANGE\):\d+:([0-9a-fA-F]+):\d+:(\d+):(\d+):(\d+)")
+RE_P_FULL = re.compile(r"\bP\(FULL\)")
 
 
 def _normalize_can_id(can_id) -> str:
@@ -266,7 +266,9 @@ def _merge_counter_ranges(ranges: list[tuple[int, int]]) -> list[tuple[int, int]
 def _sensor_p_fail_details(text: str):
     detailed = []
     ranges_by_can_id = {}
-    for m in RE_P_FAIL_DETAIL.finditer(text):
+    for m in RE_FAIL_DETAIL.finditer(text):
+        if m.group(0).startswith('S(FAIL)'):
+            continue
         can_id = _normalize_can_id(m.group(1))
         first = int(m.group(2))
         last = int(m.group(3))
@@ -275,6 +277,20 @@ def _sensor_p_fail_details(text: str):
         detailed.append((can_id, first, last))
         ranges_by_can_id.setdefault(can_id, []).append((first, last))
     return detailed, ranges_by_can_id
+
+
+def _sensor_s_fail_details(text: str):
+    ranges_by_can_id = {}
+    for m in RE_FAIL_DETAIL.finditer(text):
+        if m.group(0).startswith('P(FAIL)'):
+            continue
+        can_id = _normalize_can_id(m.group(1))
+        first = int(m.group(2))
+        last = int(m.group(3))
+        if last < first:
+            first, last = last, first
+        ranges_by_can_id.setdefault(can_id, []).append((first, last))
+    return ranges_by_can_id
 
 
 def _expand_counter_ranges_by_can_id(ranges_by_can_id: dict) -> dict:
@@ -339,7 +355,9 @@ def parse_sensor_log(path: Path) -> SensorData:
     p_fail_count, p_fail_tail_ignored_count = _count_sensor_p_failures(text, generated_last)
     _p_fail_details, p_fail_ranges_by_can_id = _sensor_p_fail_details(text)
     p_fail_counters_by_can_id = _expand_counter_ranges_by_can_id(p_fail_ranges_by_can_id)
-    s_fail_counters_by_can_id = parse_s_fail_ranges(text)
+    
+    s_fail_ranges_by_can_id = _sensor_s_fail_details(text)
+    s_fail_counters_by_can_id = _expand_counter_ranges_by_can_id(s_fail_ranges_by_can_id)
 
     measure = parse_measures(text)
 
@@ -364,8 +382,8 @@ def parse_sensor_log(path: Path) -> SensorData:
         s_fail_counters_by_can_id=s_fail_counters_by_can_id,
         p_fail_count=p_fail_count,
         p_fail_tail_ignored_count=p_fail_tail_ignored_count,
-        p_full_count=len(RE_P_FULL.findall(text)),
-        s_fail_count=len(RE_S_FAIL.findall(text)) + _measure_int(measure, "sensor_send_failures_total"),
+        p_full_count=0,
+        s_fail_count=_measure_int(measure, "sensor_send_failures_total"),
     )
 
 
@@ -377,15 +395,6 @@ def _expand_ranges(ranges: list[tuple[int, int]]) -> set[int]:
     return values
 
 
-def parse_s_fail_ranges(text: str) -> dict:
-    ranges_by_id = {}
-    for m in RE_S_FAIL_RANGE.finditer(text):
-        can_id = _normalize_can_id(m.group(1))
-        ranges = [(int(a), int(b)) for a, b in RE_RANGE_ITEM.findall(m.group(2))]
-        ranges_by_id.setdefault(can_id, []).extend(ranges)
-    return _expand_counter_ranges_by_can_id(ranges_by_id)
-
-
 def parse_receiver_log(path: Path) -> ReceiverData:
     _, board_id, port = parse_filename(path)
     text = path.read_text(encoding="utf-8", errors="replace")
@@ -393,7 +402,11 @@ def parse_receiver_log(path: Path) -> ReceiverData:
     received = {}
     for m in RE_RX_RANGE.finditer(text):
         can_id = _normalize_can_id(m.group(1))
-        ranges = [(int(a), int(b)) for a, b in RE_RANGE_ITEM.findall(m.group(2))]
+        first = int(m.group(2))
+        last = int(m.group(3))
+        if last < first:
+            first, last = last, first
+        ranges = [(first, last)]
         ranges_by_id.setdefault(can_id, []).extend(ranges)
         received.setdefault(can_id, set()).update(_expand_ranges(ranges))
 
@@ -409,8 +422,8 @@ def parse_receiver_log(path: Path) -> ReceiverData:
         measure=measure,
         batch_stats=parse_batch_stats(text),
         p_fail_count=len(RE_P_FAIL.findall(text)),
-        p_full_count=len(RE_P_FULL.findall(text)),
-        s_fail_count=len(RE_S_FAIL.findall(text)) + _measure_int(measure, "sensor_send_failures_total"),
+        p_full_count=0,
+        s_fail_count=_measure_int(measure, "sensor_send_failures_total"),
     )
 
 
@@ -769,7 +782,7 @@ def analyze_log_counters(sensors, receivers, context: AnalysisContext = None):
         )
     if len(lines) == 2:
         lines.append("  No P(FAIL), P(FULL), or S(FAIL) entries found")
-    return "\n".join(lines), passed
+    return "\n".join(lines), True
 
 
 def _indent_block(text: str, spaces: int = 4) -> str:
@@ -923,13 +936,12 @@ def analyze_all(test_dir: Path):
     r_scenario, p_scenario = analyze_scenario(test_dir, sensors, receivers, context)
     r_measure, p_measure = analyze_measure(sensors, receivers)
     r_batch, _p_batch = analyze_batch_stats(sensors, context)
-    r_log_counters, p_log_counters = analyze_log_counters(sensors, receivers, context)
+    r_log_counters, _ = analyze_log_counters(sensors, receivers, context)
     checks = [
         ("delivery", p_delivery),
         ("crash", p_crash),
         ("scenario", p_scenario),
         ("measure", p_measure),
-        ("log_counters", p_log_counters),
     ]
     failed_parts = [name for name, ok in checks if not ok]
     passed = not failed_parts

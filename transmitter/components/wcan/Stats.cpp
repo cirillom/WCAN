@@ -28,7 +28,7 @@ public:
     void record_airtime(uint32_t duration_us) override;
     void record_batch(const Packet& packet, int64_t ready_us) override;
     void record_batch_dispatch(const Packet& packet, int64_t dispatch_start_us, uint32_t dispatch_us) override;
-    void record_sensor_send_failure(CANId_t can_id, uint32_t counter) override;
+    void record_sensor_send_failure(CANId_t can_id, uint32_t first, uint32_t last) override;
     void configure_tx_ids(const std::vector<CANId_t>& tx_ids) override;
     void finish_test() override;
     void print_sensor_end(uint32_t generated_count) const override;
@@ -65,12 +65,10 @@ private:
     };
 
     uint32_t elapsed_ms() const;
-    static uint64_t batch_key(CANId_t can_id, uint32_t sequence_id);
-
-    std::unordered_map<CANId_t, std::vector<CounterRange>> _rx_ranges;
+ 
+    std::unordered_map<CANId_t, CounterRange> _current_rx_ranges;
     std::unordered_map<CANId_t, BatchStats> _batch_stats;
-    std::unordered_map<CANId_t, std::vector<CounterRange>> _sensor_send_failure_ranges;
-    std::unordered_map<uint64_t, int64_t> _batch_ready_us_by_key;
+    std::unordered_map<CANId_t, CounterRange> _current_s_fail_ranges;
     uint32_t _heap_start_free = 0;
     uint32_t _heap_start_min_free = 0;
     uint32_t _heap_start_largest = 0;
@@ -84,25 +82,22 @@ private:
     bool _slots_configured = false;
     std::unordered_map<CANId_t, size_t> _slot_index;
     std::vector<CANId_t> _slot_to_can_id;
-    std::vector<std::vector<CounterRange>> _rx_ranges_slots;
+    std::vector<CounterRange> _current_rx_ranges_slots;
     std::vector<BatchStats> _batch_stats_slots;
-    std::vector<std::vector<CounterRange>> _sensor_send_failure_ranges_slots;
-    std::vector<std::unordered_map<uint32_t, int64_t>> _batch_ready_by_slot;
+    std::vector<CounterRange> _current_s_fail_ranges_slots;
     std::vector<SemaphoreHandle_t> _slot_mutexes;
 };
 
 void MeasuredStats::reset() {
     if (_mutex) xSemaphoreTake(_mutex, portMAX_DELAY);
     if (_slots_configured) {
-        for (auto &v : _rx_ranges_slots) v.clear();
+        for (auto &v : _current_rx_ranges_slots) v = {UINT32_MAX, UINT32_MAX};
         for (auto &s : _batch_stats_slots) s = BatchStats();
-        for (auto &v : _sensor_send_failure_ranges_slots) v.clear();
-        for (auto &m : _batch_ready_by_slot) m.clear();
+        for (auto &v : _current_s_fail_ranges_slots) v = {UINT32_MAX, UINT32_MAX};
     } else {
-        _rx_ranges.clear();
+        _current_rx_ranges.clear();
         _batch_stats.clear();
-        _sensor_send_failure_ranges.clear();
-        _batch_ready_us_by_key.clear();
+        _current_s_fail_ranges.clear();
     }
     _heap_start_free = static_cast<uint32_t>(esp_get_free_heap_size());
     _heap_start_min_free = static_cast<uint32_t>(esp_get_minimum_free_heap_size());
@@ -119,10 +114,9 @@ void MeasuredStats::configure_tx_ids(const std::vector<CANId_t>& tx_ids) {
     if (_mutex) xSemaphoreTake(_mutex, portMAX_DELAY);
     _slot_index.clear();
     _slot_to_can_id.clear();
-    _rx_ranges_slots.clear();
+    _current_rx_ranges_slots.clear();
     _batch_stats_slots.clear();
-    _sensor_send_failure_ranges_slots.clear();
-    _batch_ready_by_slot.clear();
+    _current_s_fail_ranges_slots.clear();
     for (auto s : _slot_mutexes) { if (s) vSemaphoreDelete(s); }
     _slot_mutexes.clear();
 
@@ -134,28 +128,20 @@ void MeasuredStats::configure_tx_ids(const std::vector<CANId_t>& tx_ids) {
     }
 
     _slot_to_can_id.reserve(n);
-    _rx_ranges_slots.resize(n);
+    _current_rx_ranges_slots.assign(n, {UINT32_MAX, UINT32_MAX});
     _batch_stats_slots.resize(n);
-    _sensor_send_failure_ranges_slots.resize(n);
-    _batch_ready_by_slot.resize(n);
+    _current_s_fail_ranges_slots.assign(n, {UINT32_MAX, UINT32_MAX});
     _slot_mutexes.resize(n);
 
     for (size_t i = 0; i < n; ++i) {
         const CANId_t id = tx_ids[i];
         _slot_index[id] = i;
         _slot_to_can_id.push_back(id);
-        _rx_ranges_slots[i] = std::vector<CounterRange>();
         _batch_stats_slots[i] = BatchStats();
-        _sensor_send_failure_ranges_slots[i] = std::vector<CounterRange>();
-        _batch_ready_by_slot[i] = std::unordered_map<uint32_t, int64_t>();
         _slot_mutexes[i] = xSemaphoreCreateMutex();
     }
     _slots_configured = true;
     if (_mutex) xSemaphoreGive(_mutex);
-}
-
-uint64_t MeasuredStats::batch_key(CANId_t can_id, uint32_t sequence_id) {
-    return (static_cast<uint64_t>(can_id) << 32) | static_cast<uint64_t>(sequence_id);
 }
 
 uint32_t MeasuredStats::elapsed_ms() const {
@@ -182,26 +168,45 @@ void MeasuredStats::record_rx_packet(const Packet& packet) {
         if (it != _slot_index.end()) {
             const size_t idx = it->second;
             if (_slot_mutexes[idx]) xSemaphoreTake(_slot_mutexes[idx], portMAX_DELAY);
-            auto &ranges = _rx_ranges_slots[idx];
-            if (!ranges.empty() && first == ranges.back().second + 1) {
-                ranges.back().second = last;
-                if (_slot_mutexes[idx]) xSemaphoreGive(_slot_mutexes[idx]);
-                return;
+            auto &cur = _current_rx_ranges_slots[idx];
+            if (cur.first != UINT32_MAX && first <= cur.second + 1 && last >= cur.first) {
+                cur.first = std::min(cur.first, first);
+                cur.second = std::max(cur.second, last);
+            } else {
+                if (cur.first != UINT32_MAX) {
+                    std::printf("R(RANGE):%lu:%lx:0:%lu:%lu:%lu\n",
+                                static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                                static_cast<unsigned long>(can_id),
+                                static_cast<unsigned long>(cur.first),
+                                static_cast<unsigned long>(cur.second),
+                                static_cast<unsigned long>(cur.second - cur.first + 1));
+                }
+                cur = {first, last};
             }
-            ranges.emplace_back(first, last);
             if (_slot_mutexes[idx]) xSemaphoreGive(_slot_mutexes[idx]);
             return;
         }
     }
 
     if (_mutex) xSemaphoreTake(_mutex, portMAX_DELAY);
-    auto& ranges = _rx_ranges[can_id];
-    if (!ranges.empty() && first == ranges.back().second + 1) {
-        ranges.back().second = last;
-        if (_mutex) xSemaphoreGive(_mutex);
-        return;
+    auto it = _current_rx_ranges.find(can_id);
+    if (it == _current_rx_ranges.end()) {
+        _current_rx_ranges[can_id] = {first, last};
+    } else {
+        auto& cur = it->second;
+        if (first <= cur.second + 1 && last >= cur.first) {
+            cur.first = std::min(cur.first, first);
+            cur.second = std::max(cur.second, last);
+        } else {
+            std::printf("R(RANGE):%lu:%lx:0:%lu:%lu:%lu\n",
+                        static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                        static_cast<unsigned long>(can_id),
+                        static_cast<unsigned long>(cur.first),
+                        static_cast<unsigned long>(cur.second),
+                        static_cast<unsigned long>(cur.second - cur.first + 1));
+            cur = {first, last};
+        }
     }
-    ranges.emplace_back(first, last);
     if (_mutex) xSemaphoreGive(_mutex);
 }
 
@@ -212,18 +217,27 @@ void MeasuredStats::record_airtime(uint32_t duration_us) {
     if (_mutex) xSemaphoreGive(_mutex);
 }
 
-void MeasuredStats::record_sensor_send_failure(CANId_t can_id, uint32_t counter) {
+void MeasuredStats::record_sensor_send_failure(CANId_t can_id, uint32_t first, uint32_t last) {
     if (_slots_configured) {
         auto it = _slot_index.find(can_id);
         if (it != _slot_index.end()) {
             const size_t idx = it->second;
             if (_slot_mutexes[idx]) xSemaphoreTake(_slot_mutexes[idx], portMAX_DELAY);
-            _sensor_send_failures_total++;
-            auto& ranges = _sensor_send_failure_ranges_slots[idx];
-            if (!ranges.empty() && counter == ranges.back().second + 1) {
-                ranges.back().second = counter;
+            _sensor_send_failures_total += (last - first + 1);
+            auto& cur = _current_s_fail_ranges_slots[idx];
+            if (cur.first != UINT32_MAX && first <= cur.second + 1 && last >= cur.first) {
+                cur.first = std::min(cur.first, first);
+                cur.second = std::max(cur.second, last);
             } else {
-                ranges.emplace_back(counter, counter);
+                if (cur.first != UINT32_MAX) {
+                    std::printf("S(FAIL):%lu:%lx:0:%lu:%lu:%lu\n",
+                                static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                                static_cast<unsigned long>(can_id),
+                                static_cast<unsigned long>(cur.first),
+                                static_cast<unsigned long>(cur.second),
+                                static_cast<unsigned long>(cur.second - cur.first + 1));
+                }
+                cur = {first, last};
             }
             if (_slot_mutexes[idx]) xSemaphoreGive(_slot_mutexes[idx]);
             return;
@@ -231,21 +245,31 @@ void MeasuredStats::record_sensor_send_failure(CANId_t can_id, uint32_t counter)
     }
 
     if (_mutex) xSemaphoreTake(_mutex, portMAX_DELAY);
-    _sensor_send_failures_total++;
-    auto& ranges = _sensor_send_failure_ranges[can_id];
-    if (!ranges.empty() && counter == ranges.back().second + 1) {
-        ranges.back().second = counter;
-        if (_mutex) xSemaphoreGive(_mutex);
-        return;
+    _sensor_send_failures_total += (last - first + 1);
+    auto it = _current_s_fail_ranges.find(can_id);
+    if (it == _current_s_fail_ranges.end()) {
+        _current_s_fail_ranges[can_id] = {first, last};
+    } else {
+        auto& cur = it->second;
+        if (first <= cur.second + 1 && last >= cur.first) {
+            cur.first = std::min(cur.first, first);
+            cur.second = std::max(cur.second, last);
+        } else {
+            std::printf("S(FAIL):%lu:%lx:0:%lu:%lu:%lu\n",
+                        static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                        static_cast<unsigned long>(can_id),
+                        static_cast<unsigned long>(cur.first),
+                        static_cast<unsigned long>(cur.second),
+                        static_cast<unsigned long>(cur.second - cur.first + 1));
+            cur = {first, last};
+        }
     }
-    ranges.emplace_back(counter, counter);
     if (_mutex) xSemaphoreGive(_mutex);
 }
 
 void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
     const CANId_t can_id = packet.get_can_id();
     const uint32_t points = static_cast<uint32_t>(packet.get_data().size());
-    const uint32_t seq = packet.get_sequence_id();
 
     if (_slots_configured) {
         auto it = _slot_index.find(can_id);
@@ -257,7 +281,6 @@ void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
             stats.points_total += points;
             stats.min_points = std::min(stats.min_points, points);
             stats.max_points = std::max(stats.max_points, points);
-            _batch_ready_by_slot[idx][seq] = ready_us;
 
             if (stats.last_ready_us > 0 && ready_us > stats.last_ready_us) {
                 const uint32_t interval_us = static_cast<uint32_t>(ready_us - stats.last_ready_us);
@@ -278,7 +301,6 @@ void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
     stats.points_total += points;
     stats.min_points = std::min(stats.min_points, points);
     stats.max_points = std::max(stats.max_points, points);
-    _batch_ready_us_by_key[batch_key(can_id, seq)] = ready_us;
 
     if (stats.last_ready_us > 0 && ready_us > stats.last_ready_us) {
         const uint32_t interval_us = static_cast<uint32_t>(ready_us - stats.last_ready_us);
@@ -294,18 +316,16 @@ void MeasuredStats::record_batch(const Packet& packet, int64_t ready_us) {
 void MeasuredStats::record_batch_dispatch(const Packet& packet, int64_t dispatch_start_us, uint32_t dispatch_us) {
     const CANId_t can_id = packet.get_can_id();
     uint32_t queue_wait_us = 0;
-    const uint32_t seq = packet.get_sequence_id();
+    const int64_t ready_us = packet.get_ready_us();
+    if (ready_us > 0) {
+        queue_wait_us = static_cast<uint32_t>(std::max<int64_t>(0, dispatch_start_us - ready_us));
+    }
 
     if (_slots_configured) {
         auto it = _slot_index.find(can_id);
         if (it != _slot_index.end()) {
             const size_t idx = it->second;
             if (_slot_mutexes[idx]) xSemaphoreTake(_slot_mutexes[idx], portMAX_DELAY);
-            auto ready_it = _batch_ready_by_slot[idx].find(seq);
-            if (ready_it != _batch_ready_by_slot[idx].end()) {
-                queue_wait_us = static_cast<uint32_t>(std::max<int64_t>(0, dispatch_start_us - ready_it->second));
-                _batch_ready_by_slot[idx].erase(ready_it);
-            }
             auto& stats = _batch_stats_slots[idx];
             stats.dispatched_count++;
             stats.queue_wait_total_us += queue_wait_us;
@@ -318,13 +338,6 @@ void MeasuredStats::record_batch_dispatch(const Packet& packet, int64_t dispatch
     }
 
     if (_mutex) xSemaphoreTake(_mutex, portMAX_DELAY);
-    const uint64_t key = batch_key(can_id, seq);
-    auto ready_it = _batch_ready_us_by_key.find(key);
-    if (ready_it != _batch_ready_us_by_key.end()) {
-        queue_wait_us = static_cast<uint32_t>(std::max<int64_t>(0, dispatch_start_us - ready_it->second));
-        _batch_ready_us_by_key.erase(ready_it);
-    }
-
     auto& stats = _batch_stats[can_id];
     stats.dispatched_count++;
     stats.queue_wait_total_us += queue_wait_us;
@@ -355,19 +368,15 @@ void MeasuredStats::print_rx_ranges() const {
         for (size_t idx = 0; idx < _slot_to_can_id.size(); ++idx) {
             const CANId_t can_id = _slot_to_can_id[idx];
             if (_slot_mutexes[idx]) xSemaphoreTake(_slot_mutexes[idx], portMAX_DELAY);
-            const auto& ranges = _rx_ranges_slots[idx];
-            std::printf("WCAN_RX_RANGE id=0x%lx ranges=", static_cast<unsigned long>(can_id));
-            if (ranges.empty()) {
-                std::printf("[]");
-            } else {
-                for (size_t i = 0; i < ranges.size(); ++i) {
-                    if (i > 0) std::printf(",");
-                    std::printf("[%lu..%lu]",
-                                static_cast<unsigned long>(ranges[i].first),
-                                static_cast<unsigned long>(ranges[i].second));
-                }
+            const auto& cur = _current_rx_ranges_slots[idx];
+            if (cur.first != UINT32_MAX) {
+                std::printf("R(RANGE):%lu:%lx:0:%lu:%lu:%lu\n",
+                            static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                            static_cast<unsigned long>(can_id),
+                            static_cast<unsigned long>(cur.first),
+                            static_cast<unsigned long>(cur.second),
+                            static_cast<unsigned long>(cur.second - cur.first + 1));
             }
-            std::printf("\n");
             if (_slot_mutexes[idx]) xSemaphoreGive(_slot_mutexes[idx]);
         }
         std::fflush(stdout);
@@ -376,24 +385,18 @@ void MeasuredStats::print_rx_ranges() const {
 
     if (_mutex) xSemaphoreTake(_mutex, portMAX_DELAY);
     std::vector<CANId_t> ids;
-    ids.reserve(_rx_ranges.size());
-    for (const auto& entry : _rx_ranges) ids.push_back(entry.first);
+    ids.reserve(_current_rx_ranges.size());
+    for (const auto& entry : _current_rx_ranges) ids.push_back(entry.first);
     std::sort(ids.begin(), ids.end());
 
     for (CANId_t can_id : ids) {
-        const auto& ranges = _rx_ranges.at(can_id);
-        std::printf("WCAN_RX_RANGE id=0x%lx ranges=", static_cast<unsigned long>(can_id));
-        if (ranges.empty()) {
-            std::printf("[]");
-        } else {
-            for (size_t i = 0; i < ranges.size(); ++i) {
-                if (i > 0) std::printf(",");
-                std::printf("[%lu..%lu]",
-                            static_cast<unsigned long>(ranges[i].first),
-                            static_cast<unsigned long>(ranges[i].second));
-            }
-        }
-        std::printf("\n");
+        const auto& cur = _current_rx_ranges.at(can_id);
+        std::printf("R(RANGE):%lu:%lx:0:%lu:%lu:%lu\n",
+                    static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                    static_cast<unsigned long>(can_id),
+                    static_cast<unsigned long>(cur.first),
+                    static_cast<unsigned long>(cur.second),
+                    static_cast<unsigned long>(cur.second - cur.first + 1));
     }
     std::fflush(stdout);
     if (_mutex) xSemaphoreGive(_mutex);
@@ -492,41 +495,31 @@ void MeasuredStats::print_measures() const {
         for (size_t idx = 0; idx < _slot_to_can_id.size(); ++idx) {
             const CANId_t can_id = _slot_to_can_id[idx];
             if (_slot_mutexes[idx]) xSemaphoreTake(_slot_mutexes[idx], portMAX_DELAY);
-            const auto& ranges = _sensor_send_failure_ranges_slots[idx];
-            std::printf("WCAN_S_FAIL_RANGE id=0x%lx ranges=", static_cast<unsigned long>(can_id));
-            if (ranges.empty()) {
-                std::printf("[]");
-            } else {
-                for (size_t i = 0; i < ranges.size(); ++i) {
-                    if (i > 0) std::printf(",");
-                    std::printf("[%lu..%lu]",
-                                static_cast<unsigned long>(ranges[i].first),
-                                static_cast<unsigned long>(ranges[i].second));
-                }
+            const auto& cur = _current_s_fail_ranges_slots[idx];
+            if (cur.first != UINT32_MAX) {
+                std::printf("S(FAIL):%lu:%lx:0:%lu:%lu:%lu\n",
+                            static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                            static_cast<unsigned long>(can_id),
+                            static_cast<unsigned long>(cur.first),
+                            static_cast<unsigned long>(cur.second),
+                            static_cast<unsigned long>(cur.second - cur.first + 1));
             }
-            std::printf("\n");
             if (_slot_mutexes[idx]) xSemaphoreGive(_slot_mutexes[idx]);
         }
     } else {
         if (_mutex) xSemaphoreTake(_mutex, portMAX_DELAY);
         std::vector<CANId_t> fail_ids;
-        fail_ids.reserve(_sensor_send_failure_ranges.size());
-        for (const auto& entry : _sensor_send_failure_ranges) fail_ids.push_back(entry.first);
+        fail_ids.reserve(_current_s_fail_ranges.size());
+        for (const auto& entry : _current_s_fail_ranges) fail_ids.push_back(entry.first);
         std::sort(fail_ids.begin(), fail_ids.end());
         for (CANId_t can_id : fail_ids) {
-            const auto& ranges = _sensor_send_failure_ranges.at(can_id);
-            std::printf("WCAN_S_FAIL_RANGE id=0x%lx ranges=", static_cast<unsigned long>(can_id));
-            if (ranges.empty()) {
-                std::printf("[]");
-            } else {
-                for (size_t i = 0; i < ranges.size(); ++i) {
-                    if (i > 0) std::printf(",");
-                    std::printf("[%lu..%lu]",
-                                static_cast<unsigned long>(ranges[i].first),
-                                static_cast<unsigned long>(ranges[i].second));
-                }
-            }
-            std::printf("\n");
+            const auto& cur = _current_s_fail_ranges.at(can_id);
+            std::printf("S(FAIL):%lu:%lx:0:%lu:%lu:%lu\n",
+                        static_cast<unsigned long>(pdTICKS_TO_MS(xTaskGetTickCount())),
+                        static_cast<unsigned long>(can_id),
+                        static_cast<unsigned long>(cur.first),
+                        static_cast<unsigned long>(cur.second),
+                        static_cast<unsigned long>(cur.second - cur.first + 1));
         }
         if (_mutex) xSemaphoreGive(_mutex);
     }

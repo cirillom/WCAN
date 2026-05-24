@@ -9,11 +9,10 @@ namespace wcan {
 static const char* TAG = "PACKET";
 
 void Packet::clear() {
-    _source_mac_addr = {};
-    _can_id = 0;
     _sequence_id = 0;
     _data_count = 0;
     _received_via_broadcast = false;
+    _ready_us = 0;
 }
 
 bool Packet::from_payload(const uint8_t* src_mac,

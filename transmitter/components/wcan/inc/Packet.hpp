@@ -75,7 +75,20 @@ public:
     CANId_t get_can_id() const { return _can_id; }
     uint32_t get_sequence_id() const { return _sequence_id; }
     std::span<const DataPoint_t> get_data() const { return {_data.data(), _data_count}; }
+    DataCount_t get_data_count() const { return _data_count; }
     bool is_received_via_broadcast() const { return _received_via_broadcast; }
+
+    /** @brief Assigns a new unique sequence ID. Called by finish_batch(). */
+    void assign_new_sequence_id() { _sequence_id = next_sequence_id(); }
+
+    /** @brief Pre-configures a ring slot's fixed fields. */
+    void init_for_ring(const std::array<uint8_t, ESP_NOW_ETH_ALEN>& mac, CANId_t can_id) {
+        _source_mac_addr = mac;
+        _can_id = can_id;
+    }
+
+    void set_ready_us(int64_t ready_us) { _ready_us = ready_us; }
+    int64_t get_ready_us() const { return _ready_us; }
 
 private:
     std::array<uint8_t, ESP_NOW_ETH_ALEN> _source_mac_addr{};
@@ -84,6 +97,7 @@ private:
     std::array<DataPoint_t, MAX_DATA_POINTS> _data{};
     DataCount_t _data_count = 0;
     bool _received_via_broadcast = false;
+    int64_t _ready_us = 0;
 
 public:
     class Deduplicator{

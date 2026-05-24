@@ -14,3 +14,10 @@ This is a deliberate trade-off, not a transparency loss. The batch carries one t
 
 Receiver hardware requirements
 ESP32-C3 boards are not receiver targets in the WCAN design. A receiver has to keep up with ESP-NOW ingress, CAN/TWAI egress, filtering, buffering, and runtime statistics without starving time-sensitive work; the single-core ESP32-C3 is not powerful enough for that role in this system. ESP32-C3 boards should be treated as sensor-only nodes. Receiver nodes must use ESP32-class hardware with two or more CPU cores.
+
+Retry strategy
+
+Broadcast mode uses application-level ACKs with a per-CAN-ID retry task. After dispatching a batch, the retry task waits for an ACK packet (matching sequence ID) from any receiver. If no ACK arrives within a randomized timeout (50–120 ms), the packet is re-sent, up to 4 attempts total.
+
+Multicast mode does not implement application-level retries. ESP-NOW multicast/unicast relies on 802.11 MAC-layer acknowledgements and automatic retransmission. If the hardware reports a send failure, the packet is marked as dropped and recorded in stats. This is intentional — the 802.11 retry mechanism provides sufficient delivery reliability for the multicast use case, and adding application-level retries on top would increase latency without meaningful benefit.
+
