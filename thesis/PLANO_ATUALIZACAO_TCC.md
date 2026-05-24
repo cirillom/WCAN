@@ -44,16 +44,22 @@ Não é obrigatório colocar tudo no mesmo canvas — o fluxograma gigante pode 
 **Ações suas:**
 1. Em `code_flow_tcc.drawio`, adicionar **legenda** (dots/hatch, ISR vs task se usar cores).
 2. Corrigir lacunas críticas acima (pelo menos: `linger=0`, dedup, `should_accept`, legenda multicast vs broadcast).
-3. **Exportar figuras** para `thesis/images/` (SVG ou PNG 300 dpi):
+3. **Não refazer o diagrama inteiro**. Usar as duas figuras já exportadas para o capítulo de Desenvolvimento:
 
-| Arquivo exportado | Recorte do canvas | Uso no LaTeX |
-|-------------------|-------------------|--------------|
-| `fig-wcan-fluxo-tx.svg` | `send_data` + `finish_batch` + `dispatch_batch` | § Filas / batching |
-| `fig-wcan-retry-broadcast.svg` | `retry_task` + ACK + `on_radio_send` (broadcast) | § Broadcast |
-| `fig-wcan-pipeline-radio.svg` | `send_processing_task` + `esp_now_send_cb` | § Pipeline rádio |
-| `fig-wcan-recepcao.svg` | `esp_now_recv_cb` + `recv_processing_task` | § Recepção |
-| `fig-wcan-multicast.svg` | `on_data_packet` subscription + `on_control_packet` tabela | § Multicast |
-| `fig-wcan-arquitetura.svg` | **Novo** diagrama simples em camadas (pode ser 5 caixas horizontais) | § Arquitetura (início do cap.) |
+| Arquivo | O que mostra | Uso no LaTeX |
+|---------|--------------|--------------|
+| `thesis/images/tx_path.svg` | Caminho de transmissão: `send_data`, ring TX, `linger`, `finish_batch`, `dispatch_batch`, fila de rádio, `send_processing_task`, `esp_now_send` e retorno por `on_radio_send` | § Núcleo / batching / transmissão |
+| `thesis/images/rx_path.drawio.svg` | Caminho de recepção: `esp_now_recv_cb`, filtro/aceite, ring RX, `recv_processing_task`, deduplicação e separação entre pacotes de controle e dados | § Recepção / tratamento de pacotes |
+
+Legenda visual das duas figuras:
+- **Fundo pontilhado**: funções ou caminhos específicos da implementação broadcast.
+- **Linhas diagonais**: funções ou caminhos específicos da implementação multicast.
+- **Sem preenchimento especial**: núcleo comum, principalmente `TransceiverBase` e pipeline compartilhado.
+
+Partes que devem ficar separadas no texto:
+- **TX/batching** deve ser explicado a partir de `tx_path.svg`: `linger`, lote, `finish_batch`, `dispatch_batch`, fila de rádio e envio ESP-NOW.
+- **RX/decodificação** deve ser explicado a partir de `rx_path.drawio.svg`: callback ESP-NOW, filtro/aceite, ring RX, deduplicação e roteamento entre controle e dados.
+- **Variantes broadcast/multicast** devem ser explicadas dentro dessas duas figuras, usando a legenda de pontilhado e hachura, sem criar uma terceira figura.
 
 4. Opcional: arquivar commit/hash do firmware testado num comentário no `run_plan.json` ou no apêndice.
 
@@ -71,8 +77,10 @@ Não é obrigatório colocar tudo no mesmo canvas — o fluxograma gigante pode 
 Atualize o capítulo de Desenvolvimento da monografia em português (ABNT, tom técnico).
 
 Arquivo: thesis/tex/capitulos/desenvolvimento.tex
-Diagrama mestre: thesis/images/code_flow_tcc.drawio (não reescreva o draw.io; descreva o que ele mostra)
-Figuras exportadas pelo autor: thesis/images/fig-wcan-*.svg (listar as que existirem)
+Diagrama mestre: thesis/images/code_flow_tcc.drawio (não reescreva o draw.io; usar só como referência visual secundária)
+Figuras obrigatórias já exportadas pelo autor:
+- thesis/images/tx_path.svg
+- thesis/images/rx_path.drawio.svg
 Código: transmitter/components/wcan/, wcan_broadcast/, wcan_multicast/, wcan_sensor/, wcan_test/, main/main.cpp
 Design: transmitter/DESIGN.md
 
@@ -81,8 +89,13 @@ REGRAS:
 - Descrever arquitetura atual: TransceiverBase, RingBuffer TX/RX, esp_timer(linger), radio_transmit_queue, send/recv tasks, retry_task (só broadcast), Stats.
 - Packet: CAN ID + sequence_id + data_count; MAX_DATA_POINTS conforme ESP-NOW da build.
 - Duas variantes em tempo de compilação; semântica primeiro ACK (broadcast) vs MAC ack (multicast).
-- Inserir \includegraphics para cada figura exportada com \label{fig:...} e \caption em português.
-- Estrutura sugerida: Arquitetura | Formato pacote | Núcleo TransceiverBase | Batching | Pipeline rádio | Recepção | Broadcast | Multicast | Integração teste (WcanTest + UART).
+- Usar exatamente duas figuras principais:
+  1. `tx_path.svg`: caminho de transmissão, batching, `linger`, `finish_batch`, `dispatch_batch`, fila de rádio, `send_processing_task`, `esp_now_send` e `on_radio_send`.
+  2. `rx_path.drawio.svg`: caminho de recepção, `esp_now_recv_cb`, filtro/aceite, ring RX, `recv_processing_task`, deduplicação e separação `CONTROL_ID`/dados.
+- Explicar a legenda visual das figuras: fundo pontilhado = broadcast; linhas diagonais = multicast; sem padrão especial = núcleo comum.
+- Inserir as duas figuras com \includegraphics, \label{fig:wcan-tx-path} e \label{fig:wcan-rx-path}, e \caption em português.
+- Usar as figuras como eixo do capítulo: cada seção deve explicar a parte correspondente do diagrama, sem reescrever o desenho em texto.
+- Estrutura sugerida: Arquitetura | Formato pacote | Núcleo TransceiverBase | Batching/TX | Recepção/RX | Broadcast | Multicast | Integração teste (WcanTest + UART).
 - Não inventar resultados numéricos; remeter ao capítulo de Resultados.
 - Manter citações existentes onde ainda fizer sentido; adicionar \cite{espressif_espnow...} se citar payload.
 - Não alterar outros capítulos.
@@ -90,7 +103,7 @@ REGRAS:
 Entregue o .tex completo atualizado e lista de \label{} criados.
 ```
 
-**Suas ações:** exportar figuras (Passo 0); revisar nomes dos arquivos em `thesis/images/` antes de rodar o prompt.
+**Suas ações:** usar `thesis/images/tx_path.svg` e `thesis/images/rx_path.drawio.svg`; não criar novas figuras para Desenvolvimento salvo se o PDF ficar ilegível.
 
 ---
 

@@ -1,138 +1,234 @@
-Este capítulo apresenta a arquitetura e a implementação da camada WCAN sobre
-ESP-NOW. As seções seguintes detalham como os pacotes são montados, como as filas
-organizam a geração e a recepção, e como as variantes de broadcast e multicast
-tratam endereçamento, confirmação e integração com a aplicação.
+Este capítulo apresenta a implementação do WCAN como uma camada de transporte
+sem fio sobre ESP-NOW. A descrição é organizada a partir dos dois fluxos
+principais do firmware: o caminho de transmissão, mostrado na
+Figura~\ref{fig:wcan-tx-path}, e o caminho de recepção, mostrado na
+Figura~\ref{fig:wcan-rx-path}. Nos dois diagramas, os blocos sem padrão especial
+representam o núcleo comum da implementação; o fundo pontilhado identifica o
+comportamento específico da variante broadcast; e as linhas diagonais indicam o
+comportamento específico da variante multicast.
 
-\section{Arquitetura do WCAN}
+\section{Arquitetura}
 
-O WCAN foi estruturado como um protocolo de aplicação sobre ESP-NOW. A interface
-\texttt{wcan\_init} abstrai o transporte sem fio e permite que a aplicação trate os
-dados recebidos como mensagens com semântica CAN. A camada empacota amostras por
-identificador CAN, aplica filtros no receptor, envia os pacotes pelo rádio e entrega
-os dados aceitos ao callback da aplicação.
+O WCAN foi estruturado como uma camada de aplicação que preserva a semântica
+essencial das mensagens CAN, mas substitui o meio físico cabeado por ESP-NOW. A
+aplicação interage com o protocolo por meio de uma instância de
+\texttt{Transceiver}, cujo comportamento concreto é escolhido em tempo de
+compilação entre as variantes broadcast e multicast. As duas variantes
+compartilham o mesmo núcleo, implementado em \texttt{TransceiverBase}, e diferem
+somente nos pontos em que o transporte precisa decidir destino, confirmação e
+gerenciamento de pares.
 
-Para suprir a necessidade de se investigar a viabilidade entre as abordagens citadas
-anteriormente, foram implementadas duas variantes de transporte para o WCAN, broadcast 
-e multicast, selecionadas em tempo de compilação. As duas usam o mesmo formato de pacote 
-e a mesma aplicação de teste, o que permitiu comparar o impacto dessas estratégias de
-endereçamento de forma isolada na confiabilidade sem alterar a instrumentação. O papel de 
-cada placa, sensor, receptor ou nó ocioso, é definido no boot por uma linha enviada pela 
-serial, junto com frequência de geração, CAN ID base, quantidade de IDs e valor de \texttt{linger\_ms}.
+A classe \texttt{TransceiverBase} concentra os recursos comuns: inicialização do
+ESP-NOW, registro dos callbacks de envio e recepção, controle dos
+\texttt{RingBuffer} de transmissão e recepção, criação das tasks de processamento
+e coleta de estatísticas por meio de \texttt{Stats}. O construtor recebe a lista
+de identificadores CAN aceitos para recepção, a lista de identificadores gerados
+para transmissão, o valor de \texttt{linger\_ms} e a política de filtragem. Essa
+configuração permite usar o mesmo binário em papéis diferentes, como nó sensor ou
+nó receptor, sem alterar o núcleo do protocolo.
+
+A integração com ESP-NOW segue a recomendação de manter callbacks curtos e
+deslocar o trabalho mais pesado para tasks de menor acoplamento temporal
+\cite{espressif_espnow_programming_guide}. No envio, os pacotes prontos são
+encaminhados para \texttt{radio\_transmit\_queue}, consumida por
+\texttt{send\_processing\_task}. Na recepção, o callback copia o quadro aceito
+para um \texttt{RingBuffer} de entrada e notifica \texttt{recv\_processing\_task},
+que realiza a decodificação completa e a entrega à aplicação.
 
 \section{Formato dos Pacotes}
 
-A unidade de comunicação é a estrutura \texttt{data\_packet\_t}, composta pelo MAC
-de origem, CAN ID, identificador do pacote gerado a partir do contador de ticks,
-quantidade de amostras e vetor de dados de 32 bits. Para transmissão, o pacote é 
-serializado com 9 bytes de cabeçalho: 4 bytes de CAN ID, 4 bytes do identificador 
-e 1 byte de quantidade de amostras. Como o ESP-NOW clássico permite até 250 bytes de
-payload, restam 241 bytes para dados, o que limita cada lote a 60 amostras de 4 bytes
+A unidade de comunicação do WCAN é a classe \texttt{Packet}. O payload transmitido
+por ESP-NOW contém um cabeçalho formado por três campos: identificador CAN
+(\texttt{CANId\_t}), identificador sequencial do pacote
+(\texttt{sequence\_id}) e quantidade de pontos de dados
+(\texttt{data\_count}). Após o cabeçalho, o pacote armazena um vetor de pontos de
+dados de 32 bits. O endereço MAC de origem não é serializado no payload; ele é
+obtido do metadado fornecido pelo callback de recepção do ESP-NOW e armazenado no
+objeto \texttt{Packet} após a decodificação.
+
+O número máximo de pontos por pacote é calculado em tempo de compilação por
+\texttt{Packet::MAX\_DATA\_POINTS}. Esse valor depende de
+\texttt{ESP\_NOW\_MAX\_DATA\_LENGTH}, que por sua vez acompanha a configuração da
+versão de ESP-NOW disponível na build. Assim, o limite não é codificado como uma
+quantidade fixa de amostras; ele deriva do tamanho de payload disponibilizado pela
+biblioteca da Espressif e do tamanho do cabeçalho do WCAN
 \cite{espressif_espnow_programming_guide}.
 
-Os identificadores de controle foram colocados fora do espaço válido de IDs CAN
-estendidos. Como o CAN estendido usa 29 bits, com valor máximo \texttt{0x1FFFFFFF},
-a faixa \texttt{0xE0000000} foi reservada para sentinelas internas do WCAN
-\cite{iso11898_1_2024}. No broadcast, esse valor identifica ACKs. No multicast,
-identifica mensagens de descoberta, chamadas \texttt{HELLO}. Como apenas uma
-variante é compilada por vez, não há conflito no firmware final.
+O identificador \texttt{CONTROL\_ID}, definido como \texttt{0xE0000000}, é
+reservado para mensagens internas do protocolo. Essa faixa fica fora do intervalo
+normal de identificadores CAN estendidos, que usam 29 bits
+\cite{iso11898_1_2024}. Na variante broadcast, pacotes com esse identificador
+representam confirmações de aplicação. Na variante multicast, representam
+mensagens de inscrição usadas para divulgar interesse em determinados
+identificadores CAN. Como apenas uma variante é compilada por vez, a reutilização
+do mesmo identificador de controle não cria ambiguidade no firmware final.
 
-\section{Filas e Agrupamento de Amostras}
+\section{Núcleo TransceiverBase}
 
-Os callbacks do ESP-NOW foram mantidos curtos, conforme a recomendação da Espressif
-de deslocar operações demoradas para filas e tasks de menor prioridade
-\cite{espressif_espnow_programming_guide}. No WCAN existem três pontos centrais de
-enfileiramento.
+O núcleo comum mantém um \texttt{RingBuffer<Packet>} de transmissão para cada CAN
+ID configurado em \texttt{\_tx\_can\_ids}. Cada posição do anel já é
+inicializada com o MAC local e o respectivo CAN ID, de modo que o caminho crítico
+de envio apenas acrescenta pontos de dados ao pacote em construção. Quando o
+pacote é fechado, \texttt{finish\_batch} atribui um novo
+\texttt{sequence\_id}, registra o instante em que o lote ficou pronto em
+\texttt{Stats}, avança o anel e chama o método virtual
+\texttt{dispatch\_batch}. Esse método é o primeiro ponto em que o comportamento
+de broadcast e multicast se separa.
 
-O primeiro é a fila por CAN ID, criada no caminho de geração. Cada identificador que
-deve ser transmitido possui uma fila própria de amostras brutas, com elementos de 32
-bits. A aplicação produtora insere cada valor nessa fila assim que ele é lido ou
-convertido. A task associada ao CAN ID bloqueia nessa fila, acumula a primeira amostra, 
-espera até \texttt{linger\_ms} por novas amostras e fecha o lote quando a janela expira 
-ou quando o limite de 60 valores é atingido. Esse batching reduz o overhead fixo do 
-ESP-NOW, evita a criação de muitos quadros pequenos e permite ajustar a latência de 
-acordo com a taxa de geração. Quando \texttt{linger\_ms = 0}, o sistema envia uma única 
-amostra por pacote. Estudos e medições práticas de ESP-NOW também indicam que tamanho de
-pacote, topologia e condições do enlace afetam diretamente vazão e atraso
-\cite{hackaday_espnow_throughput,urazayev2023_indoor_espnow,wedyanti2025_espnow_multinode}.
+Na recepção, \texttt{TransceiverBase} mantém um \texttt{RingBuffer} de
+\texttt{EspNowPacket}. Esse anel armazena os bytes recebidos, o MAC de origem, o
+MAC de destino e o tamanho do payload. A decodificação para \texttt{Packet} é
+feita por \texttt{Packet::from\_payload} na task de recepção, fora do callback do
+rádio. Antes de entregar dados à aplicação, o núcleo aplica um deduplicador baseado
+na combinação de MAC de origem, CAN ID e \texttt{sequence\_id}. Com isso,
+retransmissões aceitas pelo rádio não aparecem como novas mensagens CAN para a
+camada superior.
 
-Depois do agrupamento, a task constrói um \texttt{data\_packet\_t}, preenche o MAC
-de origem, o CAN ID, o identificador do pacote e o vetor com as amostras agrupadas, 
-e então repassa o pacote para a fila de envio, \texttt{send\_queue}. Essa fila não 
-guarda amostras isoladas; ela guarda requisições de transmissão já montadas, com os 
-metadados necessários para escolher o destino, sincronizar a confirmação e liberar o 
-fluxo da task de geração sem bloqueá-la no rádio. A task \texttt{send\_processing\_task} 
-consome essa fila, prepara os pares necessários e executa a transmissão no ESP-NOW, 
-seja em broadcast ou multicast, dependendo da variante compilada.
+Os pontos variáveis da arquitetura são definidos por métodos virtuais. A função
+\texttt{prepare\_send\_mac} escolhe o destino usado por \texttt{esp\_now\_send};
+\texttt{dispatch\_batch} decide como um pacote pronto entra no fluxo de
+transmissão; \texttt{on\_control\_packet} interpreta mensagens de controle;
+\texttt{on\_data\_packet} executa efeitos colaterais específicos ao receber
+dados; e \texttt{on\_radio\_send} encerra ou reprograma o tratamento de um pacote
+após o callback de envio do ESP-NOW.
 
-No caminho de recepção, o ponto de entrada é o callback do ESP-NOW. Esse callback
-recebe o quadro cru já associado ao MAC de origem, valida os argumentos e faz a
-desserialização ainda nesse contexto. Isso é importante porque a própria interpretação
-do pacote já define se ele é um pacote de confirmação (ACK), um pacote de inscrição
-(\texttt{HELLO}) ou um pacote de dados que deve seguir para o restante do processamento. 
-A desserialização é custosa, mas precisa acontecer o mais rápidamente possível para que
-a filtragem por identificador CAN e a lógica de registro ou confirmação sejam decididas o mais perto 
-possível do recebimento físico. Adiar esse passo significaria carregar bytes opacos 
-para outra task e postergar uma decisão que depende do conteúdo do pacote.
+\section{Caminho de Transmissão}
 
-Se o pacote for de dados e passar pelo filtro, ele é colocado na fila de recepção, \texttt{recv\_queue}.
-Essa fila isola a chegada do rádio do consumo pela aplicação. A task
-\texttt{recv\_processing\_task} retira os pacotes dessa fila, faz a deduplicação por
-identificador de pacote, envia a confirmação, e só então chama o callback de aplicação. 
-Esse último passo é o ponto em que os dados recebidos por rádio passam a ser tratados 
-como mensagens CAN válidas para o restante do sistema.
+A Figura~\ref{fig:wcan-tx-path} apresenta o caminho percorrido por uma amostra
+desde a chamada de \texttt{send\_data} até a conclusão do envio pelo rádio. Esse
+fluxo começa com a seleção do anel associado ao CAN ID e com a inserção do ponto
+de dados no pacote em construção.
 
-\section{Transportes Broadcast e Multicast}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{images/tx_path.png}
+    \caption{Caminho de transmissão do WCAN, incluindo agrupamento de amostras, fechamento de lote, despacho para o rádio e confirmação de envio.}
+    \label{fig:wcan-tx-path}
+\end{figure}
 
-O comportamento descrito acima é compartilhado pelas duas variantes de transporte,
-broadcast e multicast, ligadas em tempo de compilação. As duas usam o mesmo formato
-de pacote e a mesma aplicação de teste, o que permitiu comparar estratégias de
-endereçamento e confiabilidade sem alterar a instrumentação. No broadcast, todos os
-pacotes de dados são enviados para \texttt{FF:FF:FF:FF:FF:FF}. Os receptores no mesmo
-canal aplicam seus filtros por CAN ID e, se aceitarem o pacote, enviam um ACK
-direcionado ao sensor. O transmissor usa o par CAN ID e identificador do pacote para
-correlacionar confirmações, retransmitindo quando nenhum ACK válido chega dentro da
-janela esperada. Quando existem múltiplos receptores, o primeiro ACK libera o próximo
-lote. Essa escolha replica a semântica do ACK dominante do CAN, na qual o transmissor
-sabe que algum nó recebeu a mensagem, mas não identifica quais nós a receberam
-\cite{iso11898_1_2024}.
+O agrupamento é controlado por \texttt{linger\_ms}. Quando o primeiro ponto de um
+novo lote é inserido, o firmware inicia um \texttt{esp\_timer} one-shot para o CAN
+ID correspondente. Esse temporizador não bloqueia a task produtora; ele apenas
+agenda a chamada de \texttt{finish\_batch} quando a janela de agregação expira. O
+lote também é fechado imediatamente se atingir \texttt{Packet::MAX\_DATA\_POINTS}
+ou se \texttt{linger\_ms} for zero. Dessa forma, sinais de baixa frequência podem
+seguir com baixa latência, enquanto sinais de maior frequência podem compartilhar
+o overhead fixo de um mesmo quadro ESP-NOW.
 
-No multicast, o sensor mantém uma tabela de assinantes interessados em cada CAN ID.
-Enquanto não há assinantes vivos, o sensor opera como se estivesse no modo broadcast. 
-Nessa fase ele não depende de
-ACK para decidir o fluxo de transmissão; a ideia é enviar os pacotes livremente até que
-algum receptor responda com \texttt{CAN\_HELLO}. Quando esse pacote chega, seja por resposta
-ao broadcast ou pela tarefa de descoberta do receptor, o sensor registra o emissor como assinante
-e passa a operar em multicast direcionado. Nesse modo, basta que um receptor confirme
-o recebimento para que o próximo pacote seja liberado; não há ACK de camada de aplicação.
-O critério adotado é o retorno do send callback do ESP-NOW, que informa no nível do
-MAC se aquele destino recebeu o quadro, considerado suficiente para o
-objetivo do WCAN. A tabela de assinantes é atualizada dinamicamente: cada
-\texttt{CAN\_HELLO} renova o \texttt{last\_seen\_tick} do emissor e pode acrescentar
-um novo assinante, enquanto a checagem de liveness trata como inativos os registros
-cuja atividade ficou velha demais. Além disso, o send callback atualiza a recentidade
-dos destinos confirmados e conta falhas consecutivas, o que permite remover um peer
-quando ele deixa de responder de forma consistente.
+Depois de \texttt{finish\_batch}, a variante compilada decide como o pacote entra
+no rádio. No multicast, \texttt{dispatch\_batch} coloca diretamente um ponteiro
+para o pacote em \texttt{radio\_transmit\_queue}. No broadcast, o mesmo método
+notifica a \texttt{retry\_task} associada ao CAN ID, pois a transmissão depende do
+ciclo de tentativa e confirmação de aplicação. Em ambos os casos, a chamada real a
+\texttt{esp\_now\_send} é feita por \texttt{send\_processing\_task}, que serializa
+o \texttt{Packet}, consulta \texttt{prepare\_send\_mac} e aguarda o resultado do
+callback \texttt{esp\_now\_send\_cb} por meio de uma fila interna de status.
 
-As duas estratégias refletem compromissos diferentes. Ambas trabalham com a garantia
-mínima de que ao menos um receptor interessado confirmou o pacote; a diferença está
-no mecanismo de endereçamento e no custo de coordenação. O broadcast não depende de 
-descoberta prévia, mas tem um custo de complexidade no mecanismo de confirmação.
-O multicast, por sua vez, evita esse problema ao usar a confirmação fornecida pelo ESP-NOW 
-no nível MAC, mas introduz a necessidade de gerenciar uma tabela de assinantes e lidar com a dinâmica de
-registro e expiração. Diante dos cenários citados, entender qual das opções é a mais viável 
-tornou-se um dos principais pontos de investigação deste trabalho, e a decisão entre as 
-variantes foi tratada como questão experimental.
+O método \texttt{on\_radio\_send} finaliza o tratamento do pacote conforme a
+semântica da variante. No multicast, um envio bem-sucedido libera a posição atual
+do anel, enquanto uma falha é registrada em \texttt{Stats} antes de descartar o
+lote. No broadcast, o resultado do envio pelo rádio apenas informa a
+\texttt{retry\_task}; a entrega só é considerada concluída quando chega um ACK de
+aplicação correspondente ao CAN ID e ao \texttt{sequence\_id} pendentes.
 
-\section{Integração com o CAN Existente}
+\section{Caminho de Recepção}
 
-A integração preserva o CAN ID original e entrega cada \texttt{data\_packet\_t} por
-meio de um callback de aplicação implementado pelo usuário. Esse callback recebe o
-pacote já filtrado e pode percorrer seus pontos de dados para tomar a ação desejada:
-retransmiti-los no barramento físico via TWAI com o mesmo identificador, registrá-los
-em log serial ou adotar qualquer outra política de tratamento. Assim, o WCAN deixa a
-fronteira de integração deliberadamente aberta, e os demais módulos do veículo podem
-tratar os dados recebidos por rádio como mensagens CAN comuns
-\cite{silva2009_rede_can_formula_sae,blatt2020_aquisicao_formula_sae}. Nos testes
-quantitativos, esse callback foi usado para registrar os pacotes em log serial para
-análise de entrega e latência. No uso embarcado, ele se torna o ponto de injeção no
-barramento CAN local.
+A Figura~\ref{fig:wcan-rx-path} apresenta o caminho de recepção desde o callback
+do ESP-NOW até a separação entre pacotes de controle e pacotes de dados. O primeiro
+passo do callback \texttt{esp\_now\_recv\_cb} é validar argumentos, tamanho mínimo
+e limite máximo de payload. Em seguida, o callback extrai apenas o CAN ID do início
+do payload, pois essa informação é suficiente para aplicar a filtragem inicial.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{images/rx_path.png}
+    \caption{Caminho de recepção do WCAN, incluindo aceite inicial, armazenamento no anel RX, deduplicação e tratamento separado de controle e dados.}
+    \label{fig:wcan-rx-path}
+\end{figure}
+
+A função \texttt{should\_accept} aceita sempre \texttt{CONTROL\_ID}. Para pacotes
+de dados, ela depende da configuração de filtragem: quando a filtragem está
+desabilitada, todos os CAN IDs são aceitos; quando está habilitada, apenas os IDs
+presentes em \texttt{\_rx\_can\_ids} entram no anel de recepção. Se o anel estiver
+cheio, o quadro é descartado ainda no callback. Caso contrário, o firmware copia
+os bytes recebidos para o \texttt{RingBuffer} RX e notifica
+\texttt{recv\_processing\_task}.
+
+Na task de recepção, cada entrada bruta é convertida para \texttt{Packet} por
+\texttt{Packet::from\_payload}. Essa etapa reconstrói o CAN ID, o
+\texttt{sequence\_id}, o \texttt{data\_count}, os dados e a indicação de que o
+quadro chegou via broadcast quando o MAC de destino é
+\texttt{FF:FF:FF:FF:FF:FF}. Depois da decodificação, o deduplicador descarta
+pacotes repetidos. Pacotes com \texttt{CONTROL\_ID} seguem para
+\texttt{on\_control\_packet}; pacotes de dados seguem para
+\texttt{on\_data\_packet}, têm a recepção registrada em \texttt{Stats} e são
+entregues ao callback de aplicação configurado em \texttt{set\_recv\_callback}.
+
+\section{Variante Broadcast}
+
+Na variante broadcast, pacotes de dados são enviados para o endereço
+\texttt{FF:FF:FF:FF:FF:FF}. Todos os receptores no mesmo canal podem receber o
+quadro, mas somente os que passam pelo filtro de CAN ID continuam o processamento.
+Ao aceitar um pacote de dados, o receptor adiciona o MAC do sensor como peer do
+ESP-NOW, monta um pacote de controle contendo o CAN ID e o
+\texttt{sequence\_id} recebidos e transmite esse ACK diretamente ao sensor.
+
+O sensor mantém, para cada CAN ID transmitido, uma \texttt{retry\_task}, uma fila
+de resultado de ACK e o \texttt{sequence\_id} pendente. A task envia o pacote,
+espera a conclusão do envio pelo rádio e então aguarda um ACK de aplicação durante
+uma janela temporizada. Se o ACK não chega, o pacote é retransmitido até o limite
+de tentativas definido pela implementação. Quando qualquer receptor envia um ACK
+válido, o pacote é considerado entregue e o anel avança para o próximo lote.
+
+Essa política implementa a semântica de primeiro ACK. Ela é compatível com o
+comportamento do CAN, no qual o transmissor observa apenas que algum nó confirmou
+a recepção no slot de ACK, sem obter uma lista de todos os receptores que
+receberam a mensagem \cite{iso11898_1_2024}. A consequência é que o broadcast
+preserva a simplicidade de um barramento sem registro prévio de assinantes, mas a
+confiabilidade observada pelo transmissor corresponde à confirmação de pelo menos
+um receptor interessado, não à confirmação individual de todos eles.
+
+\section{Variante Multicast}
+
+Na variante multicast, o firmware substitui o ACK de aplicação por confirmação no
+nível MAC do ESP-NOW. Os receptores divulgam periodicamente seus interesses por
+meio de pacotes \texttt{CONTROL\_ID}. Quando a filtragem está desabilitada, a
+mensagem de controle indica interesse em todos os CAN IDs; quando a filtragem está
+habilitada, o payload lista os IDs aceitos pelo receptor. O sensor mantém essas
+informações em uma tabela de assinantes com tempo de vida, renovada por novas
+mensagens de controle e também por confirmações de envio bem-sucedidas.
+
+Antes de transmitir um pacote de dados, \texttt{prepare\_send\_mac} sincroniza a
+lista de peers do ESP-NOW com os assinantes vivos daquele CAN ID. Se há
+assinantes, o destino passado a \texttt{esp\_now\_send} é nulo, fazendo com que o
+driver envie o quadro em multicast para todos os peers registrados naquele
+momento. Se não há assinantes, o firmware transmite os dados em broadcast e
+continua o fluxo normalmente, sem bloquear à espera de confirmação ou de uma
+etapa explícita de descoberta. Esse broadcast inicial permite que um receptor
+interessado, ao receber o pacote de dados, responda com uma inscrição unicast
+para o sensor. Caso essa inscrição não chegue, o sensor apenas mantém o envio em
+broadcast; caso chegue, as próximas transmissões passam a usar o conjunto de
+peers multicast registrados.
+
+A confirmação usada nessa variante não é um ACK de camada de aplicação. Ela é
+baseada no mecanismo de confirmação da subcamada MAC do IEEE 802.11: quadros de
+dados endereçados podem ser confirmados por quadros ACK de controle no próprio
+nível MAC, antes de qualquer processamento pela aplicação receptora
+\cite{ieee80211_2024}. A Espressif expõe esse resultado pelo callback de envio do
+ESP-NOW; de acordo com a documentação, \texttt{ESP\_NOW\_SEND\_SUCCESS} indica
+que o dado foi recebido com sucesso na camada MAC \cite{espressif_espnow_programming_guide}.
+Por isso, o WCAN usa \texttt{esp\_now\_send\_cb} como uma confirmação operacional
+do envio multicast.
+
+Essa escolha reduz o custo temporal do transporte. Ao contrário do broadcast, o
+multicast não precisa enviar um pacote \texttt{CONTROL\_ID} de ACK de aplicação
+para cada lote recebido, nem manter uma janela explícita de espera por esse ACK
+antes de liberar o próximo pacote. O transmissor pode avançar assim que o driver
+informa sucesso no nível MAC, o que encurta o caminho crítico de transmissão e
+reduz o tráfego de controle no rádio. A limitação é que essa confirmação não prova
+que a aplicação do receptor decodificou o \texttt{Packet}, passou pela
+deduplicação e executou o callback de recepção. Ela apenas mostra que o enlace
+802.11 confirmou a entrega do quadro no nível MAC. Para o WCAN, essa garantia foi
+considerada suficiente no modo multicast, pois preserva uma indicação de entrega
+pelo enlace sem pagar o custo de uma confirmação fim a fim em software para cada
+lote.
