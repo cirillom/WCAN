@@ -8,10 +8,12 @@ dados com latência compatível com as frequências de aquisição já praticada
 pela equipe. Na arquitetura atual, cada identificador CAN é associado a uma
 frequência fixa de transmissão de 200~Hz, o que simplifica a
 integração com o barramento e preserva a interpretação temporal dos sinais.
-Em componentes como o semieixo, porém, pode ser necessário elevar essa
-frequência para capturar sinais de maior conteúdo espectral; nesses casos, a
-taxa de amostragem precisa continuar compatível com a banda útil do fenômeno
-observado, conforme o teorema de Nyquist
+Em componentes como o semieixo, porém, a equipe pretende explorar frequências
+mais altas para capturar sinais de maior conteúdo espectral. Por isso, 1000~Hz
+foi adotado como limite superior experimental, cinco vezes acima da frequência
+atualmente usada, para avaliar a margem prática do sistema. Nesses casos, a taxa
+de amostragem precisa continuar compatível com a banda útil do fenômeno observado,
+conforme o teorema de Nyquist
 \cite{oppenheim1999_discrete_time_signal_processing}. Em sistemas de aquisição para
 Fórmula SAE, a utilidade dos dados depende tanto da taxa de amostragem quanto
 da capacidade de relacionar os sinais coletados a eventos do veículo e do
@@ -64,7 +66,7 @@ desnecessários \cite{rahman2017_intravehicular_wsn}.
 \hline
 Requisito & Tipo & Descrição \\
 \hline
-Desempenho e latência & Não funcional & Latência compatível com as frequências do veículo (até 1000~Hz) e preservação temporal dos sinais. \\
+Desempenho e latência & Não funcional & Latência compatível com a frequência atual do veículo (200~Hz) e avaliação exploratória de margem até 1000~Hz, preservando a interpretação temporal dos sinais. \\
 \hline
 Conexão instantânea & Funcional & Início imediato da transmissão de dados, sem depender de processos prévios de associação (\emph{handshake}). \\
 \hline
