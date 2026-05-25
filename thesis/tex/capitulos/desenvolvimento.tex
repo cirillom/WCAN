@@ -102,11 +102,11 @@ de dados no pacote em construção.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{images/tx_path.png}
-    \caption{Caminho de transmissão do WCAN, incluindo agrupamento de amostras, fechamento de lote, despacho para o rádio e confirmação de envio.}
+    \caption{Caminho de transmissão do WCAN, incluindo agrupamento temporal de amostras, fechamento de lote, despacho para o rádio e confirmação de envio.}
     \label{fig:wcan-tx-path}
 \end{figure}
 
-O agrupamento é controlado por \texttt{linger\_ms}. Quando o primeiro ponto de um
+O agrupamento temporal é controlado por \texttt{linger\_ms}. Quando o primeiro ponto de um
 novo lote é inserido, o firmware inicia um \texttt{esp\_timer} one-shot para o CAN
 ID correspondente. Esse temporizador não bloqueia a task produtora; ele apenas
 agenda a chamada de \texttt{finish\_batch} quando a janela de agregação expira. O

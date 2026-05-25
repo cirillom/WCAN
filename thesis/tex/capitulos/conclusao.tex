@@ -17,19 +17,19 @@ transporte selecionadas em tempo de compilação. A avaliação final não valid
 sistema como substituto do CAN físico em controle crítico, mas sustenta seu uso
 como ponte de aquisição sem fio em bancada e como base para validação embarcada.
 
-A principal conclusão experimental é que o \textit{batching} é parte essencial do
+A principal conclusão experimental é que o agrupamento temporal é parte essencial do
 protocolo, não uma otimização secundária. Nas suítes com \texttt{linger\_ms =
 100}, a base útil teve 415 aprovações em 499 execuções; na suíte
-\texttt{real\_time}, sem agregação temporal, houve apenas 38 aprovações em 180
+\texttt{real\_time}, sem formar lotes, houve apenas 38 aprovações em 180
 execuções. Isso mostra que transformar cada amostra em um pacote ESP-NOW remove a
-margem operacional do sistema, principalmente em frequências acima de 100~Hz. Com
-\textit{batching}, por outro lado, o sistema conseguiu operar em cenários até
+margem operacional do sistema, principalmente em frequências acima de 100~Hz.
+O uso de lotes, por outro lado, permitiu operar em cenários até
 1000~Hz, desde que a reconstrução temporal aceite a premissa de amostras regulares
 agrupadas no mesmo pacote.
 
-O melhor desempenho final foi do multicast com \textit{batching}, especialmente
+O melhor desempenho final foi do multicast nessa configuração, especialmente
 na suíte \texttt{multiple}, que representa melhor um nó sensor real transmitindo
-mais de um CAN ID. Nessa suíte, o multicast com \textit{batching} aprovou 90 de
+mais de um CAN ID. Nessa suíte, essa combinação aprovou 90 de
 90 execuções, incluindo 36 de 36 em 750--1000~Hz. O broadcast, sob a mesma suíte,
 aprovou 34 de 90 execuções e apenas 3 de 36 em 750--1000~Hz. A diferença decorre
 principalmente da semântica de confirmação: no broadcast, cada lote depende de
@@ -76,7 +76,7 @@ lógica.
 
 Do ponto de vista de firmware, o trabalho futuro não é redesenhar o multicast,
 mas endurecer sua operação para uso prolongado. A campanha mostrou que essa
-variante foi o melhor caminho com \textit{batching}; portanto, as melhorias devem
+variante foi o melhor caminho quando usada com lotes; portanto, as melhorias devem
 preservar a confirmação operacional no nível MAC e a baixa coordenação que deram
 vazão à suíte \texttt{multiple}. Os ajustes esperados estão nas bordas do
 gerenciamento: expiração de assinantes, atualização dinâmica de peers, tratamento
@@ -105,7 +105,7 @@ WCAN do comportamento lógico de uma rede CAN, onde os nós compartilham o meio 
 interagem de forma mais simétrica.
 
 Por fim, a preservação temporal merece uma validação específica. A campanha
-mostrou que o WCAN pode transportar sinais até 1000~Hz com \textit{batching}, mas
+mostrou que o WCAN pode transportar sinais até 1000~Hz com agrupamento temporal, mas
 a interpretação temporal acima de 100~Hz depende de frequência regular e da
 reconstrução correta da sequência dentro do lote. Trabalhos futuros devem medir
 jitter, atraso fim a fim, perda de borda e sincronização temporal com relógios ou
@@ -120,10 +120,9 @@ preserva a organização lógica por CAN ID, permite conexão imediata, suporta
 múltiplos nós e reduz a dependência de cabeamento em pontos de instrumentação
 complexos.
 
-O estado atual mais promissor é o multicast com \textit{batching}, especialmente
+O estado atual mais promissor é o multicast com lotes, especialmente
 para múltiplos fluxos por sensor. O broadcast permanece útil como referência de
 semântica por primeiro ACK e pela simplicidade de transmissão para qualquer
 receptor interessado. Em ambos os casos, o resultado central permanece o mesmo:
-sem agregação temporal, o ESP-NOW perde margem rapidamente; com
-\textit{batching}, o WCAN se torna uma base prática para a próxima etapa de
-validação no veículo.
+sem lotes, o ESP-NOW perde margem rapidamente; ao reunir amostras, o WCAN
+se torna uma base prática para a próxima etapa de validação no veículo.

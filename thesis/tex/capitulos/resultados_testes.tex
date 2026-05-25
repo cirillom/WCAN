@@ -40,7 +40,7 @@ Suíte e transporte & Aprovadas & Stats excl. & Leitura principal \\
 \hline
 \texttt{multiple}, broadcast & 34/90 & 0 & Caso crítico da tese; o ACK de aplicação e as retransmissões limitam a escala com três CAN IDs por sensor. \\
 \hline
-\texttt{multiple}, multicast & 90/90 & 0 & Melhor resultado prático da campanha para múltiplos fluxos com \textit{batching}. \\
+\texttt{multiple}, multicast & 90/90 & 0 & Melhor resultado prático da campanha para múltiplos fluxos com lotes. \\
 \hline
 \texttt{baseline}, broadcast & 70/88 & 2 & Controle de um CAN ID por sensor; bom em baixa carga, mas ainda sensível a 750 Hz e topologias maiores. \\
 \hline
@@ -48,7 +48,7 @@ Suíte e transporte & Aprovadas & Stats excl. & Leitura principal \\
 \hline
 \texttt{real\_time}, broadcast & 18/90 & 0 & Sem \textit{linger}, o caminho de ACK e fila satura rapidamente. \\
 \hline
-\texttt{real\_time}, multicast & 20/90 & 0 & Sem \textit{batching}, o driver ESP-NOW passa a rejeitar envios em alta taxa. \\
+\texttt{real\_time}, multicast & 20/90 & 0 & Sem agrupamento temporal, o driver ESP-NOW passa a rejeitar envios em alta taxa. \\
 \hline
 \texttt{active\_filter}, broadcast & 52/60 & 0 & Filtro correto; falhas remanescentes são de entrega, carga ou bancada. \\
 \hline
@@ -68,7 +68,7 @@ Suíte e transporte & Aprovadas & Stats excl. & Leitura principal \\
 A suíte \texttt{multiple} força cada sensor a publicar três CAN IDs. Essa é a
 condição mais próxima do uso pretendido, porque uma placa embarcada tende a
 agrupar várias medições e estados sob IDs diferentes. Nessa suíte, o multicast
-com \textit{batching} aprovou 90 de 90 execuções. O broadcast aprovou 34 de 90.
+com agrupamento temporal aprovou 90 de 90 execuções. O broadcast aprovou 34 de 90.
 A diferença não vem do formato do pacote, que é comum, mas da política de
 confirmação.
 
@@ -85,7 +85,7 @@ Transporte em \texttt{multiple} & 750--1000 Hz & Total da suíte & Leitura \\
 \hline
 Broadcast & 3/36 & 34/90 & O custo de ACK de aplicação, timeout e retransmissão aumenta até preencher filas e gerar \texttt{P(FAIL)} e \texttt{S(FAIL)}. \\
 \hline
-Multicast & 36/36 & 90/90 & A assinatura por CAN ID remove ACK de aplicação do caminho de dados e preserva vazão com \textit{batching}. \\
+Multicast & 36/36 & 90/90 & A assinatura por CAN ID remove ACK de aplicação do caminho de dados e preserva vazão com agrupamento temporal. \\
 \hline
 \end{tabular}
 \captionof{table}{Comparação dos transportes na suíte \texttt{multiple}.}
@@ -113,11 +113,11 @@ suíte \texttt{multiple}. A garantia final de aplicação foi obtida a posterior
 comparando os contadores gerados pelos sensores com os intervalos \texttt{R(RANGE)}
 registrados nos receptores.
 
-\section{Efeito do Batching}
+\section{Efeito do Agrupamento Temporal}
 
 As suítes com \texttt{linger\_ms = 100} somaram 415 aprovações em 499 execuções
 da base útil. A suíte \texttt{real\_time}, com \texttt{linger\_ms = 0}, somou
-38 aprovações em 180 execuções. A Tabela~\ref{tab:efeito-batching-final}
+38 aprovações em 180 execuções. A Tabela~\ref{tab:efeito-agrupamento-temporal-final}
 apresenta essa comparação antes da discussão dos logs.
 
 \begin{center}
@@ -133,16 +133,16 @@ Conjunto & Configuração & Aprovadas & Interpretação \\
 \texttt{real\_time} & \texttt{linger\_ms = 0} & 38/180 & Cada amostra força um envio ESP-NOW; a pressão migra diretamente para filas, callbacks e driver Wi-Fi. \\
 \hline
 \end{tabular}
-\captionof{table}{Efeito agregado do \textit{batching} na campanha final.}
-\label{tab:efeito-batching-final}
+\captionof{table}{Efeito agregado do agrupamento temporal na campanha final.}
+\label{tab:efeito-agrupamento-temporal-final}
 \end{center}
 
 Em \texttt{real\_time}, a degradação é abrupta. Em 10 Hz, o broadcast passou 17
 de 18 execuções e o multicast passou 18 de 18. Em 100 Hz, os mesmos transportes
 caíram para 1/18 e 2/18. Em 200 Hz, 750 Hz e 1000 Hz, nenhuma execução foi
 aprovada. Isso ocorre porque a taxa de amostras passa a ser também a taxa de
-pacotes ESP-NOW. Com \textit{batching}, várias amostras do mesmo CAN ID são
-transportadas no mesmo \texttt{Packet}; sem \textit{batching}, cada amostra
+pacotes ESP-NOW. Ao reunir várias amostras do mesmo CAN ID no mesmo
+\texttt{Packet}, o sistema reduz essa pressão; no envio amostra a amostra, cada ponto
 disputa chamada de driver, callback e espaço de fila.
 
 Mesmo quando os dois transportes reprovam, a diferença de entrega é relevante.
@@ -167,10 +167,10 @@ Nos testes, esse erro aparece quando o intervalo entre envios fica curto demais 
 o airtime se aproxima da saturação. O caso
 \path{multicast/real_time/1000Hz/test_4S-1R_rep1} chegou a 99,78\% de airtime em
 um sensor. Portanto, a causa imediata é o desenho da carga imposta ao sistema,
-isto é, envio sem agregação em frequência alta; as características físicas do
+isto é, envio amostra a amostra em frequência alta; as características físicas do
 802.11 entram como limite de airtime e contenção do meio, mas não explicam
 sozinhas a falha. O mesmo hardware sustenta 1000 Hz em \texttt{multiple}
-multicast quando o \textit{batching} reduz a taxa de pacotes.
+multicast quando as amostras são reunidas em lotes, reduzindo a taxa de pacotes.
 
 \section{Estatísticas, Logs Incompletos e Confiabilidade da Medição}
 
@@ -339,7 +339,7 @@ sensores e receptores simultâneos.
 \hline
 Requisito & Evidência principal & Status \\
 \hline
-Desempenho e latência & O multicast com \textit{batching} operou até 1000 Hz, mas a preservação temporal depende do modelo do sinal. Para sinais de frequência fixa ou até 100 Hz, a campanha preservou a sequência e a leitura temporal; acima disso, sem \textit{batching}, \texttt{real\_time} caiu para 38/180 execuções aprovadas. & Parcial \\
+Desempenho e latência & O multicast com agrupamento temporal operou até 1000 Hz, mas a preservação temporal depende do modelo do sinal. Para sinais de frequência fixa ou até 100 Hz, a campanha preservou a sequência e a leitura temporal; acima disso, sem esse mecanismo, \texttt{real\_time} caiu para 38/180 execuções aprovadas. & Parcial \\
 \hline
 Conexão instantânea & Broadcast transmite dados sem handshake. Multicast preserva essa propriedade porque, antes de receber anúncios de assinatura, também envia dados em broadcast e só migra para peers assinantes depois do cadastro. & Atendido em bancada \\
 \hline
@@ -361,12 +361,12 @@ de entrega, mas a preservação temporal do sinal. A campanha mostra dois regime
 Quando o sinal tem frequência fixa, ou quando a frequência permanece até 100~Hz,
 a sequência recebida mantém informação temporal suficiente para reconstrução no
 receptor. Em frequências maiores, o sistema só preserva essa propriedade quando
-usa \textit{batching}: o multicast agrupado sustentou cenários até 1000~Hz,
-enquanto a variante \texttt{real\_time}, sem \textit{batching}, caiu para 38/180
+reúne amostras em lotes: o multicast sustentou cenários até 1000~Hz,
+enquanto a variante \texttt{real\_time}, sem essa estratégia, caiu para 38/180
 execuções aprovadas. Assim, o requisito é parcial: a arquitetura alcança alta
-frequência, mas a preservação temporal acima de 100~Hz depende da agregação por
-lote e da premissa de que as amostras dentro do pacote representam uma sequência
-regular do mesmo CAN ID.
+frequência, mas a preservação temporal acima de 100~Hz depende dessa formação
+de lotes e da premissa de que as amostras dentro do pacote representam uma
+sequência regular do mesmo CAN ID.
 
 A conexão instantânea foi atendida tanto no broadcast quanto no multicast. No
 broadcast, isso é direto: o sensor transmite sem conhecer receptores. No

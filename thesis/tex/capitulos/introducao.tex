@@ -79,7 +79,7 @@ Os objetivos específicos são:
     \item caracterizar os requisitos de uma ponte sem fio compatível com o sistema
     de aquisição existente;
     \item implementar o WCAN como camada de comunicação sobre ESP-NOW, com
-    agrupamento de amostras e filtragem por identificador CAN;
+    agrupamento temporal de amostras e filtragem por identificador CAN;
     \item desenvolver e comparar duas variantes de transporte, broadcast e
     multicast;
     \item avaliar, em bancada, o comportamento do sistema com múltiplos sensores,
@@ -103,14 +103,13 @@ A campanha final, armazenada em \path{transmitter/testing/results/final}, possui
 planejadas. Após separar cinco falhas atribuídas à
 instrumentação de estatísticas ou log serial, a base útil ficou em 453 aprovações
 sobre 679 execuções, ou 66,7\%. O melhor desempenho final foi obtido pelo
-multicast com agrupamento temporal. Na suíte \texttt{multiple}, o multicast
+multicast com lotes. Na suíte \texttt{multiple}, essa configuração
 aprovou 90 de 90 execuções com múltiplos CAN IDs por sensor, enquanto o broadcast
-aprovou 34 de 90. O agrupamento temporal também foi determinante: as suítes com
+aprovou 34 de 90. O mecanismo também foi determinante: as suítes com
 \texttt{linger\_ms = 100} somaram 415 aprovações em 499 execuções, enquanto a
-suíte \texttt{real\_time}, sem agrupamento, somou 38 em 180. Esses resultados
+suíte \texttt{real\_time}, sem formar lotes, somou 38 em 180. Esses resultados
 indicam que o WCAN é viável em bancada para aquisição de dados quando usado
-dentro dos limites observados, especialmente com multicast e agrupamento de
-amostras.
+dentro dos limites observados, especialmente com multicast e formação de lotes.
 
 \section{Escopo e Organização do Trabalho}
 
@@ -150,7 +149,7 @@ análise.
 
 O Capítulo~\ref{chapter:resultados-testes} discute a campanha final em
 \path{transmitter/testing/results/final}, com os resultados por suíte, transporte,
-efeito do agrupamento, filtros, falhas representativas e rastreabilidade dos
+efeito do agrupamento temporal, filtros, falhas representativas e rastreabilidade dos
 requisitos.
 
 O Capítulo~\ref{chapter:conclusao} sintetiza as conclusões, limitações e
