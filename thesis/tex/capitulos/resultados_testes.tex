@@ -241,10 +241,12 @@ aquisição sem perder nenhuma amostra gerada imediatamente antes do fim.
 
 As falhas representativas não foram usadas como uma lista isolada de erros, mas
 como amostras para explicar os mecanismos que aparecem nos agregados. A
-Tabela~\ref{tab:falhas-representativas-final} resume os casos, e os parágrafos
-seguintes discutem por que cada um deles altera a leitura dos resultados. O ponto
-mais importante é separar falha estrutural, falha de configuração/medição e quase
-aprovação; misturar essas categorias distorce a conclusão da campanha.
+Tabela~\ref{tab:falhas-representativas-final} resume os casos, cujos caminhos
+são relativos ao diretório da campanha final no repositório
+\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/}.}.
+Os parágrafos seguintes discutem por que cada caso altera a leitura dos resultados.
+O ponto mais importante é separar falha estrutural, falha de configuração/medição
+e quase aprovação; misturar essas categorias distorce a conclusão da campanha.
 
 \begin{center}
 \scriptsize
@@ -254,28 +256,20 @@ aprovação; misturar essas categorias distorce a conclusão da campanha.
 \hline
 Execução & Classe & Evidência \\
 \hline
-\path{broadcast/multiple/1000Hz/test_4S-1R_rep0}\textsuperscript{1} & Saturação de fila e \emph{retry} & 49,35\% de entrega, 180.783 perdas internas, 172.905 \texttt{S(FAIL)}, espera máxima de fila de 3,83 s e receptor com 60,20\% de \emph{airtime}. \\
+\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/multiple/1000Hz/test_4S-1R_rep0}{\path{broadcast/multiple/1000Hz/test_4S-1R_rep0}} & Saturação de fila e \emph{retry} & 49,35\% de entrega, 180.783 perdas internas, 172.905 \texttt{S(FAIL)}, espera máxima de fila de 3,83 s e receptor com 60,20\% de \emph{airtime}. \\
 \hline
-\path{multicast/real_time/1000Hz/test_4S-1R_rep1}\textsuperscript{2} & Saturação do \emph{driver} ESP-NOW & Sensor com 99,78\% de \emph{airtime} e sequência de \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}; falha causada por pacote por amostra em alta taxa. \\
+\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/1000Hz/test_4S-1R_rep1}{\path{multicast/real_time/1000Hz/test_4S-1R_rep1}} & Saturação do \emph{driver} ESP-NOW & Sensor com 99,78\% de \emph{airtime} e sequência de \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}; falha causada por pacote por amostra em alta taxa. \\
 \hline
-\path{multicast/active_filter/750Hz/test_3S-1R_rep0}\textsuperscript{3} & Quebra de estatística & Entrega não pôde ser avaliada porque \texttt{WCAN\_MEASURES} saiu com campo colado; sem assinatura de \emph{crash}. \\
+\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/active_filter/750Hz/test_3S-1R_rep0}{\path{multicast/active_filter/750Hz/test_3S-1R_rep0}} & Quebra de estatística & Entrega não pôde ser avaliada porque \texttt{WCAN\_MEASURES} saiu com campo colado; sem assinatura de \emph{crash}. \\
 \hline
-\path{broadcast/active_filter/750Hz/test_2S-3R_rep0}\textsuperscript{4} & Entrega de fluxo assinado & Um receptor esperado não recebeu \texttt{0xd0}; não houve CAN ID inesperado. \\
+\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}{\path{broadcast/active_filter/750Hz/test_2S-3R_rep0}} & Entrega de fluxo assinado & Um receptor esperado não recebeu \texttt{0xd0}; não houve CAN ID inesperado. \\
 \hline
-\path{multicast/real_time/100Hz/test_4S-1R_rep1}\textsuperscript{5} & Quase aprovação & Uma perda interna, 99,99\% de entrega e ausência de falhas de envio registradas. \\
+\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/100Hz/test_4S-1R_rep1}{\path{multicast/real_time/100Hz/test_4S-1R_rep1}} & Quase aprovação & Uma perda interna, 99,99\% de entrega e ausência de falhas de envio registradas. \\
 \hline
 \end{tabular}
 \captionof{table}{Falhas e quase falhas representativas da campanha final.}
 \label{tab:falhas-representativas-final}
 \end{center}
-\begin{flushleft}
-\footnotesize
-\textsuperscript{1} Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/multiple/1000Hz/test_4S-1R_rep0}.\\
-\textsuperscript{2} Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/1000Hz/test_4S-1R_rep1}.\\
-\textsuperscript{3} Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/active_filter/750Hz/test_3S-1R_rep0}.\\
-\textsuperscript{4} Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}.\\
-\textsuperscript{5} Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/100Hz/test_4S-1R_rep1}.\\
-\end{flushleft}
 
 O primeiro caso é o colapso mais importante porque pertence à suíte
 \texttt{multiple}, que representa o uso realista do sistema. A combinação de
