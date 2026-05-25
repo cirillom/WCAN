@@ -1,0 +1,28 @@
+real_time | MULTICAST | 1000Hz | 1S-2R_rep1 | FAIL
+    FAILED PARTS: delivery
+
+    DELIVERY ANALYSIS: FAIL (58.03% end-to-end delivery)
+      Summary: 30005 scored generated, 17413 received, 12592 misses, 0 edge
+      Sensor D (0xd0 | _dev_ttyACM0): 30005 generated, 17413 received, 12592 misses, 0 edge
+       - MISSES (12592): [[1..29], [43], [46], [49], [51], [53], [56], [59], [61], [65], [68], [70], [74], [77], [79], [83], [86], [88], [92], [95], [97], [101], [105], [108]] (9746 more ranges)
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor D 0xd0 -> Receiver A: 6600/30005 received, missed 23405 [[1..29], [39..40], [42..44], [46..49], [51..53], [55..57], [59..62], [64..66], [68..71], [73..75], [77..80], [82..84], [86..89], [91..93], [95..98], [100..103], [105..108], [110..112], [114..117], [119..121], [123..125], [127..131], [133..136], [138..140]] (6435 more ranges)
+      Sensor D 0xd0 -> Receiver B: 17413/30005 received, missed 12592 [[1..29], [43], [46], [49], [51], [53], [56], [59], [61], [65], [68], [70], [74], [77], [79], [83], [86], [88], [92], [95], [97], [101], [105], [108]] (9746 more ranges)
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (real_time, failures=0)
+      Sensor D: expected 1000.0Hz, observed 1000.0Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor D: airtime_pct=16.44 airtime_us_total=4933994 elapsed_ms=30005 heap_end_free=108788 heap_end_largest=73728 heap_end_min_free=91164 heap_start_free=97564 heap_start_largest=77824 heap_start_min_free=97564 packets_sent_total=6727 sensor_send_failures_total=23278
+      Receiver A: airtime_pct=0.37 airtime_us_total=109945 elapsed_ms=29999 heap_end_free=145676 heap_end_largest=110592 heap_end_min_free=129076 heap_start_free=129508 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=61 sensor_send_failures_total=0
+      Receiver B: airtime_pct=0.37 airtime_us_total=109770 elapsed_ms=29999 heap_end_free=145676 heap_end_largest=110592 heap_end_min_free=129076 heap_start_free=129508 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=61 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor D 0xd0: count=19403 dispatched_count=6727 avg_hz=646.65 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=1.55 min_interval_ms=0.64 max_interval_ms=8.01 avg_queue_wait_ms=12.33 max_queue_wait_ms=19.67 avg_dispatch_ms=0.75 max_dispatch_ms=8.41 (points=LARGE)
+
+    LOG COUNTERS: FAIL
+      Total: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=23278
+      Sensor D: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=23278

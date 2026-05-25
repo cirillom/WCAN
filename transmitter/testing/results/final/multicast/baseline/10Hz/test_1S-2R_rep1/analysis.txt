@@ -1,0 +1,27 @@
+baseline | MULTICAST | 10Hz | 1S-2R_rep1 | PASS
+    DELIVERY ANALYSIS: PASS (100.00% end-to-end delivery, attention: 1 edge)
+      Summary: 298 scored generated, 298 received, 0 misses, 1 edge
+      Sensor C (0xc0 | _dev_ttyUSB2): 298 generated, 298 received, 0 misses, 1 edge
+       - EDGE (1): tail=[[298]]
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor C 0xc0 -> Receiver A: 298/298 received, edge 1 tail=[[298]]
+      Sensor C 0xc0 -> Receiver B: 298/298 received, edge 1 tail=[[298]]
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (baseline, failures=0)
+      Sensor C: expected 10.0Hz, observed 10.0Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor C: airtime_pct=0.84 airtime_us_total=252957 elapsed_ms=29999 heap_end_free=129864 heap_end_largest=94208 heap_end_min_free=113200 heap_start_free=113700 heap_start_largest=94208 heap_start_min_free=113516 packets_sent_total=150 sensor_send_failures_total=0
+      Receiver A: airtime_pct=0.26 airtime_us_total=78306 elapsed_ms=29999 heap_end_free=145708 heap_end_largest=110592 heap_end_min_free=129112 heap_start_free=129500 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=60 sensor_send_failures_total=0
+      Receiver B: airtime_pct=0.29 airtime_us_total=86578 elapsed_ms=29999 heap_end_free=145708 heap_end_largest=110592 heap_end_min_free=129108 heap_start_free=129500 heap_start_largest=110592 heap_start_min_free=129184 packets_sent_total=60 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Expected: avg_hz~10.00 avg_points~1.0
+      Sensor C 0xc0: count=150 dispatched_count=150 avg_hz=5.00 avg_points=1.99 min_points=1 max_points=2 avg_interval_ms=200.00 min_interval_ms=199.92 max_interval_ms=200.01 avg_queue_wait_ms=0.12 max_queue_wait_ms=0.64 avg_dispatch_ms=1.70 max_dispatch_ms=5.32 (rate=SLOW, points=LARGE)
+
+    LOG COUNTERS: PASS
+      Total: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=0
+      Sensor C: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=0

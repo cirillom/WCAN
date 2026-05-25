@@ -1,0 +1,30 @@
+real_time | BROADCAST | 10Hz | 2S-1R_rep0 | PASS
+    DELIVERY ANALYSIS: PASS (100.00% end-to-end delivery, attention: 4 edge)
+      Summary: 594 scored generated, 594 received, 0 misses, 4 edge
+      Sensor C (0xc0 | _dev_ttyUSB2): 299 generated, 299 received, 0 misses, 0 edge
+      Sensor E (0xe0 | _dev_ttyACM1): 295 generated, 295 received, 0 misses, 4 edge
+       - EDGE (4): tail=[[295..298]]
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor C 0xc0 -> Receiver B: 299/299 received
+      Sensor E 0xe0 -> Receiver B: 295/295 received, edge 4 tail=[[295..298]]
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (real_time, failures=0)
+      Sensor C: expected 10.0Hz, observed 10.0Hz (OK, tolerance +/-5%)
+      Sensor E: expected 10.0Hz, observed 10.0Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor C: airtime_pct=2.44 airtime_us_total=731021 elapsed_ms=29999 heap_end_free=158240 heap_end_largest=110592 heap_end_min_free=143132 heap_start_free=143412 heap_start_largest=110592 heap_start_min_free=143228 packets_sent_total=305 sensor_send_failures_total=0
+      Sensor E: airtime_pct=2.08 airtime_us_total=625434 elapsed_ms=29999 heap_end_free=141568 heap_end_largest=98304 heap_end_min_free=126500 heap_start_free=126780 heap_start_largest=98304 heap_start_min_free=126760 packets_sent_total=331 sensor_send_failures_total=0
+      Receiver B: airtime_pct=5.20 airtime_us_total=1560756 elapsed_ms=29999 heap_end_free=174068 heap_end_largest=110592 heap_end_min_free=162572 heap_start_free=163128 heap_start_largest=110592 heap_start_min_free=162944 packets_sent_total=594 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor C 0xc0: count=299 dispatched_count=305 avg_hz=10.00 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=100.00 min_interval_ms=99.95 max_interval_ms=100.07 avg_queue_wait_ms=5.40 max_queue_wait_ms=303.26 avg_dispatch_ms=2.41 max_dispatch_ms=39.57 (points=LARGE)
+      Sensor E 0xe0: count=299 dispatched_count=331 avg_hz=10.00 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=100.00 min_interval_ms=99.97 max_interval_ms=100.04 avg_queue_wait_ms=32.26 max_queue_wait_ms=362.76 avg_dispatch_ms=1.90 max_dispatch_ms=16.83 (points=LARGE)
+
+    LOG COUNTERS: PASS
+      Total: P(FAIL)=12 (start=0 tail=1) | P(FULL)=0 | S(FAIL)=0
+      Sensor C: P(FAIL)=1 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=0
+      Sensor E: P(FAIL)=11 (start=0 tail=1) | P(FULL)=0 | S(FAIL)=0

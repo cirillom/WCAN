@@ -1,0 +1,26 @@
+real_time | BROADCAST | 200Hz | 1S-1R_rep1 | FAIL
+    FAILED PARTS: delivery
+
+    DELIVERY ANALYSIS: FAIL (94.02% end-to-end delivery)
+      Summary: 5999 scored generated, 5640 received, 359 misses, 0 edge
+      Sensor D (0xd0 | _dev_ttyACM0): 5999 generated, 5640 received, 359 misses, 0 edge
+       - MISSES (359): [[594], [597], [602], [604], [607], [609], [613], [620], [622..623], [626], [1599], [1601], [1603], [1606], [1608], [1612], [1614], [1616], [1618], [1621..1622], [1624], [1627], [1629], [1632]] (30 more ranges)
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor D 0xd0 -> Receiver B: 5640/5999 received, missed 359 [[594], [597], [602], [604], [607], [609], [613], [620], [622..623], [626], [1599], [1601], [1603], [1606], [1608], [1612], [1614], [1616], [1618], [1621..1622], [1624], [1627], [1629], [1632]] (30 more ranges)
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (real_time, failures=0)
+      Sensor D: expected 200.0Hz, observed 200.0Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor D: airtime_pct=23.84 airtime_us_total=7150655 elapsed_ms=29999 heap_end_free=141436 heap_end_largest=98304 heap_end_min_free=126388 heap_start_free=126648 heap_start_largest=98304 heap_start_min_free=126648 packets_sent_total=5656 sensor_send_failures_total=349
+      Receiver B: airtime_pct=36.88 airtime_us_total=11062445 elapsed_ms=29999 heap_end_free=173960 heap_end_largest=110592 heap_end_min_free=162624 heap_start_free=163128 heap_start_largest=110592 heap_start_min_free=162944 packets_sent_total=5640 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor D 0xd0: count=5650 dispatched_count=5656 avg_hz=190.04 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=5.26 min_interval_ms=4.87 max_interval_ms=350.05 avg_queue_wait_ms=4.77 max_queue_wait_ms=386.16 avg_dispatch_ms=1.27 max_dispatch_ms=14.52 (points=LARGE)
+
+    LOG COUNTERS: FAIL
+      Total: P(FAIL)=6 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=349
+      Sensor D: P(FAIL)=6 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=349

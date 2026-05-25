@@ -1,0 +1,30 @@
+real_time | MULTICAST | 1000Hz | 1S-3R_rep1 | FAIL
+    FAILED PARTS: delivery
+
+    DELIVERY ANALYSIS: FAIL (43.56% end-to-end delivery)
+      Summary: 29802 scored generated, 12981 received, 16821 misses, 0 edge
+      Sensor E (0xe0 | _dev_ttyACM1): 29802 generated, 12981 received, 16821 misses, 0 edge
+       - MISSES (16821): [[1..24], [35], [37], [39], [41], [43..44], [47..48], [50..52], [54..57], [59], [61], [63], [65], [69], [71], [73..74], [76], [78], [80], [82..83], [85], [87], [89], [91..92]] (10517 more ranges)
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor E 0xe0 -> Receiver A: 2394/29802 received, missed 27408 [[1..48], [50..118], [120..165], [167..185], [187..282], [284..297], [299..312], [314..385], [387..419], [421..427], [429..464], [466..519], [521..559], [561..606], [608..696], [698..727], [729..738], [740..951], [953..988], [990..1042], [1044..1051], [1053..1064], [1066..1088], [1090..1099]] (2343 more ranges)
+      Sensor E 0xe0 -> Receiver B: 9441/29802 received, missed 20361 [[1..25], [27..28], [30], [32], [35..39], [41..44], [47..48], [50..57], [59], [61], [63], [65], [69], [71], [73..74], [76], [78], [80], [82..83], [85], [87], [89], [91..92], [94]] (8061 more ranges)
+      Sensor E 0xe0 -> Receiver C: 12981/29802 received, missed 16821 [[1..24], [35], [37], [39], [41], [43..44], [47..48], [50..52], [54..57], [59], [61], [63], [65], [69], [71], [73..74], [76], [78], [80], [82..83], [85], [87], [89], [91..92]] (10517 more ranges)
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (real_time, failures=0)
+      Sensor E: expected 1000.0Hz, observed 992.9Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor E: airtime_pct=7.31 airtime_us_total=2193319 elapsed_ms=30015 heap_end_free=110064 heap_end_largest=73728 heap_end_min_free=91164 heap_start_free=97696 heap_start_largest=77824 heap_start_min_free=97696 packets_sent_total=2455 sensor_send_failures_total=27347
+      Receiver A: airtime_pct=0.41 airtime_us_total=122659 elapsed_ms=29999 heap_end_free=145676 heap_end_largest=110592 heap_end_min_free=129076 heap_start_free=129508 heap_start_largest=110592 heap_start_min_free=129184 packets_sent_total=61 sensor_send_failures_total=0
+      Receiver B: airtime_pct=0.42 airtime_us_total=126011 elapsed_ms=29999 heap_end_free=145676 heap_end_largest=110592 heap_end_min_free=129076 heap_start_free=129508 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=61 sensor_send_failures_total=0
+      Receiver C: airtime_pct=0.38 airtime_us_total=114796 elapsed_ms=29999 heap_end_free=145676 heap_end_largest=110592 heap_end_min_free=129076 heap_start_free=129508 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=61 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor E 0xe0: count=14747 dispatched_count=2455 avg_hz=491.34 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=2.04 min_interval_ms=0.62 max_interval_ms=52.29 avg_queue_wait_ms=16.66 max_queue_wait_ms=67.79 avg_dispatch_ms=0.91 max_dispatch_ms=6.00 (points=LARGE)
+
+    LOG COUNTERS: FAIL
+      Total: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=27347
+      Sensor E: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=27347

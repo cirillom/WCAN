@@ -1,0 +1,760 @@
+# Monitor started: 2026-05-23T21:15:40.825162
+# Port: /dev/ttyACM1, Baud: 921600, Timeout: 35.000s after WCAN_TEST_START
+
+# UART boot config: wcan v=1 role=sensor transport=MULTICAST test_duration_ms=30000 host_wait_time_ms=5000 base=0xe0 count=1 hz=200 linger=0
+[2026-05-23 21:15:40.840] ESP-ROM:esp32c3-api1-20210207
+[2026-05-23 21:15:40.845] Build:Feb  7 2021
+[2026-05-23 21:15:40.866] rst:0x15 (USB_UART_CHIP_RESET),boot:0xd (SPI_FAST_FLASH_BOOT)
+[2026-05-23 21:15:40.875] Saved PC:0x40384eba
+[2026-05-23 21:15:40.880] SPIWP:0xee
+[2026-05-23 21:15:40.884] mode:DIO, clock div:1
+[2026-05-23 21:15:40.886] load:0x3fcd5820,len:0x1574
+[2026-05-23 21:15:40.890] load:0x403cc710,len:0xc30
+[2026-05-23 21:15:40.893] load:0x403ce710,len:0x2fa0
+[2026-05-23 21:15:40.896] entry 0x403cc71a
+[2026-05-23 21:15:40.900] I (24) boot: ESP-IDF v5.4.1 2nd stage bootloader
+[2026-05-23 21:15:40.902] I (24) boot: compile time May 19 2026 23:41:33
+[2026-05-23 21:15:40.903] I (25) boot: chip revision: v0.4
+[2026-05-23 21:15:40.906] I (25) boot: efuse block revision: v1.3
+[2026-05-23 21:15:40.907] I (25) boot.esp32c3: SPI Speed      : 80MHz
+[2026-05-23 21:15:40.909] I (25) boot.esp32c3: SPI Mode       : DIO
+[2026-05-23 21:15:40.911] I (26) boot.esp32c3: SPI Flash Size : 2MB
+[2026-05-23 21:15:40.916] I (26) boot: Enabling RNG early entropy source...
+[2026-05-23 21:15:40.917] I (27) boot: Partition Table:
+[2026-05-23 21:15:40.925] I (27) boot: ## Label            Usage          Type ST Offset   Length
+[2026-05-23 21:15:40.933] I (28) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+[2026-05-23 21:15:40.961] I (29) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+[2026-05-23 21:15:40.974] I (29) boot:  2 factory          factory app      00 00 00010000 00100000
+[2026-05-23 21:15:40.975] I (30) boot: End of partition table
+[2026-05-23 21:15:40.977] I (31) esp_image: segment 0: paddr=00010020 vaddr=3c0a0020 size=19850h (104528) map
+[2026-05-23 21:15:40.979] I (48) esp_image: segment 1: paddr=00029878 vaddr=3fc95000 size=02da0h ( 11680) load
+[2026-05-23 21:15:40.982] I (51) esp_image: segment 2: paddr=0002c620 vaddr=40380000 size=039f8h ( 14840) load
+[2026-05-23 21:15:40.984] I (54) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=990b4h (626868) map
+[2026-05-23 21:15:40.987] I (154) esp_image: segment 4: paddr=000c90dc vaddr=403839f8 size=114f8h ( 70904) load
+[2026-05-23 21:15:40.993] I (168) esp_image: segment 5: paddr=000da5dc vaddr=50000200 size=0001ch (    28) load
+[2026-05-23 21:15:40.996] I (174) boot: Loaded app from partition at offset 0x10000
+[2026-05-23 21:15:40.999] I (175) boot: Disabling RNG early entropy source...
+[2026-05-23 21:15:40.999] I (176) cpu_start: Unicore app
+[2026-05-23 21:15:41.000] I (185) cpu_start: Pro cpu start user code
+[2026-05-23 21:15:41.001] I (185) cpu_start: cpu freq: 160000000 Hz
+[2026-05-23 21:15:41.001] I (185) app_init: Application information:
+[2026-05-23 21:15:41.002] I (185) app_init: Project name:     sensor_acquirer
+[2026-05-23 21:15:41.003] I (185) app_init: App version:      v1.0-171-gbbe0783
+[2026-05-23 21:15:41.004] I (186) app_init: Compile time:     May 23 2026 14:30:40
+[2026-05-23 21:15:41.005] I (186) app_init: ELF file SHA256:  0e7d705e7...
+[2026-05-23 21:15:41.006] I (187) app_init: ESP-IDF:          v5.4.1
+[2026-05-23 21:15:41.007] I (187) efuse_init: Min chip rev:     v0.3
+[2026-05-23 21:15:41.008] I (188) efuse_init: Max chip rev:     v1.99
+[2026-05-23 21:15:41.010] I (188) efuse_init: Chip rev:         v0.4
+[2026-05-23 21:15:41.013] I (189) heap_init: Initializing. RAM available for dynamic allocation:
+[2026-05-23 21:15:41.015] I (190) heap_init: At 3FC9C130 len 00023ED0 (143 KiB): RAM
+[2026-05-23 21:15:41.018] I (190) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM
+[2026-05-23 21:15:41.020] I (191) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM
+[2026-05-23 21:15:41.023] I (192) heap_init: At 5000021C len 00001DCC (7 KiB): RTCRAM
+[2026-05-23 21:15:41.031] I (193) spi_flash: detected chip: generic
+[2026-05-23 21:15:41.032] I (193) spi_flash: flash io: dio
+[2026-05-23 21:15:41.036] W (194) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+[2026-05-23 21:15:41.037] I (195) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+[2026-05-23 21:15:41.039] I (196) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+[2026-05-23 21:15:41.039] I (197) main_task: Started on CPU0
+[2026-05-23 21:15:41.039] I (197) main_task: Calling app_main()
+[2026-05-23 21:15:41.039] WCAN_CFG_WAIT v=1
+# UART boot config sent: wcan v=1 role=sensor transport=MULTICAST test_duration_ms=30000 host_wait_time_ms=5000 base=0xe0 count=1 hz=200 linger=0
+[2026-05-23 21:15:41.039] WCAN_CFG_WAIT v=1
+[2026-05-23 21:15:43.443] WCAN_CFG_ACK
+[2026-05-23 21:15:43.443] WCAN_CFG_ACK
+[2026-05-23 21:15:43.448] I (2822) pp: pp rom version: 9387209
+[2026-05-23 21:15:43.448] I (2823) net80211: net80211 rom version: 9387209
+[2026-05-23 21:15:43.449] I (2824) wifi:wifi driver task: 3fca7510, prio:23, stack:6656, core=0
+[2026-05-23 21:15:43.454] I (2828) wifi:wifi firmware version: 79fa3f41ba
+[2026-05-23 21:15:43.455] I (2828) wifi:wifi certification version: v7.0
+[2026-05-23 21:15:43.455] I (2828) wifi:config NVS flash: enabled
+[2026-05-23 21:15:43.457] I (2828) wifi:config nano formatting: disabled
+[2026-05-23 21:15:43.458] I (2829) wifi:Init data frame dynamic rx buffer num: 32
+[2026-05-23 21:15:43.458] I (2829) wifi:Init static rx mgmt buffer num: 5
+[2026-05-23 21:15:43.459] I (2830) wifi:Init management short buffer num: 32
+[2026-05-23 21:15:43.460] I (2830) wifi:Init dynamic tx buffer num: 32
+[2026-05-23 21:15:43.461] I (2831) wifi:Init static tx FG buffer num: 2
+[2026-05-23 21:15:43.462] I (2831) wifi:Init static rx buffer size: 1600
+[2026-05-23 21:15:43.463] I (2832) wifi:Init static rx buffer num: 10
+[2026-05-23 21:15:43.464] I (2832) wifi:Init dynamic rx buffer num: 32
+[2026-05-23 21:15:43.464] I (2833) wifi_init: rx ba win: 6
+[2026-05-23 21:15:43.465] I (2834) wifi_init: accept mbox: 6
+[2026-05-23 21:15:43.466] I (2834) wifi_init: tcpip mbox: 32
+[2026-05-23 21:15:43.467] I (2834) wifi_init: udp mbox: 6
+[2026-05-23 21:15:43.468] I (2834) wifi_init: tcp mbox: 6
+[2026-05-23 21:15:43.470] I (2835) wifi_init: tcp tx win: 5760
+[2026-05-23 21:15:43.470] I (2835) wifi_init: tcp rx win: 5760
+[2026-05-23 21:15:43.470] I (2836) wifi_init: tcp mss: 1440
+[2026-05-23 21:15:43.470] I (2836) wifi_init: WiFi IRAM OP enabled
+[2026-05-23 21:15:43.471] I (2836) wifi_init: WiFi RX IRAM OP enabled
+[2026-05-23 21:15:43.471] I (2837) phy_init: phy_version 1200,2b7123f9,Feb 18 2025,15:22:21
+[2026-05-23 21:15:43.498] I (2872) wifi:mode : sta (74:4d:bd:e1:d5:b8)
+[2026-05-23 21:15:43.499] I (2872) wifi:enable tsf
+[2026-05-23 21:15:43.501] I (2875) ESPNOW: espnow [version: 2.0] init
+[2026-05-23 21:15:43.502] WCAN_TEST_READY role=sensor
+# Waiting for phased test start
+# UART test start sent: WCAN_TEST_START at 2026-05-23T21:15:43.513751
+[2026-05-23 21:15:47.721] E (7081) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.740] W (7082) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.751] E (7083) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.762] W (7083) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.763] E (7084) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.771] W (7084) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.772] E (7086) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.775] W (7086) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.786] E (7087) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.790] W (7088) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.792] E (7089) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.796] W (7089) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.797] E (7090) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.800] W (7091) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.802] E (7092) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.805] W (7093) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.810] E (7094) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.815] W (7094) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.819] E (7095) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.820] W (7096) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.823] E (7097) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.824] W (7097) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.828] E (7098) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.830] W (7099) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.835] E (7122) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.838] S(FAIL):6926:e0:0:768:779:12
+[2026-05-23 21:15:47.850] W (7123) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:47.858] E (7162) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:47.860] S(FAIL):6966:e0:0:784:784:1
+[2026-05-23 21:15:47.865] W (7163) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:57.392] E (16762) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:57.393] S(FAIL):16566:e0:0:792:792:1
+[2026-05-23 21:15:57.395] W (16763) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:57.403] E (16772) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:57.404] S(FAIL):16576:e0:0:2712:2712:1
+[2026-05-23 21:15:57.405] W (16773) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:57.454] E (16827) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:57.454] S(FAIL):16631:e0:0:2714:2714:1
+[2026-05-23 21:15:57.455] W (16828) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:57.497] E (16867) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:57.499] S(FAIL):16671:e0:0:2725:2725:1
+[2026-05-23 21:15:57.500] W (16868) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:15:57.514] E (16887) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:15:57.515] S(FAIL):16691:e0:0:2733:2733:1
+[2026-05-23 21:15:57.516] W (16888) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.820] E (22193) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.820] S(FAIL):21996:e0:0:2737:2737:1
+[2026-05-23 21:16:02.820] W (22194) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.821] E (22194) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.821] W (22195) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.825] E (22197) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.827] W (22198) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.830] E (22202) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.831] W (22203) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.845] E (22219) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.845] S(FAIL):22022:e0:0:3797:3800:4
+[2026-05-23 21:16:02.845] W (22219) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.848] E (22222) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.849] W (22223) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.875] E (22237) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.880] S(FAIL):22041:e0:0:3803:3804:2
+[2026-05-23 21:16:02.892] W (22238) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.910] E (22282) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.911] S(FAIL):22086:e0:0:3807:3807:1
+[2026-05-23 21:16:02.915] W (22283) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.916] E (22287) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.920] W (22288) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.921] E (22292) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.926] W (22292) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.927] E (22297) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.931] W (22297) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.933] E (22302) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.939] W (22303) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.975] E (22347) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.975] S(FAIL):22151:e0:0:3816:3820:5
+[2026-05-23 21:16:02.979] W (22348) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:02.984] E (22357) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:02.984] S(FAIL):22161:e0:0:3829:3829:1
+[2026-05-23 21:16:02.985] W (22358) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:03.073] E (22447) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:03.074] S(FAIL):22251:e0:0:3831:3831:1
+[2026-05-23 21:16:03.076] W (22448) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:03.085] E (22459) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:03.085] S(FAIL):22262:e0:0:3849:3849:1
+[2026-05-23 21:16:03.086] W (22459) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:03.089] E (22462) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:03.089] W (22463) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:03.109] E (22482) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:03.110] S(FAIL):22286:e0:0:3851:3852:2
+[2026-05-23 21:16:03.112] W (22483) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.173] E (24546) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.173] S(FAIL):24350:e0:0:3856:3856:1
+[2026-05-23 21:16:05.175] W (24547) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.175] E (24548) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.175] W (24548) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.176] E (24549) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.178] W (24550) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.178] E (24552) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.179] W (24553) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.183] E (24557) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.183] W (24558) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.258] E (24632) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.259] S(FAIL):24436:e0:0:4267:4271:5
+[2026-05-23 21:16:05.259] W (24633) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.263] E (24637) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.264] W (24638) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.269] E (24642) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.270] W (24643) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.297] E (24666) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.300] S(FAIL):24470:e0:0:4286:4288:3
+[2026-05-23 21:16:05.305] W (24667) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.314] E (24668) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.321] W (24669) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.325] E (24682) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.327] S(FAIL):24486:e0:0:4292:4293:2
+[2026-05-23 21:16:05.330] W (24683) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.331] E (24697) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.332] S(FAIL):24501:e0:0:4296:4296:1
+[2026-05-23 21:16:05.333] W (24698) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.369] E (24742) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.369] S(FAIL):24546:e0:0:4299:4299:1
+[2026-05-23 21:16:05.370] W (24743) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.383] E (24757) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.384] S(FAIL):24561:e0:0:4308:4308:1
+[2026-05-23 21:16:05.384] W (24758) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.474] E (24847) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.474] S(FAIL):24650:e0:0:4311:4311:1
+[2026-05-23 21:16:05.475] W (24847) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.475] E (24848) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.479] W (24849) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.486] E (24850) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.491] W (24850) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:05.492] E (24852) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:05.495] W (24853) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:07.943] E (27308) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:07.945] S(FAIL):27112:e0:0:4327:4330:4
+[2026-05-23 21:16:07.949] W (27309) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:07.960] E (27309) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:07.962] W (27310) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:07.965] E (27332) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:07.966] S(FAIL):27136:e0:0:4820:4821:2
+[2026-05-23 21:16:07.968] W (27333) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.130] E (27503) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.131] S(FAIL):27307:e0:0:4826:4826:1
+[2026-05-23 21:16:08.134] W (27504) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.138] E (27507) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.146] W (27508) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.258] E (27615) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.266] S(FAIL):27419:e0:0:4860:4861:2
+[2026-05-23 21:16:08.274] W (27616) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.281] E (27617) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.283] W (27617) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.289] E (27618) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.294] W (27619) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.419] E (27793) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.419] S(FAIL):27597:e0:0:4881:4883:3
+[2026-05-23 21:16:08.420] W (27794) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.420] E (27794) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.421] W (27795) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.423] E (27797) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.424] W (27798) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.434] E (27807) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.435] S(FAIL):27611:e0:0:4917:4919:3
+[2026-05-23 21:16:08.436] W (27808) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.439] E (27812) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.439] W (27813) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.449] E (27817) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.458] W (27818) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.471] E (27827) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.478] S(FAIL):27631:e0:0:4921:4923:3
+[2026-05-23 21:16:08.489] W (27828) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.497] E (27837) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.499] S(FAIL):27641:e0:0:4925:4925:1
+[2026-05-23 21:16:08.504] W (27838) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.507] E (27877) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.509] S(FAIL):27681:e0:0:4927:4927:1
+[2026-05-23 21:16:08.512] W (27878) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.529] E (27902) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.532] S(FAIL):27706:e0:0:4935:4935:1
+[2026-05-23 21:16:08.534] W (27903) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.544] E (27917) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.545] S(FAIL):27721:e0:0:4940:4940:1
+[2026-05-23 21:16:08.548] W (27918) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.556] E (27918) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.562] W (27919) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.568] E (27922) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.572] W (27923) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.575] E (27927) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.581] W (27928) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.587] E (27960) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.587] S(FAIL):27764:e0:0:4942:4945:4
+[2026-05-23 21:16:08.589] W (27961) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.590] E (27961) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.593] W (27962) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.596] E (27963) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.598] W (27964) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.654] E (28027) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.654] S(FAIL):27831:e0:0:4950:4952:3
+[2026-05-23 21:16:08.654] W (28028) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.745] E (28117) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.746] S(FAIL):27921:e0:0:4965:4965:1
+[2026-05-23 21:16:08.749] W (28118) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.751] E (28122) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.754] W (28123) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.756] E (28127) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.758] W (28128) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.781] E (28155) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.781] S(FAIL):27958:e0:0:4983:4985:3
+[2026-05-23 21:16:08.782] W (28155) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.782] E (28156) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.783] W (28157) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.784] E (28158) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.785] W (28158) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.794] E (28167) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.795] S(FAIL):27971:e0:0:4989:4991:3
+[2026-05-23 21:16:08.797] W (28168) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.898] E (28272) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.898] S(FAIL):28076:e0:0:4993:4993:1
+[2026-05-23 21:16:08.899] W (28273) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.954] E (28327) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.954] S(FAIL):28130:e0:0:5014:5014:1
+[2026-05-23 21:16:08.956] W (28328) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.958] E (28329) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.959] W (28329) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.960] E (28332) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.961] W (28333) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.963] E (28337) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.966] W (28337) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.970] E (28342) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.971] W (28343) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.975] E (28347) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.976] W (28348) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:08.983] E (28357) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:08.983] S(FAIL):28161:e0:0:5024:5029:6
+[2026-05-23 21:16:08.984] W (28358) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.019] E (28392) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.021] S(FAIL):28196:e0:0:5031:5031:1
+[2026-05-23 21:16:09.024] W (28393) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.057] E (28425) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.061] S(FAIL):28228:e0:0:5038:5038:1
+[2026-05-23 21:16:09.088] W (28425) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.102] E (28426) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.121] W (28427) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.135] E (28428) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.141] W (28428) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.142] E (28429) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.151] W (28430) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.154] E (28432) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.159] W (28433) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.161] E (28437) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.165] W (28438) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.167] E (28456) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.168] S(FAIL):28260:e0:0:5042:5047:6
+[2026-05-23 21:16:09.172] W (28457) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.176] E (28458) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.179] W (28458) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.183] E (28481) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.184] S(FAIL):28284:e0:0:5050:5051:2
+[2026-05-23 21:16:09.186] W (28481) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.189] E (28482) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.192] W (28483) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.209] E (28582) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.213] S(FAIL):28386:e0:0:5055:5056:2
+[2026-05-23 21:16:09.216] W (28583) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.267] E (28638) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.270] S(FAIL):28441:e0:0:5076:5076:1
+[2026-05-23 21:16:09.272] W (28638) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.273] E (28647) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.273] S(FAIL):28451:e0:0:5087:5087:1
+[2026-05-23 21:16:09.274] W (28648) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.289] E (28662) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.289] S(FAIL):28466:e0:0:5089:5089:1
+[2026-05-23 21:16:09.290] W (28663) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.382] E (28743) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.387] S(FAIL):28546:e0:0:5092:5092:1
+[2026-05-23 21:16:09.396] W (28743) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.400] E (28764) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.401] S(FAIL):28567:e0:0:5108:5108:1
+[2026-05-23 21:16:09.403] W (28764) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.404] E (28765) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.405] W (28766) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.406] E (28767) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.408] W (28767) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.409] E (28768) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.410] W (28769) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.412] E (28772) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.414] W (28772) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.415] E (28777) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.417] W (28777) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.486] E (28857) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.487] S(FAIL):28661:e0:0:5110:5115:6
+[2026-05-23 21:16:09.488] W (28858) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.510] E (28884) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.510] S(FAIL):28687:e0:0:5131:5131:1
+[2026-05-23 21:16:09.511] W (28885) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.515] E (28887) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.523] W (28888) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.541] E (28915) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.542] S(FAIL):28719:e0:0:5136:5137:2
+[2026-05-23 21:16:09.544] W (28916) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.549] E (28917) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.557] W (28917) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.571] E (28938) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.574] S(FAIL):28741:e0:0:5142:5143:2
+[2026-05-23 21:16:09.578] W (28939) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.588] E (28942) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.593] W (28943) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.702] E (29075) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.704] S(FAIL):28879:e0:0:5147:5148:2
+[2026-05-23 21:16:09.710] W (29076) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.710] E (29076) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.711] W (29077) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.713] E (29078) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.713] W (29079) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.718] E (29092) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.718] S(FAIL):28896:e0:0:5173:5175:3
+[2026-05-23 21:16:09.719] W (29093) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.723] E (29097) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.723] W (29097) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.739] E (29112) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.739] S(FAIL):28916:e0:0:5178:5179:2
+[2026-05-23 21:16:09.739] W (29113) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.743] E (29117) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.744] W (29118) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.749] E (29122) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.750] W (29123) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.758] E (29132) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.759] S(FAIL):28936:e0:0:5182:5184:3
+[2026-05-23 21:16:09.759] W (29133) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.776] E (29137) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.778] W (29138) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.779] E (29142) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.780] W (29143) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.781] E (29147) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.785] W (29148) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.955] E (29317) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.965] S(FAIL):29121:e0:0:5186:5189:4
+[2026-05-23 21:16:09.980] W (29318) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:09.989] E (29327) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:09.990] S(FAIL):29131:e0:0:5223:5223:1
+[2026-05-23 21:16:10.013] W (29328) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.025] E (29347) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.028] S(FAIL):29151:e0:0:5225:5225:1
+[2026-05-23 21:16:10.039] W (29348) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.048] E (29382) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.051] S(FAIL):29186:e0:0:5229:5229:1
+[2026-05-23 21:16:10.056] W (29383) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.060] E (29387) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.062] W (29387) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.065] E (29392) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.069] W (29392) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.070] E (29397) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.074] W (29398) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.079] E (29402) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.084] W (29402) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.085] E (29407) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.090] W (29408) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.091] E (29455) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.092] S(FAIL):29259:e0:0:5236:5241:6
+[2026-05-23 21:16:10.095] W (29456) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.098] E (29457) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.102] W (29458) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.103] E (29462) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.106] W (29462) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.108] E (29467) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.110] W (29467) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.114] E (29487) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.115] S(FAIL):29291:e0:0:5250:5253:4
+[2026-05-23 21:16:10.119] W (29488) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.124] E (29492) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.134] W (29493) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.139] E (29502) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.141] S(FAIL):29306:e0:0:5257:5258:2
+[2026-05-23 21:16:10.142] W (29503) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.186] E (29557) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.187] S(FAIL):29361:e0:0:5260:5260:1
+[2026-05-23 21:16:10.195] W (29558) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.196] E (29562) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.199] W (29562) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.201] E (29567) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.210] W (29568) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.245] E (29617) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.245] S(FAIL):29421:e0:0:5271:5273:3
+[2026-05-23 21:16:10.246] W (29618) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.273] E (29644) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.274] S(FAIL):29448:e0:0:5283:5283:1
+[2026-05-23 21:16:10.283] W (29645) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.285] E (29645) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.288] W (29646) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.290] E (29647) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.292] W (29648) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.293] E (29649) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.294] W (29649) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.296] E (29652) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.298] W (29652) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.299] E (29657) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.300] W (29658) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.324] E (29697) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.324] S(FAIL):29501:e0:0:5286:5291:6
+[2026-05-23 21:16:10.325] W (29698) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.325] E (29699) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.326] W (29699) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.329] E (29702) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.330] W (29702) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.339] E (29712) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.339] S(FAIL):29516:e0:0:5298:5300:3
+[2026-05-23 21:16:10.341] W (29713) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.344] E (29717) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.346] W (29718) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.386] E (29760) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.386] S(FAIL):29563:e0:0:5302:5303:2
+[2026-05-23 21:16:10.388] W (29761) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.389] E (29761) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.391] W (29762) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.391] E (29763) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.392] W (29763) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.394] E (29764) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.395] W (29765) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.396] E (29766) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.398] W (29767) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.400] E (29767) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.402] W (29768) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.478] E (29852) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.479] S(FAIL):29656:e0:0:5308:5313:6
+[2026-05-23 21:16:10.480] W (29853) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.483] E (29857) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.484] W (29857) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.540] E (29912) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.541] S(FAIL):29715:e0:0:5330:5331:2
+[2026-05-23 21:16:10.544] W (29912) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.546] E (29913) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.548] W (29913) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.553] E (29915) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.556] W (29915) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.558] E (29917) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.562] W (29918) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.565] E (29937) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.566] S(FAIL):29741:e0:0:5340:5343:4
+[2026-05-23 21:16:10.569] W (29938) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.570] E (29942) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.572] W (29943) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.588] E (29962) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.589] S(FAIL):29766:e0:0:5347:5348:2
+[2026-05-23 21:16:10.589] W (29963) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.743] E (30117) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.744] S(FAIL):29921:e0:0:5352:5352:1
+[2026-05-23 21:16:10.744] W (30118) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.769] E (30139) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.771] S(FAIL):29943:e0:0:5383:5383:1
+[2026-05-23 21:16:10.778] W (30140) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.786] E (30142) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.792] W (30142) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.795] E (30147) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.800] W (30147) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.801] E (30162) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.805] S(FAIL):29966:e0:0:5387:5389:3
+[2026-05-23 21:16:10.808] W (30163) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.810] E (30167) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.815] W (30168) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.842] E (30212) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.844] S(FAIL):30016:e0:0:5392:5393:2
+[2026-05-23 21:16:10.846] W (30213) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.848] E (30222) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.849] S(FAIL):30026:e0:0:5402:5402:1
+[2026-05-23 21:16:10.851] W (30223) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.858] E (30232) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.859] S(FAIL):30036:e0:0:5404:5404:1
+[2026-05-23 21:16:10.859] W (30233) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.864] E (30237) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.864] W (30238) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.874] E (30247) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.876] S(FAIL):30051:e0:0:5406:5407:2
+[2026-05-23 21:16:10.879] W (30248) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.881] E (30252) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.884] W (30252) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.887] E (30257) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.889] W (30258) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.895] E (30269) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.896] S(FAIL):30072:e0:0:5409:5411:3
+[2026-05-23 21:16:10.896] W (30270) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:10.899] E (30272) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:10.900] W (30273) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.092] E (30466) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.096] S(FAIL):30269:e0:0:5413:5414:2
+[2026-05-23 21:16:11.105] W (30466) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.109] E (30467) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.116] W (30467) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.122] E (30468) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.131] W (30469) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.133] E (30470) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.134] W (30471) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.137] E (30472) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.138] W (30472) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.140] E (30477) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.141] W (30477) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.143] E (30482) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.146] W (30483) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.148] E (30487) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.151] W (30488) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.157] E (30492) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.161] W (30493) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.163] E (30497) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.167] W (30497) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.169] E (30517) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.170] S(FAIL):30321:e0:0:5450:5459:10
+[2026-05-23 21:16:11.171] W (30518) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.173] E (30519) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.176] W (30519) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.178] E (30520) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.190] W (30521) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.192] E (30522) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.194] W (30523) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.195] E (30527) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.197] W (30527) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.199] E (30532) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.205] W (30532) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.210] E (30537) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.216] W (30538) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.233] E (30542) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.237] W (30543) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.237] E (30552) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.239] S(FAIL):30356:e0:0:5461:5468:8
+[2026-05-23 21:16:11.241] W (30553) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.245] E (30557) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.249] W (30557) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.252] E (30562) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.253] W (30563) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.254] E (30567) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.256] W (30568) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.257] E (30607) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.258] S(FAIL):30411:e0:0:5470:5473:4
+[2026-05-23 21:16:11.260] W (30608) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.263] E (30632) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.264] S(FAIL):30436:e0:0:5481:5481:1
+[2026-05-23 21:16:11.267] W (30633) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.284] E (30657) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.287] S(FAIL):30461:e0:0:5486:5486:1
+[2026-05-23 21:16:11.292] W (30658) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.295] E (30662) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.300] W (30662) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.303] E (30672) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.304] S(FAIL):30476:e0:0:5491:5492:2
+[2026-05-23 21:16:11.308] W (30673) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.309] E (30677) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.311] W (30678) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:11.319] E (30692) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:11.320] S(FAIL):30496:e0:0:5494:5495:2
+[2026-05-23 21:16:11.322] W (30693) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.300] E (31672) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.301] S(FAIL):31476:e0:0:5498:5498:1
+[2026-05-23 21:16:12.303] W (31673) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.305] E (31674) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.307] W (31674) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.307] E (31675) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.309] W (31676) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.312] E (31677) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.314] W (31678) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.325] E (31697) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.328] S(FAIL):31501:e0:0:5692:5695:4
+[2026-05-23 21:16:12.331] W (31698) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.334] E (31702) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.339] W (31703) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.439] E (31812) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.440] S(FAIL):31616:e0:0:5699:5700:2
+[2026-05-23 21:16:12.440] W (31813) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.468] E (31834) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.469] S(FAIL):31637:e0:0:5722:5722:1
+[2026-05-23 21:16:12.475] W (31834) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.483] E (31837) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.489] W (31838) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.494] E (31847) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.497] S(FAIL):31651:e0:0:5726:5727:2
+[2026-05-23 21:16:12.505] W (31848) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.542] E (31912) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.544] S(FAIL):31716:e0:0:5729:5729:1
+[2026-05-23 21:16:12.548] W (31913) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.551] E (31917) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.557] W (31918) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.694] E (32068) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.695] S(FAIL):31872:e0:0:5742:5743:2
+[2026-05-23 21:16:12.695] W (32069) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.705] E (32072) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.712] W (32073) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.718] E (32077) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.730] W (32078) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.740] E (32107) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.742] S(FAIL):31911:e0:0:5773:5775:3
+[2026-05-23 21:16:12.747] W (32108) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:12.899] E (32272) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:12.900] S(FAIL):32076:e0:0:5781:5781:1
+[2026-05-23 21:16:12.904] W (32273) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.275] E (32627) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.283] S(FAIL):32431:e0:0:5814:5814:1
+[2026-05-23 21:16:13.287] W (32628) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.294] E (32652) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.297] S(FAIL):32456:e0:0:5885:5885:1
+[2026-05-23 21:16:13.301] W (32653) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.335] E (32707) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.335] S(FAIL):32511:e0:0:5890:5890:1
+[2026-05-23 21:16:13.337] W (32708) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.355] E (32727) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.356] S(FAIL):32531:e0:0:5901:5901:1
+[2026-05-23 21:16:13.361] W (32728) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.368] E (32742) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.369] S(FAIL):32546:e0:0:5905:5905:1
+[2026-05-23 21:16:13.370] W (32743) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.374] E (32748) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.374] W (32748) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.506] E (32862) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.513] S(FAIL):32666:e0:0:5908:5909:2
+[2026-05-23 21:16:13.537] W (32863) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.552] E (32911) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.556] S(FAIL):32715:e0:0:5932:5932:1
+[2026-05-23 21:16:13.564] W (32912) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.566] E (32913) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.569] W (32914) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.571] E (32927) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.573] S(FAIL):32731:e0:0:5941:5942:2
+[2026-05-23 21:16:13.577] W (32928) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.579] E (32932) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.589] W (32932) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.590] E (32937) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.592] W (32937) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.593] E (32942) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.594] W (32943) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.595] E (32957) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.596] S(FAIL):32761:e0:0:5945:5948:4
+[2026-05-23 21:16:13.597] W (32958) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.606] E (32980) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.606] S(FAIL):32783:e0:0:5951:5951:1
+[2026-05-23 21:16:13.607] W (32981) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.609] E (32982) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.610] W (32983) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.623] E (32997) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.623] S(FAIL):32801:e0:0:5955:5956:2
+[2026-05-23 21:16:13.624] W (32998) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.633] E (33007) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.633] S(FAIL):32811:e0:0:5959:5959:1
+[2026-05-23 21:16:13.634] W (33008) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.667] E (33040) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.667] S(FAIL):32844:e0:0:5961:5961:1
+[2026-05-23 21:16:13.667] W (33041) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.668] E (33042) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.669] W (33042) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.670] E (33044) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.671] W (33044) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.695] E (33066) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.696] S(FAIL):32870:e0:0:5966:5968:3
+[2026-05-23 21:16:13.697] W (33067) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.698] E (33068) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.699] W (33068) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.704] E (33077) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.704] S(FAIL):32881:e0:0:5972:5973:2
+[2026-05-23 21:16:13.705] W (33078) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.712] E (33082) WCAN_BASE: esp_now_send fail: ESP_ERR_ESPNOW_INTERNAL
+[2026-05-23 21:16:13.719] W (33083) WCAN_MCAST: Multicast radio send reported failure for CAN ID 0x000000e0
+[2026-05-23 21:16:13.850] WCAN_BATCH id=0xe0 count=5999 avg_hz=200.00 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=5.00 min_interval_ms=4.85 max_interval_ms=5.25 avg_dispatch_ms=1.91 max_dispatch_ms=31.11 dispatched_count=5730 avg_queue_wait_ms=0.09 max_queue_wait_ms=7.38
+[2026-05-23 21:16:13.851] WCAN_SENSOR_END generated=5998 avg_hz=199.97
+[2026-05-23 21:16:13.852] S(FAIL):33022:e0:0:5975:5976:2
+[2026-05-23 21:16:13.856] WCAN_MEASURES elapsed_ms=29999 heap_start_free=97696 heap_end_free=112448 heap_start_min_free=97696 heap_end_min_free=91256 heap_start_largest=77824 heap_end_largest=73728 airtime_us_total=10870297 packets_sent_total=5730 sensor_send_failures_total=269
+[2026-05-23 21:16:13.857] WCAN_TEST_END role=sensor
+
+# Monitor stopped: 2026-05-23T21:16:13.857109

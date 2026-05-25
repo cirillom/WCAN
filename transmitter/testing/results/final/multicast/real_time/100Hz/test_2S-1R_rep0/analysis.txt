@@ -1,0 +1,35 @@
+real_time | MULTICAST | 100Hz | 2S-1R_rep0 | FAIL
+    FAILED PARTS: delivery
+
+    DELIVERY ANALYSIS: FAIL (99.97% end-to-end delivery, attention: 32 edge)
+      Summary: 5966 scored generated, 5964 received, 2 misses, 32 edge
+      Sensor C (0xc0 | _dev_ttyUSB2): 2998 generated, 2997 received, 1 misses, 1 edge
+       - MISSES (1): [[1321]]
+       - EDGE (1): tail=[[2998]]
+      Sensor D (0xd0 | _dev_ttyACM0): 2968 generated, 2967 received, 1 misses, 31 edge
+       - MISSES (1): [[1784]]
+       - EDGE (31): tail=[[2968..2998]]
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor C 0xc0 -> Receiver A: 2997/2998 received, missed 1 [[1321]], edge 1 tail=[[2998]]
+      Sensor D 0xd0 -> Receiver A: 2967/2968 received, missed 1 [[1784]], edge 31 tail=[[2968..2998]]
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (real_time, failures=0)
+      Sensor C: expected 100.0Hz, observed 100.0Hz (OK, tolerance +/-5%)
+      Sensor D: expected 100.0Hz, observed 100.0Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor C: airtime_pct=15.84 airtime_us_total=4751162 elapsed_ms=29999 heap_end_free=129908 heap_end_largest=94208 heap_end_min_free=113428 heap_start_free=113700 heap_start_largest=94208 heap_start_min_free=113516 packets_sent_total=2999 sensor_send_failures_total=0
+      Sensor D: airtime_pct=14.74 airtime_us_total=4422073 elapsed_ms=29999 heap_end_free=109280 heap_end_largest=77824 heap_end_min_free=97272 heap_start_free=97564 heap_start_largest=77824 heap_start_min_free=97564 packets_sent_total=2999 sensor_send_failures_total=0
+      Receiver A: airtime_pct=0.27 airtime_us_total=81133 elapsed_ms=29999 heap_end_free=145656 heap_end_largest=110592 heap_end_min_free=129056 heap_start_free=129508 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=61 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor C 0xc0: count=2999 dispatched_count=2999 avg_hz=100.00 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=10.00 min_interval_ms=9.83 max_interval_ms=10.18 avg_queue_wait_ms=0.09 max_queue_wait_ms=0.61 avg_dispatch_ms=1.59 max_dispatch_ms=12.57 (points=LARGE)
+      Sensor D 0xd0: count=2999 dispatched_count=2999 avg_hz=100.00 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=10.00 min_interval_ms=9.96 max_interval_ms=10.04 avg_queue_wait_ms=0.09 max_queue_wait_ms=0.25 avg_dispatch_ms=1.49 max_dispatch_ms=12.32 (points=LARGE)
+
+    LOG COUNTERS: PASS
+      Total: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=0
+      Sensor C: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=0
+      Sensor D: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=0

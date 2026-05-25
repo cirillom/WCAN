@@ -1,0 +1,28 @@
+real_time | BROADCAST | 100Hz | 1S-2R_rep1 | FAIL
+    FAILED PARTS: delivery
+
+    DELIVERY ANALYSIS: FAIL (98.97% end-to-end delivery)
+      Summary: 2999 scored generated, 2968 received, 31 misses, 0 edge
+      Sensor E (0xe0 | _dev_ttyACM1): 2999 generated, 2968 received, 31 misses, 0 edge
+       - MISSES (31): [[2968..2998]]
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor E 0xe0 -> Receiver A: 2968/2999 received, missed 31 [[2968..2998]]
+      Sensor E 0xe0 -> Receiver B: 2967/2999 received, missed 32 [[2130], [2968..2998]]
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (real_time, failures=0)
+      Sensor E: expected 100.0Hz, observed 100.0Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor E: airtime_pct=11.36 airtime_us_total=3408575 elapsed_ms=29999 heap_end_free=141568 heap_end_largest=98304 heap_end_min_free=126488 heap_start_free=126780 heap_start_largest=98304 heap_start_min_free=126780 packets_sent_total=2972 sensor_send_failures_total=21
+      Receiver A: airtime_pct=22.26 airtime_us_total=6676774 elapsed_ms=29999 heap_end_free=174120 heap_end_largest=110592 heap_end_min_free=162624 heap_start_free=163128 heap_start_largest=110592 heap_start_min_free=162944 packets_sent_total=2968 sensor_send_failures_total=0
+      Receiver B: airtime_pct=26.20 airtime_us_total=7858309 elapsed_ms=29999 heap_end_free=174120 heap_end_largest=110592 heap_end_min_free=162572 heap_start_free=163128 heap_start_largest=110592 heap_start_min_free=162944 packets_sent_total=2967 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor E 0xe0: count=2978 dispatched_count=2972 avg_hz=100.00 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=10.00 min_interval_ms=9.96 max_interval_ms=10.03 avg_queue_wait_ms=0.32 max_queue_wait_ms=274.75 avg_dispatch_ms=1.16 max_dispatch_ms=17.41 (points=LARGE)
+
+    LOG COUNTERS: FAIL
+      Total: P(FAIL)=2 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=21
+      Sensor E: P(FAIL)=2 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=21

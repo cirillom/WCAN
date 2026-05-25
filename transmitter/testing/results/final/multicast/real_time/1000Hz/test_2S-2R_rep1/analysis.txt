@@ -1,0 +1,36 @@
+real_time | MULTICAST | 1000Hz | 2S-2R_rep1 | FAIL
+    FAILED PARTS: delivery, scenario
+
+    DELIVERY ANALYSIS: FAIL (37.32% end-to-end delivery)
+      Summary: 50845 scored generated, 18973 received, 31872 misses, 0 edge
+      Sensor D (0xd0 | _dev_ttyACM0): 25450 generated, 8870 received, 16580 misses, 0 edge
+       - MISSES (16580): [[1..12], [15], [17], [19], [21], [23], [25], [27], [29], [31], [33], [35], [37..38], [40], [42], [44], [46], [48], [50], [52], [54], [56], [58], [60]] (8210 more ranges)
+      Sensor E (0xe0 | _dev_ttyACM1): 25395 generated, 10103 received, 15292 misses, 0 edge
+       - MISSES (15292): [[1..9], [14], [16], [18], [20], [22], [24], [26], [28], [30], [32], [34], [36], [38], [40], [42..43], [46..47], [50..51], [53], [55], [57], [59], [61..62], [64]] (8987 more ranges)
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor D 0xd0 -> Receiver B: 3096/25450 received, missed 22354 [[1..12], [15], [17], [19], [21], [23], [25], [27], [29], [31], [33], [35], [37..38], [40], [42], [44], [46], [48], [50], [52], [54], [56], [58..88], [90..110]] (2932 more ranges)
+      Sensor D 0xd0 -> Receiver C: 8870/25450 received, missed 16580 [[1..12], [15], [17], [19], [21], [23], [25], [27], [29], [31], [33], [35], [37..38], [40], [42], [44], [46], [48], [50], [52], [54], [56], [58], [60]] (8210 more ranges)
+      Sensor E 0xe0 -> Receiver B: 10103/25395 received, missed 15292 [[1..9], [14], [16], [18], [20], [22], [24], [26], [28], [30], [32], [34], [36], [38], [40], [42..43], [46..47], [50..51], [53], [55], [57], [59], [61..62], [64]] (8987 more ranges)
+      Sensor E 0xe0 -> Receiver C: 4052/25385 received, missed 21333 [[14], [16], [18], [20], [22], [24], [26], [28], [30], [32], [34], [36], [38], [40], [42..43], [46..47], [50..51], [53], [55], [57], [59..100], [102..111], [113..122], [124]] (3752 more ranges), edge 10 start=[[0..9]]
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: FAIL (real_time, failures=2)
+      Sensor D: expected 1000.0Hz, observed 848.3Hz (FAIL, tolerance +/-5%)
+      Sensor E: expected 1000.0Hz, observed 846.0Hz (FAIL, tolerance +/-5%)
+
+    MEASURE:
+      Sensor D: airtime_pct=23.00 airtime_us_total=6900257 elapsed_ms=30002 heap_end_free=108984 heap_end_largest=73728 heap_end_min_free=91040 heap_start_free=97564 heap_start_largest=77824 heap_start_min_free=97564 packets_sent_total=3164 sensor_send_failures_total=22286
+      Sensor E: airtime_pct=26.67 airtime_us_total=8005487 elapsed_ms=30017 heap_end_free=109116 heap_end_largest=73728 heap_end_min_free=91256 heap_start_free=97696 heap_start_largest=77824 heap_start_min_free=97696 packets_sent_total=4141 sensor_send_failures_total=21254
+      Receiver B: airtime_pct=0.57 airtime_us_total=171815 elapsed_ms=29999 heap_end_free=145624 heap_end_largest=110592 heap_end_min_free=129024 heap_start_free=129508 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=62 sensor_send_failures_total=0
+      Receiver C: airtime_pct=0.59 airtime_us_total=177305 elapsed_ms=29999 heap_end_free=145624 heap_end_largest=110592 heap_end_min_free=129024 heap_start_free=129508 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=62 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor D 0xd0: count=11067 dispatched_count=3164 avg_hz=368.88 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=2.71 min_interval_ms=0.62 max_interval_ms=53.44 avg_queue_wait_ms=31.15 max_queue_wait_ms=89.15 avg_dispatch_ms=2.20 max_dispatch_ms=49.89 (points=LARGE)
+      Sensor E 0xe0: count=11682 dispatched_count=4141 avg_hz=389.16 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=2.57 min_interval_ms=0.65 max_interval_ms=53.38 avg_queue_wait_ms=26.51 max_queue_wait_ms=73.85 avg_dispatch_ms=1.95 max_dispatch_ms=49.97 (points=LARGE)
+
+    LOG COUNTERS: FAIL
+      Total: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=43540
+      Sensor D: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=22286
+      Sensor E: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=21254

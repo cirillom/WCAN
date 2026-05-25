@@ -1,0 +1,26 @@
+real_time | BROADCAST | 750Hz | 1S-1R_rep1 | FAIL
+    FAILED PARTS: delivery
+
+    DELIVERY ANALYSIS: FAIL (25.67% end-to-end delivery)
+      Summary: 22505 scored generated, 5777 received, 16728 misses, 0 edge
+      Sensor A (0xa0 | _dev_ttyUSB0): 22505 generated, 5777 received, 16728 misses, 0 edge
+       - MISSES (16728): [[14..15], [17], [19..22], [24], [26..27], [29], [31], [33..34], [36..38], [40], [42..43], [45], [47..48], [50], [52..53], [55..56], [58], [60..61], [63], [65], [67..68], [70], [72..73], [75]] (5740 more ranges)
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor A 0xa0 -> Receiver C: 5777/22505 received, missed 16728 [[14..15], [17], [19..22], [24], [26..27], [29], [31], [33..34], [36..38], [40], [42..43], [45], [47..48], [50], [52..53], [55..56], [58], [60..61], [63], [65], [67..68], [70], [72..73], [75]] (5740 more ranges)
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (real_time, failures=0)
+      Sensor A: expected 750.0Hz, observed 750.2Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor A: airtime_pct=39.60 airtime_us_total=11880202 elapsed_ms=29999 heap_end_free=158244 heap_end_largest=110592 heap_end_min_free=143132 heap_start_free=143412 heap_start_largest=110592 heap_start_min_free=143228 packets_sent_total=5813 sensor_send_failures_total=16718
+      Receiver C: airtime_pct=47.72 airtime_us_total=14316031 elapsed_ms=29999 heap_end_free=174120 heap_end_largest=110592 heap_end_min_free=162460 heap_start_free=163120 heap_start_largest=110592 heap_start_min_free=162944 packets_sent_total=5777 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor A 0xa0: count=5787 dispatched_count=5813 avg_hz=192.94 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=5.18 min_interval_ms=1.04 max_interval_ms=382.57 avg_queue_wait_ms=47.20 max_queue_wait_ms=658.37 avg_dispatch_ms=2.05 max_dispatch_ms=34.03 (points=LARGE)
+
+    LOG COUNTERS: FAIL
+      Total: P(FAIL)=12 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=16718
+      Sensor A: P(FAIL)=12 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=16718

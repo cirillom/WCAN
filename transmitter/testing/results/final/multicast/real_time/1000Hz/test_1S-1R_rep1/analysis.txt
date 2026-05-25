@@ -1,0 +1,26 @@
+real_time | MULTICAST | 1000Hz | 1S-1R_rep1 | FAIL
+    FAILED PARTS: delivery
+
+    DELIVERY ANALYSIS: FAIL (61.39% end-to-end delivery)
+      Summary: 29999 scored generated, 18416 received, 11583 misses, 0 edge
+      Sensor C (0xc0 | _dev_ttyUSB2): 29999 generated, 18416 received, 11583 misses, 0 edge
+       - MISSES (11583): [[1..12], [25], [29], [32], [35], [38], [41], [44], [47], [49], [51], [53], [56], [58], [60], [63], [66], [68], [70], [72..74], [76], [78..79], [81], [84]] (9910 more ranges)
+
+    PAIR DELIVERY INFO (informational only; does not affect pass/fail)
+      Sensor C 0xc0 -> Receiver B: 18416/29999 received, missed 11583 [[1..12], [25], [29], [32], [35], [38], [41], [44], [47], [49], [51], [53], [56], [58], [60], [63], [66], [68], [70], [72..74], [76], [78..79], [81], [84]] (9910 more ranges)
+
+    CRASH ANALYSIS: PASS (0 total incidents)
+
+    SCENARIO ANALYSIS: PASS (real_time, failures=0)
+      Sensor C: expected 1000.0Hz, observed 1000.0Hz (OK, tolerance +/-5%)
+
+    MEASURE:
+      Sensor C: airtime_pct=92.13 airtime_us_total=27637478 elapsed_ms=29999 heap_end_free=129904 heap_end_largest=94208 heap_end_min_free=113244 heap_start_free=113700 heap_start_largest=94208 heap_start_min_free=113516 packets_sent_total=18442 sensor_send_failures_total=11557
+      Receiver B: airtime_pct=0.38 airtime_us_total=114854 elapsed_ms=29999 heap_end_free=145708 heap_end_largest=110592 heap_end_min_free=129108 heap_start_free=129500 heap_start_largest=110592 heap_start_min_free=129204 packets_sent_total=60 sensor_send_failures_total=0
+
+    BATCH STATS:
+      Sensor C 0xc0: count=18442 dispatched_count=18442 avg_hz=614.76 avg_points=1.00 min_points=1 max_points=1 avg_interval_ms=1.63 min_interval_ms=0.54 max_interval_ms=14.02 avg_queue_wait_ms=12.72 max_queue_wait_ms=27.02 avg_dispatch_ms=1.51 max_dispatch_ms=13.55 (points=LARGE)
+
+    LOG COUNTERS: FAIL
+      Total: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=11557
+      Sensor C: P(FAIL)=0 (start=0 tail=0) | P(FULL)=0 | S(FAIL)=11557

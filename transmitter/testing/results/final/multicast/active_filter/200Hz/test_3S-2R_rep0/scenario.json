@@ -1,0 +1,104 @@
+{
+  "active_filtering": true,
+  "boards": {
+    "A": {
+      "can_id": "0xa0",
+      "can_ids": [
+        "0xa0"
+      ],
+      "chip": "esp32",
+      "port": "/dev/ttyUSB0"
+    },
+    "B": {
+      "can_id": "0xb0",
+      "can_ids": [
+        "0xb0"
+      ],
+      "chip": "esp32",
+      "port": "/dev/ttyUSB1"
+    },
+    "C": {
+      "can_id": "0xc0",
+      "can_ids": [
+        "0xc0"
+      ],
+      "chip": "esp32",
+      "port": "/dev/ttyUSB2"
+    },
+    "D": {
+      "can_id": "0xd0",
+      "can_ids": [
+        "0xd0"
+      ],
+      "chip": "esp32c3",
+      "port": "/dev/ttyACM0"
+    },
+    "E": {
+      "can_id": "0xe0",
+      "can_ids": [
+        "0xe0"
+      ],
+      "chip": "esp32c3",
+      "port": "/dev/ttyACM1"
+    }
+  },
+  "can_ids_per_sensor": 1,
+  "expected_receivers": {
+    "0xc0": [
+      "A",
+      "B"
+    ],
+    "0xd0": [
+      "B"
+    ],
+    "0xe0": [
+      "A"
+    ]
+  },
+  "frequency_hz": 200,
+  "frequency_tolerance": 0.05,
+  "host_wait_time_ms": 5000,
+  "linger_ms": 100,
+  "profile": "full",
+  "receiver_allowlists": {
+    "A": [
+      "0xe0",
+      "0xc0"
+    ],
+    "B": [
+      "0xd0",
+      "0xc0"
+    ]
+  },
+  "repeat": 0,
+  "roles": {
+    "idle": [],
+    "receivers": [
+      "A",
+      "B"
+    ],
+    "sensors": [
+      "D",
+      "E",
+      "C"
+    ]
+  },
+  "scenario": "active_filter",
+  "sensor_can_ids": {
+    "C": "0xc0",
+    "D": "0xd0",
+    "E": "0xe0"
+  },
+  "sensor_frequencies": {},
+  "suite": "active_filter",
+  "test_duration_ms": 30000,
+  "topology": "3S-2R",
+  "transport": "MULTICAST",
+  "uart_boot_config": {
+    "A": "wcan v=1 role=receiver transport=MULTICAST test_duration_ms=30000 host_wait_time_ms=5000 filter=0xe0,0xc0",
+    "B": "wcan v=1 role=receiver transport=MULTICAST test_duration_ms=30000 host_wait_time_ms=5000 filter=0xd0,0xc0",
+    "C": "wcan v=1 role=sensor transport=MULTICAST test_duration_ms=30000 host_wait_time_ms=5000 base=0xc0 count=1 hz=200 linger=100",
+    "D": "wcan v=1 role=sensor transport=MULTICAST test_duration_ms=30000 host_wait_time_ms=5000 base=0xd0 count=1 hz=200 linger=100",
+    "E": "wcan v=1 role=sensor transport=MULTICAST test_duration_ms=30000 host_wait_time_ms=5000 base=0xe0 count=1 hz=200 linger=100"
+  }
+}
