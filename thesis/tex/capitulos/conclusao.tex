@@ -11,7 +11,7 @@ tradicional.
 O objetivo foi cumprido em bancada. A implementação atual demonstrou que a
 arquitetura é viável quando seus limites são respeitados: o WCAN consegue operar
 sem associação prévia, com papéis configuráveis, filtragem por CAN ID,
-\texttt{RingBuffer} de transmissão e recepção, \texttt{esp\_timer} para
+anéis \texttt{RingBuffer} de transmissão e recepção, \texttt{esp\_timer} para
 \textit{linger}, tarefas separadas de envio e recepção, e duas variantes de
 transporte selecionadas em tempo de compilação. A avaliação final não valida o
 sistema como substituto do CAN físico em controle crítico, mas sustenta seu uso
@@ -27,10 +27,10 @@ margem operacional do sistema, principalmente em frequências acima de 100~Hz. C
 1000~Hz, desde que a reconstrução temporal aceite a premissa de amostras regulares
 agrupadas no mesmo pacote.
 
-O resultado mais relevante para o uso pretendido aparece na suíte
-\texttt{multiple}, pois ela representa melhor um nó sensor real transmitindo mais
-de um CAN ID. Nessa suíte, o multicast com \textit{batching} aprovou 90 de 90
-execuções, incluindo 36 de 36 em 750--1000~Hz. O broadcast, sob a mesma suíte,
+O melhor desempenho final foi do multicast com \textit{batching}, especialmente
+na suíte \texttt{multiple}, que representa melhor um nó sensor real transmitindo
+mais de um CAN ID. Nessa suíte, o multicast com \textit{batching} aprovou 90 de
+90 execuções, incluindo 36 de 36 em 750--1000~Hz. O broadcast, sob a mesma suíte,
 aprovou 34 de 90 execuções e apenas 3 de 36 em 750--1000~Hz. A diferença decorre
 principalmente da semântica de confirmação: no broadcast, cada lote depende de
 ACK de aplicação em \texttt{CONTROL\_ID} e pode entrar em retransmissão; no
