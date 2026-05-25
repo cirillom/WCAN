@@ -347,7 +347,7 @@ Múltiplas conexões & Foram exercitadas topologias com múltiplos sensores e re
 \hline
 Transparência CAN & O firmware preserva o mesmo CAN ID, mantém a separação de fluxos por identificador e utiliza confirmação no lado CAN quando o dado é entregue ao barramento. As garantias físicas restantes, como CRC e ACK elétrico, pertencem ao próprio enlace CAN cabeado. & Atendido por projeto \\
 \hline
-Requisitos físicos e custo & O nó sensor foi implementado com placa ESP32 compacta e de baixo custo, operando com alimentação pequena e até bateria reutilizada. O requisito é compatível com o processamento embarcado validado em bancada, embora ainda falte ensaio no veículo. & Atendido em bancada \\
+Requisitos físicos e custo & O nó sensor foi implementado com placa ESP32 compacta e componentes acessíveis, indicando viabilidade física inicial. A campanha, porém, não mediu massa final, custo consolidado, autonomia nem fixação no veículo. & Parcial \\
 \hline
 Modularidade & Papéis configuráveis, duas variantes de transporte, filtros de interesse, frequências mistas e adição de nós nas topologias foram exercitados sem alterar a arquitetura base. & Atendido em bancada \\
 \hline
@@ -392,12 +392,12 @@ ACK elétrico são propriedades do trecho cabeado e continuam responsabilidade d
 controlador CAN, não do transporte ESP-NOW. O que não foi ensaiado aqui foi a
 robustez física da instalação no carro, não a transparência lógica para a rede CAN.
 
-Os requisitos físicos e de custo também são considerados atendidos em bancada. O
-nó sensor usa processamento leve em ESP32, uma placa pequena e barata, e foi capaz
-de operar com alimentação compacta, incluindo bateria reutilizada. Ainda falta
-ensaio no veículo para validar fixação, vibração, interferência e autonomia em
-uso real, mas a implementação demonstra que o lado de processamento do sensor é
-compatível com as restrições de volume, massa e orçamento de uma equipe estudantil.
+Os requisitos físicos e de custo são considerados parcialmente atendidos. O
+nó sensor usa processamento leve em ESP32, uma placa compacta e componentes
+acessíveis, o que indica viabilidade física inicial para uma equipe estudantil.
+A campanha, porém, não quantificou massa final, custo consolidado, autonomia,
+encapsulamento ou fixação no veículo. Esses pontos dependem de ensaio no carro
+para validar vibração, interferência, montagem e operação prolongada em uso real.
 A modularidade, por sua vez, foi demonstrada de forma direta pelas builds, filtros
 e topologias: novos nós e novos interesses puderam ser adicionados sem alterar a
 arquitetura base.
