@@ -80,42 +80,42 @@ Os objetivos específicos são:
     de aquisição existente;
     \item implementar o WCAN como camada de comunicação sobre ESP-NOW, com
     agrupamento temporal de amostras e filtragem por identificador CAN;
-    \item desenvolver e comparar duas variantes de transporte, broadcast e
-    multicast;
+    \item desenvolver e comparar duas variantes de transporte, \emph{broadcast} e
+    \emph{multicast};
     \item avaliar, em bancada, o comportamento do sistema com múltiplos sensores,
     receptores, frequências, filtros e fluxos por sensor;
     \item delimitar as condições em que a solução é adequada para instrumentação
     e os pontos que ainda exigem validação no veículo.
 \end{itemize}
 
-A principal contribuição é o WCAN, composto por protocolo e firmware para
+A principal contribuição é o WCAN, composto por protocolo e \emph{firmware} para
 transportar dados identificados por CAN ID sobre ESP-NOW. A implementação inclui
 um núcleo comum de transmissão e recepção, anéis \texttt{RingBuffer} para
 organizar lotes por CAN ID, suporte a agrupamento temporal de amostras, filtragem
 por identificador e duas políticas de transporte. Como suporte
 à avaliação, o trabalho também entrega uma campanha experimental automatizada,
-com configuração de placas, execução por UART, coleta de logs e análise
+com configuração de placas, execução por UART, coleta de \emph{logs} e análise
 reprodutível. Essa infraestrutura é tratada como meio de validação, não como
 requisito de uso do WCAN, e foi necessária para produzir evidência experimental
 consistente sobre seus limites.
 
 A campanha final, armazenada em \path{transmitter/testing/results/final}, possui 684 execuções
 planejadas. Após separar cinco falhas atribuídas à
-instrumentação de estatísticas ou log serial, a base útil ficou em 453 aprovações
+instrumentação de estatísticas ou \emph{log} serial, a base útil ficou em 453 aprovações
 sobre 679 execuções, ou 66,7\%. O melhor desempenho final foi obtido pelo
-multicast com lotes. Na suíte \texttt{multiple}, essa configuração
-aprovou 90 de 90 execuções com múltiplos CAN IDs por sensor, enquanto o broadcast
+\emph{multicast} com lotes. Na suíte \texttt{multiple}, essa configuração
+aprovou 90 de 90 execuções com múltiplos CAN IDs por sensor, enquanto o \emph{broadcast}
 aprovou 34 de 90. O mecanismo também foi determinante: as suítes com
 \texttt{linger\_ms = 100} somaram 415 aprovações em 499 execuções, enquanto a
 suíte \texttt{real\_time}, sem formar lotes, somou 38 em 180. Esses resultados
 indicam que o WCAN é viável em bancada para aquisição de dados quando usado
-dentro dos limites observados, especialmente com multicast e formação de lotes.
+dentro dos limites observados, especialmente com \emph{multicast} e formação de lotes.
 
 \section{Escopo e Organização do Trabalho}
 
 Este trabalho avalia o WCAN em bancada, não em pista. Os ensaios foram realizados
 com placas alimentadas e monitoradas por USB, o que permite comparar variantes de
-firmware e observar gargalos de transporte, mas não reproduz vibração, fixação no
+\emph{firmware} e observar gargalos de transporte, mas não reproduz vibração, fixação no
 veículo, interferência eletromagnética, posicionamento real de antenas,
 alimentação automotiva ou operação prolongada durante uma prova. A proposta também
 não substitui o CAN físico em funções de controle crítico do veículo. O WCAN é
@@ -141,10 +141,10 @@ sem fio.
 
 O Capítulo~\ref{chapter:desenvolvimento} descreve a implementação do WCAN, o
 formato dos pacotes, o núcleo comum de transmissão e recepção, e as diferenças
-entre as variantes broadcast e multicast.
+entre as variantes \emph{broadcast} e \emph{multicast}.
 
 O Capítulo~\ref{chapter:metodos} apresenta a metodologia experimental, incluindo
-bancada, builds, suítes de teste, automação, coleta de logs e critérios de
+bancada, \emph{builds}, suítes de teste, automação, coleta de \emph{logs} e critérios de
 análise.
 
 O Capítulo~\ref{chapter:resultados-testes} discute a campanha final em
@@ -157,4 +157,4 @@ trabalhos futuros, destacando o que foi demonstrado em bancada e o que ainda
 precisa ser validado no veículo.
 
 O Apêndice~\ref{appendix:full-run} registra os artefatos da campanha final,
-incluindo plano de execução, configurações, resumos e logs usados na análise.
+incluindo plano de execução, configurações, resumos e \emph{logs} usados na análise.

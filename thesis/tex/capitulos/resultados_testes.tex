@@ -13,13 +13,13 @@ tiveram ao menos uma repetição aprovada.
 
 Para a interpretação dos resultados de protocolo, cinco reprovações foram
 separadas da contagem principal por serem falhas do sistema de estatísticas ou do
-log serial, e não evidência de perda de entrega. Nesses casos, os marcadores de
+\emph{log} serial, e não evidência de perda de entrega. Nesses casos, os marcadores de
 fim existem ou aparecem parcialmente, mas as linhas \texttt{WCAN\_SENSOR\_END} e
 \texttt{WCAN\_MEASURES} foram corrompidas por concatenação ou truncamento de
 campos, como \texttt{generated750.19} e \texttt{1240925packets\_sent\_total}. A
 base útil de interpretação fica, portanto, em 453 aprovações sobre 679 execuções,
-ou 66,7\%. Os demais logs incompletos foram mantidos como falhas, pois estão
-associados a timeout, placa que não entrou no teste ou saturação real do envio.
+ou 66,7\%. Os demais \emph{logs} incompletos foram mantidos como falhas, pois estão
+associados a \emph{timeout}, placa que não entrou no teste ou saturação real do envio.
 
 O resultado mais importante da campanha é a suíte \texttt{multiple}. Apesar de
 \texttt{baseline} ser a referência mínima, o uso esperado do WCAN raramente terá
@@ -38,25 +38,25 @@ já com a base útil quando houve falha exclusiva de estatística.
 \hline
 Suíte e transporte & Aprovadas & Stats excl. & Leitura principal \\
 \hline
-\texttt{multiple}, broadcast & 34/90 & 0 & Caso crítico da tese; o ACK de aplicação e as retransmissões limitam a escala com três CAN IDs por sensor. \\
+\texttt{multiple}, \emph{broadcast} & 34/90 & 0 & Caso crítico da tese; o ACK de aplicação e as retransmissões limitam a escala com três CAN IDs por sensor. \\
 \hline
-\texttt{multiple}, multicast & 90/90 & 0 & Melhor resultado prático da campanha para múltiplos fluxos com lotes. \\
+\texttt{multiple}, \emph{multicast} & 90/90 & 0 & Melhor resultado prático da campanha para múltiplos fluxos com lotes. \\
 \hline
-\texttt{baseline}, broadcast & 70/88 & 2 & Controle de um CAN ID por sensor; bom em baixa carga, mas ainda sensível a 750 Hz e topologias maiores. \\
+\texttt{baseline}, \emph{broadcast} & 70/88 & 2 & Controle de um CAN ID por sensor; bom em baixa carga, mas ainda sensível a 750 Hz e topologias maiores. \\
 \hline
-\texttt{baseline}, multicast & 90/90 & 0 & Controle estável para um CAN ID por sensor. \\
+\texttt{baseline}, \emph{multicast} & 90/90 & 0 & Controle estável para um CAN ID por sensor. \\
 \hline
-\texttt{real\_time}, broadcast & 18/90 & 0 & Sem \textit{linger}, o caminho de ACK e fila satura rapidamente. \\
+\texttt{real\_time}, \emph{broadcast} & 18/90 & 0 & Sem \emph{linger}, o caminho de ACK e fila satura rapidamente. \\
 \hline
-\texttt{real\_time}, multicast & 20/90 & 0 & Sem agrupamento temporal, o driver ESP-NOW passa a rejeitar envios em alta taxa. \\
+\texttt{real\_time}, \emph{multicast} & 20/90 & 0 & Sem agrupamento temporal, o \emph{driver} ESP-NOW passa a rejeitar envios em alta taxa. \\
 \hline
-\texttt{active\_filter}, broadcast & 52/60 & 0 & Filtro correto; falhas remanescentes são de entrega, carga ou bancada. \\
+\texttt{active\_filter}, \emph{broadcast} & 52/60 & 0 & Filtro correto; falhas remanescentes são de entrega, carga ou bancada. \\
 \hline
-\texttt{active\_filter}, multicast & 57/57 & 3 & Sem entrega indevida de CAN ID; as três reprovações brutas foram corrupção de estatísticas/log. \\
+\texttt{active\_filter}, \emph{multicast} & 57/57 & 3 & Sem entrega indevida de CAN ID; as três reprovações brutas foram corrupção de estatísticas/\emph{log}. \\
 \hline
-\texttt{mixed\_frequency}, broadcast & 10/12 & 0 & Frequências heterogêneas coexistem; as falhas aparecem em combinações densas com 750 Hz e 1000 Hz. \\
+\texttt{mixed\_frequency}, \emph{broadcast} & 10/12 & 0 & Frequências heterogêneas coexistem; as falhas aparecem em combinações densas com 750 Hz e 1000 Hz. \\
 \hline
-\texttt{mixed\_frequency}, multicast & 12/12 & 0 & Sustenta todas as combinações heterogêneas testadas. \\
+\texttt{mixed\_frequency}, \emph{multicast} & 12/12 & 0 & Sustenta todas as combinações heterogêneas testadas. \\
 \hline
 \end{tabular}
 \captionof{table}{Resumo agregado da campanha final por suíte e transporte.}
@@ -67,8 +67,8 @@ Suíte e transporte & Aprovadas & Stats excl. & Leitura principal \\
 
 A suíte \texttt{multiple} força cada sensor a publicar três CAN IDs. Essa é a
 condição mais próxima do uso pretendido, porque uma placa embarcada tende a
-agrupar várias medições e estados sob IDs diferentes. Nessa suíte, o multicast
-com agrupamento temporal aprovou 90 de 90 execuções. O broadcast aprovou 34 de 90.
+agrupar várias medições e estados sob IDs diferentes. Nessa suíte, o \emph{multicast}
+com agrupamento temporal aprovou 90 de 90 execuções. O \emph{broadcast} aprovou 34 de 90.
 A diferença não vem do formato do pacote, que é comum, mas da política de
 confirmação.
 
@@ -83,29 +83,29 @@ interpretação dos casos.
 \hline
 Transporte em \texttt{multiple} & 750--1000 Hz & Total da suíte & Leitura \\
 \hline
-Broadcast & 3/36 & 34/90 & O custo de ACK de aplicação, timeout e retransmissão aumenta até preencher filas e gerar \texttt{P(FAIL)} e \texttt{S(FAIL)}. \\
+\emph{Broadcast} & 3/36 & 34/90 & O custo de ACK de aplicação, \emph{timeout} e retransmissão aumenta até preencher filas e gerar \texttt{P(FAIL)} e \texttt{S(FAIL)}. \\
 \hline
-Multicast & 36/36 & 90/90 & A assinatura por CAN ID remove ACK de aplicação do caminho de dados e preserva vazão com agrupamento temporal. \\
+\emph{Multicast} & 36/36 & 90/90 & A assinatura por CAN ID remove ACK de aplicação do caminho de dados e preserva vazão com agrupamento temporal. \\
 \hline
 \end{tabular}
 \captionof{table}{Comparação dos transportes na suíte \texttt{multiple}.}
 \label{tab:multiple-final}
 \end{center}
 
-No broadcast, cada lote passa pela tarefa de retry do seu CAN ID. O transmissor
-envia o pacote, espera o callback de envio do rádio, aguarda um ACK de aplicação
+No \emph{broadcast}, cada lote passa pela tarefa de \emph{retry} do seu CAN ID. O transmissor
+envia o pacote, espera o \emph{callback} de envio do rádio, aguarda um ACK de aplicação
 em \texttt{CONTROL\_ID} e repete o processo se o ACK não chegar dentro da janela
 configurada. Esse desenho oferece uma semântica mais próxima da aplicação, mas
 consome tempo de rádio e tempo de fila. No caso
 \path{broadcast/multiple/1000Hz/test_4S-1R_rep0}, a análise registrou 49,35\%
 de entrega, 180.783 perdas internas, 172.905 falhas de envio do sensor e espera
-máxima em fila de 3,83 s. A medida de airtime também mostra pressão real: o
-receptor mais carregado chegou a 60,20\% de airtime, enquanto o multicast
+máxima em fila de 3,83 s. A medida de \emph{airtime} também mostra pressão real: o
+receptor mais carregado chegou a 60,20\% de \emph{airtime}, enquanto o \emph{multicast}
 \texttt{multiple} teve média agregada menor, embora com picos de até 50,31\% em
 sensores a 1000 Hz.
 
-No multicast, os receptores anunciam interesse por CAN ID e o transmissor envia
-para os peers registrados sem ACK de aplicação por lote. A confirmação direta é
+No \emph{multicast}, os receptores anunciam interesse por CAN ID e o transmissor envia
+para os \emph{peers} registrados sem ACK de aplicação por lote. A confirmação direta é
 a resposta do caminho MAC/radio reportada pelo ESP-NOW, não a prova de que a
 tarefa de aplicação remota consumiu o pacote. Essa troca foi favorável nos dados:
 menos coordenação explícita no caminho crítico resultou em entrega completa na
@@ -118,7 +118,7 @@ registrados nos receptores.
 As suítes com \texttt{linger\_ms = 100} somaram 415 aprovações em 499 execuções
 da base útil. A suíte \texttt{real\_time}, com \texttt{linger\_ms = 0}, somou
 38 aprovações em 180 execuções. A Tabela~\ref{tab:efeito-agrupamento-temporal-final}
-apresenta essa comparação antes da discussão dos logs.
+apresenta essa comparação antes da discussão dos \emph{logs}.
 
 \begin{center}
 \small
@@ -128,69 +128,69 @@ apresenta essa comparação antes da discussão dos logs.
 \hline
 Conjunto & Configuração & Aprovadas & Interpretação \\
 \hline
-\texttt{baseline}, \texttt{multiple}, \texttt{active\_filter} e \texttt{mixed\_frequency} & \texttt{linger\_ms = 100} & 415/499 & O pacote agrega amostras e amortiza o custo de rádio, callback e confirmação. \\
+\texttt{baseline}, \texttt{multiple}, \texttt{active\_filter} e \texttt{mixed\_frequency} & \texttt{linger\_ms = 100} & 415/499 & O pacote agrega amostras e amortiza o custo de rádio, \emph{callback} e confirmação. \\
 \hline
-\texttt{real\_time} & \texttt{linger\_ms = 0} & 38/180 & Cada amostra força um envio ESP-NOW; a pressão migra diretamente para filas, callbacks e driver Wi-Fi. \\
+\texttt{real\_time} & \texttt{linger\_ms = 0} & 38/180 & Cada amostra força um envio ESP-NOW; a pressão migra diretamente para filas, \emph{callbacks} e \emph{driver} Wi-Fi. \\
 \hline
 \end{tabular}
 \captionof{table}{Efeito agregado do agrupamento temporal na campanha final.}
 \label{tab:efeito-agrupamento-temporal-final}
 \end{center}
 
-Em \texttt{real\_time}, a degradação é abrupta. Em 10 Hz, o broadcast passou 17
-de 18 execuções e o multicast passou 18 de 18. Em 100 Hz, os mesmos transportes
+Em \texttt{real\_time}, a degradação é abrupta. Em 10 Hz, o \emph{broadcast} passou 17
+de 18 execuções e o \emph{multicast} passou 18 de 18. Em 100 Hz, os mesmos transportes
 caíram para 1/18 e 2/18. Em 200 Hz, 750 Hz e 1000 Hz, nenhuma execução foi
 aprovada. Isso ocorre porque a taxa de amostras passa a ser também a taxa de
 pacotes ESP-NOW. Ao reunir várias amostras do mesmo CAN ID no mesmo
 \texttt{Packet}, o sistema reduz essa pressão; no envio amostra a amostra, cada ponto
-disputa chamada de driver, callback e espaço de fila.
+disputa chamada de \emph{driver}, \emph{callback} e espaço de fila.
 
 Mesmo quando os dois transportes reprovam, a diferença de entrega é relevante.
-Nas execuções \texttt{real\_time} com resumo de entrega completo, o broadcast
-entregou 331.623 de 2.330.224 amostras pontuadas, ou 14,23\%. O multicast
+Nas execuções \texttt{real\_time} com resumo de entrega completo, o \emph{broadcast}
+entregou 331.623 de 2.330.224 amostras pontuadas, ou 14,23\%. O \emph{multicast}
 entregou 931.350 de 1.800.085, ou 51,74\%. A vantagem aparece já em 100 Hz:
-o broadcast ficou em 44,38\% de entrega, enquanto o multicast atingiu
+o \emph{broadcast} ficou em 44,38\% de entrega, enquanto o \emph{multicast} atingiu
 99,91\%, embora ainda reprovado por perdas internas pontuais. Em 200 Hz, o
-multicast entregou 92,64\% contra 36,34\% do broadcast. Em 750 Hz e 1000 Hz, a
-queda é mais forte para ambos, mas o multicast ainda manteve 47,56\% e 36,98\%
-de entrega, contra 10,79\% e 8,88\% no broadcast. Portanto, a reprovação de
+\emph{multicast} entregou 92,64\% contra 36,34\% do \emph{broadcast}. Em 750 Hz e 1000 Hz, a
+queda é mais forte para ambos, mas o \emph{multicast} ainda manteve 47,56\% e 36,98\%
+de entrega, contra 10,79\% e 8,88\% no \emph{broadcast}. Portanto, a reprovação de
 \texttt{real\_time} não significa que os transportes falharam do mesmo modo: o
-multicast também ficou fora do critério estrito, mas conservou uma fração muito
+\emph{multicast} também ficou fora do critério estrito, mas conservou uma fração muito
 maior da série temporal antes de saturar.
 
-Os logs de multicast \texttt{real\_time} em alta frequência aprofundam essa
+Os \emph{logs} de \emph{multicast} \texttt{real\_time} em alta frequência aprofundam essa
 leitura. O erro \texttt{ESP\_ERR\_ESPNOW\_INTERNAL} é definido pelo ESP-IDF como
 erro interno retornado por \texttt{esp\_now\_send}; ele ocorre antes de haver
-callback de sucesso ou falha e indica que o pacote nem foi aceito corretamente
-pelo caminho interno do driver ESP-NOW \cite{espressif_espnow_programming_guide}.
+\emph{callback} de sucesso ou falha e indica que o pacote nem foi aceito corretamente
+pelo caminho interno do \emph{driver} ESP-NOW \cite{espressif_espnow_programming_guide}.
 Nos testes, esse erro aparece quando o intervalo entre envios fica curto demais e
-o airtime se aproxima da saturação. O caso
-\path{multicast/real_time/1000Hz/test_4S-1R_rep1} chegou a 99,78\% de airtime em
+o \emph{airtime} se aproxima da saturação. O caso
+\path{multicast/real_time/1000Hz/test_4S-1R_rep1} chegou a 99,78\% de \emph{airtime} em
 um sensor. Portanto, a causa imediata é o desenho da carga imposta ao sistema,
 isto é, envio amostra a amostra em frequência alta; as características físicas do
-802.11 entram como limite de airtime e contenção do meio, mas não explicam
-sozinhas a falha. O mesmo hardware sustenta 1000 Hz em \texttt{multiple}
-multicast quando as amostras são reunidas em lotes, reduzindo a taxa de pacotes.
+802.11 entram como limite de \emph{airtime} e contenção do meio, mas não explicam
+sozinhas a falha. O mesmo \emph{hardware} sustenta 1000 Hz em \texttt{multiple}
+\emph{multicast} quando as amostras são reunidas em lotes, reduzindo a taxa de pacotes.
 
 \section{Estatísticas, Logs Incompletos e Confiabilidade da Medição}
 
 A inspeção manual dos 14 casos classificados como \texttt{incomplete\_logs}
 separou três grupos. O primeiro grupo contém cinco quebras do sistema de
-estatísticas/log serial: três em \texttt{active\_filter} multicast e duas em
-\texttt{baseline} broadcast. Neles não há assinatura de crash, \texttt{panic},
+estatísticas/\emph{log} serial: três em \texttt{active\_filter} \emph{multicast} e duas em
+\texttt{baseline} \emph{broadcast}. Neles não há assinatura de \emph{crash}, \texttt{panic},
 \texttt{abort} ou \texttt{Backtrace}. O padrão observado é a corrupção de linhas
 de saída, como campos colados em \texttt{WCAN\_MEASURES} ou a perda parcial do
 marcador \texttt{WCAN\_SENSOR\_END}. Esses casos foram removidos da base útil,
 mas permanecem como limitação da instrumentação: mesmo em cenários que parecem
-ideais para o protocolo, a medição por log serial pode quebrar.
+ideais para o protocolo, a medição por \emph{log} serial pode quebrar.
 
-O segundo grupo reúne oito execuções multicast \texttt{real\_time} em 750 Hz e
-1000 Hz. Essas não são falhas de estatística. Os logs contêm milhares de
+O segundo grupo reúne oito execuções \emph{multicast} \texttt{real\_time} em 750 Hz e
+1000 Hz. Essas não são falhas de estatística. Os \emph{logs} contêm milhares de
 \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}, linhas \texttt{S(FAIL)} e, em alguns casos,
-timeout do monitor esperando \texttt{WCAN\_TEST\_END}. Elas foram mantidas como
-falhas de transporte, pois a própria carga levou o firmware a uma condição em
-que o driver já não aceitava envios no ritmo produzido. O terceiro caso é uma
-execução broadcast \texttt{real\_time} em que uma placa ficou em
+\emph{timeout} do monitor esperando \texttt{WCAN\_TEST\_END}. Elas foram mantidas como
+falhas de transporte, pois a própria carga levou o \emph{firmware} a uma condição em
+que o \emph{driver} já não aceitava envios no ritmo produzido. O terceiro caso é uma
+execução \emph{broadcast} \texttt{real\_time} em que uma placa ficou em
 \texttt{WCAN\_CFG\_WAIT} e não entrou no teste; ele foi mantido como falha da
 bancada, não como evidência de entrega.
 
@@ -198,25 +198,25 @@ bancada, não como evidência de entrega.
 
 A suíte \texttt{active\_filter} confirma que o filtro por CAN ID funcionou. A
 análise não encontrou CAN IDs inesperados entregues a receptores fora da
-\textit{allowlist}. Após remover as três quebras de estatística do multicast, o
-resultado útil do transporte fica em 57/57. No broadcast, o resultado ficou em
+\emph{allowlist}. Após remover as três quebras de estatística do \emph{multicast}, o
+resultado útil do transporte fica em 57/57. No \emph{broadcast}, o resultado ficou em
 52/60, com falhas explicadas por carga ou entrega de fluxo assinado.
 
 O caso \path{broadcast/active_filter/750Hz/test_2S-3R_rep0} é o mais importante:
 um receptor esperado não recebeu o fluxo \texttt{0xd0}, mas não houve entrega de
 CAN ID indevido. Logo, a falha é de entrega para um fluxo assinado, não de lógica
 do filtro. Já o caso \path{broadcast/active_filter/1000Hz/test_2S-1R_rep1}
-mostra um comportamento esperado do broadcast: um sensor sem receptor interessado
+mostra um comportamento esperado do \emph{broadcast}: um sensor sem receptor interessado
 acumula retries, não recebe ACK e passa a descartar dados. Como o cenário não
 esperava receptor para aquele fluxo, isso não entra como perda de aplicação, mas
-mostra desperdício de trabalho quando o emissor transmite por broadcast algo que
-ninguém precisa aceitar. No multicast, esse custo tende a ser menor porque a
-assinatura informa quais peers estão interessados em cada CAN ID.
+mostra desperdício de trabalho quando o emissor transmite por \emph{broadcast} algo que
+ninguém precisa aceitar. No \emph{multicast}, esse custo tende a ser menor porque a
+assinatura informa quais \emph{peers} estão interessados em cada CAN ID.
 
 Na suíte \texttt{mixed\_frequency}, a heterogeneidade de frequências não foi o
-problema dominante. O multicast passou as 12 execuções e o broadcast passou 10
-de 12. As reprovações de broadcast envolvem combinações com 750 Hz e 1000 Hz,
-reforçando que o limite vem da soma entre taxa, fan-out e política de
+problema dominante. O \emph{multicast} passou as 12 execuções e o \emph{broadcast} passou 10
+de 12. As reprovações de \emph{broadcast} envolvem combinações com 750 Hz e 1000 Hz,
+reforçando que o limite vem da soma entre taxa, \emph{fan-out} e política de
 confirmação.
 
 \section{Perdas de Borda, \texttt{P(FAIL)} e Quase Aprovações}
@@ -230,10 +230,10 @@ perdida dentro da janela útil.
 
 As perdas de borda têm outra interpretação. Elas são prefixos antes da primeira
 amostra recebida ou sufixos após a última amostra recebida e não entram na taxa
-principal de entrega. Em várias execuções multicast de \texttt{multiple} a 750 Hz
+principal de entrega. Em várias execuções \emph{multicast} de \texttt{multiple} a 750 Hz
 e 1000 Hz, a entrega interna foi perfeita, mas houve sufixos de borda no fim do
 teste. Isso sugere que o sistema estava correto em regime, mas que o encerramento
-da medição ocorreu antes de todo o backlog final ser observado. Não é uma falha
+da medição ocorreu antes de todo o \emph{backlog} final ser observado. Não é uma falha
 de regime permanente, mas importa se a aplicação precisar fechar uma janela de
 aquisição sem perder nenhuma amostra gerada imediatamente antes do fim.
 
@@ -254,11 +254,11 @@ aprovação; misturar essas categorias distorce a conclusão da campanha.
 \hline
 Execução & Classe & Evidência \\
 \hline
-\path{broadcast/multiple/1000Hz/test_4S-1R_rep0} & Saturação de fila e retry & 49,35\% de entrega, 180.783 perdas internas, 172.905 \texttt{S(FAIL)}, espera máxima de fila de 3,83 s e receptor com 60,20\% de airtime. \\
+\path{broadcast/multiple/1000Hz/test_4S-1R_rep0} & Saturação de fila e \emph{retry} & 49,35\% de entrega, 180.783 perdas internas, 172.905 \texttt{S(FAIL)}, espera máxima de fila de 3,83 s e receptor com 60,20\% de \emph{airtime}. \\
 \hline
-\path{multicast/real_time/1000Hz/test_4S-1R_rep1} & Saturação do driver ESP-NOW & Sensor com 99,78\% de airtime e sequência de \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}; falha causada por pacote por amostra em alta taxa. \\
+\path{multicast/real_time/1000Hz/test_4S-1R_rep1} & Saturação do \emph{driver} ESP-NOW & Sensor com 99,78\% de \emph{airtime} e sequência de \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}; falha causada por pacote por amostra em alta taxa. \\
 \hline
-\path{multicast/active_filter/750Hz/test_3S-1R_rep0} & Quebra de estatística & Entrega não pôde ser avaliada porque \texttt{WCAN\_MEASURES} saiu com campo colado; sem assinatura de crash. \\
+\path{multicast/active_filter/750Hz/test_3S-1R_rep0} & Quebra de estatística & Entrega não pôde ser avaliada porque \texttt{WCAN\_MEASURES} saiu com campo colado; sem assinatura de \emph{crash}. \\
 \hline
 \path{broadcast/active_filter/750Hz/test_2S-3R_rep0} & Entrega de fluxo assinado & Um receptor esperado não recebeu \texttt{0xd0}; não houve CAN ID inesperado. \\
 \hline
@@ -271,22 +271,22 @@ Execução & Classe & Evidência \\
 
 O primeiro caso é o colapso mais importante porque pertence à suíte
 \texttt{multiple}, que representa o uso realista do sistema. A combinação de
-quatro sensores, três CAN IDs por sensor e 1000 Hz fez o broadcast gastar tempo
-com retransmissões e ACKs de aplicação até criar backlog. A espera de fila de
+quatro sensores, três CAN IDs por sensor e 1000 Hz fez o \emph{broadcast} gastar tempo
+com retransmissões e ACKs de aplicação até criar \emph{backlog}. A espera de fila de
 3,83 s é maior que a escala temporal do próprio lote, portanto a perda deixa de
 ser um evento de rádio isolado e passa a ser uma falha de capacidade do caminho
-de transmissão. Esse caso justifica tratar o broadcast como transporte que exige
+de transmissão. Esse caso justifica tratar o \emph{broadcast} como transporte que exige
 ajuste antes de uso em muitos fluxos.
 
 O segundo caso delimita o papel do \texttt{real\_time}. Ele não reprova porque o
-multicast seja logicamente incapaz de entregar dados, mas porque o teste remove o
-principal mecanismo de amortecimento da arquitetura. Com airtime praticamente
+\emph{multicast} seja logicamente incapaz de entregar dados, mas porque o teste remove o
+principal mecanismo de amortecimento da arquitetura. Com \emph{airtime} praticamente
 saturado, a chamada \texttt{esp\_now\_send} passa a retornar erro interno em
 sequência. Isso mostra que o limite de taxa não está apenas no código de
-aplicação; ele aparece na interface com o driver Wi-Fi e com o meio 802.11.
+aplicação; ele aparece na interface com o \emph{driver} Wi-Fi e com o meio 802.11.
 
 O terceiro caso impede uma leitura ingênua do número bruto de falhas. A execução
-não contém assinatura de crash, mas a linha de estatísticas foi corrompida e o
+não contém assinatura de \emph{crash}, mas a linha de estatísticas foi corrompida e o
 analisador não conseguiu reconstruir os campos. Por isso, ela foi retirada da
 base útil de protocolo. Ainda assim, o caso permanece relevante porque mostra
 que a instrumentação textual por UART não é neutra: em carga alta, a própria
@@ -306,7 +306,7 @@ de quase aprovação dos colapsos com milhares de perdas.
 \section{Limitações dos Ensaios}
 
 Os resultados foram obtidos em bancada, com placas alimentadas e monitoradas por
-USB. Essa configuração é adequada para comparar variantes de firmware, mas ainda
+USB. Essa configuração é adequada para comparar variantes de \emph{firmware}, mas ainda
 não valida vibração, alimentação automotiva, posição de antenas, interferência
 eletromagnética do veículo, encapsulamento ou operação prolongada no ambiente
 final. A campanha também usou duas repetições por cenário, suficientes para
@@ -316,7 +316,7 @@ perda com intervalo estatístico estreito.
 A composição da bancada também limita a generalização. As placas ESP32-C3 foram
 usadas somente como sensores, enquanto os receptores foram ESP32. Além disso, o
 sistema de estatísticas faz parte do experimento: cinco execuções foram removidas
-da base útil por quebra de log, mas essa remoção não apaga a limitação. Para uma
+da base útil por quebra de \emph{log}, mas essa remoção não apaga a limitação. Para uma
 campanha futura, as estatísticas finais deveriam ser emitidas de forma mais
 robusta, por exemplo com serialização atômica, CRC de linha ou canal binário
 separado.
@@ -339,13 +339,13 @@ sensores e receptores simultâneos.
 \hline
 Requisito & Evidência principal & Status \\
 \hline
-Desempenho e latência & O multicast com agrupamento temporal operou até 1000 Hz, mas a preservação temporal depende do modelo do sinal. Para sinais de frequência fixa ou até 100 Hz, a campanha preservou a sequência e a leitura temporal; acima disso, sem esse mecanismo, \texttt{real\_time} caiu para 38/180 execuções aprovadas. & Parcial \\
+Desempenho e latência & O \emph{multicast} com agrupamento temporal operou até 1000 Hz, mas a preservação temporal depende do modelo do sinal. Para sinais de frequência fixa ou até 100 Hz, a campanha preservou a sequência e a leitura temporal; acima disso, sem esse mecanismo, \texttt{real\_time} caiu para 38/180 execuções aprovadas. & Parcial \\
 \hline
-Conexão instantânea & Broadcast transmite dados sem handshake. Multicast preserva essa propriedade porque, antes de receber anúncios de assinatura, também envia dados em broadcast e só migra para peers assinantes depois do cadastro. & Atendido em bancada \\
+Conexão instantânea & \emph{Broadcast} transmite dados sem \emph{handshake}. \emph{Multicast} preserva essa propriedade porque, antes de receber anúncios de assinatura, também envia dados em \emph{broadcast} e só migra para \emph{peers} assinantes depois do cadastro. & Atendido em bancada \\
 \hline
-Múltiplas conexões & Foram exercitadas topologias com múltiplos sensores e receptores, incluindo 4S-1R, 3S-2R e 2S-3R; as falhas observadas decorrem de carga, retry ou airtime, não da incapacidade de operar múltiplos nós. & Atendido em bancada \\
+Múltiplas conexões & Foram exercitadas topologias com múltiplos sensores e receptores, incluindo 4S-1R, 3S-2R e 2S-3R; as falhas observadas decorrem de carga, \emph{retry} ou \emph{airtime}, não da incapacidade de operar múltiplos nós. & Atendido em bancada \\
 \hline
-Transparência CAN & O firmware preserva o mesmo CAN ID, mantém a separação de fluxos por identificador e utiliza confirmação no lado CAN quando o dado é entregue ao barramento. As garantias físicas restantes, como CRC e ACK elétrico, pertencem ao próprio enlace CAN cabeado. & Atendido por projeto \\
+Transparência CAN & O \emph{firmware} preserva o mesmo CAN ID, mantém a separação de fluxos por identificador e utiliza confirmação no lado CAN quando o dado é entregue ao barramento. As garantias físicas restantes, como CRC e ACK elétrico, pertencem ao próprio enlace CAN cabeado. & Atendido por projeto \\
 \hline
 Requisitos físicos e custo & O nó sensor foi implementado com placa ESP32 compacta e componentes acessíveis, indicando viabilidade física inicial. A campanha, porém, não mediu massa final, custo consolidado, autonomia nem fixação no veículo. & Parcial \\
 \hline
@@ -361,25 +361,25 @@ de entrega, mas a preservação temporal do sinal. A campanha mostra dois regime
 Quando o sinal tem frequência fixa, ou quando a frequência permanece até 100~Hz,
 a sequência recebida mantém informação temporal suficiente para reconstrução no
 receptor. Em frequências maiores, o sistema só preserva essa propriedade quando
-reúne amostras em lotes: o multicast sustentou cenários até 1000~Hz,
+reúne amostras em lotes: o \emph{multicast} sustentou cenários até 1000~Hz,
 enquanto a variante \texttt{real\_time}, sem essa estratégia, caiu para 38/180
 execuções aprovadas. Assim, o requisito é parcial: a arquitetura alcança alta
 frequência, mas a preservação temporal acima de 100~Hz depende dessa formação
 de lotes e da premissa de que as amostras dentro do pacote representam uma
 sequência regular do mesmo CAN ID.
 
-A conexão instantânea foi atendida tanto no broadcast quanto no multicast. No
-broadcast, isso é direto: o sensor transmite sem conhecer receptores. No
-multicast, o ponto essencial é que a assinatura não é pré-condição para o
-primeiro dado. O transmissor começa em modo efetivamente broadcast para aquele
-CAN ID; quando os anúncios de interesse chegam, ele passa a enviar aos peers
+A conexão instantânea foi atendida tanto no \emph{broadcast} quanto no \emph{multicast}. No
+\emph{broadcast}, isso é direto: o sensor transmite sem conhecer receptores. No
+\emph{multicast}, o ponto essencial é que a assinatura não é pré-condição para o
+primeiro dado. O transmissor começa em modo efetivamente \emph{broadcast} para aquele
+CAN ID; quando os anúncios de interesse chegam, ele passa a enviar aos \emph{peers}
 registrados. Portanto, o cadastro melhora a eficiência posterior, mas não cria
-um handshake bloqueante antes da primeira amostra.
+um \emph{handshake} bloqueante antes da primeira amostra.
 
 O requisito de múltiplas conexões deve ser separado do requisito de desempenho.
 A campanha mostrou que a arquitetura consegue compor topologias com vários
 sensores e receptores simultâneos. Quando uma execução 4S-1R ou 3S-2R falha em
-alta frequência, a causa observada é saturação de transmissão, retry, airtime ou
+alta frequência, a causa observada é saturação de transmissão, \emph{retry}, \emph{airtime} ou
 limite da instrumentação, não ausência de suporte a múltiplos nós. Por isso, o
 requisito é considerado atendido em bancada, enquanto a robustez dessas
 topologias sob carga permanece discutida no requisito de desempenho.
@@ -398,6 +398,6 @@ acessíveis, o que indica viabilidade física inicial para uma equipe estudantil
 A campanha, porém, não quantificou massa final, custo consolidado, autonomia,
 encapsulamento ou fixação no veículo. Esses pontos dependem de ensaio no carro
 para validar vibração, interferência, montagem e operação prolongada em uso real.
-A modularidade, por sua vez, foi demonstrada de forma direta pelas builds, filtros
+A modularidade, por sua vez, foi demonstrada de forma direta pelas \emph{builds}, filtros
 e topologias: novos nós e novos interesses puderam ser adicionados sem alterar a
 arquitetura base.

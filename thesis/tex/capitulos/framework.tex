@@ -34,28 +34,28 @@ Wi-Fi e Bluetooth, tornando a escolha dependente do uso \cite{eridani2021_espnow
 
 O ESP-NOW foi escolhido por permitir comunicação direta entre dispositivos ESP32 sem
 ponto de acesso nem endereço IP. Ele opera sobre a camada física do Wi-Fi, usa
-endereçamento por MAC e permite payload de até 250 bytes na versão clássica usada
+endereçamento por MAC e permite \emph{payload} de até 250 bytes na versão clássica usada
 neste trabalho \cite{espressif_espnow_programming_guide,pasic2021_espnow_esp32}.
-Essa combinação atende melhor aos requisitos de início rápido, baixo overhead e
+Essa combinação atende melhor aos requisitos de início rápido, baixo \emph{overhead} e
 operação sem infraestrutura.
 
 Assim como em outros protocolos sem fio, o ESP-NOW trabalha com três modos de comunicação:
 \begin{itemize}
-    \item \textbf{Unicast}: comunicação ponto a ponto entre um transmissor e um receptor específico, 
+    \item \textbf{\emph{Unicast}}: comunicação ponto a ponto entre um transmissor e um receptor específico, 
     usando o endereço MAC do receptor.
-    \item \textbf{Multicast}: comunicação de um transmissor para um grupo de receptores inscritos, 
+    \item \textbf{\emph{Multicast}}: comunicação de um transmissor para um grupo de receptores inscritos, 
     com status de envio reportado pelo ESP-NOW no nível MAC.
-    \item \textbf{Broadcast}: comunicação de um transmissor para todos os dispositivos no alcance, 
+    \item \textbf{\emph{Broadcast}}: comunicação de um transmissor para todos os dispositivos no alcance, 
     sem confirmação de recepção.
 \end{itemize}
 Considerando a finalidade do sistema e o funcionamento de um barramento CAN tradicional, 
-a estratégia de comunicação mais adequada seria o broadcast, pois o objetivo é que os dados sejam 
+a estratégia de comunicação mais adequada seria o \emph{broadcast}, pois o objetivo é que os dados sejam 
 recebidos por qualquer nó interessado, sem a necessidade de estabelecer conexões ou gerenciar grupos 
-de receptores. No entanto, a falta de confirmação nativa no modo broadcast do ESP-NOW introduz a
+de receptores. No entanto, a falta de confirmação nativa no modo \emph{broadcast} do ESP-NOW introduz a
 necessidade de implementar mecanismos de confiabilidade na camada de aplicação, como técnicas de
 confirmação (ACK) e retransmissão, para garantir a entrega dos dados. Entretanto, a implementação
 desse tipo de sistema introduz complexidade adicional e impacta a robustez do sistema. Por outro lado,
-o uso de multicast permitiria usar o status de envio no nível MAC reportado pelo ESP-NOW,
+o uso de \emph{multicast} permitiria usar o status de envio no nível MAC reportado pelo ESP-NOW,
 reduzindo a necessidade de ACK de aplicação sem afirmar entrega fim a fim. Essa escolha, porém,
 introduz a necessidade de gerenciar inscrições, o que quebraria o requisito de transmissão
 instantânea.

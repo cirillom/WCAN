@@ -12,7 +12,7 @@ O objetivo foi cumprido em bancada. A implementação atual demonstrou que a
 arquitetura é viável quando seus limites são respeitados: o WCAN consegue operar
 sem associação prévia, com papéis configuráveis, filtragem por CAN ID,
 anéis \texttt{RingBuffer} de transmissão e recepção, \texttt{esp\_timer} para
-\textit{linger}, tarefas separadas de envio e recepção, e duas variantes de
+\emph{linger}, tarefas separadas de envio e recepção, e duas variantes de
 transporte selecionadas em tempo de compilação. A avaliação final não valida o
 sistema como substituto do CAN físico em controle crítico, mas sustenta seu uso
 como ponte de aquisição sem fio em bancada e como base para validação embarcada.
@@ -27,18 +27,18 @@ O uso de lotes, por outro lado, permitiu operar em cenários até
 1000~Hz, desde que a reconstrução temporal aceite a premissa de amostras regulares
 agrupadas no mesmo pacote.
 
-O melhor desempenho final foi do multicast nessa configuração, especialmente
+O melhor desempenho final foi do \emph{multicast} nessa configuração, especialmente
 na suíte \texttt{multiple}, que representa melhor um nó sensor real transmitindo
 mais de um CAN ID. Nessa suíte, essa combinação aprovou 90 de
-90 execuções, incluindo 36 de 36 em 750--1000~Hz. O broadcast, sob a mesma suíte,
+90 execuções, incluindo 36 de 36 em 750--1000~Hz. O \emph{broadcast}, sob a mesma suíte,
 aprovou 34 de 90 execuções e apenas 3 de 36 em 750--1000~Hz. A diferença decorre
-principalmente da semântica de confirmação: no broadcast, cada lote depende de
+principalmente da semântica de confirmação: no \emph{broadcast}, cada lote depende de
 ACK de aplicação em \texttt{CONTROL\_ID} e pode entrar em retransmissão; no
-multicast, o transmissor usa a confirmação de envio no nível MAC reportada pelo
+\emph{multicast}, o transmissor usa a confirmação de envio no nível MAC reportada pelo
 ESP-NOW e evita um ACK de aplicação por lote.
 
 Essa comparação não torna um transporte universalmente superior ao outro. O
-broadcast preserva a semântica de primeiro ACK: basta que um receptor interessado
+\emph{broadcast} preserva a semântica de primeiro ACK: basta que um receptor interessado
 confirme o pacote para que o transmissor considere o lote entregue. Essa escolha é
 coerente com o comportamento do CAN, no qual o transmissor observa confirmação de
 recepção no barramento, mas não obtém uma lista individual de todos os nós que
@@ -46,9 +46,9 @@ receberam a mensagem. Portanto, confirmar individualmente cada receptor não é 
 objetivo do WCAN; isso mudaria a semântica adotada e aumentaria o custo de
 coordenação do transporte.
 
-O multicast usa o conjunto de peers registrados por assinatura de CAN ID para
+O \emph{multicast} usa o conjunto de \emph{peers} registrados por assinatura de CAN ID para
 reduzir trabalho desnecessário no rádio. Ele também preserva conexão instantânea,
-pois antes de receber inscrições o sensor continua transmitindo em broadcast e não
+pois antes de receber inscrições o sensor continua transmitindo em \emph{broadcast} e não
 bloqueia o primeiro dado à espera de descoberta. A confirmação usada nessa
 variante é de nível MAC: ela indica que o enlace 802.11 aceitou a entrega, mas não
 prova que a aplicação remota decodificou, deduplicou e processou o
@@ -61,27 +61,27 @@ semântica próxima ao CAN.
 
 A primeira limitação é experimental. A campanha foi feita em bancada, com placas
 alimentadas e monitoradas por USB. Esse ambiente foi adequado para comparar
-firmware, topologias e transportes, mas não substitui ensaio no veículo. Ainda é
+\emph{firmware}, topologias e transportes, mas não substitui ensaio no veículo. Ainda é
 necessário validar vibração, fixação, encapsulamento, autonomia, posição de
 antenas, interferência eletromagnética, alimentação automotiva e operação
 prolongada durante eventos reais de pista.
 
 A segunda limitação é a integração CAN final. O trabalho preservou o CAN ID,
 separou fluxos por identificador e manteve a semântica esperada para entrega ao
-barramento, mas a campanha de resultados mediu o WCAN principalmente por logs. A
+barramento, mas a campanha de resultados mediu o WCAN principalmente por \emph{logs}. A
 próxima etapa deve usar TWAI em configuração de produção, com reinjeção contínua
 no barramento do veículo, validação de carga CAN, tratamento de erro do
 controlador e verificação de que o restante da rede consome os dados sem mudança
 lógica.
 
-Do ponto de vista de firmware, o trabalho futuro não é redesenhar o multicast,
+Do ponto de vista de \emph{firmware}, o trabalho futuro não é redesenhar o \emph{multicast},
 mas endurecer sua operação para uso prolongado. A campanha mostrou que essa
 variante foi o melhor caminho quando usada com lotes; portanto, as melhorias devem
 preservar a confirmação operacional no nível MAC e a baixa coordenação que deram
 vazão à suíte \texttt{multiple}. Os ajustes esperados estão nas bordas do
-gerenciamento: expiração de assinantes, atualização dinâmica de peers, tratamento
-de receptores ausentes, backoff de anúncios e critérios claros para continuar em
-broadcast quando ainda não houver cadastro. Esses pontos tornam a
+gerenciamento: expiração de assinantes, atualização dinâmica de \emph{peers}, tratamento
+de receptores ausentes, \emph{backoff} de anúncios e critérios claros para continuar em
+\emph{broadcast} quando ainda não houver cadastro. Esses pontos tornam a
 \texttt{management\_task} mais previsível sem alterar a semântica de barramento
 adotada.
 
@@ -90,7 +90,7 @@ Também há trabalho a fazer em memória e instrumentação. As falhas de
 com erros como \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}; além disso, a própria coleta
 de estatísticas por UART corrompeu cinco execuções da campanha. Para uma versão
 mais robusta, o caminho crítico deve reduzir alocações dinâmicas, revisar pilha e
-heap das tasks, pré-alocar buffers quando possível e emitir estatísticas por um
+\emph{heap} das \emph{tasks}, pré-alocar \emph{buffers} quando possível e emitir estatísticas por um
 formato menos frágil que texto concorrente em serial.
 
 Outra limitação importante é o padrão de tráfego validado. A campanha exercitou
@@ -120,8 +120,8 @@ preserva a organização lógica por CAN ID, permite conexão imediata, suporta
 múltiplos nós e reduz a dependência de cabeamento em pontos de instrumentação
 complexos.
 
-O estado atual mais promissor é o multicast com lotes, especialmente
-para múltiplos fluxos por sensor. O broadcast permanece útil como referência de
+O estado atual mais promissor é o \emph{multicast} com lotes, especialmente
+para múltiplos fluxos por sensor. O \emph{broadcast} permanece útil como referência de
 semântica por primeiro ACK e pela simplicidade de transmissão para qualquer
 receptor interessado. Em ambos os casos, o resultado central permanece o mesmo:
 sem lotes, o ESP-NOW perde margem rapidamente; ao reunir amostras, o WCAN
