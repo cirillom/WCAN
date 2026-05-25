@@ -48,14 +48,14 @@ Assim como em outros protocolos sem fio, o ESP-NOW trabalha com três modos de c
     \item \textbf{Broadcast}: comunicação de um transmissor para todos os dispositivos no alcance, 
     sem confirmação de recepção.
 \end{itemize}
-Considerando a natureza da nossa aplicação e o o funcionamento de um barramento CAN tradicional, 
+Considerando a finalidade do sistema e o funcionamento de um barramento CAN tradicional, 
 a estratégia de comunicação mais adequada seria o broadcast, pois o objetivo é que os dados sejam 
 recebidos por qualquer nó interessado, sem a necessidade de estabelecer conexões ou gerenciar grupos 
 de receptores. No entanto, a falta de confirmação nativa no modo broadcast do ESP-NOW introduz a
 necessidade de implementar mecanismos de confiabilidade na camada de aplicação, como técnicas de
 confirmação (ACK) e retransmissão, para garantir a entrega dos dados. Entretanto, a implementação
-desse tipo de sistema introduz complexidade adicional e impactar a robustez do sistema. Por outro lado,
-o uso de multicast, permitiria a confirmação de entrega a nível de hardware, eliminando um ponto de
+desse tipo de sistema introduz complexidade adicional e impacta a robustez do sistema. Por outro lado,
+o uso de multicast permitiria a confirmação de entrega a nível de hardware, eliminando um ponto de
 falha, mas introduzindo a necessidade de gerenciar inscrições, o que quebraria o requisito de transmissão
 instantânea.
 
