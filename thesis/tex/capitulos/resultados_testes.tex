@@ -397,18 +397,3 @@ compatível com as restrições de volume, massa e orçamento de uma equipe estu
 A modularidade, por sua vez, foi demonstrada de forma direta pelas builds, filtros
 e topologias: novos nós e novos interesses puderam ser adicionados sem alterar a
 arquitetura base.
-
-\section{Conclusão dos Resultados}
-
-A campanha final mostra que o WCAN é viável em bancada quando o envio usa
-\textit{batching}. A suíte \texttt{multiple} é a principal evidência: nela, o
-multicast com \textit{batching} sustentou todos os cenários testados, enquanto o
-broadcast evidenciou o custo de manter ACK de aplicação e retransmissão por
-lote. A suíte \texttt{real\_time} delimita o lado oposto: sem agregação temporal,
-os dois transportes deixam de ter margem acima de baixa frequência.
-
-A conclusão prática é que o transporte multicast com \textit{batching} é o
-melhor candidato da campanha para múltiplos fluxos de dados. O broadcast continua
-útil como referência de semântica mais forte de confirmação, mas os resultados
-mostram que ele precisa de ajuste no mecanismo de ACK/retry antes de ser adotado
-para cargas com muitos CAN IDs e alta frequência.
