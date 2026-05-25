@@ -44,7 +44,7 @@ Assim como em outros protocolos sem fio, o ESP-NOW trabalha com três modos de c
     \item \textbf{Unicast}: comunicação ponto a ponto entre um transmissor e um receptor específico, 
     usando o endereço MAC do receptor.
     \item \textbf{Multicast}: comunicação de um transmissor para um grupo de receptores inscritos, 
-    onde cada receptor confirma a recepção individualmente.
+    com status de envio reportado pelo ESP-NOW no nível MAC.
     \item \textbf{Broadcast}: comunicação de um transmissor para todos os dispositivos no alcance, 
     sem confirmação de recepção.
 \end{itemize}
@@ -55,8 +55,9 @@ de receptores. No entanto, a falta de confirmação nativa no modo broadcast do 
 necessidade de implementar mecanismos de confiabilidade na camada de aplicação, como técnicas de
 confirmação (ACK) e retransmissão, para garantir a entrega dos dados. Entretanto, a implementação
 desse tipo de sistema introduz complexidade adicional e impacta a robustez do sistema. Por outro lado,
-o uso de multicast permitiria a confirmação de entrega a nível de hardware, eliminando um ponto de
-falha, mas introduzindo a necessidade de gerenciar inscrições, o que quebraria o requisito de transmissão
+o uso de multicast permitiria usar o status de envio no nível MAC reportado pelo ESP-NOW,
+reduzindo a necessidade de ACK de aplicação sem afirmar entrega fim a fim. Essa escolha, porém,
+introduz a necessidade de gerenciar inscrições, o que quebraria o requisito de transmissão
 instantânea.
 
 Diante dos cenários citados, entender qual das opções é a mais viável tornou-se um dos principais 
