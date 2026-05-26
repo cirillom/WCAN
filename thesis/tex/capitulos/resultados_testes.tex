@@ -8,8 +8,12 @@ classificou 453 execuções como aprovadas, ou 66,2\% do total bruto. Cada
 execução individual é definida por transporte, suíte, frequência, topologia e
 número da repetição. Na análise por agrupamento, as repetições da mesma
 combinação de transporte, suíte, frequência e topologia são reunidas, pois
-representam retestes do mesmo cenário. Sob esse critério, 249 de 354 agrupamentos
-tiveram ao menos uma repetição aprovada.
+representam retestes do mesmo cenário. A exceção é a suíte \texttt{mixed\_frequency}:
+nela, cada execução recebeu uma atribuição distinta de frequências por sensor e
+foi tratada como um agrupamento próprio. Assim, os 354 agrupamentos correspondem
+a 330 grupos com duas repetições nas suítes de frequência fixa e 24 grupos de
+execução única em \texttt{mixed\_frequency}. Sob esse critério, 249 de 354
+agrupamentos tiveram ao menos uma repetição aprovada.
 
 Para a interpretação dos resultados de protocolo, cinco reprovações foram
 separadas da contagem principal por serem falhas do sistema de estatísticas ou do
@@ -317,9 +321,10 @@ Os resultados foram obtidos em bancada, com placas alimentadas e monitoradas por
 USB. Essa configuração é adequada para comparar variantes de \emph{firmware}, mas ainda
 não valida vibração, alimentação automotiva, posição de antenas, interferência
 eletromagnética do veículo, encapsulamento ou operação prolongada no ambiente
-final. A campanha também usou duas repetições por cenário, suficientes para
-revelar gargalos sistemáticos, mas insuficientes para estimar eventos raros de
-perda com intervalo estatístico estreito.
+final. A campanha também usou duas repetições por cenário nas suítes de frequência
+fixa, e agrupamentos de execução única na suíte \texttt{mixed\_frequency}. Essa
+escala foi suficiente para revelar gargalos sistemáticos, mas insuficiente para
+estimar eventos raros de perda com intervalo estatístico estreito.
 
 A composição da bancada também limita a generalização. As placas ESP32-C3 foram
 usadas somente como sensores, enquanto os receptores foram ESP32. Além disso, o

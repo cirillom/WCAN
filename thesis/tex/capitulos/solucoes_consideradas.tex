@@ -17,7 +17,7 @@ Além desses fatores, o cabeamento dedicado não viabiliza a aquisição de dado
 
 A segunda opção consiste em desenvolver módulos de aquisição autônomos, cada um com sua própria memória local para gravação dos dados. Esses módulos operariam de forma independente do sistema principal, sendo instalados nos pontos de interesse e recuperados após cada sessão de testes para extração dos dados. Para viabilizar a análise conjunta, seria necessário algum mecanismo de sincronização temporal entre os módulos e o sistema embarcado no carro.
 
-Embora essa abordagem elimine a fiação de longa distância até o registrador central, ela desloca a questão de massa e volume físico para os próprios módulos. Cada unidade autônoma requer um invólucro de proteção contra impactos, circuitos de condicionamento de sinal, memória de armazenamento e uma bateria dedicada. Sem um projeto mecânico final, a comparação de massa deve ser lida apenas como ordem de grandeza: a Tabela~\ref{tab:massa-modulo-autonomo} mostra que um módulo simples pode chegar à mesma faixa de massa de uma derivação cabeada curta quando se consideram bateria, caixa, conectores e alívio de tração. Portanto, a aquisição autônoma não garante, por si só, redução de massa no ponto instrumentado. Adicionalmente, a solução introduz a complexidade de sincronização \emph{offline} (propensa a desvios temporais), a impossibilidade de acompanhar os dados em tempo real durante os testes e o risco de perda total de registros caso ocorra falha de alimentação ou avaria física no módulo.
+Embora essa abordagem elimine a fiação de longa distância até o registrador central, ela transfere o problema de massa e volume físico para os próprios módulos. Cada unidade autônoma requer um invólucro de proteção contra impactos, circuitos de condicionamento de sinal, memória de armazenamento e uma bateria dedicada. Sem um projeto mecânico final, a comparação de massa deve ser lida apenas como ordem de grandeza: a Tabela~\ref{tab:massa-modulo-autonomo} mostra que um módulo simples pode chegar à mesma faixa de massa de uma derivação cabeada curta quando se consideram bateria, caixa, conectores e alívio de tração. Portanto, a aquisição autônoma não garante, por si só, redução de massa no ponto instrumentado. Adicionalmente, a solução introduz a complexidade de sincronização \emph{offline} (propensa a desvios temporais), a impossibilidade de acompanhar os dados em tempo real durante os testes e o risco de perda total de registros caso ocorra falha de alimentação ou avaria física no módulo.
 
 \begin{table}[htbp]
 \centering
@@ -28,7 +28,7 @@ Embora essa abordagem elimine a fiação de longa distância até o registrador 
 \hline
 Item comparado & Ordem de grandeza & Observação \\
 \hline
-Placa ESP32-C3 compacta & 4 g & Medição própria da placa usada no protótipo. \\
+Placa ESP32-C3 compacta & 4 g & Aferida pelo autor em bancada na placa usada no protótipo. \\
 \hline
 Bateria pequena, placa auxiliar, conectores e fixação & 20--60 g & Faixa dependente da célula, invólucro e proteção mecânica. \\
 \hline
