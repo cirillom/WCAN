@@ -1,6 +1,6 @@
 \section{Microcontrolador}
 
-A escolha do \emph{hardware} foi condicionada por restrições de dimensões físicas, custo de aquisição e familiaridade de desenvolvimento da equipe. Sob o aspecto de dimensões, o nó sensor completo (incluindo processamento, rádio e circuitos de alimentação) deveria ocupar uma área de poucos centímetros quadrados para viabilizar sua fixação em locais confinados, como o interior da roda ou o perfil interno de asas aerodinâmicas, sem interferir na montagem ou na aerodinâmica. Quanto ao custo, o orçamento limitado de uma equipe de Fórmula SAE demandava uma solução de baixo custo unitário, da ordem de dezenas a pouco mais de cem reais por nó de comunicação em protótipo, sem incluir sensores específicos. A estimativa da Tabela~\ref{tab:bom-no-sensor} mostra a base dessa ordem de grandeza e explica por que módulos comerciais ou industriais, normalmente muito mais caros, não eram uma opção natural. Por fim, a familiaridade da equipe com desenvolvimento em C/C++ para sistemas embarcados e o uso de ecossistemas comuns (como a \emph{Arduino IDE} ou \emph{ESP-IDF}) eram essenciais para reduzir a curva de aprendizado do \emph{firmware}.
+A escolha do \emph{hardware} foi condicionada por restrições de dimensões físicas, custo de aquisição e familiaridade de desenvolvimento da equipe. Sob o aspecto de dimensões, o nó sensor completo (incluindo processamento, rádio e circuitos de alimentação) deveria ocupar uma área de poucos centímetros quadrados para viabilizar sua fixação em locais confinados, como o interior da roda ou o perfil interno de asas aerodinâmicas, sem interferir na montagem ou na aerodinâmica. Quanto ao custo, o orçamento limitado de uma equipe de Fórmula SAE demandava uma solução de baixo custo unitário, da ordem de dezenas a pouco mais de cem reais por nó de comunicação em protótipo, sem incluir sensores específicos. A estimativa da Tabela~\ref{tab:bom-no-sensor}, com valores levantados em maio de 2026, mostra a base dessa ordem de grandeza e explica por que módulos comerciais ou industriais, normalmente muito mais caros, não eram uma opção natural. Por fim, a familiaridade da equipe com desenvolvimento em C/C++ para sistemas embarcados e o uso de ecossistemas comuns (como a \emph{Arduino IDE} ou \emph{ESP-IDF}) eram essenciais para reduzir a curva de aprendizado do \emph{firmware}.
 
 \begin{table}[htbp]
 \centering
@@ -15,14 +15,14 @@ Placa ESP32-C3 compacta & R\$40--70 & Integra microcontrolador, rádio e carrega
 \hline
 Conectores, cabos, placa auxiliar e passivos & R\$15--30 & Varia conforme sensor e fixação. \\
 \hline
-Bateria reaproveitada ou célula pequena & R\$0--25 & Valor de protótipo; a versão final deve usar célula qualificada. \\
+Bateria reaproveitada ou célula pequena & R\$0--25 & Valor de protótipo; exige célula aprovada pelos critérios de inspeção. \\
 \hline
 Invólucro e fixação simples & R\$10--25 & Não inclui encapsulamento automotivo final. \\
 \hline
 Total aproximado & R\$65--150 & Estimativa de bancada, sem sensor específico. \\
 \hline
 \end{tabular}
-\caption{Estimativa de custo do nó de comunicação usado como referência de protótipo.}
+\caption{Estimativa de custo do nó de comunicação usado como referência de protótipo, em maio de 2026.}
 \label{tab:bom-no-sensor}
 \end{table}
 
@@ -31,7 +31,7 @@ Nesse contexto, a primeira opção considerada foi manter a família STM32, já 
 O ESP32 foi adotado por integrar rádio, processamento e ampla disponibilidade de
 placas compactas. O Beetle ESP32-C3, por exemplo, mede 25 por 20,5 mm, inclui
 gerenciamento de bateria na própria placa \cite{dfrobot_beetle_esp32c3} e pesa
-apenas 4g (medição própria). Essas características tornam a plataforma compatível
+apenas 4 g (medição própria). Essas características tornam a plataforma compatível
 com sensores instalados em rodas, componentes aerodinâmicos ou pontos de difícil acesso.
 
 Além da escolha do microcontrolador, a alimentação dos nós foi guiada por custo e 
