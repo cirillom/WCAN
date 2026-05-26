@@ -261,7 +261,7 @@
 % Pacotes de citações
 %==============================================================================
 \RequirePackage[brazilian,hyperpageref]{backref}	 % Paginas com as citações na bibl
-\RequirePackage[alf,bibjustif,abnt-last-names=abnt,abnt-etal-text=it,abnt-repeated-title-omit=yes,abnt-emphasize=bf,abnt-etal-cite=3,abnt-etal-list=0]{abntex2cite}	% Citações padrão ABNT
+\RequirePackage[alf,bibjustif,abnt-last-names=abnt,abnt-etal-text=it,abnt-repeated-author-omit=no,abnt-repeated-title-omit=no,abnt-emphasize=bf,abnt-etal-cite=3,abnt-etal-list=0]{abntex2cite}	% Citações padrão ABNT
 
 % ---
 % Configurações do pacote backref

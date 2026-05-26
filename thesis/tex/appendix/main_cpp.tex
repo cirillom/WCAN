@@ -1,70 +1,7 @@
-Este apêndice apresenta uma versão sanitizada do arquivo
-\path{transmitter/main/main.cpp}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/blob/main/transmitter/main/main.cpp}.}. O código mantém a estrutura de inicialização do
-\emph{firmware}, configuração do Wi-Fi, recebimento da configuração de \emph{boot}
-por UART e seleção do papel da placa na campanha experimental. Não há chaves,
-endereços privados ou credenciais no trecho apresentado.
+Este apêndice apresenta apenas um trecho sanitizado do arquivo
+\path{transmitter/main/main.cpp}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/blob/main/transmitter/main/main.cpp}.}. O objetivo é mostrar a estrutura de inicialização, o recebimento da configuração de \emph{boot} por UART e a seleção do papel da placa na campanha experimental, evitando que o apêndice reproduza o arquivo completo.
 
-\begin{codigo}[language=C++,caption={Arquivo principal do \emph{firmware} WCAN},label={cod:main-cpp}]
-#include <cstdio>
-#include <memory>
-#include <vector>
-
-#include <nvs_flash.h>
-
-#include "esp_err.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_wifi.h"
-
-#include "RampCanSensor.hpp"
-#include "WcanTest.hpp"
-#include "wcan.hpp"
-
-#define ESPNOW_WIFI_MODE WIFI_MODE_STA
-
-static void init_nvs()
-{
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-}
-
-static void init_wifi()
-{
-    static const char *TAG = "WIFI";
-
-    ESP_ERROR_CHECK(esp_netif_init());
-    esp_err_t event_loop_err = esp_event_loop_create_default();
-    if (event_loop_err != ESP_OK && event_loop_err != ESP_ERR_INVALID_STATE) {
-        ESP_ERROR_CHECK(event_loop_err);
-    }
-
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-
-    ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-    ESP_ERROR_CHECK(esp_wifi_set_mode(ESPNOW_WIFI_MODE));
-    ESP_ERROR_CHECK(esp_wifi_start());
-    ESP_ERROR_CHECK(esp_wifi_set_channel(wcan_test::TestConfig::kEspNowChannel,
-                                         WIFI_SECOND_CHAN_NONE));
-
-    uint8_t primary_channel = 0;
-    wifi_second_chan_t second_channel = WIFI_SECOND_CHAN_NONE;
-    ESP_ERROR_CHECK(esp_wifi_get_channel(&primary_channel, &second_channel));
-    if (primary_channel != wcan_test::TestConfig::kEspNowChannel ||
-        second_channel != WIFI_SECOND_CHAN_NONE) {
-        ESP_LOGW(TAG, "Wi-Fi channel mismatch: expected primary=%u second=%d, got primary=%u second=%d",
-                 static_cast<unsigned>(wcan_test::TestConfig::kEspNowChannel),
-                 static_cast<int>(WIFI_SECOND_CHAN_NONE),
-                 static_cast<unsigned>(primary_channel),
-                 static_cast<int>(second_channel));
-    }
-}
-
+\begin{codigo}[language=C++,basicstyle=\ttfamily\scriptsize,breaklines=false,columns=fullflexible,caption={Trecho principal do \emph{firmware} WCAN},label={cod:main-cpp}]
 extern "C" void app_main(void)
 {
     const wcan_test::TestConfig config =
@@ -74,7 +11,7 @@ extern "C" void app_main(void)
     if (config.role == wcan_test::Role::kIdle) {
         test_session.ready();
         test_session.wait_idle_start();
-        std::printf("WCAN_TEST_END role=\%s\\n", config.role_name());
+        std::printf("WCAN_TEST_END role=\%s\n", config.role_name());
         std::fflush(stdout);
         return;
     }
@@ -82,17 +19,14 @@ extern "C" void app_main(void)
     init_nvs();
     init_wifi();
 
-    const bool is_sensor = config.role == wcan_test::Role::kSensor;
-    const bool is_receiver = config.role == wcan_test::Role::kReceiver;
-
     std::unique_ptr<wcan::Transceiver> transceiver;
-    if (is_sensor) {
+    if (config.role == wcan_test::Role::kSensor) {
         transceiver = std::make_unique<wcan::Transceiver>(
             std::vector<wcan::CANId_t>{},
             config.sensor_tx_ids(),
             config.linger_ms,
             true);
-    } else if (is_receiver) {
+    } else if (config.role == wcan_test::Role::kReceiver) {
         transceiver = std::make_unique<wcan::Transceiver>(
             config.receiver_rx_ids(),
             std::vector<wcan::CANId_t>{},
@@ -106,7 +40,7 @@ extern "C" void app_main(void)
     }
 
     std::unique_ptr<wcan_sensor::RampCanSensor> sensor;
-    if (is_sensor) {
+    if (config.role == wcan_test::Role::kSensor) {
         sensor = std::make_unique<wcan_sensor::RampCanSensor>(*transceiver);
     }
 
