@@ -346,9 +346,9 @@
 }
 
 % Camando para definição do programa e sua modalidade
-\newcommand{\especialidadename}{Bacharel}
+\newcommand{\especialidadename}{Engenheiro}
 \addto\captionsenglish{% ingles
-    \renewcommand{\especialidadename}{Bachelor}
+    \renewcommand{\especialidadename}{Engineering}
 }
 \newcommand{\curso}[2][\especialidadename]{
   \newcommand{\programa}{#2}
