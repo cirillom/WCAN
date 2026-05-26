@@ -2,7 +2,7 @@
 
 A escolha do \emph{hardware} foi condicionada por restrições de dimensões físicas, custo de aquisição e familiaridade de desenvolvimento da equipe. Sob o aspecto de dimensões, o nó sensor completo (incluindo processamento, rádio e circuitos de alimentação) deveria ocupar uma área de poucos centímetros quadrados para viabilizar sua fixação em locais confinados, como o interior da roda ou o perfil interno de asas aerodinâmicas, sem interferir na montagem ou na aerodinâmica. Quanto ao custo, o orçamento limitado de uma equipe de Fórmula SAE demandava uma solução de baixo custo unitário (na faixa de dezenas de reais por nó), inviabilizando módulos de aquisição comerciais ou industriais que apresentam preços ordens de grandeza maiores. Por fim, a familiaridade da equipe com desenvolvimento em C/C++ para sistemas embarcados e o uso de ecossistemas comuns (como a \emph{Arduino IDE} ou \emph{ESP-IDF}) eram essenciais para reduzir a curva de aprendizado do \emph{firmware}.
 
-Nesse contexto, a primeira opção considerada foi manter a família STM32, já presente no sistema de aquisição da equipe. A linha STM32WB oferece suporte a \emph{Bluetooth Low Energy} e 802.15.4, mas não possui Wi-Fi nativo \cite{st_stm32wb_series}. Outra alternativa seria combinar um STM32 convencional com um módulo Wi-Fi externo, porém essa solução exigiria microcontrolador, rádio e circuito de bateria em blocos separados, aumentando o \emph{footprint} e a complexidade do circuito. A adoção de STM32 também era natural do ponto de vista operacional, já que a fabricante é patrocinadora da equipe e fornece os microprocessadores e sensores utilizados em parte da instrumentação embarcada. Ainda assim, a necessidade de integrar a comunicação sem fio de forma compacta e direta acabou favorecendo uma solução mais integrada.
+Nesse contexto, a primeira opção considerada foi manter a família STM32, já presente no sistema de aquisição da equipe. A linha STM32WB oferece suporte a \emph{Bluetooth Low Energy} e 802.15.4, mas não possui Wi-Fi nativo \cite{st_stm32wb_series}. Outra alternativa seria combinar um STM32 convencional com um módulo Wi-Fi externo, porém essa solução exigiria microcontrolador, rádio e circuito de bateria em blocos separados, aumentando o \emph{footprint} e a complexidade do circuito. A adoção de STM32 também era natural do ponto de vista operacional, já que a fabricante é patrocinadora da equipe e fornece os microcontroladores e sensores utilizados em parte da instrumentação embarcada. Ainda assim, a necessidade de integrar a comunicação sem fio de forma compacta e direta acabou favorecendo uma solução mais integrada.
 
 O ESP32 foi adotado por integrar rádio, processamento e ampla disponibilidade de
 placas compactas. O Beetle ESP32-C3, por exemplo, mede 25 por 20,5 mm, inclui
@@ -15,7 +15,7 @@ facilidade de acesso. Aproveitando o circuito de gerenciamento de bateria do Bee
 a equipe optou por usar baterias de lítio recarregáveis, que oferecem boa densidade 
 energética e são amplamente disponíveis.
 
-Infelizmente as opções de mercado não apresentaram um bom balanceamento entre custo, tamanho
+As opções de mercado, porém, não apresentaram um bom equilíbrio entre custo, tamanho
 e capacidade, levando a uma solução de reaproveitamento de células. Para testes fora do veículo,
 onde o peso não é um fator crítico, utilizam-se células reaproveitadas de baterias de notebook,
 enquanto para nós em que massa e volume importam, como os instalados em regiões mais compactas,
@@ -61,7 +61,7 @@ introduz a necessidade de gerenciar inscrições, o que quebraria o requisito de
 instantânea.
 
 Diante dos cenários citados, entender qual das opções é a mais viável tornou-se um dos principais 
-focos de trabalho desta tese. Essa investigação é bem justificada dado que o projeto 
+focos deste trabalho. Essa investigação é bem justificada dado que o projeto 
 visa expandir a aquisição de dados, não substituir a rede CAN em controle crítico. Trabalhos 
 de telemetria veicular com Wi-Fi ou ESP32 reforçam que a escolha do protocolo precisa considerar 
 a finalidade do sistema e sua integração com o fluxo de dados do veículo \cite{fernandes2022_formula_sae_wifi_can}.
