@@ -11,13 +11,15 @@ integração com o barramento e preserva a interpretação temporal dos sinais.
 Em componentes como o semieixo, porém, a equipe pretende explorar frequências
 mais altas para capturar sinais de maior conteúdo espectral. Por isso, 1000~Hz
 foi adotado como limite superior experimental, cinco vezes acima da frequência
-atualmente usada, para avaliar a margem prática do sistema. Nesses casos, a taxa
-de amostragem precisa continuar compatível com a banda útil do fenômeno observado,
-conforme o teorema de Nyquist
-\cite{oppenheim1999_discrete_time_signal_processing}. Em sistemas de aquisição para
-Fórmula SAE, a utilidade dos dados depende tanto da taxa de amostragem quanto
-da capacidade de relacionar os sinais coletados a eventos do veículo e do
-piloto \cite{ashford2020_formula_sae_data_analysis,stoffman2004_low_cost_racing_daq}.
+atualmente usada, para avaliar a margem prática do sistema. Esse valor não deve
+ser lido como requisito mecânico fechado: a taxa final de instrumentação do
+semieixo depende de estimativa de rotação, banda de vibração torsional e duração
+dos transientes que a equipe pretenda observar. Nesses casos, a taxa de amostragem
+precisa continuar compatível com a banda útil do fenômeno observado, conforme o
+teorema de Nyquist \cite{oppenheim1999_discrete_time_signal_processing}. Em sistemas
+de aquisição para Fórmula SAE, a utilidade dos dados depende tanto da taxa de
+amostragem quanto da capacidade de relacionar os sinais coletados a eventos do
+veículo e do piloto \cite{ashford2020_formula_sae_data_analysis,stoffman2004_low_cost_racing_daq}.
 
 Além do desempenho, é essencial que a comunicação esteja pronta para
 transmitir desde o primeiro instante, sem depender de um processo de
@@ -72,7 +74,7 @@ Conexão instantânea & Funcional & Início imediato da transmissão de dados, s
 \hline
 Múltiplas conexões & Funcional & Suporte à operação simultânea de múltiplos nós sensores transmitindo para um ou mais receptores. \\
 \hline
-Transparência CAN & Funcional & Preservação dos identificadores CAN originais e integridade das mensagens (CRC/ACK) sem alteração lógica da rede. \\
+Transparência CAN & Funcional & Preservação dos identificadores CAN originais e entrega ao controlador CAN sem alteração lógica da rede. \\
 \hline
 Requisitos físicos e custo & Não funcional & Nós sensores compactos, leves e custo compatível com o orçamento de equipes de Fórmula SAE. \\
 \hline

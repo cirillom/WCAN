@@ -1,6 +1,30 @@
 \section{Microcontrolador}
 
-A escolha do \emph{hardware} foi condicionada por restrições de dimensões físicas, custo de aquisição e familiaridade de desenvolvimento da equipe. Sob o aspecto de dimensões, o nó sensor completo (incluindo processamento, rádio e circuitos de alimentação) deveria ocupar uma área de poucos centímetros quadrados para viabilizar sua fixação em locais confinados, como o interior da roda ou o perfil interno de asas aerodinâmicas, sem interferir na montagem ou na aerodinâmica. Quanto ao custo, o orçamento limitado de uma equipe de Fórmula SAE demandava uma solução de baixo custo unitário (na faixa de dezenas de reais por nó), inviabilizando módulos de aquisição comerciais ou industriais que apresentam preços ordens de grandeza maiores. Por fim, a familiaridade da equipe com desenvolvimento em C/C++ para sistemas embarcados e o uso de ecossistemas comuns (como a \emph{Arduino IDE} ou \emph{ESP-IDF}) eram essenciais para reduzir a curva de aprendizado do \emph{firmware}.
+A escolha do \emph{hardware} foi condicionada por restrições de dimensões físicas, custo de aquisição e familiaridade de desenvolvimento da equipe. Sob o aspecto de dimensões, o nó sensor completo (incluindo processamento, rádio e circuitos de alimentação) deveria ocupar uma área de poucos centímetros quadrados para viabilizar sua fixação em locais confinados, como o interior da roda ou o perfil interno de asas aerodinâmicas, sem interferir na montagem ou na aerodinâmica. Quanto ao custo, o orçamento limitado de uma equipe de Fórmula SAE demandava uma solução de baixo custo unitário, da ordem de dezenas a pouco mais de cem reais por nó de comunicação em protótipo, sem incluir sensores específicos. A estimativa da Tabela~\ref{tab:bom-no-sensor} mostra a base dessa ordem de grandeza e explica por que módulos comerciais ou industriais, normalmente muito mais caros, não eram uma opção natural. Por fim, a familiaridade da equipe com desenvolvimento em C/C++ para sistemas embarcados e o uso de ecossistemas comuns (como a \emph{Arduino IDE} ou \emph{ESP-IDF}) eram essenciais para reduzir a curva de aprendizado do \emph{firmware}.
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{p{0.38\linewidth}|p{0.22\linewidth}|p{0.30\linewidth}}
+\hline
+Item do nó de comunicação & Estimativa & Observação \\
+\hline
+Placa ESP32-C3 compacta & R\$40--70 & Integra microcontrolador, rádio e carregamento de bateria. \\
+\hline
+Conectores, cabos, placa auxiliar e passivos & R\$15--30 & Varia conforme sensor e fixação. \\
+\hline
+Bateria reaproveitada ou célula pequena & R\$0--25 & Valor de protótipo; a versão final deve usar célula qualificada. \\
+\hline
+Invólucro e fixação simples & R\$10--25 & Não inclui encapsulamento automotivo final. \\
+\hline
+Total aproximado & R\$65--150 & Estimativa de bancada, sem sensor específico. \\
+\hline
+\end{tabular}
+\caption{Estimativa de custo do nó de comunicação usado como referência de protótipo.}
+\label{tab:bom-no-sensor}
+\end{table}
 
 Nesse contexto, a primeira opção considerada foi manter a família STM32, já presente no sistema de aquisição da equipe. A linha STM32WB oferece suporte a \emph{Bluetooth Low Energy} e 802.15.4, mas não possui Wi-Fi nativo \cite{st_stm32wb_series}. Outra alternativa seria combinar um STM32 convencional com um módulo Wi-Fi externo, porém essa solução exigiria microcontrolador, rádio e circuito de bateria em blocos separados, aumentando o \emph{footprint} e a complexidade do circuito. A adoção de STM32 também era natural do ponto de vista operacional, já que a fabricante é patrocinadora da equipe e fornece os microcontroladores e sensores utilizados em parte da instrumentação embarcada. Ainda assim, a necessidade de integrar a comunicação sem fio de forma compacta e direta acabou favorecendo uma solução mais integrada.
 
@@ -16,11 +40,30 @@ a equipe optou por usar baterias de lítio recarregáveis, que oferecem boa dens
 energética e são amplamente disponíveis.
 
 As opções de mercado, porém, não apresentaram um bom equilíbrio entre custo, tamanho
-e capacidade, levando a uma solução de reaproveitamento de células. Para testes fora do veículo,
-onde o peso não é um fator crítico, utilizam-se células reaproveitadas de baterias de notebook,
-enquanto para nós em que massa e volume importam, como os instalados em regiões mais compactas,
-reaproveitam-se baterias de cigarros eletrônicos descartados, por serem menores e mais leves. 
-Essa possibilidade foi considerada inicialmente a partir de um vídeo de demonstração sobre reaproveitamento de células de cigarros eletrônicos, citado aqui apenas como registro da inspiração prática, e não como referência técnica de segurança ou validação elétrica \cite{doel_disposable_vapes_power_bank}.
+e capacidade, levando à escolha de células reaproveitadas também para o protótipo
+final. A motivação é dupla: reduzir o custo do nó sensor e dar uso técnico a baterias
+que ainda estejam em boas condições, evitando o descarte prematuro de células
+perfeitamente utilizáveis. Em bancada, onde o peso não é um fator crítico, foram
+consideradas células reaproveitadas de baterias de notebook; para nós em que massa
+e volume importam, como os instalados em regiões mais compactas, foram consideradas
+células de cigarros eletrônicos descartados, por serem menores e mais leves. Essa
+possibilidade foi considerada inicialmente a partir de um vídeo de demonstração,
+citado aqui apenas como registro da inspiração prática, e não como referência técnica
+de segurança ou validação elétrica \cite{doel_disposable_vapes_power_bank}.
+
+O uso de células reaproveitadas, entretanto, exige critérios de aceitação mais rígidos
+do que a compra de uma célula nova e rastreável. Para uma versão operacional, cada
+célula deve ter procedência conhecida sempre que possível, tensão inicial dentro da
+faixa esperada, corrente de descarga compatível com o consumo do nó, proteção contra
+sobrecarga, sobredescarga e curto-circuito, carregamento por circuito adequado para
+célula única, fixação mecânica que evite perfuração ou esmagamento e invólucro que
+impeça contato acidental com terminais. Células com inchaço, dano mecânico,
+aquecimento anormal, tensão fora da faixa esperada, histórico incompatível com o uso
+pretendido ou comportamento instável em ensaio de carga devem ser descartadas. Essa
+cautela é compatível com a orientação de que baterias removidas de uma aplicação só
+devem ser reutilizadas quando puderem ser gerenciadas com procedimentos de segurança
+e rastreio, e que baterias danificadas ou inseguras não devem ser reutilizadas
+\cite{epa_lithium_battery_recycling_faq}.
 
 \section{Protocolo de Comunicação Sem Fio}
 
