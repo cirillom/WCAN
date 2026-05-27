@@ -65,10 +65,9 @@ do mesmo identificador de controle não cria ambiguidade no \emph{firmware} fina
 
 \section{Núcleo TransceiverBase}
 
-O núcleo comum mantém um \texttt{RingBuffer<Packet>} de transmissão para cada CAN
-ID configurado em \texttt{\_tx\_can\_ids}. Cada posição do anel já é
-inicializada com o MAC local e o respectivo CAN ID, de modo que o caminho crítico
-de envio apenas acrescenta pontos de dados ao pacote em construção. Quando o
+O núcleo comum mantém um \texttt{RingBuffer<Packet>} de transmissão para cada identificador CAN configurado em \texttt{\_tx\_can\_ids} e um anel para o \texttt{CONTROL\_ID}. Cada posição desses anéis já é inicializada com o MAC local e o
+respectivo CAN ID, de modo que o caminho crítico de envio apenas acrescenta
+pontos de dados ao pacote em construção. Quando o
 pacote é fechado, \texttt{finish\_batch} atribui um novo
 \texttt{sequence\_id}, registra o instante em que o lote ficou pronto em
 \texttt{Stats}, avança o anel e chama o método virtual
