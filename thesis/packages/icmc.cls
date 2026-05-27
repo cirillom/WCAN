@@ -102,7 +102,7 @@
     }
     { % Preambulo em português
         \tipotrabalho{Monografia}
-        \renewcommand{\imprimirpreambulo}{\nohyphens{\imprimirtipotrabalho~final de conclus{\~a}o de curso apresentada ao Instituto de Ci{\^e}ncias Matem{\'a}ticas e de Computa{\c c}{\~a}o -- ICMC-USP, como requisito parcial para obten{\c c}{\~a}o do t{\'i}tulo de \especialidade~em \programa.}}
+        \renewcommand{\imprimirpreambulo}{\nohyphens{\imprimirtipotrabalho~final de conclus{\~a}o de curso apresentada ao Instituto de Ci{\^e}ncias Matem{\'a}ticas e de Computa{\c c}{\~a}o -- ICMC-USP, como requisito parcial para obten{\c c}{\~a}o do t{\'i}tulo de \especialidade~de \programa.}}
     }
     
 
