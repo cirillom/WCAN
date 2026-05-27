@@ -1,7 +1,7 @@
 \section{Visão Geral}
 
 A campanha final é a evidência experimental utilizada neste trabalho. Ela possui
-684 execuções planejadas em \path{transmitter/testing/results/final}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final}.}, confirmadas
+684 execuções planejadas em \path{transmitter/testing/results/final}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final}.}, confirmadas
 pelo plano \texttt{run\_plan.json}, pelas 684 linhas de \texttt{summary.csv} e
 pelas 684 análises individuais \texttt{analysis.txt}. O relatório automático
 classificou 453 execuções como aprovadas, ou 66,2\% do total bruto. Cada
@@ -106,7 +106,7 @@ envia o pacote, espera o \emph{callback} de envio do rádio, aguarda um ACK de a
 em \texttt{CONTROL\_ID} e repete o processo se o ACK não chegar dentro da janela
 configurada. Esse desenho oferece uma semântica mais próxima da aplicação, mas
 consome tempo de rádio e tempo de fila. No caso
-\path{broadcast/multiple/1000Hz/test_4S-1R_rep0}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/multiple/1000Hz/test_4S-1R_rep0}.}, a análise registrou 49,35\%
+\path{broadcast/multiple/1000Hz/test_4S-1R_rep0}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/broadcast/multiple/1000Hz/test_4S-1R_rep0}.}, a análise registrou 49,35\%
 de entrega, 180.783 perdas internas, 172.905 falhas de envio do sensor e espera
 máxima em fila de 3,83 s. A medida de \emph{airtime} também mostra pressão real,
 mas deve ser lida por papel do nó: no caso de \emph{broadcast}, o receptor mais
@@ -176,7 +176,7 @@ erro interno retornado por \texttt{esp\_now\_send}; ele ocorre antes de haver
 pelo caminho interno do \emph{driver} ESP-NOW \cite{espressif_espnow_programming_guide}.
 Nos testes, esse erro aparece quando o intervalo entre envios fica curto demais e
 o \emph{airtime} estimado no nó transmissor se aproxima da saturação. O caso
-\path{multicast/real_time/1000Hz/test_4S-1R_rep1}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/1000Hz/test_4S-1R_rep1}.} chegou a 99,78\% de \emph{airtime} em
+\path{multicast/real_time/1000Hz/test_4S-1R_rep1}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/multicast/real_time/1000Hz/test_4S-1R_rep1}.} chegou a 99,78\% de \emph{airtime} em
 um sensor. Portanto, a causa imediata é o desenho da carga imposta ao sistema,
 isto é, envio amostra a amostra em frequência alta; as características físicas do
 802.11 entram como limite de \emph{airtime} e contenção do meio, mas não explicam
@@ -213,10 +213,10 @@ análise não encontrou identificadores CAN inesperados entregues a receptores f
 resultado útil do transporte fica em 57/57. No \emph{broadcast}, o resultado ficou em
 52/60, com falhas explicadas por carga ou entrega de fluxo assinado.
 
-O caso \path{broadcast/active_filter/750Hz/test_2S-3R_rep0}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}.} é o mais importante:
+O caso \path{broadcast/active_filter/750Hz/test_2S-3R_rep0}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}.} é o mais importante:
 um receptor esperado não recebeu o fluxo \texttt{0xd0}, mas não houve entrega de
 identificador CAN indevido. Logo, a falha é de entrega para um fluxo assinado, não de lógica
-do filtro. Já o caso \path{broadcast/active_filter/1000Hz/test_2S-1R_rep1}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/1000Hz/test_2S-1R_rep1}.}
+do filtro. Já o caso \path{broadcast/active_filter/1000Hz/test_2S-1R_rep1}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/broadcast/active_filter/1000Hz/test_2S-1R_rep1}.}
 mostra um comportamento esperado do \emph{broadcast}: um sensor sem receptor interessado
 acumula retries, não recebe ACK e passa a descartar dados. Como o cenário não
 esperava receptor para aquele fluxo, isso não entra como perda de aplicação, mas
@@ -234,7 +234,7 @@ confirmação.
 
 O analisador reprova qualquer perda interna à janela válida. Essa escolha é
 conservadora, mas necessária para uma aplicação de aquisição periódica. O caso
-\path{multicast/real_time/100Hz/test_4S-1R_rep1}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/100Hz/test_4S-1R_rep1}.} ilustra uma quase aprovação:
+\path{multicast/real_time/100Hz/test_4S-1R_rep1}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/multicast/real_time/100Hz/test_4S-1R_rep1}.} ilustra uma quase aprovação:
 houve uma única perda interna, 99,99\% de entrega e nenhuma \texttt{S(FAIL)}.
 Ele não representa colapso do transporte, mas ainda representa uma amostra
 perdida dentro da janela útil.
@@ -254,7 +254,7 @@ As falhas representativas não foram usadas como uma lista isolada de erros, mas
 como amostras para explicar os mecanismos que aparecem nos agregados. A
 Tabela~\ref{tab:falhas-representativas-final} resume os casos, cujos caminhos
 são relativos ao diretório da campanha final no repositório
-\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/}.}.
+\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/}.}.
 Os parágrafos seguintes discutem por que cada caso altera a leitura dos resultados.
 O ponto mais importante é separar falha estrutural, falha de configuração/medição
 e quase aprovação; misturar essas categorias distorce a conclusão da campanha.
@@ -267,15 +267,15 @@ e quase aprovação; misturar essas categorias distorce a conclusão da campanha
 \hline
 Execução & Classe & Evidência \\
 \hline
-\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/multiple/1000Hz/test_4S-1R_rep0}{\emph{bcast} \texttt{multiple}, 1000 Hz, 4S-1R} & Saturação de fila e \emph{retry} & 49,35\% de entrega, 180.783 perdas internas, 172.905 \texttt{S(FAIL)}, espera máxima de fila de 3,83 s e receptor com 60,20\% de \emph{airtime}. \\
+\href{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/broadcast/multiple/1000Hz/test_4S-1R_rep0}{\emph{bcast} \texttt{multiple}, 1000 Hz, 4S-1R} & Saturação de fila e \emph{retry} & 49,35\% de entrega, 180.783 perdas internas, 172.905 \texttt{S(FAIL)}, espera máxima de fila de 3,83 s e receptor com 60,20\% de \emph{airtime}. \\
 \hline
-\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/1000Hz/test_4S-1R_rep1}{\emph{mcast} \texttt{rt}, 1000 Hz, 4S-1R} & Saturação do \emph{driver} ESP-NOW & Sensor com 99,78\% de \emph{airtime} e sequência de \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}; falha causada por pacote por amostra em alta taxa. \\
+\href{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/multicast/real_time/1000Hz/test_4S-1R_rep1}{\emph{mcast} \texttt{rt}, 1000 Hz, 4S-1R} & Saturação do \emph{driver} ESP-NOW & Sensor com 99,78\% de \emph{airtime} e sequência de \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}; falha causada por pacote por amostra em alta taxa. \\
 \hline
-\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/active_filter/750Hz/test_3S-1R_rep0}{\emph{mcast} \texttt{filter}, 750 Hz, 3S-1R} & Quebra de estatística & Entrega não pôde ser avaliada porque \texttt{WCAN\_MEASURES} saiu com campo colado; sem assinatura de \emph{crash}. \\
+\href{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/multicast/active_filter/750Hz/test_3S-1R_rep0}{\emph{mcast} \texttt{filter}, 750 Hz, 3S-1R} & Quebra de estatística & Entrega não pôde ser avaliada porque \texttt{WCAN\_MEASURES} saiu com campo colado; sem assinatura de \emph{crash}. \\
 \hline
-\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}{\emph{bcast} \texttt{filter}, 750 Hz, 2S-3R} & Entrega de fluxo assinado & Um receptor esperado não recebeu \texttt{0xd0}; não houve identificador CAN inesperado. \\
+\href{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}{\emph{bcast} \texttt{filter}, 750 Hz, 2S-3R} & Entrega de fluxo assinado & Um receptor esperado não recebeu \texttt{0xd0}; não houve identificador CAN inesperado. \\
 \hline
-\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/100Hz/test_4S-1R_rep1}{\emph{mcast} \texttt{rt}, 100 Hz, 4S-1R} & Quase aprovação & Uma perda interna, 99,99\% de entrega e ausência de falhas de envio registradas. \\
+\href{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final/multicast/real_time/100Hz/test_4S-1R_rep1}{\emph{mcast} \texttt{rt}, 100 Hz, 4S-1R} & Quase aprovação & Uma perda interna, 99,99\% de entrega e ausência de falhas de envio registradas. \\
 \hline
 \end{tabular}
 \captionof{table}{Falhas e quase falhas representativas da campanha final.}
