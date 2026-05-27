@@ -93,13 +93,16 @@ mais robusta, o caminho crítico deve reduzir alocações dinâmicas, revisar pi
 \emph{heap} das \emph{tasks}, pré-alocar \emph{buffers} quando possível e emitir estatísticas por um
 formato menos frágil que texto concorrente em serial.
 
-Outra limitação importante é o padrão de tráfego validado. A campanha exercitou
-principalmente comunicação unidirecional, ou seja, sensores transmitindo dados
-livremente para receptores. Isso é suficiente para avaliar aquisição sem fio, mas
-ainda não representa uma rede CAN completa, na qual diferentes nós podem produzir
-e consumir mensagens em ambos os sentidos. Um trabalho futuro deve criar cenários
-bidirecionais em nível de aplicação, com dois ou mais dispositivos alternando
-papéis de produtor e consumidor, trocando dados e controle no mesmo ensaio. Essa
+Outra limitação importante é o padrão de tráfego validado. A implementação já foi
+concebida para permitir que um nó produza e consuma mensagens, pois a separação
+entre identificadores transmitidos e recebidos permite configurar papéis
+bidirecionais no nível da aplicação. A campanha, porém, exercitou principalmente
+comunicação unidirecional, com sensores transmitindo dados livremente para
+receptores. Isso é suficiente para avaliar aquisição sem fio, mas não valida, por
+si só, uma rede CAN completa, na qual diferentes nós podem produzir e consumir
+mensagens em ambos os sentidos durante o mesmo ensaio. Um trabalho futuro deve
+criar cenários bidirecionais de aplicação, com dois ou mais dispositivos
+alternando papéis de produtor e consumidor e trocando dados e controle. Essa
 validação não muda a natureza half-duplex do rádio 802.11, mas aproxima o uso do
 WCAN do comportamento lógico de uma rede CAN, onde os nós compartilham o meio e
 interagem de forma mais simétrica.
