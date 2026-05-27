@@ -61,10 +61,7 @@ Essa arquitetura cabeada é adequada para os pontos de medição já consolidado
 limita a expansão para sensores em rodas, componentes móveis, superfícies
 aerodinâmicas e equipamentos externos ao veículo. Nesses casos, chicotes longos,
 conectores adicionais, rotas de instalação difíceis e proteção mecânica aumentam
-massa, volume, tempo de manutenção e pontos de falha. O
-Capítulo~\ref{chapter:problema} detalha esses cenários e mostra por que uma
-solução complementar sem fio pode ampliar a capacidade de instrumentação sem
-alterar a organização lógica da rede de dados.
+massa, volume, tempo de manutenção e pontos de falha.
 
 \section{Objetivos e Contribuições}
 
@@ -79,10 +76,11 @@ Os objetivos específicos são:
 \begin{itemize}
     \item caracterizar os requisitos de uma ponte sem fio compatível com o sistema
     de aquisição existente;
-    \item implementar o WCAN como camada de comunicação sobre ESP-NOW, com
-    agrupamento temporal de amostras e filtragem por identificador CAN;
-    \item desenvolver e comparar duas variantes de transporte, \emph{broadcast} e
-    \emph{multicast};
+    \item implementar o WCAN como camada de comunicação sobre ESP-NOW, preservando
+    o maior número possível de características úteis de uma rede CAN para
+    aquisição de dados;
+    \item desenvolver e comparar variantes de transporte adequadas a essa ponte sem
+    fio;
     \item avaliar, em bancada, o comportamento do sistema com múltiplos sensores,
     receptores, frequências, filtros e fluxos por sensor;
     \item delimitar as condições em que a solução é adequada para instrumentação
