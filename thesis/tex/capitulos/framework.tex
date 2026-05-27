@@ -101,26 +101,11 @@ operação sem infraestrutura.
 Assim como em outros protocolos sem fio, o ESP-NOW trabalha com três modos de comunicação:
 \begin{itemize}
     \item \textbf{\emph{Unicast}}: comunicação ponto a ponto entre um transmissor e um receptor específico, 
-    usando o endereço MAC do receptor.
+    usando o endereço MAC do receptor e com status de envio no nível MAC.
     \item \textbf{\emph{Multicast}}: comunicação de um transmissor para um grupo de receptores inscritos, 
-    com status de envio reportado pelo ESP-NOW no nível MAC.
+    com status de envio no nível MAC.
     \item \textbf{\emph{Broadcast}}: comunicação de um transmissor para todos os dispositivos no alcance, 
     sem confirmação de recepção.
 \end{itemize}
-Considerando a finalidade do sistema e o funcionamento de um barramento CAN tradicional, 
-a estratégia de comunicação mais adequada seria o \emph{broadcast}, pois o objetivo é que os dados sejam 
-recebidos por qualquer nó interessado, sem a necessidade de estabelecer conexões ou gerenciar grupos 
-de receptores. No entanto, a falta de confirmação nativa no modo \emph{broadcast} do ESP-NOW introduz a
-necessidade de implementar mecanismos de confiabilidade na camada de aplicação, como técnicas de
-confirmação (ACK) e retransmissão, para garantir a entrega dos dados. Entretanto, a implementação
-desse tipo de sistema introduz complexidade adicional e impacta a robustez do sistema. Por outro lado,
-o uso de \emph{multicast} permitiria usar o status de envio no nível MAC reportado pelo ESP-NOW,
-reduzindo a necessidade de ACK de aplicação sem afirmar entrega fim a fim. Essa escolha, porém,
-introduz a necessidade de gerenciar inscrições, o que quebraria o requisito de transmissão
-instantânea.
 
-Diante dos cenários citados, entender qual das opções de transporte é a mais viável tornou-se um dos principais 
-focos deste trabalho. Essa investigação é bem justificada dado que o projeto 
-visa expandir a aquisição de dados, não substituir a rede CAN em controle crítico. Trabalhos 
-de telemetria veicular com Wi-Fi ou ESP32 reforçam que a escolha do protocolo precisa considerar 
-a finalidade do sistema e sua integração com o fluxo de dados do veículo \cite{fernandes2022_formula_sae_wifi_can}.
+A escolha do meio de transporte não é direta, pois o sistema precisa conciliar entrada dinâmica de nós, múltiplos receptores e confirmação de entrega. A opção mais natural é o \emph{broadcast} com ACK na aplicação, por manter os dados disponíveis a qualquer nó interessado, de forma próxima ao comportamento lógico do CAN. O \emph{unicast}, por outro lado, foi descartado porque só atenderia múltiplos receptores repetindo a mesma mensagem para cada endereço MAC conhecido, o que aumentaria o uso do rádio e reproduziria em software a lógica do \emph{multicast}. O envio direto por grupo também não resolve sozinho a entrada dinâmica de nós; por isso, a alternativa baseada em grupo foi implementada de forma híbrida, iniciando em \emph{broadcast} e, à medida que os dispositivos trocam informações, descobrindo os endereços MAC dos receptores e migrando as transmissões seguintes para o grupo cadastrado. Assim, a avaliação prática comparou dois sistemas de transporte: primeiro, o \emph{broadcast} com ACK na aplicação; segundo, o \emph{multicast} híbrido. Essa investigação justifica-se porque o projeto foca na expansão da aquisição de dados, e não na substituição da rede CAN para controles críticos \cite{fernandes2022_formula_sae_wifi_can}.
