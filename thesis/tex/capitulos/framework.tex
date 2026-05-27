@@ -78,9 +78,12 @@ mostram que alcance, latência, consumo e vazão variam bastante entre ESP-NOW,
 Wi-Fi e Bluetooth, tornando a escolha dependente do uso \cite{eridani2021_espnow_wifi_bluetooth}.
 
 O ESP-NOW foi escolhido por permitir comunicação direta entre dispositivos ESP32 sem
-ponto de acesso nem endereço IP. Ele opera sobre a camada física do Wi-Fi, usa
-endereçamento por MAC e permite \emph{payload} de até 250 bytes na versão clássica usada
-neste trabalho \cite{espressif_espnow_programming_guide,pasic2021_espnow_esp32}.
+ponto de acesso nem endereço IP. Ele opera sobre a camada física do Wi-Fi e usa
+endereçamento por MAC. O limite de \emph{payload} depende da versão disponível na
+\emph{build}: a versão clássica do ESP-NOW trabalha com quadros menores, enquanto
+o ESP-NOW v2, usado na campanha final, amplia esse espaço. Por isso, no WCAN o
+tamanho máximo útil do pacote é derivado em tempo de compilação, e não fixado como
+constante do projeto \cite{espressif_espnow_programming_guide,pasic2021_espnow_esp32}.
 Essa combinação atende melhor aos requisitos de início rápido, baixo \emph{overhead} e
 operação sem infraestrutura.
 
