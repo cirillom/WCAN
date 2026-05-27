@@ -1,14 +1,13 @@
 \section{Síntese do Trabalho}
 
 Este trabalho desenvolveu e avaliou o WCAN, uma camada sem fio baseada em
-ESP-NOW para transportar dados identificados por CAN ID em um sistema de
+ESP-NOW para transportar dados associados a identificadores CAN em um sistema de
 aquisição de dados de Fórmula SAE. O objetivo foi permitir novos pontos de
-medição em regiões onde o cabeamento é difícil ou indesejável, preservando o CAN
-ID como identificador lógico do sinal e evitando dependência de uma rede Wi-Fi
+medição em regiões onde o cabeamento é difícil ou indesejável, usando o identificador CAN como referência lógica do sinal e evitando dependência de uma rede Wi-Fi
 tradicional.
 
 O objetivo foi cumprido em bancada. A implementação demonstrou operação sem
-associação prévia, papéis configuráveis, filtragem por CAN ID, anéis
+associação prévia, papéis configuráveis, filtragem por identificador CAN, anéis
 \texttt{RingBuffer} de transmissão e recepção, agrupamento temporal por
 \texttt{linger\_ms}, tarefas separadas de envio e recepção, e duas variantes de
 transporte selecionadas em tempo de compilação. Essa validação não transforma o
@@ -25,11 +24,11 @@ melhor que o outro, mas que o WCAN depende da combinação entre \emph{multicast
 e formação de lotes para manter margem operacional em frequências mais altas.
 
 As suítes da campanha detalham essa leitura, mas não mudam seu eixo principal. A
-\texttt{baseline} funciona como controle de sanidade com um CAN ID por sensor. A
+\texttt{baseline} funciona como controle de sanidade com um identificador CAN por sensor. A
 \texttt{multiple} é o cenário mais representativo do uso esperado, pois um nó real
 tende a publicar vários identificadores; nela, o \emph{multicast} com lotes
 aprovou 100\% (90/90) das execuções, enquanto o \emph{broadcast} aprovou 37,8\% (34/90). A
-\texttt{active\_filter} mostrou que a filtragem por CAN ID funciona sem entrega
+\texttt{active\_filter} mostrou que a filtragem por identificador CAN funciona sem entrega
 indevida a receptores não interessados, e a \texttt{mixed\_frequency} mostrou que
 frequências heterogêneas podem coexistir na bancada. Essas suítes, portanto,
 servem para explicar capacidades e limites específicos; a direção de projeto
@@ -38,9 +37,9 @@ continua sendo \emph{multicast} com agrupamento temporal.
 Essa escolha também envolve uma troca de semântica operacional. O \emph{broadcast}
 preserva uma confirmação de aplicação por \texttt{CONTROL\_ID}, mas paga por isso com retransmissões e maior pressão em filas
 quando há muitos fluxos. O \emph{multicast} reduz esse custo ao usar assinaturas
-por CAN ID e a confirmação de envio no nível MAC reportada pelo ESP-NOW. Essa
+por identificador CAN e a confirmação de envio no nível MAC reportada pelo ESP-NOW. Essa
 confirmação não prova que a aplicação remota processou o pacote, mas foi a troca
-que permitiu maior vazão mantendo a organização lógica por CAN ID e a conexão
+que permitiu maior vazão mantendo a organização lógica por identificador CAN e a conexão
 inicial imediata. Para o escopo deste trabalho, essa é a alternativa mais
 adequada para avançar rumo à validação no veículo.
 
@@ -53,7 +52,7 @@ necessário validar vibração, fixação, encapsulamento, autonomia, posição 
 antenas, interferência eletromagnética, alimentação automotiva e operação
 prolongada durante eventos reais de pista.
 
-A segunda limitação é a integração final com o barramento CAN. O trabalho preservou o CAN ID,
+A segunda limitação é a integração final com o barramento CAN. O trabalho preservou o identificador CAN,
 separou fluxos por identificador e manteve a semântica esperada para entrega ao
 barramento, mas a campanha de resultados mediu o WCAN principalmente por \emph{logs}. A
 próxima etapa deve usar TWAI em configuração de produção, com reinjeção contínua
@@ -111,7 +110,7 @@ especialmente para sinais de maior conteúdo espectral.
 A contribuição principal deste trabalho foi mostrar, por implementação e por
 campanha experimental, que uma ponte CAN sem fio baseada em ESP-NOW é uma
 alternativa viável para aquisição de dados em bancada de Fórmula SAE. O WCAN
-preserva a organização lógica por CAN ID, permite conexão imediata, suporta
+preserva a organização lógica por identificador CAN, permite conexão imediata, suporta
 múltiplos nós e reduz a dependência de cabeamento em pontos de instrumentação
 complexos.
 

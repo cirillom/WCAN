@@ -11,7 +11,7 @@ além de duas equipes do exterior \cite{sae_brasil_formula_sae_2025_inscritos}.
 A competição é estruturada em provas estáticas e dinâmicas. As provas estáticas
 avaliam o projeto de engenharia, o plano de negócios e o detalhamento de custos e
 manufatura; as provas dinâmicas testam o desempenho do protótipo em situações como
-aceleração, skidpad, autocross e endurance. A prova de endurance tem maior peso na
+aceleração, \emph{skidpad}, \emph{autocross} e \emph{endurance}. A prova de \emph{endurance} tem maior peso na
 pontuação e exige que o veículo percorra aproximadamente 22 km sem falhas
 \cite{fsaeonline_endurance_2026}.
 
@@ -27,12 +27,12 @@ Nacional de Fórmula SAE Brasil, garantindo vaga para a etapa mundial
 \section{Aquisição de Dados no Veículo}
 
 Em ambientes de competição automotiva, compreender o comportamento do veículo é
-condição essencial para orientar ajustes de projeto, setup e pilotagem. Sensores
+condição essencial para orientar ajustes de projeto, \emph{setup} e pilotagem. Sensores
 distribuídos ao longo do protótipo fornecem informações que permitem validar
 hipóteses de engenharia, monitorar sistemas críticos e comparar objetivamente
 sessões de teste e desempenho entre pilotos
 \cite{schultz2017_formula_sae_telemetry,ashford2020_formula_sae_data_analysis}.
-Sem instrumentação adequada, a equipe depende principalmente do feedback subjetivo
+Sem instrumentação adequada, a equipe depende principalmente do \emph{feedback} subjetivo
 dos pilotos, que é útil, mas insuficiente para decisões de engenharia que precisam ser baseadas em dados confiáveis e
 objetivos.
 
@@ -67,8 +67,7 @@ massa, volume, tempo de manutenção e pontos de falha.
 
 O objetivo geral deste trabalho é desenvolver e avaliar, em bancada, uma ponte CAN
 sem fio para aquisição de dados em Fórmula SAE. A proposta busca reduzir a
-dependência de cabeamento em pontos de medição difíceis, mantendo o CAN ID como
-identificador lógico dos sinais e preservando compatibilidade conceitual com o
+dependência de cabeamento em pontos de medição difíceis, usando o identificador CAN como referência lógica dos sinais e preservando compatibilidade conceitual com o
 fluxo de aquisição já usado pela equipe.
 
 Os objetivos específicos são:
@@ -88,10 +87,10 @@ Os objetivos específicos são:
 \end{itemize}
 
 A principal contribuição é o WCAN, composto por protocolo e \emph{firmware} para
-transportar dados identificados por CAN ID sobre ESP-NOW. A implementação inclui
+transportar, sobre ESP-NOW, dados associados a identificadores CAN. A implementação inclui
 um núcleo comum de transmissão e recepção, anéis \texttt{RingBuffer} para
-organizar lotes por CAN ID, suporte a agrupamento temporal de amostras, filtragem
-por identificador e duas políticas de transporte. Como suporte
+organizar lotes por identificador CAN, suporte a agrupamento temporal de amostras, filtragem
+por identificador CAN e duas políticas de transporte. Como suporte
 à avaliação, o trabalho também entrega uma campanha experimental automatizada,
 com configuração de placas, execução por UART, coleta de \emph{logs} e análise
 reprodutível. Essa infraestrutura é tratada como meio de validação, não como

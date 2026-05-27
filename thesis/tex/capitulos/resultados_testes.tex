@@ -28,7 +28,7 @@ associados a \emph{timeout}, placa que não entrou no teste ou saturação real 
 
 O resultado mais importante da campanha é a suíte \texttt{multiple}. Apesar de
 \texttt{baseline} ser a referência mínima, o uso esperado do WCAN raramente terá
-apenas um CAN ID por sensor; no uso diário, um mesmo nó tende a transmitir vários
+apenas um identificador CAN por sensor; no uso diário, um mesmo nó tende a transmitir vários
 fluxos. Por isso, a análise a seguir usa \texttt{multiple} como eixo principal e
 trata \texttt{baseline} como controle de sanidade.
 
@@ -47,13 +47,13 @@ representa \texttt{active\_filter} e \texttt{mixed} representa
 \hline
 Suíte/transp. & Aprovadas & Estatísticas excluídas & Leitura principal \\
 \hline
-\texttt{mult}/\emph{bcast} & 34/90 & 0 & Caso crítico da tese; o ACK de aplicação e as retransmissões limitam a escala com três CAN IDs por sensor. \\
+\texttt{mult}/\emph{bcast} & 34/90 & 0 & Caso crítico da tese; o ACK de aplicação e as retransmissões limitam a escala com três identificadores CAN por sensor. \\
 \hline
 \texttt{mult}/\emph{mcast} & 90/90 & 0 & Melhor resultado prático da campanha para múltiplos fluxos com lotes. \\
 \hline
-\texttt{base}/\emph{bcast} & 70/88 & 2 & Controle de um CAN ID por sensor; bom em baixa carga, mas ainda sensível a 750 Hz e topologias maiores. \\
+\texttt{base}/\emph{bcast} & 70/88 & 2 & Controle de um identificador CAN por sensor; bom em baixa carga, mas ainda sensível a 750 Hz e topologias maiores. \\
 \hline
-\texttt{base}/\emph{mcast} & 90/90 & 0 & Controle estável para um CAN ID por sensor. \\
+\texttt{base}/\emph{mcast} & 90/90 & 0 & Controle estável para um identificador CAN por sensor. \\
 \hline
 \texttt{rt}/\emph{bcast} & 18/90 & 0 & Sem \emph{linger}, o caminho de ACK e fila satura rapidamente. \\
 \hline
@@ -61,7 +61,7 @@ Suíte/transp. & Aprovadas & Estatísticas excluídas & Leitura principal \\
 \hline
 \texttt{filter}/\emph{bcast} & 52/60 & 0 & Filtro correto; falhas remanescentes são de entrega, carga ou bancada. \\
 \hline
-\texttt{filter}/\emph{mcast} & 57/57 & 3 & Sem entrega indevida de CAN ID; as três reprovações brutas foram corrupção de estatísticas/\emph{log}. \\
+\texttt{filter}/\emph{mcast} & 57/57 & 3 & Sem entrega indevida de identificador CAN; as três reprovações brutas foram corrupção de estatísticas/\emph{log}. \\
 \hline
 \texttt{mixed}/\emph{bcast} & 10/12 & 0 & Frequências heterogêneas coexistem; as falhas aparecem em combinações densas com 750 Hz e 1000 Hz. \\
 \hline
@@ -74,7 +74,7 @@ Suíte/transp. & Aprovadas & Estatísticas excluídas & Leitura principal \\
 
 \section{Múltiplos Fluxos}
 
-A suíte \texttt{multiple} força cada sensor a publicar três CAN IDs. Essa é a
+A suíte \texttt{multiple} força cada sensor a publicar três identificadores CAN. Essa é a
 condição mais próxima do uso pretendido, porque uma placa embarcada tende a
 agrupar várias medições e estados sob IDs diferentes. Nessa suíte, o \emph{multicast}
 com agrupamento temporal aprovou 90 de 90 execuções. O \emph{broadcast} aprovou 34 de 90.
@@ -94,14 +94,14 @@ Transp. & 750--1000 Hz & Total da suíte & Leitura \\
 \hline
 \emph{bcast} & 3/36 & 34/90 & O custo de ACK de aplicação, \emph{timeout} e retransmissão aumenta até preencher filas e gerar \texttt{P(FAIL)} e \texttt{S(FAIL)}. \\
 \hline
-\emph{mcast} & 36/36 & 90/90 & A assinatura por CAN ID remove ACK de aplicação do caminho de dados e preserva vazão com agrupamento temporal. \\
+\emph{mcast} & 36/36 & 90/90 & A assinatura por identificador CAN remove ACK de aplicação do caminho de dados e preserva vazão com agrupamento temporal. \\
 \hline
 \end{tabular}
 \captionof{table}{Comparação dos transportes na suíte \texttt{multiple}.}
 \label{tab:multiple-final}
 \end{center}
 
-No \emph{broadcast}, cada lote passa pela tarefa de \emph{retry} do seu CAN ID. O transmissor
+No \emph{broadcast}, cada lote passa pela tarefa de \emph{retry} do seu identificador CAN. O transmissor
 envia o pacote, espera o \emph{callback} de envio do rádio, aguarda um ACK de aplicação
 em \texttt{CONTROL\_ID} e repete o processo se o ACK não chegar dentro da janela
 configurada. Esse desenho oferece uma semântica mais próxima da aplicação, mas
@@ -115,7 +115,7 @@ os maiores picos observados ficaram nos sensores a 1000 Hz, chegando a 50,31\%.
 Esses valores são métricas por placa, não uma medição direta da ocupação agregada
 do meio, que exigiria somar transmissões concorrentes e contenção de canal.
 
-No \emph{multicast}, os receptores anunciam interesse por CAN ID e o transmissor envia
+No \emph{multicast}, os receptores anunciam interesse por identificador CAN e o transmissor envia
 para os \emph{peers} registrados sem ACK de aplicação por lote. A confirmação direta é
 a resposta do caminho MAC/radio reportada pelo ESP-NOW, não a prova de que a
 tarefa de aplicação remota consumiu o pacote. Essa troca foi favorável nos dados:
@@ -152,7 +152,7 @@ Em \texttt{real\_time}, a degradação é abrupta. Em 10 Hz, o \emph{broadcast} 
 de 18 execuções e o \emph{multicast} passou 18 de 18. Em 100 Hz, os mesmos transportes
 caíram para 1/18 e 2/18. Em 200 Hz, 750 Hz e 1000 Hz, nenhuma execução foi
 aprovada. Isso ocorre porque a taxa de amostras passa a ser também a taxa de
-pacotes ESP-NOW. Ao reunir várias amostras do mesmo CAN ID no mesmo
+pacotes ESP-NOW. Ao reunir várias amostras do mesmo identificador CAN no mesmo
 \texttt{Packet}, o sistema reduz essa pressão; no envio amostra a amostra, cada ponto
 disputa chamada de \emph{driver}, \emph{callback} e espaço de fila.
 
@@ -207,22 +207,22 @@ bancada, não como evidência de entrega.
 
 \section{Filtros e Frequências Mistas}
 
-A suíte \texttt{active\_filter} confirma que o filtro por CAN ID funcionou. A
-análise não encontrou CAN IDs inesperados entregues a receptores fora da
+A suíte \texttt{active\_filter} confirma que o filtro por identificador CAN funcionou. A
+análise não encontrou identificadores CAN inesperados entregues a receptores fora da
 \emph{allowlist}. Após remover as três quebras de estatística do \emph{multicast}, o
 resultado útil do transporte fica em 57/57. No \emph{broadcast}, o resultado ficou em
 52/60, com falhas explicadas por carga ou entrega de fluxo assinado.
 
 O caso \path{broadcast/active_filter/750Hz/test_2S-3R_rep0}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}.} é o mais importante:
 um receptor esperado não recebeu o fluxo \texttt{0xd0}, mas não houve entrega de
-CAN ID indevido. Logo, a falha é de entrega para um fluxo assinado, não de lógica
+identificador CAN indevido. Logo, a falha é de entrega para um fluxo assinado, não de lógica
 do filtro. Já o caso \path{broadcast/active_filter/1000Hz/test_2S-1R_rep1}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/1000Hz/test_2S-1R_rep1}.}
 mostra um comportamento esperado do \emph{broadcast}: um sensor sem receptor interessado
 acumula retries, não recebe ACK e passa a descartar dados. Como o cenário não
 esperava receptor para aquele fluxo, isso não entra como perda de aplicação, mas
 mostra desperdício de trabalho quando o emissor transmite por \emph{broadcast} algo que
 ninguém precisa aceitar. No \emph{multicast}, esse custo tende a ser menor porque a
-assinatura informa quais \emph{peers} estão interessados em cada CAN ID.
+assinatura informa quais \emph{peers} estão interessados em cada identificador CAN.
 
 Na suíte \texttt{mixed\_frequency}, a heterogeneidade de frequências não foi o
 problema dominante. O \emph{multicast} passou as 12 execuções e o \emph{broadcast} passou 10
@@ -273,7 +273,7 @@ Execução & Classe & Evidência \\
 \hline
 \href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/active_filter/750Hz/test_3S-1R_rep0}{\emph{mcast} \texttt{filter}, 750 Hz, 3S-1R} & Quebra de estatística & Entrega não pôde ser avaliada porque \texttt{WCAN\_MEASURES} saiu com campo colado; sem assinatura de \emph{crash}. \\
 \hline
-\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}{\emph{bcast} \texttt{filter}, 750 Hz, 2S-3R} & Entrega de fluxo assinado & Um receptor esperado não recebeu \texttt{0xd0}; não houve CAN ID inesperado. \\
+\href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/broadcast/active_filter/750Hz/test_2S-3R_rep0}{\emph{bcast} \texttt{filter}, 750 Hz, 2S-3R} & Entrega de fluxo assinado & Um receptor esperado não recebeu \texttt{0xd0}; não houve identificador CAN inesperado. \\
 \hline
 \href{https://github.com/cirillom/WCAN/tree/main/transmitter/testing/results/final/multicast/real_time/100Hz/test_4S-1R_rep1}{\emph{mcast} \texttt{rt}, 100 Hz, 4S-1R} & Quase aprovação & Uma perda interna, 99,99\% de entrega e ausência de falhas de envio registradas. \\
 \hline
@@ -284,7 +284,7 @@ Execução & Classe & Evidência \\
 
 O primeiro caso é o colapso mais importante porque pertence à suíte
 \texttt{multiple}, que representa o uso realista do sistema. A combinação de
-quatro sensores, três CAN IDs por sensor e 1000 Hz fez o \emph{broadcast} gastar tempo
+quatro sensores, três identificadores CAN por sensor e 1000 Hz fez o \emph{broadcast} gastar tempo
 com retransmissões e ACKs de aplicação até criar \emph{backlog}. A espera de fila de
 3,83 s é maior que a escala temporal do próprio lote, portanto a perda deixa de
 ser um evento de rádio isolado e passa a ser uma falha de capacidade do caminho
@@ -306,7 +306,7 @@ que a instrumentação textual por UART não é neutra: em carga alta, a própri
 medição pode falhar.
 
 O quarto caso confirma que a suíte \texttt{active\_filter} deve ser lida em duas
-camadas. A regra de filtro funcionou, pois não houve CAN ID indevido, mas um
+camadas. A regra de filtro funcionou, pois não houve identificador CAN indevido, mas um
 fluxo que deveria chegar a um receptor específico não chegou. Assim, o filtro é
 correto, mas o transporte ainda pode falhar para um fluxo assinado.
 
@@ -345,7 +345,7 @@ Conexão instantânea & \emph{Broadcast} transmite dados sem \emph{handshake}. \
 \hline
 Múltiplas conexões & Foram exercitadas topologias com múltiplos sensores e receptores, incluindo 4S-1R, 3S-2R e 2S-3R; as falhas observadas decorrem de carga, \emph{retry} ou \emph{airtime}, não da incapacidade de operar múltiplos nós. & Atendido em bancada \\
 \hline
-Transparência CAN & O \emph{firmware} preserva o mesmo CAN ID e mantém a separação de fluxos por identificador. A entrega ao controlador CAN foi implementada e validada em bancada fora da campanha final; a validação no veículo e em uso prolongado do barramento não fez parte destes ensaios. & Implementado; bancada parcial \\
+Transparência CAN & O \emph{firmware} preserva o mesmo identificador CAN e mantém a separação de fluxos por identificador. A entrega ao controlador CAN foi implementada e validada em bancada fora da campanha final; a validação no veículo e em uso prolongado do barramento não fez parte destes ensaios. & Implementado; bancada parcial \\
 \hline
 Requisitos físicos e custo & O nó sensor foi implementado com placa ESP32 compacta e componentes acessíveis, indicando viabilidade física inicial. A campanha, porém, não mediu massa final, custo consolidado, autonomia nem fixação no veículo. & Parcial \\
 \hline
@@ -366,13 +366,13 @@ enquanto a variante \texttt{real\_time}, sem essa estratégia, caiu para 38/180
 execuções aprovadas. Assim, o requisito é parcial: a arquitetura alcança alta
 frequência, mas a preservação temporal acima de 100~Hz depende dessa formação
 de lotes e da premissa de que as amostras dentro do pacote representam uma
-sequência regular do mesmo CAN ID.
+sequência regular do mesmo identificador CAN.
 
 A conexão instantânea foi atendida tanto no \emph{broadcast} quanto no \emph{multicast}. No
 \emph{broadcast}, isso é direto: o sensor transmite sem conhecer receptores. No
 \emph{multicast}, o ponto essencial é que a assinatura não é pré-condição para o
 primeiro dado. O transmissor começa em modo efetivamente \emph{broadcast} para aquele
-CAN ID; quando os anúncios de interesse chegam, ele passa a enviar aos \emph{peers}
+identificador CAN; quando os anúncios de interesse chegam, ele passa a enviar aos \emph{peers}
 registrados. Portanto, o cadastro melhora a eficiência posterior, mas não cria
 um \emph{handshake} bloqueante antes da primeira amostra.
 
@@ -386,7 +386,7 @@ topologias sob carga permanece discutida no requisito de desempenho.
 
 A transparência CAN foi implementada no \emph{firmware}, mas sua validação deve ser
 separada em camadas. No nível lógico, o WCAN não cria um espaço de endereçamento
-novo nem exige tradução das mensagens: o mesmo CAN ID segue no pacote sem fio e os
+novo nem exige tradução das mensagens: o mesmo identificador CAN segue no pacote sem fio e os
 fluxos continuam separados por identificador. No nível de bancada, a integração com
 o controlador CAN/TWAI foi exercitada antes da campanha final. Já a campanha final
 deste trabalho isolou o enlace ESP-NOW e as filas internas, sem validar operação
