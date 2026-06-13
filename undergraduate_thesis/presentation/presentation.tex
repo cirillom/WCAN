@@ -1,0 +1,78 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation - Undergraduate Thesis Template
+% Based on Madrid theme with customized ICMC Blue colors
+%
+% Refactored Architecture (Senior Expert Layout)
+% - style.sty: Handles all 'HOW' (theming, packages, colors)
+% - config.tex: Handles all 'WHAT' (metadata, title, author)
+% - slides/: Directory for modular content
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{beamer}
+
+% Load custom styling
+\usepackage{style}
+
+% Load presentation metadata
+\input{config.tex}
+
+% PDF Metadata Configuration
+\hypersetup{
+    pdftitle={\fulltitle},
+    pdfauthor={\presentationauthor},
+    pdfkeywords={\presentationkeywords},
+    pdfsubject={Trabalho de Conclusão de Curso},
+    pdfcreator={LaTeX with Beamer},
+    pdfproducer={pdflatex}
+}
+
+\begin{document}
+
+% --- Title Page ---
+{
+\setbeamertemplate{footline}{} 
+\begin{frame}
+    \titlepage
+\end{frame}
+}
+
+% --- Summary ---
+\begin{frame}{Sumário}
+    \tableofcontents
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+\input{slides/01-introducao.tex}
+\input{slides/02-desenvolvimento.tex}
+\input{slides/03-resultados.tex}
+\input{slides/04-conclusao.tex}
+\input{slides/05-referencias.tex}
+
+%----------------------------------------------------------------------------------------
+%	CLOSING SLIDE
+%----------------------------------------------------------------------------------------
+
+\begin{frame}
+    \centering
+    \vspace{1.5cm}
+    {\Huge \textbf{Obrigado!}}
+    
+    \vspace{1cm}
+    \textbf{\insertauthor} \\
+    \textit{\authoremail}
+    
+    \vspace{1.5cm}
+    \scriptsize
+    ICMC - USP | São Carlos, \the\year
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	BACKUP SLIDES (Optional)
+%----------------------------------------------------------------------------------------
+
+\input{slides/99-backup.tex}
+
+\end{document}

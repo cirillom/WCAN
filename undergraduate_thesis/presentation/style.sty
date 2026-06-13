@@ -1,0 +1,84 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{style}[2026/06/13 ICMC Beamer Style]
+
+% --- Packages ---
+\RequirePackage[brazil]{babel}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{graphicx}
+\RequirePackage{booktabs}
+\RequirePackage[export]{adjustbox}
+\RequirePackage{ragged2e}
+\RequirePackage{etoolbox}
+\RequirePackage{appendixnumberbeamer}
+
+% --- Typography Best Practices ---
+\frenchspacing % Reduces extra space after periods, standard for academic work.
+
+% --- Theme Configuration ---
+\mode<presentation> {
+    \usetheme{Madrid}
+    \useinnertheme{rectangles}
+}
+
+% --- Cores personalizadas (Custom Colors) ---
+\definecolor{ICMCBlue}{rgb}{0.36, 0.48, 0.60} % Azul Institucional ICMC (92, 122, 153)
+\definecolor{DataBlue}{rgb}{0.45, 0.52, 0.61} 
+
+% --- Beamer Color Customization ---
+\setbeamercolor{palette primary}{bg=ICMCBlue, fg=white}
+\setbeamercolor{palette secondary}{bg=ICMCBlue, fg=white}
+\setbeamercolor{palette tertiary}{bg=ICMCBlue, fg=white}
+\setbeamercolor{palette quaternary}{bg=ICMCBlue, fg=white}
+
+\setbeamercolor{block title alerted}{bg=gray!50, fg=white}
+\setbeamercolor{block body alerted}{bg=gray!15, fg=black}
+
+\setbeamercolor{title in head/foot}{bg=lightgray, fg=white}
+\setbeamercolor{date in head/foot}{bg=darkgray,  fg=white}
+
+\setbeamercolor{item}{fg=ICMCBlue}
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{structure}{fg=ICMCBlue}
+
+\setbeamercolor{titlelike}{parent=structure, bg=ICMCBlue, fg=white}
+\setbeamercolor{frametitle}{bg=ICMCBlue, fg=white}
+\setbeamercolor{section in toc}{fg=ICMCBlue, bg=white}
+
+\RequirePackage{appendixnumberbeamer}
+
+% --- Customizing Title Page ---
+% Position logos more professionally
+\titlegraphic{
+    \hspace{0.5cm}
+    \includegraphics[height=1.5cm]{images/brasao-usp.png} \hfill
+    \includegraphics[height=1.3cm]{images/icmc-logo.png}
+    \hspace{0.5cm}
+}
+
+% Justification helper: Beamer defaults to \raggedright. 
+% We redefine it to \justifying (ragged2e) for better PT-BR typography.
+\renewcommand{\raggedright}{\justifying}
+
+% Apply justification to blocks
+\addtobeamertemplate{block begin}{}{\justifying}
+\addtobeamertemplate{block alerted begin}{}{\justifying}
+\addtobeamertemplate{block example begin}{}{\justifying}
+
+% Force justification in lists
+\AtBeginEnvironment{itemize}{\justifying}
+\AtBeginEnvironment{enumerate}{\justifying}
+
+% --- Progress Bar (Gas Gauge) ---
+\setbeamercolor{progress bar}{bg=ICMCBlue!20}
+\setbeamercolor{progress bar fill}{bg=ICMCBlue}
+
+\addtobeamertemplate{footline}{}{%
+    \ifnum\inserttotalframenumber>0
+        \begin{beamercolorbox}[wd=\paperwidth,ht=1.2pt,dp=0pt]{progress bar}
+            \begin{beamercolorbox}[wd=\dimexpr\paperwidth*\insertframenumber/\inserttotalframenumber\relax,ht=1.2pt,dp=0pt]{progress bar fill}
+            \end{beamercolorbox}%
+        \end{beamercolorbox}%
+    \fi
+}
+
+\endinput
