@@ -1,33 +1,78 @@
 \section{Introdução}
 
+% SCRIPT: Apresentar a Fórmula SAE como contexto de alta engenharia.
+% Mencionar que a EESC-USP é uma equipe competitiva (vencedora 2025).
+% Explicar que sem dados, o ajuste do carro é baseado apenas no "feeling" do piloto.
 \begin{frame}{Contextualização}
-    \begin{itemize}
-        \item Descreva o contexto geral do seu tema.
-        \item Por que este assunto é relevante hoje?
-        \item Use tópicos curtos e diretos.
-    \end{itemize}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item \textbf{Fórmula SAE:} Competição estudantil de engenharia (protótipos monopostos).
+                \item \textbf{Aquisição de Dados:} Essencial para validação e ajuste de projeto.
+                \item \textbf{Barramento CAN:} Padrão consolidado no veículo (1 Mbit/s).
+                \item \textbf{Cenário EESC-USP:} Arquitetura robusta, mas com dificuldades de expansão física.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\linewidth]{images/e22.jpg}
+                \caption{Protótipo E22 - EESC-USP}
+            \end{figure}
+        \end{column}
+    \end{columns}
 \end{frame}
 
+% SCRIPT: Apontar para a imagem dos chicotes (linhas coloridas).
+% Destacar que cada fio adiciona peso (massa) e é um ponto de falha.
+% Citar os componentes rotativos (semieixos) e aerodinâmicos como os mais difíceis de instrumentar.
 \begin{frame}{O Problema}
-    \begin{alertblock}{Definição do Problema}
-        Qual é a lacuna ou desafio específico que seu trabalho aborda?
-    \end{alertblock}
-    \vspace{0.5cm}
-    \begin{itemize}
-        \item Ponto 1 do problema.
-        \item Ponto 2 do problema.
-    \end{itemize}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{alertblock}{Limitações Físicas}
+                A fiação impõe restrições estruturais que dificultam a instrumentação.
+            \end{alertblock}
+            \begin{itemize}
+                \item \textbf{Massa e Complexidade:} Chicotes elétricos longos.
+                \item \textbf{Difícil Acesso:} Rodas, semieixos e asas.
+                \item \textbf{Sensores Externos:} Integração complexa.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\linewidth]{images/can.png}
+                \caption{Topologia de Cabeamento Atual}
+            \end{figure}
+        \end{column}
+    \end{columns}
 \end{frame}
 
+% SCRIPT: Ler o Objetivo Geral com clareza.
+% Os objetivos específicos são o roteiro técnico que será detalhado a seguir.
+% Destacar que o foco é bancada, servindo de base para validação no veículo.
 \begin{frame}{Objetivos}
-    \begin{block}{Objetivo Geral}
-        O que você pretende alcançar com este trabalho?
-    \end{block}
-    \vspace{0.5cm}
-    \textbf{Objetivos Específicos:}
-    \begin{enumerate}
-        \item Meta específica 1.
-        \item Meta específica 2.
-        \item Meta específica 3.
-    \end{enumerate}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{block}{Objetivo Geral}
+                Desenvolver e avaliar, em bancada, uma ponte CAN sem fio para aquisição de dados em Fórmula SAE.
+            \end{block}
+            \textbf{Objetivos Específicos:}
+            \scriptsize
+            \begin{itemize}
+                \item Caracterizar os requisitos de uma ponte sem fio compatível com o sistema de aquisição existente;
+                \item Implementar o WCAN como camada de comunicação sobre ESP-NOW;
+                \item Desenvolver e comparar variantes de transporte adequadas;
+                \item Avaliar, em bancada, o comportamento do sistema (sensores, filtros, frequências);
+                \item Delimitar as condições de uso e pontos para validação no veículo.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=0.8\linewidth]{images/wcan.png}
+                \caption{Conceito da Solução WCAN}
+            \end{figure}
+        \end{column}
+    \end{columns}
 \end{frame}
