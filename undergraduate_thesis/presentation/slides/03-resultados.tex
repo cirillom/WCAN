@@ -1,17 +1,42 @@
 \section{Resultados}
 
-\begin{frame}{Resultados Obtidos}
-    \begin{itemize}
-        \item Apresente dados quantitativos ou qualitativos.
-        \item Use tabelas ou gráficos para facilitar a visualização.
-        \item Destaque se os objetivos foram atingidos.
-    \end{itemize}
+% SCRIPT: Apresentar a dimensão da campanha experimental (679 execuções úteis).
+% Destacar o principal achado: o impacto do Batching e do Multicast.
+\begin{frame}{Campanha Experimental e Efeito do \textit{Batching}}
+    \textbf{Cenário de Teste:} 679 execuções úteis automatizadas (10 Hz a 1000 Hz).
+    
+    \vspace{0.4cm}
+    O eixo principal de análise é a combinação entre o \textbf{meio de transporte} e o \textbf{agrupamento temporal} das amostras.
+
+    \vspace{0.4cm}
+    \begin{table}[]
+        \centering
+        \renewcommand{\arraystretch}{1.5}
+        \begin{tabular}{l | c | c}
+            \hline
+            \textbf{Condição (\texttt{linger\_ms})} & \textbf{Variante \textit{Multicast}} & \textbf{Variante \textit{Broadcast}} \\
+            \hline
+            \textbf{Com Agrupamento ($>0$)} & \textbf{100,0\%} (249/249) & 66,4\% (166/250) \\
+            \textbf{Sem Agrupamento ($=0$)} & 22,2\% (20/90) & 20,0\% (18/90) \\
+            \hline
+        \end{tabular}
+    \end{table}
 \end{frame}
 
-\begin{frame}{Discussão}
+% SCRIPT: Focar no trade-off de engenharia de software (buffer/latência vs saturação do rádio).
+% O caso crítico "multiple" mostra que um nó real publica vários IDs, onde o Multicast brilha.
+\begin{frame}{Desempenho sob Múltiplos Fluxos e Discussão}
+    \textbf{Cenário Realista (\texttt{multiple}):} 3 identificadores CAN por sensor.
     \begin{itemize}
-        \item Interpretação dos resultados.
-        \item Comparação com trabalhos relacionados.
-        \item Desafios encontrados durante a execução.
+        \item \textit{Multicast} (com lotes) aprovou \textbf{100\%} (90/90).
+        \item \textit{Broadcast} aprovou apenas 37,8\% (34/90).
+    \end{itemize}
+
+    \vspace{0.6cm}
+    \textbf{\large O \textit{Trade-off} de Software}
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{Sem Lotes (\texttt{real\_time}):} A taxa de pacote iguala a taxa de amostra. A pressão migra para o \textit{driver} Wi-Fi, gerando erros de contenção no rádio (\texttt{ESP\_ERR\_ESPNOW\_INTERNAL}).
+        \item \textbf{Com Lotes (\texttt{baseline/multiple}):} Adiciona-se uma leve latência proposital na origem. Isso amortece o custo fixo do rádio, garantindo a entrega do sinal mesmo a 1000 Hz.
     \end{itemize}
 \end{frame}
