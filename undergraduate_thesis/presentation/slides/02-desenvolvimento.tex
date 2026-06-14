@@ -1,30 +1,71 @@
 \section{Desenvolvimento}
 
-\subsection{Metodologia}
-\begin{frame}{Metodologia}
+% SCRIPT: Explicar por que não Wi-Fi ou Bluetooth. O foco é ausência de handshake e acesso MAC.
+\begin{frame}{Escolha da Plataforma: ESP32 e ESP-NOW}
     \begin{itemize}
-        \item \textbf{Tipo de Pesquisa:} Exploratória, Experimental, etc.
-        \item \textbf{Materiais:} Hardware, Softwares, Bases de dados.
-        \item \textbf{Etapas:}
-            \begin{enumerate}
-                \item Levantamento Bibliográfico.
-                \item Implementação/Arquitetura.
-                \item Testes e Validação.
-            \end{enumerate}
+        \item \textbf{Microcontrolador (ESP32):} Rádio integrado, baixo custo (R\$40--70), desenvolvimento em C/C++ (FreeRTOS) e footprint reduzido.
+        \item \textbf{Por que não Wi-Fi ou Bluetooth (BLE)?}
+        \begin{itemize}
+            \item BLE exige descoberta e estado de conexão prévia.
+            \item Wi-Fi convencional depende de associação a rede e roteamento IP.
+        \end{itemize}
+        \item \textbf{Protocolo ESP-NOW:} 
+        \begin{itemize}
+            \item Acesso direto à camada MAC (comunicação ponto a ponto sem IP).
+            \item Início imediato de transmissão (sem \textit{handshake} bloqueante).
+            \item Baixo overhead e adequação para \textit{soft real-time}.
+        \end{itemize}
     \end{itemize}
 \end{frame}
 
-\subsection{Arquitetura / Proposta}
-\begin{frame}{Arquitetura do Sistema}
-    % Espaço para imagem da arquitetura
-    % \begin{figure}
-    %     \centering
-    %     \includegraphics[width=0.8\linewidth]{images/sua_imagem.png}
-    %     \caption{Diagrama de blocos da solução proposta}
-    % \end{figure}
+% SCRIPT: O núcleo do software. Mostrar que as interrupções de rádio não fazem o trabalho pesado.
+\begin{frame}{Arquitetura de Software: Núcleo \texttt{TransceiverBase}}
+    \begin{block}{Abordagem FreeRTOS}
+        Separação do fluxo crítico em tarefas isoladas e uso de \textit{callbacks} curtos, deslocando o trabalho pesado para \textit{tasks} de menor acoplamento temporal.
+    \end{block}
     \begin{itemize}
-        \item Componente A.
-        \item Componente B.
-        \item Fluxo de dados.
+        \item \textbf{Comunicação Inter-tarefas:} Uso de filas (\texttt{Queue}) do FreeRTOS.
+        \item \textbf{Anéis de Memória (\texttt{RingBuffer}):} Absorção de picos (\textit{bursts}) de mensagens na transmissão e recepção, organizados por ID CAN.
+        \item \textbf{Deduplicação (RX):} Filtro baseado em MAC de origem, ID CAN e \texttt{sequence\_id} para ignorar retransmissões redundantes do rádio.
+    \end{itemize}
+\end{frame}
+
+% SCRIPT: O coração do desempenho. Explicar como a janela de agregação diminui a contenção do meio.
+% Batching via linger_ms: Múltiplas amostras agrupadas em um único payload ESP-NOW.
+% Controlado por um temporizador de disparo único (esp_timer), que amortiza o custo fixo de acesso ao rádio.
+\begin{frame}{Caminho de Transmissão: Agrupamento Temporal}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.98\linewidth]{images/tx_path.png}
+    \end{figure}
+\end{frame}
+
+% SCRIPT: Mostrar como o RX separa pacote de controle e pacote de dados.
+% Fluxo de Entrada: Callback do rádio apenas valida MAC e ID CAN.
+% Filtragem: Descarta IDs não presentes na allowlist do receptor.
+% Tarefa RX desempacota e roteia dados ou controle separadamente.
+\begin{frame}{Caminho de Recepção e Filtragem}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.98\linewidth]{images/rx_path.png}
+    \end{figure}
+\end{frame}
+
+% SCRIPT: Contrapor a semântica "segura e lenta" do broadcast vs a "rápida e MAC-level" do multicast.
+\begin{frame}{Variantes de Transporte}
+    \vspace{0.2cm}
+    \textbf{\large 1. Variante \textit{Broadcast} (Primeiro ACK)}
+    \begin{itemize}
+        \item Confirmação explícita no nível da \textbf{aplicação} (via mensagem de controle).
+        \item Tarefa dedicada (\textit{retry\_task}) gerencia \textit{timeouts} e retransmissões.
+        \item Semântica segura, porém gera maior pressão sobre as filas em alta carga.
+    \end{itemize}
+    
+    \vspace{0.6cm}
+    \textbf{\large 2. Variante \textit{Multicast} (Híbrido)}
+    \begin{itemize}
+        \item Receptores anunciam interesse por IDs CAN específicos ("assinam").
+        \item Confirmação de entrega baseada no nível \textbf{MAC} do IEEE 802.11 (via \textit{callback}).
+        \item Menor latência no caminho crítico: dispensa o ACK de aplicação lote a lote.
     \end{itemize}
 \end{frame}
