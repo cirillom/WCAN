@@ -1,17 +1,27 @@
 \section{Conclusão}
 
-\begin{frame}{Conclusão}
+% SCRIPT: Resumir a conclusão central. O projeto provou ser uma alternativa viável.
+% Destacar que as decisões de software garantiram a estabilidade sob alta carga.
+% Frisamos a delimitação: é ponte de aquisição, não para controle crítico.
+\begin{frame}{Conclusões do Trabalho}
     \begin{itemize}
-        \item Resumo das principais contribuições.
-        \item O trabalho atendeu às expectativas iniciais?
-        \item \textbf{Limitações:} O que não foi possível realizar.
+        \item \textbf{Viabilidade em Bancada:} O WCAN demonstrou ser uma alternativa viável para aquisição de dados em veículos de Fórmula SAE.
+        \item \textbf{Arquitetura Determinante:} A combinação de \textit{Multicast} com agrupamento temporal (\textit{Batching}) em FreeRTOS foi o fator essencial para o sucesso sob alta carga (1000 Hz).
+        \item \textbf{Delimitação Operacional:} A solução preserva a organização lógica do CAN, mas \textbf{não} substitui enlaces físicos para controle crítico. Serve especificamente à instrumentação auxiliar.
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Trabalhos Futuros}
+% SCRIPT: Apontar as próximas etapas.
+% Testes no carro são fundamentais. A integração contínua com a rede CAN e melhorias internas de software (prioridades, heap).
+\begin{frame}{Limitações e Trabalhos Futuros}
     \begin{itemize}
-        \item Próximos passos para evolução do projeto.
-        \item Novas funcionalidades ou melhorias.
-        \item Sugestões para outros pesquisadores.
+        \item \textbf{Validação no Veículo:} Testes em pista para avaliar vibração, interferência eletromagnética e operação prolongada.
+        \item \textbf{Integração Final:} Uso do TWAI em configuração de produção com reinjeção contínua de mensagens no barramento do veículo.
+        \item \textbf{Otimizações de \textit{Firmware}:} 
+        \begin{itemize}
+            \item Redução de alocações dinâmicas de memória.
+            \item Revisão do uso da pilha e \textit{heap} das \textit{tasks} (otimização de RTOS).
+        \end{itemize}
+        \item \textbf{Comunicação Bidirecional:} Validar redes onde múltiplos nós alternam papéis de produção e consumo de dados.
     \end{itemize}
 \end{frame}
