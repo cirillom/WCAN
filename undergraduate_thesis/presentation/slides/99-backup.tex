@@ -1,18 +1,39 @@
 \appendix
-\section*{Backup Slides}
+\section*{Apêndice / Slides de Backup}
 
-\begin{frame}{Lógica de Colisão ESP-NOW}
-    % Este é um slide de backup. Ele não conta no denominador da numeração (ex: 15/15).
+% SCRIPT: Se a banca questionar como a campanha de 684 testes foi executada.
+\begin{frame}{Backup: Automação da Campanha de Testes}
     \begin{itemize}
-        \item Detalhes técnicos que você removeu da apresentação principal para ganhar tempo.
-        \item Use este espaço para responder perguntas difíceis da banca.
+        \item \textbf{Orquestração via Python:} Uso de um \textit{runner} automatizado no \textit{host} (Ubuntu) para enviar comandos via UART.
+        \item \textbf{Configuração YAML:} Suítes, topologias, transportes e frequências definidas em arquivos descritivos.
+        \item \textbf{Sincronização:} Protocolo \textit{handshake} (WAIT $\rightarrow$ CONFIG $\rightarrow$ ACK $\rightarrow$ START) garantindo que as 5 placas iniciassem os ensaios simultaneamente.
+        \item \textbf{Análise:} \textit{Scripts} dedicados processam as saídas seriais, validando a reconstrução dos \textit{ranges} (contadores) recebidos versus transmitidos.
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Métricas de Latência Detalhadas}
+% SCRIPT: Se a banca quiser aprofundar no motivo da queda do Broadcast.
+\begin{frame}{Backup: Falhas e Limitações do \textit{Broadcast}}
     \begin{itemize}
-        \item Tabelas complexas.
-        \item Gráficos de dispersão.
-        \item Análise estatística rigorosa.
+        \item \textbf{Análise do Caso 4S-1R (1000 Hz, Múltiplos Fluxos):}
+        \begin{itemize}
+            \item A taxa de entrega despencou para \textbf{49,35\%}.
+            \item Registradas 180.783 perdas internas e longas esperas em fila (pico de \textbf{3,83 s}).
+        \end{itemize}
+        \item \textbf{Causa Raiz:} O \textit{Broadcast} utiliza a "Semântica de Primeiro ACK" na camada de aplicação. A tarefa de \textit{retry} bloqueia aguardando confirmação.
+        \item \textbf{Consequência:} Em alta carga e \textit{fan-out}, o tempo de espera do ACK e as retransmissões esgotam as filas, transformando perdas isoladas de rádio em falhas crônicas de transporte.
+    \end{itemize}
+\end{frame}
+
+% SCRIPT: Detalhamento do RTOS caso haja banca estritamente de computação.
+\begin{frame}{Backup: \textit{FreeRTOS} e Uso de Memória}
+    \begin{itemize}
+        \item \textbf{Isolamento de Tarefas:}
+        \begin{itemize}
+            \item \texttt{send\_processing\_task}: Apenas serializa e despacha para o \textit{driver} WiFi.
+            \item \texttt{recv\_processing\_task}: Dedicada à decodificação e roteamento.
+            \item \texttt{retry\_task} (só \textit{Broadcast}): Gerencia bloqueios de espera isoladamente.
+        \end{itemize}
+        \item \textbf{Otimização de Interrupções (ISR):} \textit{Callbacks} do ESP-NOW são extremamente enxutos, apenas empurrando dados para as \textit{Queues} ou \textit{RingBuffers}.
+        \item \textbf{Desafio Encontrado:} O \textit{Multicast} em \texttt{real\_time} (sem \textit{batching}) gerou sucessivos erros \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}, provando que o gargalo migra da aplicação para a interface MAC/Rádio.
     \end{itemize}
 \end{frame}
