@@ -69,3 +69,14 @@
         \item Menor latência no caminho crítico: dispensa o ACK de aplicação lote a lote.
     \end{itemize}
 \end{frame}
+
+% SCRIPT: Explicar como a bancada foi montada para gerar dados confiáveis.
+% Mencionar que a automação foi essencial para executar e analisar quase 700 testes.
+\begin{frame}{Automação da Campanha de Testes}
+    \begin{itemize}
+        \item \textbf{Orquestração via Python:} Uso de um \textit{runner} automatizado no computador (\textit{host}) para enviar comandos às placas via UART.
+        \item \textbf{Configuração YAML:} Suítes, topologias (até 5 placas simultâneas), transportes e frequências definidas em arquivos estruturados.
+        \item \textbf{Sincronização Segura:} Protocolo \textit{handshake} (WAIT $\rightarrow$ CONFIG $\rightarrow$ ACK $\rightarrow$ START) garantindo que os nós iniciassem os ensaios rigorosamente ao mesmo tempo.
+        \item \textbf{Análise Final:} \textit{Scripts} dedicados processaram as saídas seriais, reconstruindo os \textit{ranges} (contadores) recebidos versus os gerados.
+    \end{itemize}
+\end{frame}
