@@ -22,22 +22,25 @@
     \vspace{0.2cm}
     \begin{table}[]
         \centering
-        \footnotesize
+        \small
         \renewcommand{\arraystretch}{1.4}
-        \begin{tabular}{p{2.6cm} | c | c | p{4.6cm}}
+        \begin{tabular}{l | c | c}
             \hline
-            \textbf{Suíte} & \textbf{\textit{Multicast}} & \textbf{\textit{Broadcast}} & \textbf{Comportamento} \\
+            \textbf{Suíte} & \textbf{\textit{Multicast}} & \textbf{\textit{Broadcast}} \\
             \hline
-            \textbf{\texttt{baseline}}\newline(Com Lotes) & \textbf{90 / 90} (100\%) & 70 / 88 (79\%) & Amortiza o acesso ao rádio. Suporta bem até 1000 Hz. \\
+            \textbf{\texttt{baseline}} (Com Lotes) & \textbf{90 / 90} (100\%) & 70 / 88 (79\%) \\
             \hline
-            \textbf{\texttt{real\_time}}\newline(Sem Lotes) & 20 / 90 (22\%) & 18 / 90 (20\%) & Falha a partir de 200 Hz. Satura filas e \textit{driver} (\texttt{ESP\_ERR\_ESPNOW\_INTERNAL}). \\
+            \textbf{\texttt{real\_time}} (Sem Lotes) & 20 / 90 (22\%) & 18 / 90 (20\%) \\
             \hline
         \end{tabular}
     \end{table}
 
     \vspace{0.4cm}
-    \textbf{Conclusão do Eixo 1:}
-    Para sustentar alta frequência, a formação de lotes não é opcional. Enviar "amostra a amostra" colapsa a interface do rádio independente da variante de transporte.
+    \textbf{Comportamento Observado:}
+    \begin{itemize}
+        \item \textbf{Com Lotes:} Agrupar amostras no pacote amortece o custo fixo de acesso ao rádio, suportando envios de até 1000 Hz.
+        \item \textbf{Sem Lotes:} A taxa de envio satura as filas internas e o \textit{driver} Wi-Fi (falhando com \texttt{ESP\_ERR\_ESPNOW\_INTERNAL} a partir de 200 Hz).
+    \end{itemize}
 \end{frame}
 
 % SCRIPT: Focar no Eixo 2. Mostrar a tabela da suíte multiple.
