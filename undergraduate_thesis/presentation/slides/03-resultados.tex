@@ -13,28 +13,31 @@
     \end{itemize}
 \end{frame}
 
-% SCRIPT: Focar no Eixo 1. Mostrar a tabela do efeito do agrupamento.
+% SCRIPT: Focar no Eixo 1. Mostrar a comparação direta baseline vs real_time.
 % Explicar por que sem lotes o desempenho cai abruptamente: a taxa de pacote iguala a taxa de amostra, saturando o driver Wi-Fi.
 \begin{frame}{Eixo 1: O Efeito do Agrupamento Temporal (\textit{Batching})}
     
+    \textbf{Comparação Direta:} Cenários com 1 ID CAN por sensor (10 a 1000 Hz).
+    
+    \vspace{0.2cm}
     \begin{table}[]
         \centering
-        \small
-        \renewcommand{\arraystretch}{1.3}
-        \begin{tabular}{l | c | p{5.5cm}}
+        \footnotesize
+        \renewcommand{\arraystretch}{1.4}
+        \begin{tabular}{p{2.6cm} | c | c | p{4.6cm}}
             \hline
-            \textbf{Configuração} & \textbf{Aprovadas} & \textbf{Interpretação} \\
+            \textbf{Suíte} & \textbf{\textit{Multicast}} & \textbf{\textit{Broadcast}} & \textbf{Comportamento} \\
             \hline
-            \textbf{Com Lotes} (\texttt{linger\_ms = 100}) & \textbf{415 / 499} (83\%) & O pacote agrega amostras, amortizando o custo de rádio, \textit{callback} e confirmação. \\
+            \textbf{\texttt{baseline}}\newline(Com Lotes) & \textbf{90 / 90} (100\%) & 70 / 88 (79\%) & Amortiza o acesso ao rádio. Suporta bem até 1000 Hz. \\
             \hline
-            \textbf{Sem Lotes} (\texttt{linger\_ms = 0}) & \textbf{38 / 180} (21\%) & Envio amostra a amostra satura filas e \textit{driver} ESP-NOW (\texttt{ESP\_ERR\_ESPNOW\_INTERNAL}). \\
+            \textbf{\texttt{real\_time}}\newline(Sem Lotes) & 20 / 90 (22\%) & 18 / 90 (20\%) & Falha a partir de 200 Hz. Satura filas e \textit{driver} (\texttt{ESP\_ERR\_ESPNOW\_INTERNAL}). \\
             \hline
         \end{tabular}
     \end{table}
 
     \vspace{0.4cm}
     \textbf{Conclusão do Eixo 1:}
-    Para sustentar alta frequência (até 1000 Hz), a formação de lotes não é opcional; ela é o mecanismo vital que impede a saturação do caminho crítico.
+    Para sustentar alta frequência, a formação de lotes não é opcional. Enviar "amostra a amostra" colapsa a interface do rádio independente da variante de transporte.
 \end{frame}
 
 % SCRIPT: Focar no Eixo 2. Mostrar a tabela da suíte multiple.
