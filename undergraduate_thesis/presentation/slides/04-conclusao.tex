@@ -1,27 +1,28 @@
-\section{Conclusão}
+\section{Conclusão e Trabalhos Futuros}
 
 % SCRIPT: Resumir a conclusão central. O projeto provou ser uma alternativa viável.
 % Destacar que as decisões de software garantiram a estabilidade sob alta carga.
 % Frisamos a delimitação: é ponte de aquisição, não para controle crítico.
-\begin{frame}{Conclusões do Trabalho}
+\begin{frame}{Síntese do Trabalho}
     \begin{itemize}
-        \item \textbf{Viabilidade em Bancada:} O WCAN demonstrou ser uma alternativa viável para aquisição de dados em veículos de Fórmula SAE.
-        \item \textbf{Arquitetura Determinante:} A combinação de \textit{Multicast} com agrupamento temporal (\textit{Batching}) em FreeRTOS foi o fator essencial para o sucesso sob alta carga (1000 Hz).
-        \item \textbf{Delimitação Operacional:} A solução preserva a organização lógica do CAN, mas \textbf{não} substitui enlaces físicos para controle crítico. Serve especificamente à instrumentação auxiliar.
+        \item \textbf{Objetivo Cumprido:} O WCAN é uma ponte de aquisição viável em bancada, eliminando chicotes longos e mantendo a transparência lógica do barramento CAN.
+        \item \textbf{A Recomendação Final:} A arquitetura mais promissora para o veículo é o \textbf{\textit{Multicast} aliado ao agrupamento temporal (\textit{batching})}.
+        \item \textbf{Delimitação Operacional:} A solução preserva a organização do protocolo, mas \textbf{não substitui} enlaces físicos para as funções de controle crítico do protótipo.
     \end{itemize}
 \end{frame}
 
 % SCRIPT: Apontar as próximas etapas.
-% Testes no carro são fundamentais. A integração contínua com a rede CAN e melhorias internas de software (prioridades, heap).
-\begin{frame}{Limitações e Trabalhos Futuros}
+% Responder à pergunta clássica: "Testou no carro?". Não, porque a base teórica e de protocolo (saturação de filas, etc) precisava ser garantida antes de introduzir as variáveis físicas (EMI, vibração).
+\begin{frame}{Limitações e Próximos Passos}
+    \begin{alertblock}{O Sistema foi testado no carro?}
+        \textbf{Não.} O escopo do TCC foi provar a solidez do protocolo, das filas no RTOS e do transporte em ESP-NOW. Levar ao veículo antes de mapear a saturação de \textit{software} (em 1000 Hz) mascararia as falhas com problemas de vibração ou interferência eletromagnética (EMI).
+    \end{alertblock}
+
+    \vspace{0.4cm}
+    \textbf{Trabalhos Futuros:}
     \begin{itemize}
-        \item \textbf{Validação no Veículo:} Testes em pista para avaliar vibração, interferência eletromagnética e operação prolongada.
-        \item \textbf{Integração Final:} Uso do TWAI em configuração de produção com reinjeção contínua de mensagens no barramento do veículo.
-        \item \textbf{Otimizações de \textit{Firmware}:} 
-        \begin{itemize}
-            \item Redução de alocações dinâmicas de memória.
-            \item Revisão do uso da pilha e \textit{heap} das \textit{tasks} (otimização de RTOS).
-        \end{itemize}
-        \item \textbf{Comunicação Bidirecional:} Validar redes onde múltiplos nós alternam papéis de produção e consumo de dados.
+        \item \textbf{Validação Física:} Instalação no veículo para ensaios de autonomia, blindagem e fixação.
+        \item \textbf{Integração Automotiva:} Uso da rede \textit{TWAI} para reinjeção e consumo contínuo de mensagens no barramento elétrico do carro.
+        \item \textbf{Comunicação Bidirecional:} Expandir testes para nós que produzem e consomem dados simultaneamente no WCAN.
     \end{itemize}
 \end{frame}

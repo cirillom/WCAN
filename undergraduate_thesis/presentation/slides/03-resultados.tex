@@ -1,42 +1,71 @@
-\section{Resultados}
+\section{Resultados e Discussão}
 
 % SCRIPT: Apresentar a dimensão da campanha experimental (679 execuções úteis).
-% Destacar o principal achado: o impacto do Batching e do Multicast.
-\begin{frame}{Campanha Experimental e Efeito do \textit{Batching}}
-    \textbf{Cenário de Teste:} 679 execuções úteis automatizadas (10 Hz a 1000 Hz).
-    
-    \vspace{0.4cm}
-    O eixo principal de análise é a combinação entre o \textbf{meio de transporte} e o \textbf{agrupamento temporal} das amostras.
+% Introduzir os dois eixos de análise: Meio de Transporte (Broadcast vs Multicast) e Agrupamento Temporal (Batching vs Real-time).
+\begin{frame}{A Campanha Experimental}
+    \begin{itemize}
+        \item \textbf{Base de Dados:} 679 execuções úteis e reprodutíveis (10 Hz a 1000 Hz).
+        \item \textbf{Eixos de Análise:} O desempenho do protocolo foi avaliado sob duas óticas principais:
+        \begin{enumerate}
+            \item \textbf{Eixo 1 (Mecanismo):} O impacto do Agrupamento Temporal (\textit{Batching}).
+            \item \textbf{Eixo 2 (Transporte):} O \textit{Trade-off} entre \textit{Broadcast} e \textit{Multicast} sob alta carga.
+        \end{enumerate}
+    \end{itemize}
+\end{frame}
 
-    \vspace{0.4cm}
+% SCRIPT: Focar no Eixo 1. Mostrar a tabela do efeito do agrupamento.
+% Explicar por que sem lotes o desempenho cai abruptamente: a taxa de pacote iguala a taxa de amostra, saturando o driver Wi-Fi.
+\begin{frame}{Eixo 1: O Efeito do Agrupamento Temporal (\textit{Batching})}
+    
     \begin{table}[]
         \centering
-        \renewcommand{\arraystretch}{1.5}
-        \begin{tabular}{l | c | c}
+        \small
+        \renewcommand{\arraystretch}{1.3}
+        \begin{tabular}{l | c | p{5.5cm}}
             \hline
-            \textbf{Condição (\texttt{linger\_ms})} & \textbf{Variante \textit{Multicast}} & \textbf{Variante \textit{Broadcast}} \\
+            \textbf{Configuração} & \textbf{Aprovadas} & \textbf{Interpretação} \\
             \hline
-            \textbf{Com Agrupamento ($>0$)} & \textbf{100,0\%} (249/249) & 66,4\% (166/250) \\
-            \textbf{Sem Agrupamento ($=0$)} & 22,2\% (20/90) & 20,0\% (18/90) \\
+            \textbf{Com Lotes} (\texttt{linger\_ms = 100}) & \textbf{415 / 499} (83\%) & O pacote agrega amostras, amortizando o custo de rádio, \textit{callback} e confirmação. \\
+            \hline
+            \textbf{Sem Lotes} (\texttt{linger\_ms = 0}) & \textbf{38 / 180} (21\%) & Envio amostra a amostra satura filas e \textit{driver} ESP-NOW (\texttt{ESP\_ERR\_ESPNOW\_INTERNAL}). \\
             \hline
         \end{tabular}
     \end{table}
+
+    \vspace{0.4cm}
+    \textbf{Conclusão do Eixo 1:}
+    Para sustentar alta frequência (até 1000 Hz), a formação de lotes não é opcional; ela é o mecanismo vital que impede a saturação do caminho crítico.
 \end{frame}
 
-% SCRIPT: Focar no trade-off de engenharia de software (buffer/latência vs saturação do rádio).
-% O caso crítico "multiple" mostra que um nó real publica vários IDs, onde o Multicast brilha.
-\begin{frame}{Desempenho sob Múltiplos Fluxos e Discussão}
-    \textbf{Cenário Realista (\texttt{multiple}):} 3 identificadores CAN por sensor.
-    \begin{itemize}
-        \item \textit{Multicast} (com lotes) aprovou \textbf{100\%} (90/90).
-        \item \textit{Broadcast} aprovou apenas 37,8\% (34/90).
-    \end{itemize}
-
-    \vspace{0.6cm}
-    \textbf{\large O \textit{Trade-off} de Software}
+% SCRIPT: Focar no Eixo 2. Mostrar a tabela da suíte multiple.
+% Explicar o que é a suíte multiple (3 IDs por sensor) e o trade-off de semântica.
+% Broadcast tem ACK seguro, mas engarrafa. Multicast tem ACK de MAC, mas flui.
+\begin{frame}{Eixo 2: O \textit{Trade-off} dos Transportes sob Carga}
+    \textbf{Cenário de Teste (\texttt{multiple}):} 3 identificadores CAN por sensor (simulando um nó real).
+    
     \vspace{0.2cm}
+    \begin{table}[]
+        \centering
+        \small
+        \renewcommand{\arraystretch}{1.3}
+        \begin{tabular}{l | c | c | c}
+            \hline
+            \textbf{Transporte} & \textbf{750--1000 Hz} & \textbf{Total da Suíte} & \textbf{Taxa de Entrega} \\
+            \hline
+            \textit{\textbf{Multicast}} & \textbf{36 / 36} & \textbf{90 / 90} & \textbf{100,0\%} \\
+            \hline
+            \textit{Broadcast} & 3 / 36 & 34 / 90 & 37,8\% \\
+            \hline
+        \end{tabular}
+    \end{table}
+
+    \vspace{0.4cm}
+    \textbf{O Gargalo do \textit{Broadcast}:} 
     \begin{itemize}
-        \item \textbf{Sem Lotes (\texttt{real\_time}):} A taxa de pacote iguala a taxa de amostra. A pressão migra para o \textit{driver} Wi-Fi, gerando erros de contenção no rádio (\texttt{ESP\_ERR\_ESPNOW\_INTERNAL}).
-        \item \textbf{Com Lotes (\texttt{baseline/multiple}):} Adiciona-se uma leve latência proposital na origem. Isso amortece o custo fixo do rádio, garantindo a entrega do sinal mesmo a 1000 Hz.
+        \item Aguardar o ACK da aplicação para \textbf{cada lote} e realizar retransmissões esgota o tempo de fila. Em 1000 Hz (4S-1R), a fila chegou a atrasos de \textbf{3,83 s}.
+    \end{itemize}
+    \textbf{A Vantagem do \textit{Multicast}:}
+    \begin{itemize}
+        \item Dispensa o ACK de aplicação lote a lote. A confirmação no nível MAC do enlace 802.11 reduz a coordenação e preserva a vazão.
     \end{itemize}
 \end{frame}
