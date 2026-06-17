@@ -1,20 +1,43 @@
 \section{Desenvolvimento}
 
-% SCRIPT: Explicar por que não Wi-Fi ou Bluetooth. O foco é ausência de handshake e acesso MAC.
-\begin{frame}{Escolha da Plataforma: ESP32 e ESP-NOW}
+% SCRIPT: Explicar por que não manter o padrão da equipe (STM32). 
+% Depois explicar por que não Wi-Fi ou Bluetooth e sim ESP-NOW.
+\begin{frame}{Escolha da Plataforma}
     \begin{itemize}
-        \item \textbf{Microcontrolador (ESP32):} Rádio integrado, baixo custo (R\$40--70), desenvolvimento em C/C++ (FreeRTOS) e footprint reduzido.
-        \item \textbf{Por que não Wi-Fi ou Bluetooth (BLE)?}
+        \item \textbf{O Padrão da Equipe (Família STM32):} 
         \begin{itemize}
-            \item BLE exige descoberta e estado de conexão prévia.
-            \item Wi-Fi convencional depende de associação a rede e roteamento IP.
+            \item Foi a primeira opção considerada, por ser o ecossistema já dominado pela equipe. 
+            \item \textbf{Descarte:} Linhas integradas (como STM32WB) suportam BLE/802.15.4, mas não Wi-Fi nativo. Usar rádio externo aumentaria o tamanho e a complexidade do módulo sensor.
         \end{itemize}
-        \item \textbf{Protocolo ESP-NOW:} 
+        
+        \item \textbf{A Escolha Final (ESP32):} Rádio integrado, baixo custo (R\$40--70), programação em C/C++ (FreeRTOS) e placa extremamente compacta (ex: Beetle ESP32-C3).
+        
+        \item \textbf{Protocolo de Transporte (Por que ESP-NOW?):} 
         \begin{itemize}
-            \item Acesso direto à camada MAC (comunicação ponto a ponto sem IP).
-            \item Início imediato de transmissão (sem \textit{handshake} bloqueante).
-            \item Baixo overhead e adequação para \textit{soft real-time}.
+            \item \textbf{vs BLE:} BLE exige estado de conexão e descoberta lenta.
+            \item \textbf{vs Wi-Fi:} Wi-Fi exige infraestrutura (IP/Roteador).
+            \item \textbf{ESP-NOW:} Acesso direto à camada MAC, início imediato sem \textit{handshake} e adequado para \textit{soft real-time}.
         \end{itemize}
+    \end{itemize}
+\end{frame}
+
+% SCRIPT: Apresentar as duas lógicas principais ANTES de mergulhar no código.
+% Contrapor a semântica "segura e lenta" do broadcast vs a "rápida e MAC-level" do multicast.
+\begin{frame}{Variantes de Transporte}
+    \vspace{0.2cm}
+    \textbf{\large 1. Variante \textit{Broadcast} (Primeiro ACK)}
+    \begin{itemize}
+        \item Confirmação explícita no nível da \textbf{aplicação} (via mensagem de controle).
+        \item Tarefa dedicada (\textit{retry\_task}) gerencia \textit{timeouts} e retransmissões.
+        \item Semântica segura, porém gera maior pressão sobre as filas em alta carga.
+    \end{itemize}
+    
+    \vspace{0.6cm}
+    \textbf{\large 2. Variante \textit{Multicast} (Híbrido)}
+    \begin{itemize}
+        \item Receptores anunciam interesse por IDs CAN específicos ("assinam").
+        \item Confirmação de entrega baseada no nível \textbf{MAC} do IEEE 802.11 (via \textit{callback}).
+        \item Menor latência no caminho crítico: dispensa o ACK de aplicação lote a lote.
     \end{itemize}
 \end{frame}
 
@@ -49,25 +72,6 @@
         \centering
         \includegraphics[width=0.98\linewidth]{images/rx_path.png}
     \end{figure}
-\end{frame}
-
-% SCRIPT: Contrapor a semântica "segura e lenta" do broadcast vs a "rápida e MAC-level" do multicast.
-\begin{frame}{Variantes de Transporte}
-    \vspace{0.2cm}
-    \textbf{\large 1. Variante \textit{Broadcast} (Primeiro ACK)}
-    \begin{itemize}
-        \item Confirmação explícita no nível da \textbf{aplicação} (via mensagem de controle).
-        \item Tarefa dedicada (\textit{retry\_task}) gerencia \textit{timeouts} e retransmissões.
-        \item Semântica segura, porém gera maior pressão sobre as filas em alta carga.
-    \end{itemize}
-    
-    \vspace{0.6cm}
-    \textbf{\large 2. Variante \textit{Multicast} (Híbrido)}
-    \begin{itemize}
-        \item Receptores anunciam interesse por IDs CAN específicos ("assinam").
-        \item Confirmação de entrega baseada no nível \textbf{MAC} do IEEE 802.11 (via \textit{callback}).
-        \item Menor latência no caminho crítico: dispensa o ACK de aplicação lote a lote.
-    \end{itemize}
 \end{frame}
 
 % SCRIPT: Explicar como a bancada foi montada para gerar dados confiáveis.
