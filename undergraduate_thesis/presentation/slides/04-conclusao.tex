@@ -12,16 +12,16 @@
 \end{frame}
 
 % SCRIPT: Apontar as próximas etapas.
-% Responder à pergunta clássica: "Testou no carro?". Não, porque a base teórica e de protocolo (saturação de filas, etc) precisava ser garantida antes de introduzir as variáveis físicas (EMI, vibração).
+% Responder à pergunta clássica: "Testou no carro?". Sim, um teste funcional básico foi feito para provar o conceito. Mas a "campanha de estresse" foi na bancada de propósito, para isolar gargalos de software de falhas mecânicas.
 \begin{frame}{Limitações e Próximos Passos}
-    \begin{alertblock}{O Sistema foi testado no carro?}
-        \textbf{Não.} O escopo do TCC foi provar a solidez do protocolo, das filas no RTOS e do transporte em ESP-NOW. Levar ao veículo antes de mapear a saturação de \textit{software} (em 1000 Hz) mascararia as falhas com problemas de vibração ou interferência eletromagnética (EMI).
+    \begin{alertblock}{Validação no Veículo vs. Bancada}
+        Um teste funcional básico (prova de conceito) foi realizado no veículo (Topologia 1S-1R, carga leve) para confirmar o envio. Contudo, a \textbf{campanha de estresse} foi isolada em bancada para não mascarar os limites de \textit{software} (em 1000 Hz) com variáveis físicas (Vibração, EMI).
     \end{alertblock}
 
     \vspace{0.4cm}
     \textbf{Trabalhos Futuros:}
     \begin{itemize}
-        \item \textbf{Validação Física:} Instalação no veículo para ensaios de autonomia, blindagem e fixação.
+        \item \textbf{Validação Física sob Estresse:} Ensaios em pista com múltiplos sensores para avaliar autonomia, blindagem e vibração em regime de competição.
         \item \textbf{Integração Automotiva:} Uso da rede \textit{TWAI} para reinjeção e consumo contínuo de mensagens no barramento elétrico do carro.
         \item \textbf{Comunicação Bidirecional:} Expandir testes para nós que produzem e consomem dados simultaneamente no WCAN.
     \end{itemize}
