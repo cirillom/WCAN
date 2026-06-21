@@ -1,47 +1,41 @@
 Diante das limitações identificadas, três abordagens foram consideradas para
-expandir a capacidade de instrumentação do veículo, comparadas na Tabela~\ref{tab:solucoes-consideradas}.
+expandir a capacidade de instrumentação do veículo: cabeamento dedicado, sistemas
+de aquisição independentes e uma ponte sem fio integrada ao fluxo CAN existente.
 A literatura sobre sensores sem fio em veículos destaca justamente a redução de
 cabeamento, massa e custo de instalação como motivações recorrentes, embora a
 confiabilidade do enlace passe a ser uma restrição central de projeto
 \cite{tavares2008_wsn_automobiles,rahman2017_intravehicular_wsn,hashemi2014_intracar_multihop_wsn}.
 
-\section{Cabeamento Dedicado}
+A primeira alternativa seria manter a arquitetura completamente cabeada, usando
+acopladores rotativos, chicotes dedicados ou extensões do chicote principal para
+alcançar novos pontos de medição. Essa solução preservaria a confiabilidade
+física do enlace e exigiria pouco desenvolvimento adicional de \emph{software},
+mas deslocaria o problema para a integração mecânica: mais massa, conectores,
+proteção, esforço de instalação e menor liberdade para sensores externos ao
+veículo ou mudanças rápidas de instrumentação.
 
-A primeira opção consiste em aceitar os custos inerentes à arquitetura cabeada e investir na infraestrutura necessária para cada ponto de medição: acopladores rotativos para as rodas, chicotes dedicados para a asa traseira e extensões do chicote principal para outros pontos de difícil acesso. Essa abordagem preserva a arquitetura existente sem exigir nenhum desenvolvimento de \emph{software} ou \emph{hardware} adicional. No entanto, essa solução combina custo financeiro elevado e restrições técnicas.
+A segunda alternativa seria usar módulos autônomos, com aquisição local e memória
+própria, recuperados após cada sessão de testes. Embora isso reduza chicotes
+longos até o registrador central, a solução rompe a integração com o fluxo de
+aquisição em tempo real e exige sincronização posterior dos dados. Além disso,
+cada módulo ainda precisa de bateria, condicionamento de sinal e proteção
+mecânica, de modo que a massa não desaparece; ela apenas passa a ficar
+concentrada no ponto instrumentado.
 
-Do ponto de vista financeiro, a instrumentação de partes móveis rotativas tenderia a exigir acopladores rotativos (\emph{slip rings}) especificados para rotação, vedação, ruído elétrico e montagem mecânica. Mesmo quando tecnicamente viáveis, esses acopladores acrescentam uma interface eletromecânica ao sistema e aumentam o esforço de integração em regiões próximas a água, poeira, vibração e partes móveis. Chicotes voltados ao ambiente veicular de competição também tendem a exigir conectores e condutores compatíveis com vibração, alívio de tração, proteção contra dano mecânico e, quando expostos, requisitos de isolamento ou vedação; esse tipo de preocupação aparece tanto em diretrizes automotivas atuais para conectores quanto em regras de competição que exigem fiação executada com padrões profissionais e proteção contra vibração e partes móveis \cite{blatt2020_aquisicao_formula_sae,sae_uscar12_2021}. Tecnicamente, embora a conexão física ofereça alta confiabilidade de sinal, o cabeamento físico e suas blindagens térmicas, blindagens eletromagnéticas e suportes mecânicos adicionam peso ao protótipo. Além disso, o direcionamento de fiação ao longo dos braços de suspensão expõe o chicote a esforços dinâmicos constantes. Há também a complexidade de projeto no roteamento tridimensional para evitar pontos de tração nos cabos durante o esterçamento, e a vulnerabilidade à fadiga mecânica dos condutores após ciclos contínuos de movimentação e vibração.
-
-Além desses fatores, o cabeamento dedicado não viabiliza a aquisição de dados no terceiro cenário levantado (sensores externos ao veículo) e impõe limites ao reposicionamento ou expansão futura de sensores.
-
-\section{Sistemas de Aquisição Independentes}
-
-A segunda opção consiste em desenvolver módulos de aquisição autônomos, cada um com sua própria memória local para gravação dos dados. Esses módulos operariam de forma independente do sistema principal, sendo instalados nos pontos de interesse e recuperados após cada sessão de testes para extração dos dados. Para viabilizar a análise conjunta, seria necessário algum mecanismo de sincronização temporal entre os módulos e o sistema embarcado no carro.
-
-Embora essa abordagem elimine a fiação de longa distância até o registrador central, ela transfere o problema de massa e volume físico para os próprios módulos. Cada unidade autônoma requer um invólucro de proteção contra impactos, circuitos de condicionamento de sinal, memória de armazenamento e uma bateria dedicada. Sem um projeto mecânico final, a comparação de massa deve ser lida apenas como ordem de grandeza: a Tabela~\ref{tab:massa-modulo-autonomo} mostra que um módulo simples pode chegar à mesma faixa de massa de uma derivação cabeada curta quando se consideram bateria, caixa, conectores e alívio de tração. Portanto, a aquisição autônoma não garante, por si só, redução de massa no ponto instrumentado. Adicionalmente, a solução introduz a complexidade de sincronização \emph{offline} (propensa a desvios temporais), a impossibilidade de acompanhar os dados em tempo real durante os testes e o risco de perda total de registros caso ocorra falha de alimentação ou avaria física no módulo.
-
-\begin{table}[htbp]
-\centering
-\small
-\setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{1.12}
-\begin{tabular}{p{0.40\linewidth}|p{0.20\linewidth}|p{0.30\linewidth}}
-\hline
-Item comparado & Ordem de grandeza & Observação \\
-\hline
-Placa ESP32-C3 compacta & 4 g & Aferida pelo autor em bancada na placa usada no protótipo. \\
-\hline
-Bateria pequena, placa auxiliar, conectores e fixação & 20--60 g & Faixa dependente da célula, invólucro e proteção mecânica. \\
-\hline
-Derivação cabeada curta com 3--4 condutores, proteção e conectores & dezenas de gramas & Depende do comprimento, bitola, capa de proteção e conectores. \\
-\hline
-\end{tabular}
-\caption{Comparação aproximada de massa entre módulo autônomo e derivação cabeada curta.}
-\label{tab:massa-modulo-autonomo}
-\end{table}
-
-\section{Solução Sem Fio}
-
-A terceira opção, adotada neste projeto, é o desenvolvimento de uma ponte de comunicação sem fio entre os pontos de medição e o sistema de aquisição existente, conforme esquematizado na Figura~\ref{fig:wcan-semfio}. Nessa abordagem, um nó sensor captura os dados localmente e os transmite por rádio para um nó receptor conectado ao barramento CAN do veículo. O receptor injeta os dados na rede como se fossem provenientes de qualquer outro nó cabeado, tornando a comunicação sem fio transparente para o restante do sistema. Trabalhos de telemetria em Fórmula SAE mostram soluções semelhantes, integrando aquisição de dados e comunicação por rádio com a rede do veículo \cite{zanetti2013_formula_sae_wireless,visconti2019_formula_sae_telemetry,fernandes2022_formula_sae_wifi_can}.
+A alternativa adotada, portanto, é uma ponte de comunicação sem fio entre os
+pontos de medição e o sistema de aquisição existente, conforme esquematizado na
+Figura~\ref{fig:wcan-semfio}. Nessa abordagem, um nó sensor captura os dados
+localmente e os transmite por rádio para um nó receptor conectado ao barramento
+CAN do veículo. O receptor injeta os dados na rede como se fossem provenientes
+de qualquer outro nó cabeado, tornando a comunicação sem fio transparente para o
+restante do sistema. A escolha reduz a dependência de cabos longos e acopladores
+rotativos sem abandonar o fluxo de aquisição baseado em identificadores CAN;
+ela não elimina os desafios de bateria, encapsulamento, massa localizada e
+confiabilidade do enlace sem fio, mas concentra esses desafios em uma solução
+compatível com a arquitetura já usada pela equipe. Trabalhos de telemetria em
+Fórmula SAE mostram soluções semelhantes, integrando aquisição de dados e
+comunicação por rádio com a rede do veículo
+\cite{zanetti2013_formula_sae_wireless,visconti2019_formula_sae_telemetry,fernandes2022_formula_sae_wifi_can}.
 
 \begin{figure}[htbp]
 \centering
@@ -49,33 +43,3 @@ A terceira opção, adotada neste projeto, é o desenvolvimento de uma ponte de 
 \caption{Arquitetura da solução sem fio proposta (WCAN) com transmissão via rádio para receptor central.}
 \label{fig:wcan-semfio}
 \end{figure}
-
-Essa alternativa elimina a necessidade de roteamento de cabos de comunicação longos e acopladores rotativos, simplificando a instalação em componentes dinâmicos e externos ao carro. Contudo, assim como a aquisição independente, a ponte sem fio introduz peso localizado devido à necessidade de bateria, circuito de condicionamento, rádio e invólucro de proteção em cada nó sensor. Esse conjunto eletrônico deve ser tratado como uma troca de massa e volume: ele reduz chicotes longos, mas pode ficar na mesma ordem de grandeza de uma conexão cabeada local curta. Além disso, a comunicação sem fio adiciona o gerenciamento de recarga de baterias e o desafio técnico da confiabilidade do enlace, uma vez que a propagação de radiofrequência em ambientes veiculares está sujeita a atenuações e perda de pacotes, apresentando garantias de integridade inferiores às de uma conexão física metálica.
-
-As vantagens e desvantagens de cada uma das alternativas consideradas para expandir a instrumentação estão sintetizadas na Tabela~\ref{tab:solucoes-consideradas}.
-
-\begin{table}[htbp]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.22}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.20\textwidth}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X}
-\hline
-Solução & Vantagens & Desvantagens \\
-\hline
-Cabeamento dedicado &
-Preserva a confiabilidade física do CAN e exige pouco desenvolvimento adicional. &
-Adiciona fiação, conectores e proteção mecânica; pode exigir acopladores rotativos; não atende sensores externos. \\
-\hline
-Aquisição independente &
-Elimina chicotes longos e permite instalação em regiões de difícil acesso. &
-Adiciona bateria, circuitos e gabinete; exige sincronização \emph{offline}; não permite visualização em tempo real. \\
-\hline
-Ponte sem fio &
-Remove fiação longa, integra-se ao CAN existente e permite dados em tempo real. &
-Adiciona bateria, rádio e gabinete; exige protocolo próprio e tratamento de perda de pacotes. \\
-\hline
-\end{tabularx}
-\caption{Comparação das soluções consideradas para expandir a instrumentação do veículo.}
-\label{tab:solucoes-consideradas}
-\end{table}
