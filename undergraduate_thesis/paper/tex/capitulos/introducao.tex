@@ -57,11 +57,77 @@ sensores analógicos e digitais instalados no carro e transmite os dados pela re
 CAN; os registros são armazenados em cartão SD embarcado e depois processados em
 ferramentas de análise.
 
-Essa arquitetura cabeada é adequada para os pontos de medição já consolidados, mas
-limita a expansão para sensores em rodas, componentes móveis, superfícies
-aerodinâmicas e equipamentos externos ao veículo. Nesses casos, chicotes longos,
-conectores adicionais, rotas de instalação difíceis e proteção mecânica aumentam
-massa, volume, tempo de manutenção e pontos de falha.
+\section{Motivação}
+
+Embora o sistema de aquisição da equipe seja robusto e consolidado, sua arquitetura
+cabeada impõe restrições estruturais que limitam a capacidade de instrumentação
+do veículo. O problema não está nos pontos de medição já consolidados, mas na
+expansão da instrumentação para regiões em que o chicote passa a impor massa,
+complexidade de montagem, interferência mecânica ou dificuldade de integração
+com o fluxo de aquisição existente. Parte dessas limitações, envolvendo
+componentes rotativos e superfícies aerodinâmicas do veículo, é ilustrada na
+Figura~\ref{fig:can-cabeamento}. Essa tensão entre robustez de redes cabeadas e
+flexibilidade de sensores sem fio também é discutida em estudos sobre redes
+veiculares e intra-veiculares sem fio
+\cite{blatt2020_aquisicao_formula_sae,tavares2008_wsn_automobiles,rahman2017_intravehicular_wsn,hashemi2014_intracar_multihop_wsn}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{images/can}
+\caption{Dificuldades de roteamento e chicotes físicos para pontos de medição complexos no sistema cabeado atual. As linhas vermelhas indicam derivações de chicote dedicadas, as linhas azuis indicam trechos do chicote principal e os marcadores destacam pontos de instrumentação.}
+\label{fig:can-cabeamento}
+\end{figure}
+
+Uma das situações mais restritivas ocorre nas regiões móveis próximas às rodas,
+incluindo componentes rotativos e elementos ligados à transmissão, suspensão e
+direção. Em componentes com rotação relativa, como o semieixo, a conexão com o
+chicote elétrico do veículo é tecnicamente possível por meio de acopladores
+rotativos, porém a complexidade de instalação, o custo e a fragilidade desses
+componentes em ambiente de competição tornam a solução pouco atrativa. Isso
+dificulta a leitura de sensores como temperatura de cubo ou torção do semieixo,
+informações de alto valor para a dinâmica veicular. O semieixo transmite torque
+entre o diferencial e a roda e acompanha a rotação do conjunto, tornando a
+instrumentação com \emph{strain gauge} especialmente interessante para medir
+deformações torsionais e inferir carregamentos aplicados durante a aceleração e
+transientes de transmissão.
+
+Além da limitação física, há também uma limitação temporal: a equipe trabalha hoje
+com frequências fixas por identificador CAN, em geral na faixa de 200 Hz. Essa prática
+funciona bem para a maioria dos canais, mas, no caso específico do semieixo, a equipe
+pretende investigar se sinais associados à torção e a transientes de transmissão exigem
+margem de aquisição maior. O valor de 1000 Hz usado nos ensaios deste trabalho não é
+derivado de um modelo mecânico do semieixo; ele foi adotado como limite exploratório,
+cinco vezes acima da frequência usual da equipe, para avaliar a margem prática da
+camada WCAN. Pela relação de Nyquist
+\cite{oppenheim1999_discrete_time_signal_processing}, a taxa de amostragem precisa ser
+compatível com a maior frequência presente no sinal para evitar perda de informação,
+mas a definição da banda mecânica útil ainda depende de ensaios específicos do
+componente.
+
+Limitações semelhantes aparecem em regiões onde o cabeamento pode interferir no
+fenômeno a ser medido ou onde seu custo de instalação não se justifica pela
+frequência de uso. A asa traseira é um exemplo relevante: por ser um componente
+aerodinâmico, qualquer chicote exposto ao escoamento ou mal integrado à montagem
+pode se tornar uma perturbação adicional ou uma restrição de instalação. Além
+disso, testes de instrumentação na asa são pontuais e pouco frequentes, o que
+torna menos justificável o investimento em um chicote dedicado, tanto em termos
+de material quanto de mão de obra para montagem e desmontagem a cada sessão.
+
+A mesma dificuldade de integração aparece quando a medição extrapola os limites
+físicos do veículo. Sensores posicionados fora do carro, como um sensor de
+passagem para detecção automática de voltas, ou equipamentos de medição
+estacionários utilizados em testes controlados, não têm como se comunicar com o
+sistema de aquisição embarcado por meios cabeados. Essa limitação dificulta a
+integração de dados externos ao fluxo de aquisição, obrigando a equipe a
+recorrer a registros manuais ou sistemas completamente separados, sem
+sincronização temporal com os demais canais do carro.
+
+Essas limitações motivam uma ponte CAN sem fio: um enlace dedicado à aquisição de
+dados que reduza a dependência de cabeamento em pontos difíceis, mas preserve a
+organização lógica por identificador CAN usada pelo sistema atual. A proposta não
+busca substituir o barramento CAN físico do veículo, e sim estender o fluxo de
+aquisição para cenários nos quais o cabeamento deixa de ser a alternativa mais
+adequada.
 
 \section{Objetivos e Contribuições}
 
@@ -114,10 +180,6 @@ não substitui o CAN físico em funções de controle crítico do veículo. O WC
 tratado como uma ponte para aquisição de dados e instrumentação, não como
 substituto do enlace cabeado em funções que dependem de determinismo, robustez
 elétrica e segurança operacional.
-
-O Capítulo~\ref{chapter:problema} apresenta as limitações do sistema atual de
-aquisição, com foco em rodas, superfícies aerodinâmicas e sensores externos ao
-veículo.
 
 O Capítulo~\ref{chapter:solucoes-consideradas} compara cabeamento dedicado,
 módulos autônomos e ponte sem fio, justificando a escolha por uma solução
