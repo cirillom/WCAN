@@ -1,39 +1,32 @@
-Os ensaios foram planejados para avaliar a camada WCAN isoladamente, sem tornar o barramento CAN físico o fator dominante da análise. A integração com TWAI foi validada previamente em bancada, mas a campanha final concentrou-se no enlace ESP-NOW, nas filas internas, na filtragem de identificadores e nos mecanismos de confirmação adotados pelas variantes \emph{broadcast} e \emph{multicast}.
+Os ensaios foram planejados para avaliar a camada WCAN isoladamente, sem tornar
+o barramento CAN físico o fator dominante da análise. A integração com TWAI foi
+validada previamente em bancada, mas a campanha final concentrou-se no enlace
+ESP-NOW, nas filas internas, na filtragem de identificadores CAN e nos mecanismos
+de confirmação adotados pelas variantes \emph{broadcast} e \emph{multicast}. O
+objetivo metodológico foi produzir uma campanha reprodutível, com variação
+controlada de topologia, frequência, transporte e política de agrupamento
+temporal.
 
+A bancada experimental foi organizada em torno de um computador Ubuntu usado para
+orquestrar os ensaios, gravar os \emph{firmwares}, sincronizar as placas e coletar
+os \emph{logs} seriais. A campanha final utilizou cinco placas conectadas por
+USB: três ESP32, identificadas como A, B e C, e duas ESP32-C3, identificadas como
+D e E. As placas ESP32 podiam atuar como sensores ou receptores, enquanto as
+ESP32-C3 foram usadas apenas como sensores. Essa restrição foi adotada porque o
+receptor concentra recepção, filtragem, deduplicação e emissão de métricas, papel
+mais adequado às placas ESP32 usadas na bancada, que possuem dois núcleos. Cada
+ensaio teve duração nominal de 30 s, com 5 s de intervalo entre execuções e
+comunicação serial a 921600 bit/s.
 
-\section{Código de Teste e Instrumentação}
-
-Antes de descrever a bancada, é necessário separar o código da camada WCAN do código usado para executar a campanha experimental. Os testes não dependem de um aplicativo automotivo completo; eles usam uma estrutura de testes dedicada (\emph{harness}) em \texttt{wcan\_test}, responsável por configurar o papel de cada placa, iniciar a janela de medição, acionar o gerador sintético de amostras e imprimir as métricas que serão consumidas pelo analisador. Essa separação evita que a metodologia de teste fique espalhada pela aplicação principal e torna possível repetir a mesma matriz alterando apenas a configuração enviada pelo \emph{host}.
-
-A classe central dessa estrutura é \texttt{WcanTestSession}. Ela recebe um \texttt{TestConfig}, aguarda o comando \texttt{WCAN\_TEST\_START} via UART, reinicia os contadores da camada de estatísticas, inicia o \texttt{RampCanSensor} quando a placa atua como sensor, mantém o ensaio ativo pelo tempo configurado e, ao final, para o sensor, drena o transceptor, imprime as estatísticas e sinaliza \texttt{WCAN\_TEST\_END} para o computador de testes. Como a sessão opera sobre uma referência para \texttt{TransceiverBase}, o mesmo fluxo de teste é usado para as variantes \emph{broadcast} e \emph{multicast}; a diferença entre elas fica encapsulada na implementação do transceptor escolhida em tempo de compilação.
-
-O protocolo de \emph{boot} também faz parte dessa especialização. A classe \texttt{UartTestProtocol} aguarda a configuração enviada pelo \emph{runner}, valida os campos e só então libera a placa para participar do cenário. A função \texttt{main.cpp} permanece pequena: ela inicializa NVS e Wi-Fi, instancia o \texttt{Transceiver} de acordo com o papel recebido e entrega o controle para \texttt{WcanTestSession}. Desse modo, sensores, receptores e nós ociosos usam o mesmo fluxo de \emph{firmware}, mas recebem listas de identificadores CAN, filtros, frequência e \texttt{linger\_ms} específicos de cada execução.
-
-A medição propriamente dita fica concentrada na hierarquia \texttt{Stats}. A classe base define os pontos de instrumentação e, quando a \emph{build} é compilada com \texttt{MEASURE}, \texttt{make\_stats()} retorna a implementação \texttt{MeasuredStats}. Essa implementação registra eventos de recepção, \emph{airtime}, agrupamento temporal, despacho de lotes e falhas de envio do sensor. Para reduzir a pressão sobre a UART, os contadores recebidos e as falhas são compactados em intervalos, como \texttt{R(RANGE)} e \texttt{S(FAIL)}, em vez de imprimir uma linha para cada amostra individual. As estatísticas de lote e de memória são emitidas ao final da execução por meio de \texttt{WCAN\_BATCH} e \texttt{WCAN\_MEASURES}.
-
-Essa instrumentação não é neutra. Chamadas a \texttt{esp\_timer\_get\_time()}, seções críticas protegidas por mutex, atualização de contadores e impressão serial consomem CPU, memória e tempo de execução. Por esse motivo, a campanha final comparou \emph{broadcast} e \emph{multicast} sob a mesma condição de instrumentação, ambas com \texttt{MEASURE} habilitado, e os valores coletados devem ser lidos como resultados do sistema medido, não como o limite absoluto de uma \emph{build} sem coleta. A opção por comprimir intervalos e adiar a maior parte das impressões para o encerramento reduz a interferência da medição, mas não a elimina; essa interferência faz parte do custo experimental considerado na análise.
-
-\section{Ambiente Experimental}
-
-O ambiente experimental foi organizado em torno de um computador Ubuntu usado como ponto central de orquestração, gravação dos \emph{firmwares}, sincronização dos ensaios e coleta dos \emph{logs} seriais. A campanha final utilizou cinco placas conectadas por USB: três ESP32, identificadas como A, B e C, e duas ESP32-C3, identificadas como D e E. As placas ESP32 podiam atuar tanto como sensores quanto como receptores, conforme a topologia sorteada para cada ensaio. As placas ESP32-C3, por outro lado, foram usadas apenas como sensores, essa decisão foi tomada porque o ESP32 usado na bancada possui dois núcleos, enquanto o ESP32-C3 possui um único núcleo. Como o receptor concentra recepção, filtragem, deduplicação e emissão de métricas, o papel de receptor ficou apenas nas placas com maior margem de processamento. Essa restrição limita as topologias com receptores a, no máximo, três nós.
-
-Cada ensaio teve duração nominal de 30 s, com 5 s de intervalo entre execuções e comunicação serial a 921600 bit/s. A matriz foi organizada em suítes, isto é, conjuntos nomeados de cenários com a mesma intenção metodológica e parâmetros comuns, como número de identificadores CAN por sensor, \texttt{linger\_ms}, filtros e regra de frequência. O arquivo \texttt{tests.yaml} definiu duas execuções por combinação base, entendida como a escolha de transporte, suíte, topologia e eixo de frequência antes do índice de repetição. Nas suítes de frequência fixa, essas duas execuções funcionam como repetições do mesmo cenário; na suíte \texttt{mixed\_frequency}, a mesma combinação base representa o modo de frequências mistas, e as duas execuções associadas à topologia e ao transporte recebem atribuições diferentes de frequência por sensor. Com isso, o arquivo \texttt{run\_plan.json} consolidou a campanha final em 684 execuções. O plano de execução também registrou duas variantes de transporte, \texttt{BROADCAST} e \texttt{MULTICAST}, ambas executadas com instrumentação \texttt{MEASURE}. Como a bancada possuía dois alvos de chip, o \emph{runner} materializou quatro combinações de \emph{firmware}: ESP32 \emph{broadcast}, ESP32 \emph{multicast}, ESP32-C3 \emph{broadcast} e ESP32-C3 \emph{multicast}.
-
-O objetivo desse arranjo foi tornar a campanha reprodutível. A configuração das placas, a geração da matriz, o envio dos comandos de início, a coleta das saídas e a consolidação posterior ficaram sob controle dos scripts em \texttt{transmitter/testing}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing}.}, reduzindo a intervenção manual durante a execução.
-
-\section{Automação dos Testes}
-
-O arquivo \texttt{boards.yaml} descreve o inventário físico da bancada: porta serial, tipo de chip e identificador CAN inicial de cada placa. O arquivo \texttt{tests.yaml} define as suítes, frequências, duração, repetições, transportes, valor de \texttt{linger\_ms} e quantidade de identificadores CAN por sensor. Antes da execução, o \emph{runner} gera \texttt{run\_plan.json}; para cada ensaio, também é gerado um \texttt{scenario.json} com a topologia, os papéis atribuídos às placas, os filtros esperados e os parâmetros enviados por UART.
-
-No \emph{firmware}, \texttt{main.cpp} atua como camada de inicialização. A função \texttt{app\_main} aguarda a configuração de \emph{boot} via UART, inicializa NVS e Wi-Fi quando a placa participa do teste e instancia o \texttt{Transceiver} de acordo com o papel recebido. Em sensores, o transceptor é criado com a lista de identificadores CAN de transmissão e com o \texttt{linger\_ms} do cenário. Em receptores, o transceptor é criado com a lista de identificadores CAN aceitos quando a filtragem ativa está habilitada. Placas ociosas apenas aguardam o comando de início e encerram a execução, permitindo que a matriz use subconjuntos da bancada sem alterar o \emph{firmware}.
-
-A sincronização entre \emph{host} e placas é feita por um protocolo textual simples em UART. Ao iniciar, cada placa imprime \texttt{WCAN\_CFG\_WAIT v=1}; o \emph{runner} envia uma linha de configuração com papel, transporte, duração, frequência, identificador CAN inicial, quantidade de identificadores CAN, \texttt{linger\_ms} e filtros; o \emph{firmware} responde \texttt{WCAN\_CFG\_ACK} quando a configuração é aceita. Depois que todas as placas do cenário estão prontas, o \emph{host} envia \texttt{WCAN\_TEST\_START}. Durante o teste, sensores usam \texttt{RampCanSensor}, que gera um contador monotônico por \texttt{esp\_timer} periódico e chama \texttt{send\_data} para cada identificador CAN configurado. Ao final da janela, o \emph{firmware} drena o transceptor, imprime as métricas coletadas e encerra com \texttt{WCAN\_TEST\_END}; abortos são registrados como \texttt{WCAN\_TEST\_ABORT}.
-
-\section{Matriz de Ensaios}
-
-A matriz final considerou topologias com pelo menos um sensor e um receptor, respeitando o limite de cinco placas disponíveis e a restrição de que apenas as três ESP32 podem ser receptoras. Assim, o plano incluiu as topologias 1S-1R, 1S-2R, 1S-3R, 2S-1R, 2S-2R, 2S-3R, 3S-1R, 3S-2R e 4S-1R. Para as suítes com frequência fixa, foram avaliados 10, 100, 200, 750 e 1000 Hz. Na suíte de frequências mistas, cada sensor recebeu uma frequência distinta escolhida entre 100, 200, 750 e 1000 Hz.
-
-As cinco suítes executadas estão resumidas na Tabela~\ref{tab:suites-executadas}. As suítes \texttt{baseline}, \texttt{multiple} e \texttt{real\_time} geraram 180 execuções cada uma. A suíte \texttt{active\_filter}, que exige pelo menos dois sensores para produzir filtros parciais, gerou 120 execuções. A suíte \texttt{mixed\_frequency} gerou 24 execuções, pois substitui a varredura de frequência fixa por duas atribuições de frequências por topologia e transporte.
+A matriz final considerou topologias com pelo menos um sensor e um receptor,
+respeitando o limite de cinco placas disponíveis e a restrição de que apenas as
+três ESP32 podiam ser receptoras. Assim, o plano incluiu as topologias 1S-1R,
+1S-2R, 1S-3R, 2S-1R, 2S-2R, 2S-3R, 3S-1R, 3S-2R e 4S-1R. Para as suítes com
+frequência fixa, foram avaliados 10, 100, 200, 750 e 1000 Hz. Na suíte de
+frequências mistas, cada sensor recebeu uma frequência distinta escolhida entre
+100, 200, 750 e 1000 Hz. As cinco suítes executadas estão resumidas na
+Tabela~\ref{tab:suites-executadas}; em conjunto, elas consolidaram a campanha
+final em 684 execuções planejadas.
 
 \begin{table}[htbp]
 \centering
@@ -59,16 +52,25 @@ Suíte & Configuração & Topologias e frequências & Objetivo metodológico \\
 \label{tab:suites-executadas}
 \end{table}
 
-\section{Métricas Coletadas}
+A taxa de entrega foi calculada a partir dos contadores gerados pelos sensores e
+dos intervalos recebidos pelos receptores. Para cada sensor e identificador CAN,
+o analisador reconstruiu o conjunto de contadores transmitidos e o comparou com
+a união dos conjuntos recebidos pelos receptores esperados. O critério principal
+de entrega adotado na campanha foi, portanto, o recebimento por pelo menos um
+receptor esperado. A análise par a par entre um sensor e cada receptor individual
+foi preservada como informação diagnóstica, mas não como critério principal de
+aprovação. Na suíte \texttt{active\_filter}, apenas os receptores cuja
+\emph{allowlist} contém determinado identificador CAN entram no conjunto de
+receptores esperados para aquele fluxo.
 
-A taxa de entrega foi calculada a partir dos contadores gerados pelos sensores e dos intervalos recebidos pelos receptores. No lado sensor, a linha \texttt{WCAN\_SENSOR\_END} informa o último contador gerado e a frequência média observada. No lado receptor, as linhas \texttt{R(RANGE)} registram intervalos de contadores aceitos para cada identificador CAN. O script \texttt{analysis.py} reconstrói os conjuntos de contadores transmitidos e recebidos e compara, para cada sensor e identificador CAN, o conjunto gerado com a união dos conjuntos recebidos pelos receptores esperados.
-
-O critério principal de entrega adotado na campanha foi de recebimento por pelo menos um receptor esperado. Essa escolha é especialmente importante na variante \emph{broadcast}, cuja confirmação de transmissão segue a semântica de primeiro ACK da camada WCAN: quando ao menos um receptor interessado confirma o pacote, a entrega é considerada suficiente para aquele lote. Por isso, a análise par a par entre um sensor e cada receptor individual foi mantida como informação diagnóstica, mas não como critério principal de aprovação. Na suíte \texttt{active\_filter}, apenas os receptores cuja \emph{allowlist} contém determinado identificador CAN entram no conjunto de receptores esperados para aquele fluxo.
-
-Falhas observadas no caminho de transmissão também foram registradas. As linhas \texttt{P(FAIL)} indicam falhas de entrega de pacotes no mecanismo de transporte, com destaque para os casos em que o \emph{broadcast} esgota as tentativas de envio. As linhas \texttt{S(FAIL)} indicam falhas percebidas pelo gerador de sensor ao chamar \texttt{send\_data}. O analisador usa esses registros para diferenciar perda de amostras por falha de enfileiramento ou transmissão de perda observada apenas no lado receptor.
-
-O comportamento de agrupamento temporal foi caracterizado pelas linhas \texttt{WCAN\_BATCH}. Essas linhas registram, por identificador CAN, a frequência média observada, a quantidade média, mínima e máxima de pontos por lote, o intervalo entre lotes, o tempo médio de despacho e a espera média na fila de rádio. Esses campos permitem verificar se os cenários com \texttt{linger\_ms = 100} de fato agruparam temporalmente amostras e se os cenários com \texttt{linger\_ms = 0} operaram próximos ao envio amostra a amostra.
-
-A instrumentação \texttt{MEASURE} acrescentou as linhas \texttt{WCAN\_MEASURES}, com tempo decorrido, memória \emph{heap} livre no início e no fim do ensaio, mínimos de \emph{heap} observados, maior bloco livre, tempo total estimado de \emph{airtime}, total de pacotes enviados e total de falhas de envio do sensor. Essas medidas foram coletadas para apoiar a análise posterior de custo operacional das variantes, sem misturar no capítulo metodológico a interpretação dos resultados.
-
-Além das métricas de entrega, o analisador verificou condições de validade do ensaio, como presença de \texttt{WCAN\_TEST\_END}, ocorrência de \texttt{WCAN\_TEST\_ABORT}, mensagens de \emph{panic} ou \emph{reset}, cumprimento dos filtros da suíte \texttt{active\_filter} e compatibilidade entre a frequência observada e a frequência configurada. Para as frequências fixas e mistas, a tolerância definida em \texttt{tests.yaml} foi de 5\%. 
+Além da entrega, foram coletadas falhas observadas no caminho de transmissão,
+comportamento de agrupamento temporal, frequência média observada, estatísticas
+de lote, tempo estimado de \emph{airtime}, falhas de envio do sensor e métricas
+de memória \emph{heap}. O analisador também verificou condições de validade do
+ensaio, como encerramento normal da execução, abortos, mensagens de \emph{panic}
+ou \emph{reset}, cumprimento dos filtros da suíte \texttt{active\_filter} e
+compatibilidade entre a frequência observada e a frequência configurada. Para as
+frequências fixas e mistas, a tolerância definida para essa comparação foi de
+5\%. Os arquivos produzidos pela campanha, os detalhes de automação, o protocolo
+UART e a estrutura dos \emph{logs} são registrados no
+Apêndice~\ref{appendix:full-run}.

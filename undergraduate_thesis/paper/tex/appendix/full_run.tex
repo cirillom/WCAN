@@ -1,14 +1,27 @@
 Este apêndice registra onde estão os dados usados para sustentar a análise
-quantitativa do Capítulo~\ref{chapter:resultados-testes}. A campanha
-\texttt{final} corresponde à rodada consolidada de testes executada com a versão
-do \emph{firmware} analisada nesta monografia. No repositório local, os artefatos estão
-em \path{transmitter/testing/results/final}\footnote{Disponível em: \url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final}.}.
+quantitativa do Capítulo~\ref{chapter:resultados-testes} e reúne os detalhes
+operacionais da campanha experimental. A campanha \texttt{final} corresponde à
+rodada consolidada de testes executada com a versão do \emph{firmware} analisada
+nesta monografia. No repositório local, os artefatos estão em
+\path{transmitter/testing/results/final}\footnote{Disponível em:
+\url{https://github.com/cirillom/WCAN/tree/thesis-final/transmitter/testing/results/final}.}.
 
 A pasta contém o plano de execução, a configuração das placas, a configuração das
-suítes, o resumo produzido pelo \emph{runner}, o relatório consolidado do analisador e
-os \emph{logs} seriais de cada placa. Cada execução possui um \texttt{scenario.json} e
-um conjunto de \emph{logs} separados por papel e porta serial. Essa organização permite
-recalcular as métricas agregadas e inspecionar manualmente casos reprovados.
+suítes, o resumo produzido pelo \emph{runner}, o relatório consolidado do
+analisador e os \emph{logs} seriais de cada placa. Cada execução possui um
+\texttt{scenario.json} e um conjunto de \emph{logs} separados por papel e porta
+serial. Essa organização permite recalcular as métricas agregadas e inspecionar
+manualmente casos reprovados.
+
+\section{Configuração e Plano de Execução}
+
+O arquivo \texttt{boards.yaml} descreve o inventário físico da bancada, incluindo
+porta serial, tipo de chip e identificador CAN inicial de cada placa. O arquivo
+\texttt{tests.yaml} define as suítes, frequências, duração, repetições,
+transportes, valor de \texttt{linger\_ms} e quantidade de identificadores CAN por
+sensor. Antes da execução, o \emph{runner} gera \texttt{run\_plan.json}; para
+cada ensaio, também é gerado um \texttt{scenario.json} com a topologia, os papéis
+atribuídos às placas, os filtros esperados e os parâmetros enviados por UART.
 
 Na campanha final, o arquivo \texttt{run\_plan.json} registra 684 execuções
 planejadas, distribuídas entre as variantes \texttt{BROADCAST} e
@@ -19,7 +32,94 @@ planejadas, distribuídas entre as variantes \texttt{BROADCAST} e
 topologias aprovadas em 354 agrupamentos (330 com duas repetições e 24 de
 execução única em \texttt{mixed\_frequency}), considerando aprovado o agrupamento
 de topologia com ao menos uma repetição bem-sucedida. Para a interpretação do
-protocolo no
-Capítulo~\ref{chapter:resultados-testes}, cinco reprovações por corrupção de
-estatísticas ou \emph{log} serial foram separadas da base útil, resultando em 453
-aprovações sobre 679 execuções interpretáveis.
+protocolo no Capítulo~\ref{chapter:resultados-testes}, cinco reprovações por
+corrupção de estatísticas ou \emph{log} serial foram separadas da base útil,
+resultando em 453 aprovações sobre 679 execuções interpretáveis.
+
+\section{Fluxo de Automação e Protocolo UART}
+
+Os testes usam uma estrutura dedicada em \texttt{wcan\_test}, responsável por
+configurar o papel de cada placa, iniciar a janela de medição, acionar o gerador
+sintético de amostras e imprimir as métricas consumidas pelo analisador. A classe
+\texttt{WcanTestSession} recebe um \texttt{TestConfig}, aguarda o comando
+\texttt{WCAN\_TEST\_START} via UART, reinicia os contadores da camada de
+estatísticas, inicia o \texttt{RampCanSensor} quando a placa atua como sensor,
+mantém o ensaio ativo pelo tempo configurado e, ao final, para o sensor, drena o
+transceptor, imprime as estatísticas e sinaliza \texttt{WCAN\_TEST\_END} para o
+computador de testes. Como a sessão opera sobre uma referência para
+\texttt{TransceiverBase}, o mesmo fluxo de teste é usado para as variantes
+\emph{broadcast} e \emph{multicast}; a diferença entre elas fica encapsulada na
+implementação do transceptor escolhida em tempo de compilação.
+
+No \emph{firmware}, \texttt{main.cpp} atua como camada de inicialização. A função
+\texttt{app\_main} aguarda a configuração de \emph{boot} via UART, inicializa NVS
+e Wi-Fi quando a placa participa do teste e instancia o \texttt{Transceiver} de
+acordo com o papel recebido. Em sensores, o transceptor é criado com a lista de
+identificadores CAN de transmissão e com o \texttt{linger\_ms} do cenário. Em
+receptores, o transceptor é criado com a lista de identificadores CAN aceitos
+quando a filtragem ativa está habilitada. Placas ociosas apenas aguardam o
+comando de início e encerram a execução, permitindo que a matriz use subconjuntos
+da bancada sem alterar o \emph{firmware}.
+
+A sincronização entre \emph{host} e placas é feita por um protocolo textual
+simples em UART. Ao iniciar, cada placa imprime \texttt{WCAN\_CFG\_WAIT v=1}; o
+\emph{runner} envia uma linha de configuração com papel, transporte, duração,
+frequência, identificador CAN inicial, quantidade de identificadores CAN,
+\texttt{linger\_ms} e filtros; o \emph{firmware} responde
+\texttt{WCAN\_CFG\_ACK} quando a configuração é aceita. Depois que todas as
+placas do cenário estão prontas, o \emph{host} envia \texttt{WCAN\_TEST\_START}.
+Durante o teste, sensores usam \texttt{RampCanSensor}, que gera um contador
+monotônico por \texttt{esp\_timer} periódico e chama \texttt{send\_data} para
+cada identificador CAN configurado. Ao final da janela, o \emph{firmware} drena
+o transceptor, imprime as métricas coletadas e encerra com
+\texttt{WCAN\_TEST\_END}; abortos são registrados como
+\texttt{WCAN\_TEST\_ABORT}.
+
+\section{Estrutura dos Logs e Métricas}
+
+A medição fica concentrada na hierarquia \texttt{Stats}. A classe base define os
+pontos de instrumentação e, quando a \emph{build} é compilada com
+\texttt{MEASURE}, \texttt{make\_stats()} retorna a implementação
+\texttt{MeasuredStats}. Essa implementação registra eventos de recepção,
+\emph{airtime}, agrupamento temporal, despacho de lotes e falhas de envio do
+sensor. Para reduzir a pressão sobre a UART, os contadores recebidos e as falhas
+são compactados em intervalos, como \texttt{R(RANGE)} e \texttt{S(FAIL)}, em vez
+de imprimir uma linha para cada amostra individual. As estatísticas de lote e de
+memória são emitidas ao final da execução por meio de \texttt{WCAN\_BATCH} e
+\texttt{WCAN\_MEASURES}.
+
+No lado sensor, a linha \texttt{WCAN\_SENSOR\_END} informa o último contador
+gerado e a frequência média observada. No lado receptor, as linhas
+\texttt{R(RANGE)} registram intervalos de contadores aceitos para cada
+identificador CAN. O script \texttt{analysis.py} reconstrói os conjuntos de
+contadores transmitidos e recebidos e compara, para cada sensor e identificador
+CAN, o conjunto gerado com a união dos conjuntos recebidos pelos receptores
+esperados.
+
+Falhas observadas no caminho de transmissão também são registradas. As linhas
+\texttt{P(FAIL)} indicam falhas de entrega de pacotes no mecanismo de transporte,
+com destaque para os casos em que o \emph{broadcast} esgota as tentativas de
+envio. As linhas \texttt{S(FAIL)} indicam falhas percebidas pelo gerador de
+sensor ao chamar \texttt{send\_data}. O analisador usa esses registros para
+diferenciar perda de amostras por falha de enfileiramento ou transmissão de perda
+observada apenas no lado receptor.
+
+As linhas \texttt{WCAN\_BATCH} registram, por identificador CAN, a frequência
+média observada, a quantidade média, mínima e máxima de pontos por lote, o
+intervalo entre lotes, o tempo médio de despacho e a espera média na fila de
+rádio. A instrumentação \texttt{MEASURE} acrescenta as linhas
+\texttt{WCAN\_MEASURES}, com tempo decorrido, memória \emph{heap} livre no início
+e no fim do ensaio, mínimos de \emph{heap} observados, maior bloco livre, tempo
+total estimado de \emph{airtime}, total de pacotes enviados e total de falhas de
+envio do sensor.
+
+Essa instrumentação não é neutra. Chamadas a \texttt{esp\_timer\_get\_time()},
+seções críticas protegidas por mutex, atualização de contadores e impressão
+serial consomem CPU, memória e tempo de execução. Por esse motivo, a campanha
+final comparou \emph{broadcast} e \emph{multicast} sob a mesma condição de
+instrumentação, ambas com \texttt{MEASURE} habilitado. Os valores coletados devem
+ser lidos como resultados do sistema medido, não como limite absoluto de uma
+\emph{build} sem coleta. A opção por comprimir intervalos e adiar a maior parte
+das impressões para o encerramento reduz a interferência da medição, mas não a
+elimina; essa interferência faz parte do custo experimental considerado na
+análise.
