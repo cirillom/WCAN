@@ -1,122 +1,28 @@
-\section{Síntese do Trabalho}
+O trabalho demonstrou, em bancada, que uma ponte CAN sem fio baseada em
+ESP-NOW pode estender o sistema de aquisição de dados sem abandonar a organização
+lógica por identificadores CAN. Essa validação não resolve todos os aspectos de
+uso embarcado, mas confirma que a abordagem é tecnicamente plausível para pontos
+de instrumentação em que o cabeamento se torna uma limitação prática.
 
-Este trabalho desenvolveu e avaliou o WCAN, uma camada sem fio baseada em
-ESP-NOW para transportar dados associados a identificadores CAN em um sistema de
-aquisição de dados de Fórmula SAE. O objetivo foi permitir novos pontos de
-medição em regiões onde o cabeamento é difícil ou indesejável, usando o identificador CAN como referência lógica do sinal e evitando dependência de uma rede Wi-Fi
-tradicional.
+A principal leitura técnica é que a viabilidade do WCAN depende da combinação
+entre agrupamento temporal e política de transporte. O agrupamento foi essencial
+para reduzir a pressão sobre o rádio, enquanto o \emph{multicast} se mostrou a
+alternativa mais favorável para múltiplos fluxos por remover parte da
+coordenação do caminho crítico. Dessa forma, o resultado do trabalho não é apenas
+a implementação de um enlace sem fio, mas a identificação das condições em que
+esse enlace passa a operar com margem útil para aquisição de dados.
 
-O objetivo foi cumprido em bancada. A implementação demonstrou operação sem
-associação prévia, papéis configuráveis, filtragem por identificador CAN, anéis
-\texttt{RingBuffer} de transmissão e recepção, agrupamento temporal por
-\texttt{linger\_ms}, tarefas separadas de envio e recepção, e duas variantes de
-transporte selecionadas em tempo de compilação. Essa validação não transforma o
-WCAN em substituto do CAN físico para controle crítico, mas sustenta seu uso como
-ponte de aquisição sem fio e como base para validação embarcada.
+As dificuldades observadas delimitam o alcance da solução. O envio amostra a
+amostra expôs rapidamente os limites do caminho ESP-NOW, e a confirmação no
+nível MAC adotada no \emph{multicast} não equivale à confirmação de
+processamento pela aplicação remota. Por isso, o WCAN deve ser entendido como
+ponte de instrumentação, não como substituto do CAN físico em funções críticas
+do veículo, nas quais continuam relevantes as garantias elétricas, temporais e
+de arbitragem do barramento cabeado.
 
-A conclusão experimental deve ser lida pela combinação entre dois eixos: o meio
-de transporte e o agrupamento temporal. O \emph{multicast} com agrupamento
-aprovou 100,0\% das execuções úteis (249/249), enquanto o \emph{broadcast} com
-agrupamento aprovou 66,4\% (166/250). Sem agrupamento, os dois meios perderam
-margem: o \emph{multicast} aprovou 22,2\% (20/90) e o \emph{broadcast},
-20,0\% (18/90). Assim, o resultado central não é apenas que um transporte foi
-melhor que o outro, mas que o WCAN depende da combinação entre \emph{multicast}
-e formação de lotes para manter margem operacional em frequências mais altas.
-
-As suítes da campanha detalham essa leitura, mas não mudam seu eixo principal. A
-\texttt{baseline} funciona como controle de sanidade com um identificador CAN por sensor. A
-\texttt{multiple} é o cenário mais representativo do uso esperado, pois um nó real
-tende a publicar vários identificadores; nela, o \emph{multicast} com lotes
-aprovou 100\% (90/90) das execuções, enquanto o \emph{broadcast} aprovou 37,8\% (34/90). A
-\texttt{active\_filter} mostrou que a filtragem por identificador CAN funciona sem entrega
-indevida a receptores não interessados, e a \texttt{mixed\_frequency} mostrou que
-frequências heterogêneas podem coexistir na bancada. Essas suítes, portanto,
-servem para explicar capacidades e limites específicos; a direção de projeto
-continua sendo \emph{multicast} com agrupamento temporal.
-
-Essa escolha também envolve uma troca de semântica operacional. O \emph{broadcast}
-preserva uma confirmação de aplicação por \texttt{CONTROL\_ID}, mas paga por isso com retransmissões e maior pressão em filas
-quando há muitos fluxos. O \emph{multicast} reduz esse custo ao usar assinaturas
-por identificador CAN e a confirmação de envio no nível MAC reportada pelo ESP-NOW. Essa
-confirmação não prova que a aplicação remota processou o pacote, mas foi a troca
-que permitiu maior vazão mantendo a organização lógica por identificador CAN e a conexão
-inicial imediata. Para o escopo deste trabalho, essa é a alternativa mais
-adequada para avançar rumo à validação no veículo.
-
-\section{Limitações e Trabalhos Futuros}
-
-A primeira limitação é experimental. A campanha foi feita em bancada, com placas
-alimentadas e monitoradas por USB. Esse ambiente foi adequado para comparar
-\emph{firmware}, topologias e transportes, mas não substitui ensaio no veículo. Ainda é
-necessário validar vibração, fixação, encapsulamento, autonomia, posição de
-antenas, interferência eletromagnética, alimentação automotiva e operação
-prolongada durante eventos reais de pista.
-
-A segunda limitação é a integração final com o barramento CAN. O trabalho preservou o identificador CAN,
-separou fluxos por identificador e manteve a semântica esperada para entrega ao
-barramento, mas a campanha de resultados mediu o WCAN principalmente por \emph{logs}. A
-próxima etapa deve usar TWAI em configuração de produção, com reinjeção contínua
-no barramento do veículo, validação de carga CAN, tratamento de erro do
-controlador e verificação de que o restante da rede consome os dados sem mudança
-lógica.
-
-Do ponto de vista de \emph{firmware}, o trabalho futuro não é redesenhar o \emph{multicast},
-mas endurecer sua operação para uso prolongado. A campanha mostrou que essa
-variante foi o melhor caminho quando usada com lotes; portanto, as melhorias devem
-preservar a confirmação operacional no nível MAC e a baixa coordenação que deram
-vazão aos cenários de múltiplos fluxos. Os ajustes esperados estão nas bordas do
-gerenciamento: expiração de assinantes, atualização dinâmica de \emph{peers}, tratamento
-de receptores ausentes, \emph{backoff} de anúncios e critérios claros para continuar em
-\emph{broadcast} quando ainda não houver cadastro. Esses pontos tornam a
-\texttt{management\_task} mais previsível sem alterar a semântica de barramento
-adotada.
-
-Também há trabalho a fazer em memória e instrumentação. As falhas de
-\texttt{real\_time} em alta frequência mostraram saturação do caminho ESP-NOW,
-com erros como \texttt{ESP\_ERR\_ESPNOW\_INTERNAL}; além disso, a própria emissão de dados do \texttt{Stats}
-por UART corrompeu cinco execuções da campanha. Para uma versão
-mais robusta, o caminho crítico deve reduzir alocações dinâmicas, revisar pilha e
-\emph{heap} das \emph{tasks}, pré-alocar \emph{buffers} quando possível e emitir estatísticas por um
-formato menos frágil que texto concorrente em serial.
-
-Outra limitação importante é o padrão de tráfego validado. A implementação já foi
-concebida para permitir que um nó produza e consuma mensagens, pois a separação
-entre identificadores transmitidos e recebidos permite configurar papéis
-bidirecionais no nível da aplicação. A campanha, porém, exercitou principalmente
-comunicação unidirecional, com sensores transmitindo dados livremente para
-receptores. Isso é suficiente para avaliar aquisição sem fio, mas não valida, por
-si só, uma rede CAN completa, na qual diferentes nós podem produzir e consumir
-mensagens em ambos os sentidos durante o mesmo ensaio. Um trabalho futuro deve
-criar cenários bidirecionais de aplicação, com dois ou mais dispositivos
-alternando papéis de produtor e consumidor e trocando dados e controle. Essa
-validação não muda a natureza half-duplex do rádio 802.11, mas aproxima o uso do
-WCAN do comportamento lógico de uma rede CAN, onde os nós compartilham o meio e
-interagem de forma mais simétrica.
-
-Por fim, a preservação temporal merece uma validação específica. A campanha
-mostrou que o WCAN pode transportar sinais até 1000~Hz com agrupamento temporal, mas
-a interpretação temporal acima de 100~Hz depende de frequência regular e da
-reconstrução correta da sequência dentro do lote. Nos ensaios \emph{multicast}
-aprovados a 1000~Hz com agrupamento, os registros indicaram média de 101 amostras
-por pacote, abaixo do limite de 370 pontos admitido pela \emph{build} da campanha,
-baseada em ESP-NOW v2. Isso sugere que a carga útil do pacote ainda não foi o fator limitante
-nessa condição e que frequências maiores podem ser investigadas, desde que essa
-avaliação inclua ocupação do meio, filas, \emph{jitter}, atraso fim a fim, perda
-de borda e sincronização temporal com relógios ou marcadores externos,
-especialmente para sinais de maior conteúdo espectral.
-
-\section{Considerações Finais}
-
-A contribuição principal deste trabalho foi mostrar, por implementação e por
-campanha experimental, que uma ponte CAN sem fio baseada em ESP-NOW é uma
-alternativa viável para aquisição de dados em bancada de Fórmula SAE. O WCAN
-preserva a organização lógica por identificador CAN, permite conexão imediata, suporta
-múltiplos nós e reduz a dependência de cabeamento em pontos de instrumentação
-complexos.
-
-O estado atual mais promissor é o \emph{multicast} com agrupamento temporal. O
-\emph{broadcast} permanece útil como referência de semântica pela simplicidade de transmissão para qualquer receptor interessado, mas a
-campanha mostrou que ele perde margem nos cenários de maior carga. O resultado
-central permanece o mesmo: sem lotes, o ESP-NOW perde margem rapidamente; com
-lotes e \emph{multicast}, o WCAN se torna uma base prática para a próxima etapa
-de validação no veículo.
+Como continuidade natural, o projeto deve avançar da validação em bancada para
+ensaios embarcados no veículo, com integração ao barramento CAN em condição real
+e avaliação da robustez operacional do nó físico em uso prolongado. Essa etapa
+permitirá verificar, no ambiente final de aplicação, os efeitos de montagem,
+alimentação, posicionamento das antenas e interferências sobre a estabilidade da
+aquisição.

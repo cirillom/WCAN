@@ -325,11 +325,77 @@ fixa, e agrupamentos de execução única na suíte \texttt{mixed\_frequency}. E
 escala foi suficiente para revelar gargalos sistemáticos, mas insuficiente para
 estimar eventos raros de perda com intervalo estatístico estreito.
 
+\section{Discussão Geral}
+
+A campanha deve ser lida a partir de dois eixos complementares. O primeiro eixo
+é o mecanismo de agrupamento temporal, isto é, o efeito de reunir várias
+amostras do mesmo identificador CAN em um único pacote. O segundo eixo é a
+política de transporte, especialmente a diferença entre \emph{broadcast} e
+\emph{multicast} quando a carga passa a representar um nó real com múltiplos
+identificadores CAN ativos. Separar esses eixos evita uma leitura genérica da
+taxa global de aprovação e torna mais claro por que algumas configurações
+falham mesmo usando o mesmo \emph{hardware} e o mesmo formato de pacote.
+
+No eixo do agrupamento temporal, a comparação direta entre \texttt{baseline} e
+\texttt{real\_time} mostra o papel dos lotes. Com um identificador CAN por
+sensor e agrupamento temporal, o \emph{multicast} aprovou 90/90 execuções e o
+\emph{broadcast} aprovou 70/88. Sem agrupamento, nas mesmas faixas de 10 Hz a
+1000 Hz, o \emph{multicast} caiu para 20/90 e o \emph{broadcast} para 18/90.
+Portanto, o agrupamento não é apenas uma otimização de implementação: ele muda
+o regime de operação do sistema, pois reduz a taxa efetiva de pacotes ESP-NOW e
+amortiza o custo fixo de acesso ao rádio, das filas, dos \emph{callbacks} e das
+confirmações.
+
+No eixo do transporte, a suíte \texttt{multiple} é o recorte mais representativo,
+porque força cada sensor a publicar três identificadores CAN. Nessa condição, o
+\emph{multicast} aprovou 90/90 execuções, incluindo 36/36 no recorte de 750 Hz e
+1000 Hz. O \emph{broadcast} aprovou 34/90 no total da suíte, o que corresponde a
+37,8\%, e apenas 3/36 nesse mesmo recorte de maior carga. A diferença
+observada decorre da semântica de confirmação: o \emph{broadcast} aguarda ACK de
+aplicação para cada lote e retransmite quando necessário, enquanto o
+\emph{multicast} reduz a coordenação no caminho crítico ao usar assinaturas por
+identificador CAN e confirmação de envio no nível MAC do ESP-NOW.
+
+Essa troca de semântica explica simultaneamente a vantagem e o limite do
+\emph{multicast}. A confirmação no nível MAC não prova que a aplicação remota
+processou o pacote, mas foi suficiente para sustentar a vazão nos cenários de
+aquisição avaliados em bancada. A verificação de entrega foi feita ao final da
+execução, pela comparação entre os contadores gerados pelos sensores e os
+intervalos recebidos pelos receptores. Assim, o \emph{multicast} com agrupamento
+temporal é a configuração mais promissora para a ponte de aquisição, enquanto o
+\emph{broadcast} permanece uma referência útil de semântica, porém com margem
+menor sob alta carga.
+
+Os limites observados também definem o alcance da solução. A campanha foi
+adequada para comparar variantes de \emph{firmware}, topologias e políticas de
+transporte, mas foi executada em bancada, com placas alimentadas e monitoradas
+por USB. Assim, ela não valida vibração, fixação, encapsulamento, autonomia,
+posição de antenas, interferência eletromagnética, alimentação automotiva nem
+operação prolongada no veículo. Além disso, parte das falhas veio da própria
+instrumentação por \emph{log} serial, o que reforça que a medição também precisa
+ser endurecida antes de uso embarcado contínuo.
+
+Em relação aos requisitos, os resultados demonstram viabilidade para aquisição
+de dados: os identificadores CAN foram preservados como referência lógica, os
+filtros por interesse funcionaram, topologias com múltiplos sensores e
+receptores foram exercitadas e a transmissão sem conexão prévia foi mantida. O
+requisito de desempenho e latência, porém, permanece parcial, porque a operação
+em alta frequência depende do agrupamento temporal e da reconstrução correta da
+sequência dentro do lote. Essa viabilidade não equivale a substituir o CAN
+físico em funções críticas: arbitragem elétrica, CRC, ACK do barramento e
+tolerância a falhas de uma rede CAN de controle continuam sendo propriedades do
+trecho cabeado e devem permanecer fora do enlace sem fio até que haja validação
+específica para esse tipo de uso.
+
 \section{Rastreabilidade dos Requisitos}
 
-A Tabela~\ref{tab:rastreabilidade-requisitos} retoma os requisitos da
-Tabela~\ref{tab:requisitos-identificados} para indicar qual foi
-cumprido, em que medida e com base em qual evidência.
+A análise dos resultados encerra a verificação experimental dos objetivos do
+trabalho: os requisitos foram caracterizados no desenvolvimento, a solução foi
+implementada mantendo identificadores CAN como referência lógica, e a campanha em
+bancada delimitou as condições de operação observadas. A
+Tabela~\ref{tab:rastreabilidade-requisitos} retoma os requisitos da
+Tabela~\ref{tab:requisitos-identificados} para indicar qual foi cumprido, em
+que medida e com base em qual evidência.
 
 \begin{center}
 \scriptsize
